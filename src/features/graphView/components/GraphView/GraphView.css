@@ -1,0 +1,12 @@
+.graphViewContainer {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  gap: 1rem;
+}
+
+.graphViewItem {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}

@@ -7,6 +7,7 @@ import LanguageComponent from "./features/language/LanguageComponent";
 import GearButton from "./features/import/GearButton";
 import { useAppSelector } from "./app/hooks";
 import { selectTeacherMode } from "./features/teacherMode/teacherModeslice";
+//import GraphView from "./features/graphView/components/GraphView/GraphView";
 
 function App() {
   const teacherMode = useAppSelector(selectTeacherMode);
@@ -17,8 +18,8 @@ function App() {
         {teacherMode === false
           ? " Off"
           : teacherMode === true
-          ? " On"
-          : " Undefined"}
+            ? " On"
+            : " Undefined"}
         <Row>
           <Col>
             <LanguageComponent />
@@ -29,6 +30,9 @@ function App() {
             <FormulaCard />
           </Col>
         </Row>
+        {/* <Row> */}
+        {/*   <GraphView /> */}
+        {/* </Row> */}
       </Container>
     </>
   );

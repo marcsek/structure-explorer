@@ -25,6 +25,7 @@ export interface StructureState {
   iC: Record<string, InterpretationState>;
   iP: Record<string, InterpretationState>;
   iF: Record<string, InterpretationState>;
+  parsedDomain: string[];
 }
 
 const initialState: StructureState = {
@@ -32,6 +33,7 @@ const initialState: StructureState = {
   iC: {},
   iP: {},
   iF: {},
+  parsedDomain: [],
 };
 
 export const structureSlice = createSlice({
@@ -41,6 +43,7 @@ export const structureSlice = createSlice({
     importStructureState: (_state, action: PayloadAction<string>) => {
       return JSON.parse(action.payload);
     },
+
     updateDomain: (state, action: PayloadAction<string>) => {
       state.domain.text = action.payload;
     },
@@ -51,7 +54,7 @@ export const structureSlice = createSlice({
 
     updateInterpretationConstants: (
       state,
-      action: PayloadAction<{ key: string; value: string }>
+      action: PayloadAction<{ key: string; value: string }>,
     ) => {
       const { key, value } = action.payload;
       if (state.iC[key] === undefined) {
@@ -63,7 +66,7 @@ export const structureSlice = createSlice({
 
     lockInterpretationConstants: (
       state,
-      action: PayloadAction<{ key: string }>
+      action: PayloadAction<{ key: string }>,
     ) => {
       const { key } = action.payload;
       if (state.iC[key] === undefined) {
@@ -75,7 +78,7 @@ export const structureSlice = createSlice({
 
     updateInterpretationPredicates: (
       state,
-      action: PayloadAction<{ key: string; value: string }>
+      action: PayloadAction<{ key: string; value: string }>,
     ) => {
       const { key, value } = action.payload;
       if (state.iP[key] === undefined) {
@@ -87,7 +90,7 @@ export const structureSlice = createSlice({
 
     lockInterpretationPredicates: (
       state,
-      action: PayloadAction<{ key: string }>
+      action: PayloadAction<{ key: string }>,
     ) => {
       const { key } = action.payload;
       if (state.iP[key] === undefined) {
@@ -99,7 +102,7 @@ export const structureSlice = createSlice({
 
     updateFunctionSymbols: (
       state,
-      action: PayloadAction<{ key: string; value: string }>
+      action: PayloadAction<{ key: string; value: string }>,
     ) => {
       const { key, value } = action.payload;
       if (state.iF[key] === undefined) {
@@ -168,7 +171,7 @@ export const selectParsedDomain = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 
 export const selectParsedConstant = createSelector(
@@ -188,7 +191,7 @@ export const selectParsedConstant = createSelector(
     }
 
     return { parsed: constant.text };
-  }
+  },
 );
 
 export const selectParsedPredicate = createSelector(
@@ -215,7 +218,7 @@ export const selectParsedPredicate = createSelector(
         if (tuple.length !== arity) {
           const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
           err = new Error(
-            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}`
+            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}`,
           );
           return;
         }
@@ -245,7 +248,7 @@ export const selectParsedPredicate = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 
 function getAllPossibleCombinations(arr: string[], size: number): string[][] {
@@ -290,7 +293,7 @@ export const selectParsedFunction = createSelector(
         const actualSize = all[0].length === 1 ? "elements" : `${arity}-tuples`;
         return {
           error: new Error(
-            `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`
+            `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`,
           ),
         };
       }
@@ -305,7 +308,7 @@ export const selectParsedFunction = createSelector(
         if (arity !== undefined && tuple.length != arity + 1) {
           const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
           err = new Error(
-            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}. Format is: (n-elements,mapped_element)`
+            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}. Format is: (n-elements,mapped_element)`,
           );
           return;
         }
@@ -331,18 +334,18 @@ export const selectParsedFunction = createSelector(
             const actual_size =
               tuple.length === 1 ? "element" : `${arity}-tuple`;
             err = new Error(
-              `${actual_size} (${tuple}) has already defined value.`
+              `${actual_size} (${tuple}) has already defined value.`,
             );
           }
         });
 
         if (
           all.filter(
-            (i) => JSON.stringify(i) === JSON.stringify(tuple.slice(0, -1))
+            (i) => JSON.stringify(i) === JSON.stringify(tuple.slice(0, -1)),
           ).length === 1
         ) {
           all = all.filter(
-            (i) => JSON.stringify(i) !== JSON.stringify(tuple.slice(0, -1))
+            (i) => JSON.stringify(i) !== JSON.stringify(tuple.slice(0, -1)),
           );
           examples = all.slice(0, 3).map((element) => `(${element.join(",")})`);
         }
@@ -354,7 +357,7 @@ export const selectParsedFunction = createSelector(
         const actual_size =
           all[0].length === 1 ? "elements" : `${arity}-tuples`;
         err = new Error(
-          `Function is not fully defined, for example these ${actual_size} do not have assigned value: ${examplePrints}`
+          `Function is not fully defined, for example these ${actual_size} do not have assigned value: ${examplePrints}`,
         );
       }
 
@@ -366,7 +369,7 @@ export const selectParsedFunction = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 
 export const selectStructureErrors = createSelector(
@@ -399,7 +402,7 @@ export const selectStructureErrors = createSelector(
     }
 
     return true;
-  }
+  },
 );
 
 export const selectStructure = createSelector(
@@ -409,9 +412,9 @@ export const selectStructure = createSelector(
     const usedPredicates = language.predicates;
     const usedFunctions = language.functions;
 
-    let iC = new Map<Symbol, DomainElement>();
-    let iP = new Map<Symbol, Set<DomainElement[]>>();
-    let iF = new Map<Symbol, Map<DomainElement[], DomainElement>>();
+    const iC = new Map<Symbol, DomainElement>();
+    const iP = new Map<Symbol, Set<DomainElement[]>>();
+    const iF = new Map<Symbol, Map<DomainElement[], DomainElement>>();
 
     usedConstants.forEach((name) => {
       const value = selectParsedConstant(state, name).parsed ?? "";
@@ -426,7 +429,7 @@ export const selectStructure = createSelector(
     usedFunctions.forEach((_, name) => {
       const valuation = selectParsedFunction(state, name).parsed ?? [[]];
 
-      let map = new Map<DomainElement[], DomainElement>();
+      const map = new Map<DomainElement[], DomainElement>();
 
       valuation.forEach((value) => {
         map.set(value.slice(0, -1), value.slice(-1)[0]);
@@ -436,7 +439,7 @@ export const selectStructure = createSelector(
     });
 
     return new Structure(language, new Set(domain.parsed ?? []), iC, iP, iF);
-  }
+  },
 );
 
 export default structureSlice.reducer;

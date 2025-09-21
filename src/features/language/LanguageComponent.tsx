@@ -12,7 +12,6 @@ import {
   selectPredicatesText,
   updateConstants,
   updateFunctions,
-  updatePredicates,
   selectSymbolsClash,
   selectConstantsLock,
   selectPredicatesLock,
@@ -20,6 +19,7 @@ import {
   lockPredicates,
   lockConstants,
   lockFunctions,
+  updatePredicates,
 } from "./languageSlice";
 
 const help = (

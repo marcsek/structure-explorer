@@ -107,7 +107,7 @@ export const selectParsedConstants = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 export const selectParsedPredicates = createSelector(
   [selectPredicatesText],
@@ -133,7 +133,7 @@ export const selectParsedPredicates = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 
 export const selectParsedFunctions = createSelector(
@@ -160,7 +160,7 @@ export const selectParsedFunctions = createSelector(
 
       throw error;
     }
-  }
+  },
 );
 
 export const selectSymbolsClash = createSelector(
@@ -192,7 +192,7 @@ export const selectSymbolsClash = createSelector(
     });
 
     return err;
-  }
+  },
 );
 
 export const selectLanguage = createSelector(
@@ -201,7 +201,7 @@ export const selectLanguage = createSelector(
     return new Language(
       constants.parsed ?? new Set(),
       predicates.parsed ?? new Map(),
-      functions.parsed ?? new Map()
+      functions.parsed ?? new Map(),
     );
-  }
+  },
 );

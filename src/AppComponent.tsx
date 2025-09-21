@@ -23,7 +23,7 @@ export function prepare(initialState?: any): PrepareResult {
         variables: storeState.variables,
       },
       null,
-      2
+      2,
     );
   };
 

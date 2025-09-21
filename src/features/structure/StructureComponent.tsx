@@ -5,10 +5,8 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
   selectDomain,
-  updateDomain,
   selectParsedDomain,
   updateInterpretationConstants,
-  updateInterpretationPredicates,
   selectIcName,
   selectParsedConstant,
   updateFunctionSymbols,
@@ -20,6 +18,8 @@ import {
   lockInterpretationConstants,
   lockInterpretationPredicates,
   lockFunctionSymbols,
+  updateInterpretationPredicates,
+  updateDomain,
 } from "./structureSlice";
 import {
   selectParsedConstants,
@@ -28,6 +28,8 @@ import {
 } from "../language/languageSlice";
 
 import InterpretationInput from "./InterpretationInput";
+import GraphView from "../graphView/components/GraphView/GraphView";
+import { useState } from "react";
 
 const help = (
   <>
@@ -87,6 +89,8 @@ export default function StructureComponent() {
   const predicates = useAppSelector(selectParsedPredicates);
   const functions = useAppSelector(selectParsedFunctions);
 
+  const [selectedGraphViews, setSelectedGraphViews] = useState<string[]>([]);
+
   return (
     <>
       <Card className="mb-3">
@@ -131,7 +135,7 @@ export default function StructureComponent() {
                   updateInterpretationConstants({
                     key: name,
                     value: e.target.value,
-                  })
+                  }),
                 );
               }}
               locker={() => {
@@ -142,30 +146,42 @@ export default function StructureComponent() {
           {predicates.parsed && predicates.parsed.size > 0 && (
             <h3 className="h6">Predicates interpretation</h3>
           )}
-          {Array.from(predicates.parsed ?? []).map(([name, _], index) => (
-            <InterpretationInput
-              name={name}
-              id={`predicate-${index}`}
-              key={`predicate-${index}`}
-              selector={selectIpName}
-              parser={selectParsedPredicate}
-              onChange={(e) => {
-                dispatch(
-                  updateInterpretationPredicates({
-                    key: name,
-                    value: e.target.value,
+          {Array.from(predicates.parsed ?? []).map(([name], index) => (
+            <>
+              <InterpretationInput
+                name={name}
+                id={`predicate-${index}`}
+                key={`predicate-${index}`}
+                selector={selectIpName}
+                parser={selectParsedPredicate}
+                toggleGraphView={() =>
+                  setSelectedGraphViews((prev) => {
+                    if (prev.includes(name))
+                      return prev.filter((n) => n !== name);
+                    return [...prev, name];
                   })
-                );
-              }}
-              locker={() =>
-                dispatch(lockInterpretationPredicates({ key: name }))
-              }
-            ></InterpretationInput>
+                }
+                locker={() =>
+                  dispatch(lockInterpretationPredicates({ key: name }))
+                }
+                onChange={(e) => {
+                  dispatch(
+                    updateInterpretationPredicates({
+                      key: name,
+                      value: e.target.value,
+                    }),
+                  );
+                }}
+              ></InterpretationInput>
+              {selectedGraphViews.includes(name) && (
+                <GraphView predName={name} />
+              )}
+            </>
           ))}
           {functions.parsed && functions.parsed.size > 0 && (
             <h3 className="h6">Functions interpretation</h3>
           )}
-          {Array.from(functions.parsed ?? []).map(([from, _], index) => (
+          {Array.from(functions.parsed ?? []).map(([from], index) => (
             <InterpretationInput
               name={from}
               id={`function-${index}`}
@@ -176,7 +192,7 @@ export default function StructureComponent() {
                   updateFunctionSymbols({
                     key: from,
                     value: e.target.value,
-                  })
+                  }),
                 );
               }}
               parser={selectParsedFunction}

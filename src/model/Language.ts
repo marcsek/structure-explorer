@@ -12,7 +12,7 @@ export class Language {
   constructor(
     public constants: Set<Symbol>,
     public predicates: Map<Symbol, number>,
-    public functions: Map<Symbol, number>
+    public functions: Map<Symbol, number>,
   ) {}
 
   /**
@@ -23,7 +23,7 @@ export class Language {
    */
 
   getParserLanguage(): ParserLanguage {
-    let nonLogicalSymbols = new Set([
+    const nonLogicalSymbols = new Set([
       ...this.constants,
       ...this.functions.keys(),
       ...this.predicates.keys(),
@@ -41,7 +41,7 @@ export class Language {
   checkFunctionArity(
     symbol: string,
     args: Term[],
-    ee: { expected: (arg0: string) => void }
+    ee: { expected: (arg0: string) => void },
   ) {
     const a = this.functions.get(symbol);
 
@@ -53,7 +53,7 @@ export class Language {
   checkPredicateArity(
     symbol: string,
     args: Term[],
-    ee: { expected: (arg0: string) => void }
+    ee: { expected: (arg0: string) => void },
   ) {
     const a = this.predicates.get(symbol);
 
