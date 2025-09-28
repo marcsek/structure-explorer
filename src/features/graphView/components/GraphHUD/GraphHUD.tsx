@@ -6,10 +6,14 @@ export default function GraphHUD({
   id,
   type,
   typeSelected,
+  isFullscreen,
+  fullScreenToggled,
 }: {
   id: string;
   type: GraphType;
   typeSelected: (type: GraphType) => void;
+  isFullscreen: boolean;
+  fullScreenToggled: () => void;
 }) {
   return (
     <div
@@ -49,6 +53,9 @@ export default function GraphHUD({
       </div>
       <PredicateSelector id={id} type={type} />
       <NodeSelector id={id} type={type} />
+      <button onClick={() => fullScreenToggled()}>
+        {isFullscreen ? "Empty Screen ?" : "Full Screen"}
+      </button>
     </div>
   );
 }

@@ -13,6 +13,7 @@ type SelectedType = "oriented" | "hasse" | "bipartite";
 
 export default function GraphView({ predName }: { predName: string }) {
   const [selectedType, setSelectedType] = useState<SelectedType>("oriented");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const graphComponents: Record<
     SelectedType,
@@ -25,13 +26,16 @@ export default function GraphView({ predName }: { predName: string }) {
 
   const GraphComponent = graphComponents[selectedType];
 
+  console.log(isFullscreen);
   return (
-    <div className="graphViewContainer">
+    <div className={"graphViewContainer " + (isFullscreen ? "fullscreen" : "")}>
       <div className="graphViewItem" key={predName}>
         <GraphHUD
           id={predName}
           type={selectedType}
           typeSelected={setSelectedType}
+          isFullscreen={isFullscreen}
+          fullScreenToggled={() => setIsFullscreen((prev) => !prev)}
         />
         <GraphInfoContext.Provider value={{ id: predName, type: selectedType }}>
           <ReactFlowProvider>

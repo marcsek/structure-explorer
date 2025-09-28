@@ -1,5 +1,5 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import FormulaCard from "./features/formulas/FormulaCard";
+//import FormulaCard from "./features/formulas/FormulaCard";
 import StructureComponent from "./features/structure/StructureComponent";
 import VariablesComponent from "./features/variables/VariablesComponent";
 import { Col, Container, Row } from "react-bootstrap";
@@ -26,9 +26,9 @@ function App() {
             <StructureComponent />
             <VariablesComponent />
           </Col>
-          <Col>
-            <FormulaCard />
-          </Col>
+          {/* <Col> */}
+          {/*   <FormulaCard /> */}
+          {/* </Col> */}
         </Row>
         {/* <Row> */}
         {/*   <GraphView /> */}

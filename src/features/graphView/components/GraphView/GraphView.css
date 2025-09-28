@@ -10,3 +10,10 @@
   flex-direction: row;
   flex-grow: 1;
 }
+
+.fullscreen {
+  background-color: white;
+  position: fixed;
+  inset: 20px;
+  z-index: 100;
+}
