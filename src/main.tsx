@@ -1,15 +1,17 @@
+import React from "react";
+import ReactDOM from "react-dom";
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App.tsx";
+
+import App from "./App";
 import "katex/dist/katex.min.css";
-import { store } from "./app/store";
+import { createStore } from "./app/store";
 import { Provider } from "react-redux";
 
-createRoot(document.getElementById("root")!).render(
+ReactDOM.render(
   <StrictMode>
-    <Provider store={store}>
+    <Provider store={createStore()}>
       <App />
     </Provider>
-  </StrictMode>
+  </StrictMode>,
+  document.getElementById("root")
 );

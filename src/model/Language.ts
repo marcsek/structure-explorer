@@ -1,25 +1,19 @@
 /**
  * Represent language of logic
  * @author Milan Cifra
+ * @author Jozef Filip
  * @class
  */
-class Language {
-  constants: Set<never>;
-  functions: Map<never, number>;
-  predicates: Map<never, number>;
+import { type Language as ParserLanguage } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import Term from "./term/Term";
+export type Symbol = string;
+
+export class Language {
   constructor(
-    parsedConstants = [],
-    parsedFunctions = [],
-    parsedPredicates = []
-  ) {
-    this.constants = new Set(parsedConstants);
-    this.functions = new Map(
-      parsedFunctions.map(({ name, arity }) => [name, parseInt(arity)])
-    );
-    this.predicates = new Map(
-      parsedPredicates.map(({ name, arity }) => [name, parseInt(arity)])
-    );
-  }
+    public constants: Set<Symbol>,
+    public predicates: Map<Symbol, number>,
+    public functions: Map<Symbol, number>
+  ) {}
 
   /**
    *
@@ -28,66 +22,56 @@ class Language {
    *
    */
 
-  getLanguage() {
+  getParserLanguage(): ParserLanguage {
     let nonLogicalSymbols = new Set([
       ...this.constants,
       ...this.functions.keys(),
       ...this.predicates.keys(),
     ]);
+    console.log(nonLogicalSymbols);
+
     return {
-      isConstant: (symbol: any) => this.constants.has(symbol),
-      isFunction: (symbol: any) => this.functions.has(symbol),
-      isPredicate: (symbol: any) => this.predicates.has(symbol),
-      isVariable: (symbol: any) => !nonLogicalSymbols.has(symbol),
+      isConstant: (symbol: string): boolean => this.constants.has(symbol),
+      isFunction: (symbol: string): boolean => this.functions.has(symbol),
+      isPredicate: (symbol: string): boolean => this.predicates.has(symbol),
+      isVariable: (symbol: string): boolean => !nonLogicalSymbols.has(symbol),
     };
   }
 
   checkFunctionArity(
-    symbol: any,
-    args: string | any[],
+    symbol: string,
+    args: Term[],
     ee: { expected: (arg0: string) => void }
   ) {
     const a = this.functions.get(symbol);
+
     if (args.length !== a) {
       ee.expected(`${a} argument${a == 1 ? "" : "s"} to ${symbol}`);
     }
   }
 
   checkPredicateArity(
-    symbol: any,
-    args: string | any[],
+    symbol: string,
+    args: Term[],
     ee: { expected: (arg0: string) => void }
   ) {
     const a = this.predicates.get(symbol);
+
     if (args.length !== a) {
       ee.expected(`${a} argument${a == 1 ? "" : "s"} to ${symbol}`);
     }
   }
 
-  hasConstant(constantName: any) {
+  hasConstant(constantName: string): boolean {
     return this.constants.has(constantName);
   }
 
-  hasPredicate(predicateName: any) {
-    return this.hasInSet(predicateName, this.predicates);
+  hasPredicate(predicateName: string): boolean {
+    return this.predicates.has(predicateName);
   }
 
-  hasFunction(functionName: any) {
-    return this.hasInSet(functionName, this.functions);
-  }
-
-  hasInSet(elementName: string, givenSet: Map<never, number>) {
-    let splited = elementName.split("/");
-    if (splited.length !== 2) {
-      return givenSet.has(splited[0]);
-    }
-    if (isNaN(parseInt(splited[1]))) {
-      return false;
-    }
-    return (
-      givenSet.has(splited[0]) &&
-      givenSet.get(splited[0]).toString() === splited[1].toString()
-    );
+  hasFunction(functionName: string): boolean {
+    return this.functions.has(functionName);
   }
 
   /**
@@ -95,8 +79,8 @@ class Language {
    * @param {string} predicateName
    * @return {int} arity of the predicate
    */
-  getPredicate(predicateName: any) {
-    return parseInt(this.predicates.get(predicateName));
+  getPredicate(predicateName: string): number {
+    return this.predicates.get(predicateName)!;
   }
 }
 

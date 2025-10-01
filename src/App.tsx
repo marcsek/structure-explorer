@@ -1,27 +1,35 @@
 import "bootstrap/dist/css/bootstrap.min.css";
-import Form from "react-bootstrap/Form";
 import FormulaCard from "./features/formulas/FormulaCard";
-import Language from "./features/language/Language";
-import Structure from "./features/structure/Structure";
-import Variables from "./features/structure/Variables";
-import { Col, Row } from "react-bootstrap";
+import StructureComponent from "./features/structure/StructureComponent";
+import VariablesComponent from "./features/variables/VariablesComponent";
+import { Col, Container, Row } from "react-bootstrap";
+import LanguageComponent from "./features/language/LanguageComponent";
+import GearButton from "./features/import/GearButton";
+import { useAppSelector } from "./app/hooks";
+import { selectTeacherMode } from "./features/teacherMode/teacherModeslice";
 
 function App() {
+  const teacherMode = useAppSelector(selectTeacherMode);
   return (
     <>
-      <Form>
+      <Container fluid>
+        <GearButton /> Teacher mode:
+        {teacherMode === false
+          ? " Off"
+          : teacherMode === true
+          ? " On"
+          : " Undefined"}
         <Row>
           <Col>
-            <Language />
-            <Structure />
-            <Variables />
+            <LanguageComponent />
+            <StructureComponent />
+            <VariablesComponent />
           </Col>
           <Col>
-            <FormulaCard type="formula" help="helper"></FormulaCard>
-            {/* <FormulaCard type="term" help="helper"></FormulaCard> */}
+            <FormulaCard />
           </Col>
         </Row>
-      </Form>
+      </Container>
     </>
   );
 }

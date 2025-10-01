@@ -1,78 +1,133 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "../../app/store";
+import type { RootState } from "../../app/store";
 import {
   parseConstants,
   parsePredicates,
   parseFunctions,
   SyntaxError,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import Language from "../../model/Language";
 
 export interface LanguageState {
-  constants: string;
-  predicates: string;
-  functions: string;
+  constants: { text: string; locked: boolean };
+  predicates: { text: string; locked: boolean };
+  functions: { text: string; locked: boolean };
 }
 
 const initialState: LanguageState = {
-  constants: "",
-  predicates: "",
-  functions: "",
+  constants: {
+    text: "",
+    locked: false,
+  },
+  predicates: {
+    text: "",
+    locked: false,
+  },
+  functions: {
+    text: "",
+    locked: false,
+  },
 };
 
 export const languageSlice = createSlice({
   name: "language",
   initialState,
   reducers: {
+    importLanguageState: (_state, action: PayloadAction<string>) => {
+      return JSON.parse(action.payload);
+    },
+
     updateConstants: (state, action: PayloadAction<string>) => {
-      state.constants = action.payload;
+      state.constants.text = action.payload;
+    },
+
+    lockConstants: (state) => {
+      state.constants.locked = !state.constants.locked;
     },
 
     updatePredicates: (state, action: PayloadAction<string>) => {
-      state.predicates = action.payload;
+      state.predicates.text = action.payload;
+    },
+
+    lockPredicates: (state) => {
+      state.predicates.locked = !state.predicates.locked;
     },
 
     updateFunctions: (state, action: PayloadAction<string>) => {
-      state.functions = action.payload;
+      state.functions.text = action.payload;
+    },
+
+    lockFunctions: (state) => {
+      state.functions.locked = !state.functions.locked;
     },
   },
 });
 
-// Export the generated action creators for use in components
-export const { updateConstants, updatePredicates, updateFunctions } =
-  languageSlice.actions;
+export const {
+  updateConstants,
+  updatePredicates,
+  updateFunctions,
+  importLanguageState,
+  lockConstants,
+  lockFunctions,
+  lockPredicates,
+} = languageSlice.actions;
 
-// Export the slice reducer for use in the store configuration
 export default languageSlice.reducer;
-export const selectConstants = (state: RootState) => state.language.constants;
-export const selectPredicates = (state: RootState) => state.language.predicates;
-export const selectFunctions = (state: RootState) => state.language.functions;
+export const selectConstantsText = (state: RootState) =>
+  state.language.constants.text;
+export const selectConstantsLock = (state: RootState) =>
+  state.language.constants.locked;
+export const selectPredicatesText = (state: RootState) =>
+  state.language.predicates.text;
+export const selectPredicatesLock = (state: RootState) =>
+  state.language.predicates.locked;
+export const selectFunctionsText = (state: RootState) =>
+  state.language.functions.text;
+export const selectFunctionsLock = (state: RootState) =>
+  state.language.functions.locked;
 
 export const selectParsedConstants = createSelector(
-  [selectConstants],
+  [selectConstantsText],
   (constants) => {
     try {
       const parsed = parseConstants(constants);
+      parsed.forEach((element) => {
+        if (parsed.filter((element2) => element === element2).length > 1) {
+          throw new Error(`Constant ${element} is already defined`);
+        }
+      });
 
-      return { parsed: parsed };
+      return { parsed: new Set(parsed) };
     } catch (error) {
-      if (error instanceof SyntaxError) {
+      if (error instanceof SyntaxError || error instanceof Error) {
         return { error: error };
       }
+
       throw error;
     }
   }
 );
 export const selectParsedPredicates = createSelector(
-  [selectPredicates],
+  [selectPredicatesText],
   (predicates) => {
     try {
-      const parsed = new Map(
-        parsePredicates(predicates).map(({ name, arity }) => [name, arity])
-      );
-      return { parsed };
+      const parsed = parsePredicates(predicates);
+
+      parsed.forEach((element) => {
+        if (
+          parsed.filter((element2) => element.name === element2.name).length > 1
+        ) {
+          throw new Error(`Predicate ${element.name} is already defined`);
+        }
+      });
+
+      return {
+        parsed: new Map(parsed.map(({ name, arity }) => [name, arity])),
+      };
     } catch (error) {
-      if (error instanceof SyntaxError) {
+      if (error instanceof SyntaxError || error instanceof Error) {
         return { error: error };
       }
 
@@ -82,16 +137,24 @@ export const selectParsedPredicates = createSelector(
 );
 
 export const selectParsedFunctions = createSelector(
-  [selectFunctions],
+  [selectFunctionsText],
   (functions) => {
     try {
-      const parsed = new Map(
-        parseFunctions(functions).map(({ name, arity }) => [name, arity])
-      );
+      const parsed = parseFunctions(functions);
 
-      return { parsed: parsed };
+      parsed.forEach((element) => {
+        if (
+          parsed.filter((element2) => element.name === element2.name).length > 1
+        ) {
+          throw new Error(`Function ${element.name} is already defined`);
+        }
+      });
+
+      return {
+        parsed: new Map(parsed.map(({ name, arity }) => [name, arity])),
+      };
     } catch (error) {
-      if (error instanceof SyntaxError) {
+      if (error instanceof SyntaxError || error instanceof Error) {
         return { error: error };
       }
 
@@ -109,39 +172,36 @@ export const selectSymbolsClash = createSelector(
     if (!funcs.parsed) return "";
 
     const constants = consts.parsed;
-    const predicates = Array.from(preds.parsed).map((name) => name[0]);
-    const functions = Array.from(funcs.parsed).map((name) => name[0]);
+    const predicates = new Set(preds.parsed.keys());
+    const functions = new Set(funcs.parsed.keys());
 
     constants.forEach((element) => {
-      if (predicates.includes(element)) {
-        err = `Constant ${element} is already defined in predicates`;
+      if (preds.parsed.has(element)) {
+        err = `Constant ${element} is also defined in predicates`;
       }
 
-      if (functions.includes(element)) {
-        err = `Constant ${element} is already defined in functions`;
-      }
-
-      if (constants.filter((element2) => element2 === element).length > 1) {
-        err = `Constant ${element} is already defined in constants`;
+      if (funcs.parsed.has(element)) {
+        err = `Constant ${element} is also defined in functions`;
       }
     });
 
     predicates.forEach((element) => {
-      if (functions.includes(element)) {
-        err = `Predicate ${element} is already defined in functions`;
-      }
-
-      if (predicates.filter((element2) => element2 === element).length > 1) {
-        err = `Predicate ${element} is already defined in predicates`;
-      }
-    });
-
-    functions.forEach((element) => {
-      if (functions.filter((element2) => element2 === element).length > 1) {
-        err = `Function ${element} is already defined in functions`;
+      if (functions.has(element)) {
+        err = `Predicate ${element} is also defined in functions`;
       }
     });
 
     return err;
+  }
+);
+
+export const selectLanguage = createSelector(
+  [selectParsedConstants, selectParsedPredicates, selectParsedFunctions],
+  (constants, predicates, functions) => {
+    return new Language(
+      constants.parsed ?? new Set(),
+      predicates.parsed ?? new Map(),
+      functions.parsed ?? new Map()
+    );
   }
 );

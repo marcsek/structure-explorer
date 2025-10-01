@@ -1,4 +1,4 @@
-import { SyntaxError, Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { SyntaxError, type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { Form } from "react-bootstrap";
 
 interface Props {

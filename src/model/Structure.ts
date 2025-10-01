@@ -1,61 +1,73 @@
 /**
  * Represent components_parts
  * @author Milan Cifra
+ * @author Jozef Filip
  * @class
  */
-class Structure {
-  language: any;
-  domain: Set<unknown>;
-  iC: Map<any, any>;
-  iP: Map<any, any>;
-  iF: Map<any, any>;
+
+import { type Symbol, Language } from "./Language";
+
+export type DomainElement = string;
+
+export type Valuation = Map<Symbol, DomainElement>;
+
+export class Structure {
   /**
    *
    * @param {Language} language
    */
 
   constructor(
-    language: any,
-    parsedDomain: any[],
-    constants: { [x: string]: { value: any } },
-    predicates: { [x: string]: { parsed: any[] } },
-    functions: { [x: string]: { parsed: any[] } }
-  ) {
-    this.language = language;
-    this.domain = new Set();
-    this.iC = new Map();
-    this.iP = new Map();
-    this.iF = new Map();
-    parsedDomain.forEach((i: any) => {
-      this.domain.add(i);
-    });
-    this.language.constants.forEach((c: string | number) => {
-      this.iC.set(c, constants[c].value);
+    public language: Language,
+    public domain: Set<DomainElement>,
+    public iC: Map<Symbol, DomainElement>,
+    public iP: Map<Symbol, Set<DomainElement[]>>,
+    public iF: Map<Symbol, Map<DomainElement[], DomainElement>>
+  ) {}
+
+  iPHas(symbol: Symbol, tuple: DomainElement[]): boolean {
+    const predicateSet = this.iP.get(symbol);
+    if (!predicateSet) return false;
+
+    let has = false;
+    predicateSet.forEach((element) => {
+      if (JSON.stringify(element) === JSON.stringify(tuple)) {
+        has = true;
+        return true;
+      }
     });
 
-    this.language.functions.forEach((arity: string, name: string) => {
-      let functionName = name + "/" + arity;
-      this.iF.set(functionName, {});
-      if (functions[functionName] === undefined) {
-        return;
+    return has;
+  }
+
+  iFHas(symbol: Symbol, tuple: DomainElement[]): boolean {
+    const functionMap = this.iF.get(symbol);
+    if (!functionMap) return false;
+
+    let has = false;
+    functionMap.forEach((_, key) => {
+      if (JSON.stringify(key) === JSON.stringify(tuple)) {
+        has = true;
+        return true;
       }
-      functions[functionName].parsed.forEach((tuple: string | any[]) => {
-        let params = tuple.slice(0, tuple.length - 1);
-        let value = tuple[tuple.length - 1];
-        this.iF.get(functionName)[JSON.stringify(params)] = value;
-      });
     });
 
-    this.language.predicates.forEach((arity: string, name: string) => {
-      let predicateName = name + "/" + arity;
-      this.iP.set(predicateName, []);
-      if (predicates[predicateName] === undefined) {
-        return;
+    return has;
+  }
+
+  iFGet(symbol: Symbol, tuple: DomainElement[]): DomainElement | undefined {
+    const functionMap = this.iF.get(symbol);
+    if (!functionMap) return undefined;
+
+    let element = "";
+    functionMap.forEach((value, key) => {
+      if (JSON.stringify(key) === JSON.stringify(tuple)) {
+        element = value;
+        return true;
       }
-      predicates[predicateName].parsed.forEach((tuple: any) => {
-        this.iP.get(predicateName).push(tuple);
-      });
     });
+
+    return element;
   }
 }
 

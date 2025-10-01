@@ -1,29 +1,34 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { RootState } from "../../app/store";
+import type { RootState } from "../../app/store";
 import {
   parseDomain,
   SyntaxError,
   parseTuples,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import {
+  selectLanguage,
+  selectParsedConstants,
   selectParsedFunctions,
   selectParsedPredicates,
 } from "../language/languageSlice";
+import Structure, { type DomainElement } from "../../model/Structure";
+import type { Symbol } from "../../model/Language";
 
 export interface InterpretationState {
   text: string;
+  locked: boolean;
 }
 
 export interface StructureState {
-  domain: string;
+  domain: { text: string; locked: boolean };
   iC: Record<string, InterpretationState>;
   iP: Record<string, InterpretationState>;
   iF: Record<string, InterpretationState>;
 }
 
 const initialState: StructureState = {
-  domain: "",
+  domain: { text: "", locked: false },
   iC: {},
   iP: {},
   iF: {},
@@ -33,29 +38,84 @@ export const structureSlice = createSlice({
   name: "structure",
   initialState,
   reducers: {
-    updateDomain: (state, action: PayloadAction<string>) => {
-      state.domain = action.payload;
+    importStructureState: (_state, action: PayloadAction<string>) => {
+      return JSON.parse(action.payload);
     },
+    updateDomain: (state, action: PayloadAction<string>) => {
+      state.domain.text = action.payload;
+    },
+
+    lockDomain: (state) => {
+      state.domain.locked = !state.domain.locked;
+    },
+
     updateInterpretationConstants: (
       state,
       action: PayloadAction<{ key: string; value: string }>
     ) => {
       const { key, value } = action.payload;
-      state.iC[key] = { text: value };
+      if (state.iC[key] === undefined) {
+        state.iC[key] = { text: value, locked: false };
+      }
+
+      state.iC[key].text = value;
     },
+
+    lockInterpretationConstants: (
+      state,
+      action: PayloadAction<{ key: string }>
+    ) => {
+      const { key } = action.payload;
+      if (state.iC[key] === undefined) {
+        state.iC[key] = { text: "", locked: false };
+      }
+
+      state.iC[key].locked = !state.iC[key].locked;
+    },
+
     updateInterpretationPredicates: (
       state,
       action: PayloadAction<{ key: string; value: string }>
     ) => {
       const { key, value } = action.payload;
-      state.iP[key] = { text: value };
+      if (state.iP[key] === undefined) {
+        state.iP[key] = { text: value, locked: false };
+      }
+
+      state.iP[key].text = value;
     },
+
+    lockInterpretationPredicates: (
+      state,
+      action: PayloadAction<{ key: string }>
+    ) => {
+      const { key } = action.payload;
+      if (state.iP[key] === undefined) {
+        state.iP[key] = { text: "", locked: false };
+      }
+
+      state.iP[key].locked = !state.iP[key].locked;
+    },
+
     updateFunctionSymbols: (
       state,
       action: PayloadAction<{ key: string; value: string }>
     ) => {
       const { key, value } = action.payload;
-      state.iF[key] = { text: value };
+      if (state.iF[key] === undefined) {
+        state.iF[key] = { text: value, locked: false };
+      }
+
+      state.iF[key].text = value;
+    },
+
+    lockFunctionSymbols: (state, action: PayloadAction<{ key: string }>) => {
+      const { key } = action.payload;
+      if (state.iF[key] === undefined) {
+        state.iF[key] = { text: "", locked: false };
+      }
+
+      state.iF[key].locked = !state.iF[key].locked;
     },
   },
 });
@@ -65,65 +125,54 @@ export const {
   updateInterpretationConstants,
   updateInterpretationPredicates,
   updateFunctionSymbols,
+  importStructureState,
+  lockDomain,
+  lockInterpretationConstants,
+  lockInterpretationPredicates,
+  lockFunctionSymbols,
 } = structureSlice.actions;
 
 export const selectDomain = (state: RootState) => state.structure.domain;
+export const selectDomainText = (state: RootState) =>
+  state.structure.domain.text;
+export const selectDomainLock = (state: RootState) =>
+  state.structure.domain.locked;
 
 export const selectIc = (state: RootState) => state.structure.iC;
-export const selectIndividualConstant = (state: RootState, name: string) =>
+export const selectIcName = (state: RootState, name: string) =>
   state.structure.iC[name];
 
 export const selectIp = (state: RootState) => state.structure.iP;
-export const selectPredicateSymbol = (state: RootState, name: string) => {
-  return { interpretation: state.structure.iP[name], name: name };
-};
+export const selectIpName = (state: RootState, name: string) =>
+  state.structure.iP[name];
 
 export const selectIf = (state: RootState) => state.structure.iF;
-export const selectFunctionSymbol = (state: RootState, name: string) => {
-  return { interpretation: state.structure.iF[name], name: name };
-};
+export const selectIfName = (state: RootState, name: string) =>
+  state.structure.iF[name];
 
-export const selectParsedDomain = createSelector([selectDomain], (domain) => {
-  try {
-    let parsedDomain = parseDomain(domain);
-    if (parsedDomain.length === 0)
-      return {
-        error: new Error("Domain cannot be empty"),
-      };
+export const selectParsedDomain = createSelector(
+  [selectDomainText],
+  (domain) => {
+    try {
+      let parsedDomain = parseDomain(domain);
+      if (parsedDomain.length === 0)
+        return {
+          error: new Error("Domain cannot be empty"),
+        };
 
-    return { parsed: parsedDomain };
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      return { error: error };
+      return { parsed: parsedDomain };
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        return { error: error };
+      }
+
+      throw error;
     }
-
-    throw error;
-  }
-});
-
-//vyzera ze to funguje, ale je to spravne?
-export const selectIndividualConstantsErrors = createSelector(
-  [selectIc, selectParsedDomain],
-  (constants, domain) => {
-    let err: Record<string, Error | SyntaxError | undefined> = {};
-
-    //new SyntaxError("Domain cannot be empty",x,"",l)
-
-    Object.entries(constants).forEach(
-      ([i, j]) =>
-        (err[i] =
-          domain.parsed?.filter((value) => value == j.text).length == 0
-            ? (err[i] = new Error("Domain does not contain this"))
-            : undefined)
-    );
-
-    return err;
   }
 );
 
-// selectParsedConstant: { parsed?: string, error?: Error }
 export const selectParsedConstant = createSelector(
-  [selectIndividualConstant, selectParsedDomain],
+  [selectIcName, selectParsedDomain],
   (constant, domain) => {
     if (constant === undefined || constant.text === "") {
       const err = new Error("Interpretation must be defined");
@@ -134,7 +183,7 @@ export const selectParsedConstant = createSelector(
       domain.parsed === undefined ||
       domain.parsed.includes(constant.text) === false
     ) {
-      const err = new Error("Domain does not contain this symbol");
+      const err = new Error("This element is not in domain.");
       return { error: err };
     }
 
@@ -143,22 +192,31 @@ export const selectParsedConstant = createSelector(
 );
 
 export const selectParsedPredicate = createSelector(
-  [selectPredicateSymbol, selectParsedDomain, selectParsedPredicates],
-  (predicate, domain, preds) => {
+  [
+    selectIpName,
+    selectParsedDomain,
+    selectParsedPredicates,
+    (_: RootState, name: string) => name,
+  ],
+  (interpretation, domain, preds, name) => {
     if (!preds.parsed) return {};
     if (!domain.parsed) return {};
-    if (!predicate.interpretation) return {};
+    if (!interpretation) return {};
 
     try {
-      const interpretation = predicate.interpretation.text;
-      const arity = preds.parsed.get(predicate.name);
-      const parsed = parseTuples(interpretation);
+      const interpretationText = interpretation.text;
+      const arity = preds.parsed.get(name);
+      const parsed = parseTuples(interpretationText);
+      const size = arity === 1 ? "element" : `${arity}-tuple`;
 
       let err = undefined;
 
       parsed.forEach((tuple) => {
         if (tuple.length !== arity) {
-          err = new Error(`${arity}-tuple ${tuple} has incorrect size.`);
+          const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
+          err = new Error(
+            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}`
+          );
           return;
         }
 
@@ -174,7 +232,7 @@ export const selectParsedPredicate = createSelector(
             JSON.stringify(tuple) === JSON.stringify(tuple2) &&
             tuple != tuple2
           ) {
-            err = new Error(`${arity}-tuple ${tuple} is already in predicate.`);
+            err = new Error(`${size} (${tuple}) is already in predicate.`);
             return;
           }
         });
@@ -211,32 +269,43 @@ function getAllPossibleCombinations(arr: string[], size: number): string[][] {
 }
 
 export const selectParsedFunction = createSelector(
-  [selectFunctionSymbol, selectParsedDomain, selectParsedFunctions],
-  (fun, domain, functions) => {
+  [
+    selectIfName,
+    selectParsedDomain,
+    selectParsedFunctions,
+    (_: RootState, name: string) => name,
+  ],
+  (interpretation, domain, functions, name) => {
     if (!functions.parsed) return {};
-    if (!domain.parsed)
-      return { error: new Error("Function is not fully defined") };
-    if (!fun.interpretation) return {};
+    if (!domain.parsed) return {};
 
     try {
-      const interpretation = fun.interpretation.text;
-      const arity = functions.parsed.get(fun.name);
-      const parsed = parseTuples(interpretation);
+      const arity = functions.parsed.get(name) ?? 0;
+      let all = getAllPossibleCombinations(domain.parsed, arity);
+      let examples = all.slice(0, 3).map((element) => `(${element.join(",")})`);
 
-      let err = undefined;
-
-      if (parsed.length !== Math.pow(domain.parsed.length, arity! - 1)) {
-        err = new Error("Function is not fully defined");
+      if (!interpretation) {
+        const examplePrints =
+          all.length <= 3 ? `${examples}` : `${examples}...`;
+        const actualSize = all[0].length === 1 ? "elements" : `${arity}-tuples`;
+        return {
+          error: new Error(
+            `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`
+          ),
+        };
       }
 
-      let all = getAllPossibleCombinations(domain.parsed, arity!);
+      const interpretationText = interpretation.text;
+      const parsed = parseTuples(interpretationText);
+      const size = arity === 1 ? "element" : `${arity + 1}-tuple`;
+
+      let err: Error | undefined = undefined;
 
       parsed.forEach((tuple) => {
         if (arity !== undefined && tuple.length != arity + 1) {
+          const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
           err = new Error(
-            `Tuple ${tuple} has incorrect size (${tuple.length} , should be ${
-              arity + 1
-            }).`
+            `(${tuple}) is a ${actual_size}, but should be a ${size}, becasue aritiy of ${name} is ${arity}. Format is: (n-elements,mapped_element)`
           );
           return;
         }
@@ -248,14 +317,21 @@ export const selectParsedFunction = createSelector(
           }
         });
 
+        if (err) {
+          return { error: err };
+        }
+
         parsed.forEach((tuple2) => {
           if (
             JSON.stringify(tuple.slice(0, -1)) ===
               JSON.stringify(tuple2.slice(0, -1)) &&
             tuple != tuple2
           ) {
+            tuple = tuple.slice(0, -1);
+            const actual_size =
+              tuple.length === 1 ? "element" : `${arity}-tuple`;
             err = new Error(
-              `Tuple ${tuple.slice(0, -1)} is already in function.`
+              `${actual_size} (${tuple}) has already defined value.`
             );
           }
         });
@@ -268,13 +344,18 @@ export const selectParsedFunction = createSelector(
           all = all.filter(
             (i) => JSON.stringify(i) !== JSON.stringify(tuple.slice(0, -1))
           );
+          examples = all.slice(0, 3).map((element) => `(${element.join(",")})`);
         }
       });
 
       if (err === undefined && all.length !== 0) {
-        err = new Error("Function is not fully defined");
-      } else if (err !== undefined && all.length == 0) {
-        err = undefined;
+        const examplePrints =
+          all.length <= 3 ? `${examples}` : `${examples}...`;
+        const actual_size =
+          all[0].length === 1 ? "elements" : `${arity}-tuples`;
+        err = new Error(
+          `Function is not fully defined, for example these ${actual_size} do not have assigned value: ${examplePrints}`
+        );
       }
 
       return { error: err, parsed: parsed };
@@ -288,68 +369,74 @@ export const selectParsedFunction = createSelector(
   }
 );
 
-// export const selectPredicateSymbolsErrors = createSelector([selectPredicateSymbols, selectErrorDomain, selectErrorPredicates], (predicates, domain, preds) => {
-//   let err: Record<string, SyntaxError | undefined> = {}
+export const selectStructureErrors = createSelector(
+  [
+    (state: RootState) => state,
+    selectParsedConstants,
+    selectParsedPredicates,
+    selectParsedFunctions,
+    selectParsedDomain,
+  ],
+  (state, constants, predicates, functions, domain) => {
+    if (domain.error !== undefined) return false;
 
-//   let l = {
-//     start: {
-//       offset: 0,
-//       line: 0,
-//       column: 0
-//     },
-//     end: {
-//       offset: 0,
-//       line: 0,
-//       column: 0
-//     },
-//   }
-//   let x = Object
-//   //new SyntaxError("Domain cannot be empty",x,"",l)
+    for (const name of constants.parsed ?? []) {
+      if (selectParsedConstant(state, name).error !== undefined) {
+        return false;
+      }
+    }
 
-//   if (!preds.parsed) return {};
+    for (const [name, _] of predicates.parsed ?? []) {
+      if (selectParsedPredicate(state, name).error !== undefined) {
+        return false;
+      }
+    }
 
-//   preds.parsed.forEach((symbol, arity) => {
-//     try {
-//       const interpretation = predicates[symbol] ?? { text: '' };
-//       const parsed = parseTuples(interpretation.text);
+    for (const [name, _] of functions.parsed ?? []) {
+      if (selectParsedFunction(state, name).error !== undefined) {
+        return false;
+      }
+    }
 
-//       for (let index = 0; index < parsed.length; index++) {
-//         const element = parsed[index];
+    return true;
+  }
+);
 
-//         if (element.length !== arity) {
-//           err[symbol] = new SyntaxError("Tuple " + element + " is of invalid size",x,"",l)
-//           break
-//         }
+export const selectStructure = createSelector(
+  [(state: RootState) => state, selectLanguage, selectParsedDomain],
+  (state, language, domain) => {
+    const usedConstants = language.constants;
+    const usedPredicates = language.predicates;
+    const usedFunctions = language.functions;
 
-//         for (let index = 0; index < element.length; index++) {
-//           const el = element[index];
-//           if (el.every(domain.parsed.includes(el)) {
-//             err[symbol] = new SyntaxError("Element " + el + " is not in domain",x,"",l)
-//             break
-//           }
-//         }
+    let iC = new Map<Symbol, DomainElement>();
+    let iP = new Map<Symbol, Set<DomainElement[]>>();
+    let iF = new Map<Symbol, Map<DomainElement[], DomainElement>>();
 
-//         for (let index2 = index; index2 < parsed.length; index2++) {
-//           const element2 = parsed[index2];
+    usedConstants.forEach((name) => {
+      const value = selectParsedConstant(state, name).parsed ?? "";
+      iC.set(name, value);
+    });
 
-//           if (JSON.stringify(element) == JSON.stringify(element2) && element != element2) {
-//             err[symbol] = new SyntaxError("Tuple " + element + " is already in predicate",x,"",l)
-//           }
+    usedPredicates.forEach((_, name) => {
+      const value = selectParsedPredicate(state, name).parsed ?? [[]];
+      iP.set(name, new Set(value));
+    });
 
-//         }
+    usedFunctions.forEach((_, name) => {
+      const valuation = selectParsedFunction(state, name).parsed ?? [[]];
 
-//       }
+      let map = new Map<DomainElement[], DomainElement>();
 
-//     } catch (error) {
-//       if (error instanceof SyntaxError) {
-//         err[symbol] = error
-//       }
-//     }
+      valuation.forEach((value) => {
+        map.set(value.slice(0, -1), value.slice(-1)[0]);
+      });
 
-//   })
+      iF.set(name, map);
+    });
 
-//   return err
-
-// })
+    return new Structure(language, new Set(domain.parsed ?? []), iC, iP, iF);
+  }
+);
 
 export default structureSlice.reducer;
