@@ -12,11 +12,17 @@ import GraphHUD from "../GraphHUD/GraphHUD.tsx";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit } from "@fortawesome/free-solid-svg-icons";
+import { selectTupleType } from "../../graphs/graphSlice.ts";
+import { useAppSelector } from "../../../../app/hooks.ts";
 
 type SelectedType = "oriented" | "hasse" | "bipartite";
 
 export default function GraphView({ predName }: { predName: string }) {
-  const [selectedType, setSelectedType] = useState<SelectedType>("oriented");
+  const tupleType = useAppSelector((state) => selectTupleType(state, predName));
+
+  const [selectedType, setSelectedType] = useState<SelectedType>(
+    tupleType === "function" ? "bipartite" : "oriented",
+  );
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [graphHudVissible, setGraphHudVissible] = useState(false);
 
@@ -44,18 +50,20 @@ export default function GraphView({ predName }: { predName: string }) {
             onExitClicked={() => setGraphHudVissible(false)}
           />
         ) : (
-          <Button
-            variant="secondary"
-            style={{
-              position: "absolute",
-              top: "2rem",
-              right: "2rem",
-              zIndex: 2,
-            }}
-            onClick={() => setGraphHudVissible(true)}
-          >
-            <FontAwesomeIcon icon={faEdit} />
-          </Button>
+          tupleType !== "function" && (
+            <Button
+              variant="secondary"
+              style={{
+                position: "absolute",
+                top: "2rem",
+                right: "2rem",
+                zIndex: 2,
+              }}
+              onClick={() => setGraphHudVissible(true)}
+            >
+              <FontAwesomeIcon icon={faEdit} />
+            </Button>
+          )
         )}
         <GraphInfoContext.Provider value={{ id: predName, type: selectedType }}>
           <ReactFlowProvider>

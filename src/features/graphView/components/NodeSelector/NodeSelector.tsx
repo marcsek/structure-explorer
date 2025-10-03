@@ -13,7 +13,7 @@ export default function NodeSelector({
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectParsedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector(
-    (state) => state.graphView[id]?.[type].selectedNodes,
+    (state) => state.graphView[id]?.state[type].selectedNodes,
   );
 
   return (

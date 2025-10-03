@@ -18,7 +18,7 @@ const createNode = (
   return {
     id: `${origin === "domain" ? "d" : "r"}-${id}`,
     type: "predicate",
-    position: { x: 0, y: 0 },
+    position: { x: Infinity, y: Infinity },
     data: { label: id, origin },
     connectable: origin === "domain",
     hidden,
@@ -34,14 +34,19 @@ const createEdge = (source: string, target: string): DirectEdgeType => {
 };
 
 export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
-  init(domain, predicate) {
+  init(domain, predicate, type) {
     const iP = predicate.intr;
+
+    const initiallySelected =
+      type === "function"
+        ? [...new Set(domain.flat())]
+        : [...new Set(iP.flat())];
 
     const graph: BipartiteGraphState = {
       nodes: [],
       edges: [],
       selectedPreds: [],
-      selectedNodes: [...new Set(iP.flat())],
+      selectedNodes: initiallySelected,
     };
 
     domain.forEach((domElement) => {
@@ -59,12 +64,16 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return graph;
   },
 
-  syncNodes(prev, domain) {
+  syncNodes(prev, domain, tupleType) {
     const nodeById = new Map(prev.nodes.map((n) => [n.id, n]));
 
+    const initiallyHidden = tupleType !== "function";
+
     const newNodes = domain.flatMap((element) => [
-      nodeById.get(`d-${element}`) ?? createNode(element, "domain", true),
-      nodeById.get(`r-${element}`) ?? createNode(element, "range", true),
+      nodeById.get(`d-${element}`) ??
+        createNode(element, "domain", initiallyHidden),
+      nodeById.get(`r-${element}`) ??
+        createNode(element, "range", initiallyHidden),
     ]);
 
     const selectedNodes = newNodes

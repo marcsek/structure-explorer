@@ -28,13 +28,22 @@ import {
   type GraphState,
   type GraphType,
 } from "./plugins.ts";
-import { selectParsedPredicates } from "../../language/languageSlice.ts";
+import {
+  selectParsedFunctions,
+  selectParsedPredicates,
+} from "../../language/languageSlice.ts";
 import {
   selectStructure,
+  updateFunctionSymbols,
   updateInterpretationPredicates,
 } from "../../structure/structureSlice.ts";
 
-export type GraphManagerState = Record<string, GraphState>;
+export type TupleType = "function" | "predicate";
+
+export type GraphManagerState = Record<
+  string,
+  { tupleType: TupleType; state: GraphState }
+>;
 
 type WithGraphId<T> = { id: string; type: GraphType } & T;
 
@@ -55,7 +64,7 @@ export const graphManagerSlice = createSlice({
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
       const { id, type, nodes } = action.payload;
-      state[id][type].nodes = nodes;
+      state[id].state[type].nodes = nodes;
     },
 
     setEdges(
@@ -63,7 +72,7 @@ export const graphManagerSlice = createSlice({
       action: PayloadAction<WithGraphId<{ edges: DirectEdgeType[] }>>,
     ) {
       const { id, type, edges } = action.payload;
-      state[id][type].edges = edges;
+      state[id].state[type].edges = edges;
     },
 
     edgeAdded(
@@ -71,7 +80,7 @@ export const graphManagerSlice = createSlice({
       action: PayloadAction<WithGraphId<{ edge: DirectEdgeType }>>,
     ) {
       const { id, type, edge } = action.payload;
-      state[id][type].edges = [...state[id][type].edges, edge];
+      state[id].state[type].edges = [...state[id].state[type].edges, edge];
     },
 
     onNodesChanged(
@@ -81,7 +90,10 @@ export const graphManagerSlice = createSlice({
       >,
     ) {
       const { id, type, changes } = action.payload;
-      state[id][type].nodes = applyNodeChanges(changes, state[id][type].nodes);
+      state[id].state[type].nodes = applyNodeChanges(
+        changes,
+        state[id].state[type].nodes,
+      );
     },
 
     predicateToggled(
@@ -90,9 +102,9 @@ export const graphManagerSlice = createSlice({
     ) {
       const { id, type, predicate } = action.payload;
 
-      const selected = state[id][type].selectedPreds;
+      const selected = state[id].state[type].selectedPreds;
       if (selected.includes(predicate))
-        state[id][type].selectedPreds = selected.filter(
+        state[id].state[type].selectedPreds = selected.filter(
           (pred) => pred != predicate,
         );
       else selected.push(predicate);
@@ -101,9 +113,9 @@ export const graphManagerSlice = createSlice({
     nodeToggled(state, action: PayloadAction<WithGraphId<{ node: string }>>) {
       const { id, type, node } = action.payload;
 
-      (state[id][type] as GraphState[typeof type]) = processHideNodes(
+      (state[id].state[type] as GraphState[typeof type]) = processHideNodes(
         plugins[type],
-        state[id][type],
+        state[id].state[type],
         node,
       );
     },
@@ -113,28 +125,41 @@ export const graphManagerSlice = createSlice({
       action: PayloadAction<{
         domain: string[];
         preds: [string, number][];
-        predicateIntr: Record<string, string[][]>;
+        funcs: [string, number][];
+        tupleIntr: Record<string, string[][]>;
       }>,
     ) {
-      const { domain, preds, predicateIntr } = action.payload;
+      const { domain, preds, funcs, tupleIntr } = action.payload;
 
-      preds.forEach(([name, artity]) => {
-        if (artity !== 2 || name in state) return;
+      const tuples = [
+        ...preds.map((pred) => [...pred, "predicate"] as const),
+        ...funcs.map((func) => [...func, "function"] as const),
+      ];
 
-        const predicate = {
+      tuples.forEach(([name, artity, type]) => {
+        if (
+          (artity !== 2 && (type !== "function" || artity !== 1)) ||
+          name in state
+        )
+          return;
+
+        const tuple = {
           name,
-          intr: [...(predicateIntr[name] ?? [])] as BinaryRelation<string>,
+          intr: [...(tupleIntr[name] ?? [])] as BinaryRelation<string>,
         };
 
         state[name] = {
-          oriented: plugins.oriented.init(domain, predicate),
-          hasse: plugins.hasse.init(domain, predicate),
-          bipartite: plugins.bipartite.init(domain, predicate),
+          tupleType: type,
+          state: {
+            oriented: plugins.oriented.init(domain, tuple, type),
+            hasse: plugins.hasse.init(domain, tuple, type),
+            bipartite: plugins.bipartite.init(domain, tuple, type),
+          },
         };
       });
 
-      const predNames = preds.map((pred) => pred[0]);
-      for (const key in state) if (!predNames.includes(key)) delete state[key];
+      const tupleNames = [...preds, ...funcs].map((tuple) => tuple[0]);
+      for (const key in state) if (!tupleNames.includes(key)) delete state[key];
     },
 
     predicateInterpretationChanged(
@@ -147,10 +172,10 @@ export const graphManagerSlice = createSlice({
 
       const graphs = state[name];
       for (const graphType of graphTypes) {
-        const graphState = graphs[graphType];
+        const graphState = graphs.state[graphType];
         const plugin = plugins[graphType];
 
-        (graphs[graphType] as GraphState[typeof graphType]) =
+        (graphs.state[graphType] as GraphState[typeof graphType]) =
           processSyncPredIntr(
             plugin,
             graphState,
@@ -162,23 +187,36 @@ export const graphManagerSlice = createSlice({
     domainChanged(state, action: PayloadAction<string[]>) {
       for (const [, graphs] of Object.entries(state)) {
         for (const graphType of graphTypes) {
-          const graphState = graphs[graphType];
+          const graphState = graphs.state[graphType];
           const plugin = plugins[graphType];
           const domain = action.payload;
 
-          (graphs[graphType] as GraphState[typeof graphType]) =
-            processSyncNodes(plugin, graphState, domain);
+          (graphs.state[graphType] as GraphState[typeof graphType]) =
+            processSyncNodes(plugin, graphState, domain, graphs.tupleType);
         }
       }
     },
   },
 });
 
+export const selectTupleType = createSelector(
+  [(state: RootState) => state.graphView, (_: RootState, id: string) => id],
+  (graphView, id) => graphView[id].tupleType,
+);
+
 export const selectBinaryPreds = createSelector(
   [selectParsedPredicates],
   (preds) => {
     if (preds.error) return [];
     return [...preds.parsed.entries()].filter(([, arity]) => arity === 2);
+  },
+);
+
+export const selectBinaryFunctions = createSelector(
+  [selectParsedFunctions],
+  (funcs) => {
+    if (funcs.error) return [];
+    return [...funcs.parsed.entries()].filter(([, arity]) => arity === 1);
   },
 );
 
@@ -218,10 +256,13 @@ export const onEdgesChanged = ({
   return (dispatch, getState) => {
     const managerState = getState().graphView;
 
-    const newEdges = applyEdgeChanges(changes, managerState[id][type].edges);
+    const newEdges = applyEdgeChanges(
+      changes,
+      managerState[id].state[type].edges,
+    );
 
     const relation = processEdgesToRelation(plugins[type], {
-      ...managerState[id][type],
+      ...managerState[id].state[type],
       edges: newEdges,
     });
 
@@ -248,22 +289,23 @@ export const onConnected = ({
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().graphView;
+    const tupleType = managerState[id].tupleType;
 
-    const newEdges = addEdge(connection, managerState[id][type].edges);
+    const newEdges = addEdge(connection, managerState[id].state[type].edges);
 
     const relation = processEdgesToRelation(plugins[type], {
-      ...managerState[id][type],
+      ...managerState[id].state[type],
       edges: newEdges,
     });
 
     console.log("On Connected");
 
-    dispatch(
-      updateInterpretationPredicates({
-        key: id,
-        value: binaryRelationToString(relation),
-      }),
-    );
+    const creator =
+      tupleType === "predicate"
+        ? updateInterpretationPredicates
+        : updateFunctionSymbols;
+
+    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
   };
 };
 
@@ -279,8 +321,8 @@ export const selectedNodesChanged = ({
   return (dispatch, getState) => {
     dispatch(nodeToggled({ id, type, node: toggledNode }));
 
-    if (type === "hasse" && getState().graphView[id][type].isPoset) {
-      const graphState = getState().graphView[id][type];
+    if (type === "hasse" && getState().graphView[id].state[type].isPoset) {
+      const graphState = getState().graphView[id].state[type];
       const vissibleNodes = graphState.nodes
         .filter((node) => !node.hidden)
         .map((node) => node.id);

@@ -123,6 +123,7 @@ export default function StructureComponent() {
             <InterpretationEditor
               name={name}
               id={`constant-${index}`}
+              type="constant"
               key={`constant-${index}`}
               selector={selectIcName}
               parser={selectParsedConstant}
@@ -144,6 +145,7 @@ export default function StructureComponent() {
           )}
           {Array.from(predicates.parsed ?? []).map(([name], index) => (
             <InterpretationEditor
+              type="predicate"
               name={name}
               id={`predicate-${index}`}
               key={`predicate-${index}`}
@@ -168,6 +170,7 @@ export default function StructureComponent() {
           {Array.from(functions.parsed ?? []).map(([from], index) => (
             <InterpretationEditor
               name={from}
+              type="function"
               id={`function-${index}`}
               key={`function-${index}`}
               selector={selectIfName}

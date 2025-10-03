@@ -53,10 +53,14 @@ export default function HasseDiagram({ id }: { id: string }) {
   const type = "hasse";
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => state.graphView[id]?.[type]?.nodes);
-  const edges = useAppSelector((state) => state.graphView[id]?.[type]?.edges);
+  const nodes = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.nodes,
+  );
+  const edges = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.edges,
+  );
   const isPoset = useAppSelector(
-    (state) => state.graphView[id]?.[type].isPoset,
+    (state) => state.graphView[id]?.state[type].isPoset,
   );
 
   const onNodesChange = useCallback(

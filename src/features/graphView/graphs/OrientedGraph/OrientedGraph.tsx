@@ -52,8 +52,12 @@ export default function OrientedGraph({ id }: { id: string }) {
   const type = "oriented";
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => state.graphView[id]?.[type]?.nodes);
-  const edges = useAppSelector((state) => state.graphView[id]?.[type]?.edges);
+  const nodes = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.nodes,
+  );
+  const edges = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.edges,
+  );
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>

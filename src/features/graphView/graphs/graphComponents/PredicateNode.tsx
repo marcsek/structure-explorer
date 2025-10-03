@@ -42,7 +42,8 @@ export default function PredicateNode({
   );
 
   const selectedPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id][parentInfo.type].selectedPreds,
+    (state) =>
+      state.graphView[parentInfo.id].state[parentInfo.type].selectedPreds,
   );
 
   const predsToDisplay = unaryPreds.filter((relevant) =>

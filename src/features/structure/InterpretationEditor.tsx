@@ -4,6 +4,7 @@ import type { InterpretationState } from "./structureSlice";
 import { useAppSelector } from "../../app/hooks";
 import {
   selectParsedConstants,
+  selectParsedFunctions,
   selectParsedPredicates,
 } from "../language/languageSlice";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
@@ -24,30 +25,35 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+export type EditorType = "text" | "graph" | "matrix";
+export type InterpretationType = "predicate" | "function" | "constant";
+
 interface InterpretationEditorProps {
-  name: string;
   id: string;
+  name: string;
+  type: InterpretationType;
   selector: (state: RootState, name: string) => InterpretationState;
   parser: (state: RootState, name: string) => { error?: Error };
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
 }
 
-type EditorTypes = "text" | "graph" | "matrix";
-
 export default function InterpretationEditorProps({
   name,
   id,
+  type,
   selector,
   parser,
   onChange,
   locker,
 }: InterpretationEditorProps) {
-  const [selectedEditor, setSelectedEditor] = useState<EditorTypes>("text");
+  const [selectedEditor, setSelectedEditor] = useState<EditorType>("text");
 
   const interpretation = useAppSelector((state) => selector(state, name));
-  const isBinary = useAppSelector(
-    (state) => selectParsedPredicates(state).parsed?.get(name) === 2,
+  const isTuple = useAppSelector(
+    (state) =>
+      selectParsedPredicates(state).parsed?.get(name) === 2 ||
+      selectParsedFunctions(state).parsed?.get(name) === 1,
   );
   const { error } = useAppSelector((state) => parser(state, name));
   const escapedName = name.replace(/_/g, "\\_");
@@ -58,11 +64,13 @@ export default function InterpretationEditorProps({
   const prefixRaw = String.raw`${prefixRawNoEnd} = ${isConstant ? "" : "\\{"}`;
   const suffixRaw = String.raw`\}`;
 
-  const controlButtons: ControlButtonsProps<EditorTypes>["buttons"] = [
+  const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
     { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
     { text: <FontAwesomeIcon icon={faDiagramProject} />, value: "graph" },
     { text: <FontAwesomeIcon icon={faTableCellsLarge} />, value: "matrix" },
   ];
+
+  if (type === "function") controlButtons.pop();
 
   return (
     <>
@@ -90,13 +98,13 @@ export default function InterpretationEditorProps({
           </span>
         )}
 
-        {isBinary && (
+        {isTuple && (
           <ControlButtons
             id={`controls-${id}`}
             buttons={controlButtons}
             selected={selectedEditor}
             onSelected={setSelectedEditor}
-            disabled={!!error}
+            disabled={!!error && type !== "function"}
           />
         )}
       </Stack>

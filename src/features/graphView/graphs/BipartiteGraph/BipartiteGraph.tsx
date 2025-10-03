@@ -76,9 +76,15 @@ export default function BipartiteGraph({ id }: { id: string }) {
   const type = "bipartite";
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => state.graphView[id]?.[type]?.nodes);
-  const edges = useAppSelector((state) => state.graphView[id]?.[type]?.edges);
+  const nodes = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.nodes,
+  );
+  const edges = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.edges,
+  );
+  const view = useAppSelector((state) => state.graphView);
   const { getNode } = useReactFlow();
+  console.log(view);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) =>

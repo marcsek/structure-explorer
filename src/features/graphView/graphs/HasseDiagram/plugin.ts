@@ -35,7 +35,7 @@ const createEdge = (source: string, target: string): DirectEdgeType => {
 };
 
 export const hasseDiagramPlugin: Plugin<"hasse"> = {
-  init(domain, predicate) {
+  init(domain, predicate, type) {
     const iP = predicate.intr;
 
     const graph: HasseDiagramState = {
@@ -45,6 +45,8 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       selectedPreds: [],
       selectedNodes: [...new Set(iP.flat())],
     };
+
+    if (type === "function") return graph;
 
     if (!isPoset(iP as [string, string][])) {
       graph.isPoset = false;

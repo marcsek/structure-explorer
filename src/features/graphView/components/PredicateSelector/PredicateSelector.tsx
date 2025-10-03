@@ -12,7 +12,7 @@ export default function PredicateSelector({
   const dispatch = useAppDispatch();
   const unaryPreds = useAppSelector(selectUnaryPreds);
   const selectedPreds = useAppSelector(
-    (state) => state.graphView[id]?.[type].selectedPreds ?? [],
+    (state) => state.graphView[id]?.state[type].selectedPreds ?? [],
   );
 
   return (

@@ -2,6 +2,7 @@ import {
   bipartiteGraphPlugin,
   type BipartiteGraphState,
 } from "./BipartiteGraph/plugin";
+import type { TupleType } from "./graphSlice";
 import {
   hasseDiagramPlugin,
   type HasseDiagramState,
@@ -25,8 +26,13 @@ export interface Plugin<K extends GraphType> {
   init(
     domain: string[],
     predicate: { name: string; intr: BinaryRelation<string> },
+    tupleType: TupleType,
   ): GraphState[K];
-  syncNodes(prev: GraphState[K], domain: string[]): GraphState[K];
+  syncNodes(
+    prev: GraphState[K],
+    domain: string[],
+    tupleType: TupleType,
+  ): GraphState[K];
   hideNodes(prev: GraphState[K], toggledNode: string): GraphState[K];
   syncPredIntr(
     prev: GraphState[K],
@@ -47,8 +53,9 @@ export function processSyncNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   domain: string[],
+  tupleType: TupleType,
 ): GraphState[K] {
-  return plugin.syncNodes(prev, domain);
+  return plugin.syncNodes(prev, domain, tupleType);
 }
 
 export function processHideNodes<K extends GraphType>(
