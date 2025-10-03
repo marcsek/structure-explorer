@@ -17,6 +17,13 @@ import {
 } from "react-bootstrap";
 import GraphView from "../graphView/components/GraphView/GraphView";
 
+import {
+  faDiagramProject,
+  faPen,
+  faTableCellsLarge,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 interface InterpretationEditorProps {
   name: string;
   id: string;
@@ -52,9 +59,9 @@ export default function InterpretationEditorProps({
   const suffixRaw = String.raw`\}`;
 
   const controlButtons: ControlButtonsProps<EditorTypes>["buttons"] = [
-    { text: "Text", value: "text" },
-    { text: "Graph", value: "graph" },
-    { text: "Matrix", value: "matrix" },
+    { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
+    { text: <FontAwesomeIcon icon={faDiagramProject} />, value: "graph" },
+    { text: <FontAwesomeIcon icon={faTableCellsLarge} />, value: "matrix" },
   ];
 
   return (
@@ -107,7 +114,7 @@ export default function InterpretationEditorProps({
 
 interface ControlButtonsProps<T> {
   id: string;
-  buttons: { text: string; value: T }[];
+  buttons: { text: React.ReactNode; value: T }[];
   selected: T;
   onSelected: (selected: T) => void;
   disabled?: boolean;
@@ -132,6 +139,7 @@ function ControlButtons<T extends string | number>({
           value={b.value}
           name={id}
           type="radio"
+          title={`${b.value} editor`}
           disabled={disabled}
           checked={b.value === selected}
           onChange={() => onSelected(b.value)}

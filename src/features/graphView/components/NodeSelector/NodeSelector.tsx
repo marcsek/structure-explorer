@@ -25,25 +25,33 @@ export default function NodeSelector({
       }}
     >
       <h6 style={{ whiteSpace: "nowrap" }}>Domain Elements</h6>
-      {domain.map((element) => (
-        <label key={element} style={{ textAlign: "center" }}>
-          <input
-            type="checkbox"
-            checked={selectedNodes.includes(element)}
-            style={{ marginRight: "0.5rem" }}
-            onChange={() =>
-              dispatch(
-                selectedNodesChanged({
-                  id,
-                  type,
-                  toggledNode: element,
-                }),
-              )
-            }
-          />
-          {element}
-        </label>
-      ))}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+        {domain.map((element) => (
+          <label key={element} style={{ textAlign: "center" }}>
+            <input
+              type="checkbox"
+              checked={selectedNodes.includes(element)}
+              style={{ marginRight: "0.5rem" }}
+              onChange={() =>
+                dispatch(
+                  selectedNodesChanged({
+                    id,
+                    type,
+                    toggledNode: element,
+                  }),
+                )
+              }
+            />
+            {element}
+          </label>
+        ))}
+      </div>
     </div>
   );
 }

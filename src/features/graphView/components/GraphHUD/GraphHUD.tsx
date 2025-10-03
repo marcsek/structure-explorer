@@ -1,6 +1,9 @@
+import { Card } from "react-bootstrap";
 import type { GraphType } from "../../graphs/plugins";
 import NodeSelector from "../NodeSelector/NodeSelector";
 import PredicateSelector from "../PredicateSelector/PredicateSelector";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faX } from "@fortawesome/free-solid-svg-icons";
 
 export default function GraphHUD({
   id,
@@ -8,23 +11,43 @@ export default function GraphHUD({
   typeSelected,
   isFullscreen,
   fullScreenToggled,
+  onExitClicked,
 }: {
   id: string;
   type: GraphType;
   typeSelected: (type: GraphType) => void;
   isFullscreen: boolean;
   fullScreenToggled: () => void;
+  onExitClicked: () => void;
 }) {
   return (
-    <div
+    <Card
       style={{
+        backgroundColor: "white",
+        padding: "1rem",
         display: "flex",
+        zIndex: 1,
         flexDirection: "column",
+        position: "absolute",
         alignItems: "center",
         gap: "1.5rem",
+        right: "1rem",
+        top: "1rem",
+        bottom: "1rem",
+        flexGrow: 1,
+        overflowY: "auto",
       }}
     >
-      <em>{`ID: ${type}-${id}`}</em>
+      <FontAwesomeIcon
+        icon={faX}
+        style={{
+          position: "absolute",
+          right: "1rem",
+          top: "1rem",
+          cursor: "pointer",
+        }}
+        onClick={() => onExitClicked()}
+      />
       <div
         style={{
           display: "flex",
@@ -53,9 +76,11 @@ export default function GraphHUD({
       </div>
       <PredicateSelector id={id} type={type} />
       <NodeSelector id={id} type={type} />
-      <button onClick={() => fullScreenToggled()}>
-        {isFullscreen ? "Empty Screen ?" : "Full Screen"}
-      </button>
-    </div>
+      <div style={{ minHeight: "fit-content" }}>
+        <button onClick={() => fullScreenToggled()}>
+          {isFullscreen ? "Empty Screen ?" : "Full Screen"}
+        </button>
+      </div>
+    </Card>
   );
 }
