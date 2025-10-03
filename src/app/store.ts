@@ -1,7 +1,6 @@
 import {
   configureStore,
   type Action,
-  type Middleware,
   type ThunkAction,
 } from "@reduxjs/toolkit";
 import formulasReducer from "../features/formulas/formulasSlice";
@@ -10,7 +9,6 @@ import structureReducer from "../features/structure/structureSlice";
 import variablesReducer from "../features/variables/variablesSlice";
 import teacherModeReducer from "../features/teacherMode/teacherModeslice";
 import graphViewReducer from "../features/graphView/graphs/graphSlice";
-import { parserMiddleware } from "../features/middleware";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 
 // Root reducer object
@@ -23,17 +21,11 @@ const rootReducer = {
   graphView: graphViewReducer,
 };
 
-export type RootState = {
-  [K in keyof typeof rootReducer]: ReturnType<(typeof rootReducer)[K]>;
-};
-
 export const createStore = () =>
   configureStore({
     reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware()
-        .prepend(graphSliceListener.middleware)
-        .prepend(parserMiddleware),
+      getDefaultMiddleware().prepend(graphSliceListener.middleware),
   });
 
 export type AppStore = ReturnType<typeof createStore>;
@@ -44,4 +36,8 @@ export type AppThunk<ThunkReturnType = void> = ThunkAction<
   unknown,
   Action
 >;
-export type AppMiddleware<T = object> = Middleware<T, RootState>;
+
+// Exporting RootState this way in order to avoid circular dependency.
+export type RootState = {
+  [K in keyof typeof rootReducer]: ReturnType<(typeof rootReducer)[K]>;
+};
