@@ -27,9 +27,7 @@ import {
   selectParsedPredicates,
 } from "../language/languageSlice";
 
-import InterpretationInput from "./InterpretationInput";
-import GraphView from "../graphView/components/GraphView/GraphView";
-import { useState } from "react";
+import InterpretationEditor from "./InterpretationEditor";
 
 const help = (
   <>
@@ -89,8 +87,6 @@ export default function StructureComponent() {
   const predicates = useAppSelector(selectParsedPredicates);
   const functions = useAppSelector(selectParsedFunctions);
 
-  const [selectedGraphViews, setSelectedGraphViews] = useState<string[]>([]);
-
   return (
     <>
       <Card className="mb-3">
@@ -124,7 +120,7 @@ export default function StructureComponent() {
             <h3 className="h6">Constants interpretation</h3>
           )}
           {Array.from(constants.parsed ?? []).map((name, index) => (
-            <InterpretationInput
+            <InterpretationEditor
               name={name}
               id={`constant-${index}`}
               key={`constant-${index}`}
@@ -141,48 +137,36 @@ export default function StructureComponent() {
               locker={() => {
                 dispatch(lockInterpretationConstants({ key: name }));
               }}
-            ></InterpretationInput>
+            />
           ))}
           {predicates.parsed && predicates.parsed.size > 0 && (
             <h3 className="h6">Predicates interpretation</h3>
           )}
           {Array.from(predicates.parsed ?? []).map(([name], index) => (
-            <>
-              <InterpretationInput
-                name={name}
-                id={`predicate-${index}`}
-                key={`predicate-${index}`}
-                selector={selectIpName}
-                parser={selectParsedPredicate}
-                toggleGraphView={() =>
-                  setSelectedGraphViews((prev) => {
-                    if (prev.includes(name))
-                      return prev.filter((n) => n !== name);
-                    return [...prev, name];
-                  })
-                }
-                locker={() =>
-                  dispatch(lockInterpretationPredicates({ key: name }))
-                }
-                onChange={(e) => {
-                  dispatch(
-                    updateInterpretationPredicates({
-                      key: name,
-                      value: e.target.value,
-                    }),
-                  );
-                }}
-              ></InterpretationInput>
-              {selectedGraphViews.includes(name) && (
-                <GraphView predName={name} />
-              )}
-            </>
+            <InterpretationEditor
+              name={name}
+              id={`predicate-${index}`}
+              key={`predicate-${index}`}
+              selector={selectIpName}
+              parser={selectParsedPredicate}
+              locker={() =>
+                dispatch(lockInterpretationPredicates({ key: name }))
+              }
+              onChange={(e) => {
+                dispatch(
+                  updateInterpretationPredicates({
+                    key: name,
+                    value: e.target.value,
+                  }),
+                );
+              }}
+            />
           ))}
           {functions.parsed && functions.parsed.size > 0 && (
             <h3 className="h6">Functions interpretation</h3>
           )}
           {Array.from(functions.parsed ?? []).map(([from], index) => (
-            <InterpretationInput
+            <InterpretationEditor
               name={from}
               id={`function-${index}`}
               key={`function-${index}`}
@@ -199,7 +183,7 @@ export default function StructureComponent() {
               locker={() => {
                 dispatch(lockFunctionSymbols({ key: from }));
               }}
-            ></InterpretationInput>
+            />
           ))}
         </Card.Body>
       </Card>
