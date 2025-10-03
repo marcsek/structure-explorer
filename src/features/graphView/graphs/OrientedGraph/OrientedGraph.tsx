@@ -10,10 +10,9 @@ import {
   type DefaultEdgeOptions,
   type EdgeTypes,
   type NodeTypes,
+  type FitViewOptions,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
-//import DevTools from "../../helpers/Devtools";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -22,6 +21,7 @@ import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import { onConnected, onEdgesChanged, onNodesChanged } from "../graphSlice.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
+import Controls from "../graphComponents/Controls.tsx";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -42,6 +42,10 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     color: "#b1b1b7",
   },
+};
+
+const fitViewOptions: FitViewOptions = {
+  padding: "50px",
 };
 
 export default function OrientedGraph({ id }: { id: string }) {
@@ -89,15 +93,17 @@ export default function OrientedGraph({ id }: { id: string }) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           fitView
+          fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionLineComponent={CustomConnectionLine}
           connectionLineStyle={connectionLineStyle}
           isValidConnection={isValidConnection}
+          proOptions={{ hideAttribution: true }}
         >
           <Background id={`bg-oriented-${id}`} />
-          {/* <DevTools /> */}
+          <Controls />
         </ReactFlow>
       </div>
     </>

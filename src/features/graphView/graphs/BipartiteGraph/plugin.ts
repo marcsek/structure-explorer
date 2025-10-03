@@ -20,6 +20,7 @@ const createNode = (
     type: "predicate",
     position: { x: 0, y: 0 },
     data: { label: id, origin },
+    connectable: origin === "domain",
     hidden,
   };
 };

@@ -30,7 +30,7 @@
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@reduxjs/toolkit": "^2.7.0",
     "@types/react-katex": "^3.0.4",
-    "@xyflow/react": "^12.8.3",
+    "@xyflow/react": "^12.8.6",
     "react-katex": "^3.0.1",
     "react-redux": "^7.2.6"
   },

@@ -11,10 +11,11 @@ import {
   type NodeTypes,
   applyNodeChanges,
   type NodePositionChange,
+  type FitViewOptions,
+  useReactFlow,
+  type IsValidConnection,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
-//import DevTools from "../../helpers/Devtools";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -24,6 +25,7 @@ import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import { onConnected, onEdgesChanged, setNodes } from "../graphSlice.ts";
 import { layoutNodes } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
+import Controls from "../graphComponents/Controls.tsx";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: "domain" | "range";
@@ -50,6 +52,10 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
   },
 };
 
+const fitViewOptions: FitViewOptions = {
+  padding: "50px",
+};
+
 const applyNodeChangesWithLayout = (
   changes: NodeChange<BipartiteNodeType>[],
   nodes: BipartiteNodeType[],
@@ -72,6 +78,7 @@ export default function BipartiteGraph({ id }: { id: string }) {
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => state.graphView[id]?.[type]?.nodes);
   const edges = useAppSelector((state) => state.graphView[id]?.[type]?.edges);
+  const { getNode } = useReactFlow();
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) =>
@@ -96,6 +103,22 @@ export default function BipartiteGraph({ id }: { id: string }) {
     [id, dispatch],
   );
 
+  const isValidConnection: IsValidConnection = useCallback(
+    (newEdge) => {
+      const duplicateEdge = edges.some(
+        (edge) =>
+          newEdge.source === edge.source && newEdge.target === edge.target,
+      );
+
+      const identicalOrigin =
+        getNode(newEdge.source)?.data.origin ===
+        getNode(newEdge.target)?.data.origin;
+
+      return !duplicateEdge && !identicalOrigin;
+    },
+    [edges, getNode],
+  );
+
   return (
     <>
       <div style={{ width: "100%", flexGrow: 1 }}>
@@ -107,14 +130,17 @@ export default function BipartiteGraph({ id }: { id: string }) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           fitView
+          fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionLineComponent={CustomConnectionLine}
           connectionLineStyle={connectionLineStyle}
+          isValidConnection={isValidConnection}
+          proOptions={{ hideAttribution: true }}
         >
           <Background id={`bg-bipartite-${id}`} />
-          {/* <DevTools /> */}
+          <Controls />
         </ReactFlow>
       </div>
     </>

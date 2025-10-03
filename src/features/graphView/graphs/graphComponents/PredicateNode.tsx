@@ -1,5 +1,4 @@
 import "./graphComponents.css";
-import "@xyflow/react/dist/style.css";
 
 import {
   Handle,
@@ -28,6 +27,7 @@ export type PredicateNodeType<
 export default function PredicateNode({
   id,
   data,
+  isConnectable,
 }: NodeProps<PredicateNodeType>) {
   const connection = useConnection();
   const parentInfo = useGraphInfo();
@@ -57,6 +57,7 @@ export default function PredicateNode({
             className="predicateNodeHandle"
             position={Position.Right}
             type="source"
+            isConnectableStart={isConnectable}
           />
         )}
 

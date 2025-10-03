@@ -10,10 +10,9 @@ import {
   type DefaultEdgeOptions,
   type EdgeTypes,
   type NodeTypes,
+  type FitViewOptions,
 } from "@xyflow/react";
-import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
-//import DevTools from "../../helpers/Devtools";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -23,6 +22,7 @@ import { onConnected, onEdgesChanged, onNodesChanged } from "../graphSlice.ts";
 import { staysValidHasseWithEdge, type BinaryRelation } from "./posetHelpers";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
+import Controls from "../graphComponents/Controls.tsx";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -43,6 +43,10 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     color: "#b1b1b7",
   },
+};
+
+const fitViewOptions: FitViewOptions = {
+  padding: "50px",
 };
 
 export default function HasseDiagram({ id }: { id: string }) {
@@ -99,15 +103,17 @@ export default function HasseDiagram({ id }: { id: string }) {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           fitView
+          fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
           connectionLineComponent={CustomConnectionLine}
           connectionLineStyle={connectionLineStyle}
           isValidConnection={isValidConnection}
+          proOptions={{ hideAttribution: true }}
         >
           <Background id={`bg-hasse-${id}`} />
-          {/* <DevTools /> */}
+          <Controls />
         </ReactFlow>
       </div>
     </>

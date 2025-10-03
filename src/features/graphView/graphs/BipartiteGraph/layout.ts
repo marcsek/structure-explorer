@@ -3,8 +3,8 @@ import type { BipartiteNodeType } from "./BipartiteGraph";
 
 const startX = 0,
   startY = 0;
-const gapX = 300,
-  gapY = 200;
+const gapX = 250,
+  gapY = 110;
 
 export const layoutNodes = (
   nodes: BipartiteNodeType[],

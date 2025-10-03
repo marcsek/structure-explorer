@@ -1,4 +1,5 @@
 import "./GraphView.css";
+import "@xyflow/react/dist/style.css";
 import "../../graphs.css";
 
 import { useState } from "react";
@@ -17,7 +18,7 @@ type SelectedType = "oriented" | "hasse" | "bipartite";
 export default function GraphView({ predName }: { predName: string }) {
   const [selectedType, setSelectedType] = useState<SelectedType>("oriented");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [graphHudVissible, setGraphHudVissible] = useState(true);
+  const [graphHudVissible, setGraphHudVissible] = useState(false);
 
   const graphComponents: Record<
     SelectedType,
