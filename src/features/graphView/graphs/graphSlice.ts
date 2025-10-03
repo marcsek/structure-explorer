@@ -33,7 +33,6 @@ import {
   selectStructure,
   updateInterpretationPredicates,
 } from "../../structure/structureSlice.ts";
-import { graphPreset } from "../../../preset.ts";
 
 export type GraphManagerState = Record<string, GraphState>;
 
@@ -41,8 +40,7 @@ type WithGraphId<T> = { id: string; type: GraphType } & T;
 
 export const graphManagerSlice = createSlice({
   name: "graphManager",
-  // initialState: {} as GraphManagerState,
-  initialState: graphPreset,
+  initialState: {} as GraphManagerState,
   reducers: {
     //setStructure(
     //  _,
