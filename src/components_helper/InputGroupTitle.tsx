@@ -1,5 +1,5 @@
 import type { ChangeEvent, ReactNode } from "react";
-import { Form, InputGroup, Col, Button } from "react-bootstrap";
+import { Form, InputGroup, Button } from "react-bootstrap";
 import { SyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../app/hooks";
@@ -41,9 +41,10 @@ export default function InputGroupTitle({
           {label}
         </Form.Label>
       )}
-      <InputGroup as={Col} className="mb-3" hasValidation={!!error}>
+      <InputGroup className="mb-3" hasValidation={!!error}>
         <InputGroup.Text>{prefix}</InputGroup.Text>
         <Form.Control
+          className="flex-grow-1"
           placeholder={placeholder}
           aria-label={placeholder}
           aria-describedby="basic-addon2"
