@@ -82,9 +82,11 @@ export default function BipartiteGraph({ id }: { id: string }) {
   const edges = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.edges,
   );
-  const view = useAppSelector((state) => state.graphView);
-  const { getNode } = useReactFlow();
-  console.log(view);
+  const representsFunction = useAppSelector(
+    (state) => state.graphView[id].tupleType === "function",
+  );
+
+  const { getNode, getNodeConnections } = useReactFlow();
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) =>
@@ -120,9 +122,14 @@ export default function BipartiteGraph({ id }: { id: string }) {
         getNode(newEdge.source)?.data.origin ===
         getNode(newEdge.target)?.data.origin;
 
-      return !duplicateEdge && !identicalOrigin;
+      if (!representsFunction) return !duplicateEdge && !identicalOrigin;
+
+      const isValidFunction =
+        getNodeConnections({ nodeId: newEdge.source }).length === 0;
+
+      return !duplicateEdge && !identicalOrigin && isValidFunction;
     },
-    [edges, getNode],
+    [edges, getNode, getNodeConnections, representsFunction],
   );
 
   return (

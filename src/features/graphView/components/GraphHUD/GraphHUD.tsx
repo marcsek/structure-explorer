@@ -12,6 +12,8 @@ export default function GraphHUD({
   isFullscreen,
   fullScreenToggled,
   onExitClicked,
+  disableNodeSelector = false,
+  disableTypeSelector = false,
 }: {
   id: string;
   type: GraphType;
@@ -19,6 +21,8 @@ export default function GraphHUD({
   isFullscreen: boolean;
   fullScreenToggled: () => void;
   onExitClicked: () => void;
+  disableNodeSelector?: boolean;
+  disableTypeSelector?: boolean;
 }) {
   return (
     <Card
@@ -55,27 +59,31 @@ export default function GraphHUD({
           alignItems: "center",
         }}
       >
-        <h6>Graph Types</h6>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            gap: "0.2rem",
-          }}
-        >
-          <button onClick={() => typeSelected("oriented")}>Oriented</button>
-          <button onClick={() => typeSelected("hasse")}>Hasse</button>
-          <button
-            style={{ margin: "0 auto" }}
-            onClick={() => typeSelected("bipartite")}
-          >
-            Bipartite
-          </button>
-        </div>
+        {!disableTypeSelector && (
+          <>
+            <h6>Graph Types</h6>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                gap: "0.2rem",
+              }}
+            >
+              <button onClick={() => typeSelected("oriented")}>Oriented</button>
+              <button onClick={() => typeSelected("hasse")}>Hasse</button>
+              <button
+                style={{ margin: "0 auto" }}
+                onClick={() => typeSelected("bipartite")}
+              >
+                Bipartite
+              </button>
+            </div>
+          </>
+        )}
       </div>
       <PredicateSelector id={id} type={type} />
-      <NodeSelector id={id} type={type} />
+      {!disableNodeSelector && <NodeSelector id={id} type={type} />}
       <div style={{ minHeight: "fit-content" }}>
         <button onClick={() => fullScreenToggled()}>
           {isFullscreen ? "Empty Screen ?" : "Full Screen"}

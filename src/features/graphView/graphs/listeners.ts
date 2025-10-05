@@ -11,8 +11,8 @@ import {
 import type { RootState } from "../../../app/store";
 import {
   domainChanged,
-  predicateInterpretationChanged,
-  predicatesChanged,
+  tupleInterpretationChanged,
+  tuplesChanged,
 } from "./graphSlice";
 import {
   selectParsedFunctions,
@@ -47,9 +47,7 @@ graphSliceListener.startListening({
       tupleIntr = parsedFunction.parsed;
     }
 
-    api.dispatch(
-      predicateInterpretationChanged({ name: key, intr: tupleIntr }),
-    );
+    api.dispatch(tupleInterpretationChanged({ name: key, intr: tupleIntr }));
   },
 });
 
@@ -78,7 +76,7 @@ graphSliceListener.startListening({
       parsedFuncs.parsed
     ) {
       api.dispatch(
-        predicatesChanged({
+        tuplesChanged({
           domain: [...structure.domain],
           preds: [...parsedPredicates.parsed.entries()],
           funcs: [...parsedFuncs.parsed.entries()],

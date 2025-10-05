@@ -18,3 +18,30 @@
   inset: 20px;
   z-index: 100;
 }
+
+.intrErrorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  gap: 1rem;
+}
+
+.warnIconBox {
+  background-color: rgba(var(--bs-danger-rgb), 0.1);
+  padding: 0.8rem;
+  border-radius: 100%;
+}
+
+.intrErrorContainer h5 {
+  max-width: fit-content;
+  text-align: center;
+}
+
+.warnText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}

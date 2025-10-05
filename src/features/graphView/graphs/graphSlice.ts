@@ -120,7 +120,7 @@ export const graphManagerSlice = createSlice({
       );
     },
 
-    predicatesChanged(
+    tuplesChanged(
       state,
       action: PayloadAction<{
         domain: string[];
@@ -162,7 +162,7 @@ export const graphManagerSlice = createSlice({
       for (const key in state) if (!tupleNames.includes(key)) delete state[key];
     },
 
-    predicateInterpretationChanged(
+    tupleInterpretationChanged(
       state,
       action: PayloadAction<{ name: string; intr: string[][] }>,
     ) {
@@ -255,6 +255,7 @@ export const onEdgesChanged = ({
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().graphView;
+    const tupleType = managerState[id].tupleType;
 
     const newEdges = applyEdgeChanges(
       changes,
@@ -268,13 +269,13 @@ export const onEdgesChanged = ({
 
     console.log("Edges Changed");
 
+    const creator =
+      tupleType === "predicate"
+        ? updateInterpretationPredicates
+        : updateFunctionSymbols;
+
     dispatch(setEdges({ id, type, edges: newEdges }));
-    dispatch(
-      updateInterpretationPredicates({
-        key: id,
-        value: binaryRelationToString(relation),
-      }),
-    );
+    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
   };
 };
 
@@ -381,8 +382,8 @@ export const {
   onNodesChanged,
   predicateToggled,
   nodeToggled,
-  predicatesChanged,
-  predicateInterpretationChanged,
+  tuplesChanged,
+  tupleInterpretationChanged,
   domainChanged,
 } = graphManagerSlice.actions;
 

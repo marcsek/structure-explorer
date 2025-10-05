@@ -3,7 +3,6 @@ import type { RootState } from "../../app/store";
 import type { InterpretationState } from "./structureSlice";
 import { useAppSelector } from "../../app/hooks";
 import {
-  selectParsedConstants,
   selectParsedFunctions,
   selectParsedPredicates,
 } from "../language/languageSlice";
@@ -57,9 +56,9 @@ export default function InterpretationEditorProps({
   );
   const { error } = useAppSelector((state) => parser(state, name));
   const escapedName = name.replace(/_/g, "\\_");
-  const constants = useAppSelector(selectParsedConstants);
 
-  const isConstant = constants.parsed?.has(name) ?? false;
+  const isFunction = type === "function";
+  const isConstant = type === "constant";
   const prefixRawNoEnd = String.raw`i(\text{\textsf{${escapedName}}})`;
   const prefixRaw = String.raw`${prefixRawNoEnd} = ${isConstant ? "" : "\\{"}`;
   const suffixRaw = String.raw`\}`;
@@ -70,7 +69,7 @@ export default function InterpretationEditorProps({
     { text: <FontAwesomeIcon icon={faTableCellsLarge} />, value: "matrix" },
   ];
 
-  if (type === "function") controlButtons.pop();
+  if (isFunction) controlButtons.pop();
 
   return (
     <>
@@ -104,7 +103,7 @@ export default function InterpretationEditorProps({
             buttons={controlButtons}
             selected={selectedEditor}
             onSelected={setSelectedEditor}
-            disabled={!!error && type !== "function"}
+            disabled={!!error && !isFunction && selectedEditor === "text"}
           />
         )}
       </Stack>
@@ -112,7 +111,13 @@ export default function InterpretationEditorProps({
       {selectedEditor !== "text" && (
         <Card className="mb-3">
           <CardBody>
-            <GraphView predName={name} />
+            <GraphView
+              predName={name}
+              hasIntrError={!!error && !isFunction}
+              enableNodeFiltering={!isFunction}
+              enableGraphTypeSelector={!isFunction}
+              initialGraphType={isFunction ? "bipartite" : "oriented"}
+            />
           </CardBody>
         </Card>
       )}
