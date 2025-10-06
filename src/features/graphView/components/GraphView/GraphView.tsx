@@ -21,12 +21,14 @@ type SelectedType = "oriented" | "hasse" | "bipartite";
 export default function GraphView({
   predName,
   hasIntrError,
+  locked,
   enableNodeFiltering = true,
   enableGraphTypeSelector = true,
   initialGraphType = "oriented",
 }: {
   predName: string;
   hasIntrError: boolean;
+  locked: boolean;
   enableNodeFiltering?: boolean;
   enableGraphTypeSelector?: boolean;
   initialGraphType?: SelectedType;
@@ -38,7 +40,7 @@ export default function GraphView({
 
   const graphComponents: Record<
     SelectedType,
-    React.ComponentType<{ id: string }>
+    React.ComponentType<{ id: string; locked: boolean }>
   > = {
     oriented: OrientedGraph,
     hasse: HasseDiagram,
@@ -73,7 +75,7 @@ export default function GraphView({
             value={{ id: predName, type: selectedType }}
           >
             <ReactFlowProvider>
-              <GraphComponent id={predName} />
+              <GraphComponent id={predName} locked={locked} />
             </ReactFlowProvider>
           </GraphInfoContext.Provider>
         </div>

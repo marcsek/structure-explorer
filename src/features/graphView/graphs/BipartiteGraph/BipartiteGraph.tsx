@@ -15,14 +15,19 @@ import {
   useReactFlow,
   type IsValidConnection,
 } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
-import { onConnected, onEdgesChanged, setNodes } from "../graphSlice.ts";
+import {
+  editorLocked,
+  onConnected,
+  onEdgesChanged,
+  setNodes,
+} from "../graphSlice.ts";
 import { layoutNodes } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
@@ -60,9 +65,10 @@ const applyNodeChangesWithLayout = (
   changes: NodeChange<BipartiteNodeType>[],
   nodes: BipartiteNodeType[],
 ) => {
-  const newNodes = applyNodeChanges(changes, nodes);
+  const nonSelectionChanges = changes.filter((ch) => ch.type !== "select");
+  const newNodes = applyNodeChanges(nonSelectionChanges, nodes);
 
-  const draggedNodeIds = changes
+  const draggedNodeIds = nonSelectionChanges
     .filter(
       (change): change is NodePositionChange =>
         change.type === "position" && !!change.dragging,
@@ -72,7 +78,13 @@ const applyNodeChangesWithLayout = (
   return layoutNodes(newNodes, draggedNodeIds);
 };
 
-export default function BipartiteGraph({ id }: { id: string }) {
+export default function BipartiteGraph({
+  id,
+  locked,
+}: {
+  id: string;
+  locked: boolean;
+}) {
   const type = "bipartite";
 
   const dispatch = useAppDispatch();
@@ -87,6 +99,10 @@ export default function BipartiteGraph({ id }: { id: string }) {
   );
 
   const { getNode, getNodeConnections } = useReactFlow();
+
+  useEffect(() => {
+    dispatch(editorLocked({ id, type, locked }));
+  }, [id, dispatch, locked]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) =>
@@ -151,9 +167,17 @@ export default function BipartiteGraph({ id }: { id: string }) {
           connectionLineStyle={connectionLineStyle}
           isValidConnection={isValidConnection}
           proOptions={{ hideAttribution: true }}
+          nodesFocusable={false}
+          nodesConnectable={!locked}
+          edgesFocusable={!locked}
+          edgesReconnectable={!locked}
         >
           <Background id={`bg-bipartite-${id}`} />
-          <Controls />
+          <Controls
+            onInteractiveChange={(ch) => {
+              dispatch(editorLocked({ id, type, locked: locked || !ch }));
+            }}
+          />
         </ReactFlow>
       </div>
     </>

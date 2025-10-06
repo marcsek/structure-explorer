@@ -196,6 +196,18 @@ export const graphManagerSlice = createSlice({
         }
       }
     },
+
+    editorLocked(
+      state,
+      action: PayloadAction<WithGraphId<{ locked: boolean }>>,
+    ) {
+      const { id, type, locked } = action.payload;
+
+      state[id].state[type].edges = state[id].state[type].edges.map((e) => ({
+        ...e,
+        selectable: !locked,
+      }));
+    },
   },
 });
 
@@ -385,6 +397,7 @@ export const {
   tuplesChanged,
   tupleInterpretationChanged,
   domainChanged,
+  editorLocked,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

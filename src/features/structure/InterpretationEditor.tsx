@@ -86,7 +86,7 @@ export default function InterpretationEditorProps({
             suffix={isConstant ? "" : <InlineMath>{suffixRaw}</InlineMath>}
             placeholder=""
             text={interpretation?.text ?? ""}
-            lockChecker={interpretation?.locked ?? false}
+            lockChecker={interpretation?.locked}
             locker={locker}
             onChange={onChange}
             error={error}
@@ -117,6 +117,7 @@ export default function InterpretationEditorProps({
               enableNodeFiltering={!isFunction}
               enableGraphTypeSelector={!isFunction}
               initialGraphType={isFunction ? "bipartite" : "oriented"}
+              locked={interpretation?.locked}
             />
           </CardBody>
         </Card>

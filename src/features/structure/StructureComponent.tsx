@@ -26,58 +26,7 @@ import {
   selectParsedFunctions,
   selectParsedPredicates,
 } from "../language/languageSlice";
-
 import InterpretationEditor from "./InterpretationEditor";
-
-const help = (
-  <>
-    <p>
-      A first-order structure for language 𝓛 is defined in this section. When
-      the language is modified, inputs for interpretations of symbols are
-      updated accordingly.
-    </p>
-    <p className="mb-0">Syntactic requirements:</p>
-    <ul className="mb-0">
-      <li>
-        Elements in all sets (the domain, interpretations of predicates and
-        functions) are comma-separated.
-      </li>
-      <li>
-        Strings of any Unicode characters except spaces, comma, and parentheses
-        can be used as domain elements.
-      </li>
-      <li>An individual constant is interpreted as a domain element.</li>
-      <li>
-        A unary predicate symbol is interpreted as a set of domain elements.
-      </li>
-      <li>
-        An <var>n</var>-ary predicate symbol for <var>n</var> &gt; 1 is
-        interpreted as a set of <var>n</var>-tuples of domain elements. Each{" "}
-        <var>n</var>-tuple is written as{" "}
-        <code>
-          (elem<sub>1</sub>, …, elem
-          <sub>
-            <var>n</var>
-          </sub>
-          )
-        </code>
-        .
-      </li>
-      <li>
-        An <var>n</var>-ary function symbol is interpreted as a set of (
-        <var>n</var>+1)-tuples of domain elements, each written as{" "}
-        <code>
-          (arg<sub>1</sub>, …, arg
-          <sub>
-            <var>n</var>
-          </sub>
-          , value)
-        </code>
-        .
-      </li>
-    </ul>
-  </>
-);
 
 export default function StructureComponent() {
   const dispatch = useAppDispatch();
@@ -193,3 +142,53 @@ export default function StructureComponent() {
     </>
   );
 }
+
+const help = (
+  <>
+    <p>
+      A first-order structure for language 𝓛 is defined in this section. When
+      the language is modified, inputs for interpretations of symbols are
+      updated accordingly.
+    </p>
+    <p className="mb-0">Syntactic requirements:</p>
+    <ul className="mb-0">
+      <li>
+        Elements in all sets (the domain, interpretations of predicates and
+        functions) are comma-separated.
+      </li>
+      <li>
+        Strings of any Unicode characters except spaces, comma, and parentheses
+        can be used as domain elements.
+      </li>
+      <li>An individual constant is interpreted as a domain element.</li>
+      <li>
+        A unary predicate symbol is interpreted as a set of domain elements.
+      </li>
+      <li>
+        An <var>n</var>-ary predicate symbol for <var>n</var> &gt; 1 is
+        interpreted as a set of <var>n</var>-tuples of domain elements. Each{" "}
+        <var>n</var>-tuple is written as{" "}
+        <code>
+          (elem<sub>1</sub>, …, elem
+          <sub>
+            <var>n</var>
+          </sub>
+          )
+        </code>
+        .
+      </li>
+      <li>
+        An <var>n</var>-ary function symbol is interpreted as a set of (
+        <var>n</var>+1)-tuples of domain elements, each written as{" "}
+        <code>
+          (arg<sub>1</sub>, …, arg
+          <sub>
+            <var>n</var>
+          </sub>
+          , value)
+        </code>
+        .
+      </li>
+    </ul>
+  </>
+);

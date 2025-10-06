@@ -10,6 +10,45 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
 
+export default function FormulaCard() {
+  const dispatch = useAppDispatch();
+  const allFormulas = useAppSelector(selectFormulas);
+
+  return (
+    <>
+      <Card className="mb-3 mt-3">
+        <Card.Header as="h4">
+          <Row>
+            <Col>
+              Truth of formulas in{" "}
+              <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
+            </Col>
+            <Col xs="auto">
+              <TooltipButton text={help}></TooltipButton>
+            </Col>
+          </Row>
+        </Card.Header>
+        <Card.Body>
+          {allFormulas.length > 0 && <PrettifyButton />}
+
+          {allFormulas.map((formula: FormulaState, index: number) => (
+            <FormulaComponent
+              id={index}
+              key={index}
+              text={formula.text}
+              guess={formula.guess}
+            />
+          ))}
+
+          <Button variant="success" onClick={() => dispatch(addFormula())}>
+            <FontAwesomeIcon icon={faPlus} /> Add
+          </Button>
+        </Card.Body>
+      </Card>
+    </>
+  );
+}
+
 const help = (
   <>
     <p>
@@ -93,42 +132,3 @@ const help = (
     </ul>
   </>
 );
-
-export default function FormulaCard() {
-  const dispatch = useAppDispatch();
-  const allFormulas = useAppSelector(selectFormulas);
-
-  return (
-    <>
-      <Card className="mb-3 mt-3">
-        <Card.Header as="h4">
-          <Row>
-            <Col>
-              Truth of formulas in{" "}
-              <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
-            </Col>
-            <Col xs="auto">
-              <TooltipButton text={help}></TooltipButton>
-            </Col>
-          </Row>
-        </Card.Header>
-        <Card.Body>
-          {allFormulas.length > 0 && <PrettifyButton />}
-
-          {allFormulas.map((formula: FormulaState, index: number) => (
-            <FormulaComponent
-              id={index}
-              key={index}
-              text={formula.text}
-              guess={formula.guess}
-            />
-          ))}
-
-          <Button variant="success" onClick={() => dispatch(addFormula())}>
-            <FontAwesomeIcon icon={faPlus} /> Add
-          </Button>
-        </Card.Body>
-      </Card>
-    </>
-  );
-}

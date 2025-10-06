@@ -15,7 +15,6 @@ interface Props {
   onChange(event: ChangeEvent<HTMLInputElement>): void;
   locker: () => void;
   lockChecker: boolean | undefined;
-  controlButtons?: React.ReactNode;
   error?: Error | SyntaxError;
 }
 
@@ -29,7 +28,6 @@ export default function InputGroupTitle({
   onChange,
   locker,
   lockChecker,
-  controlButtons,
   error,
 }: Props) {
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
@@ -56,8 +54,6 @@ export default function InputGroupTitle({
         />
 
         {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}
-
-        {controlButtons}
 
         {teacherMode && (
           <Button variant="secondary" onClick={() => locker()}>

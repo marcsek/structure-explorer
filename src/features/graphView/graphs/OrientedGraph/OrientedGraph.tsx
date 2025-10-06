@@ -12,13 +12,18 @@ import {
   type NodeTypes,
   type FitViewOptions,
 } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
-import { onConnected, onEdgesChanged, onNodesChanged } from "../graphSlice.ts";
+import {
+  editorLocked,
+  onConnected,
+  onEdgesChanged,
+  onNodesChanged,
+} from "../graphSlice.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
@@ -48,7 +53,13 @@ const fitViewOptions: FitViewOptions = {
   padding: "50px",
 };
 
-export default function OrientedGraph({ id }: { id: string }) {
+export default function OrientedGraph({
+  id,
+  locked,
+}: {
+  id: string;
+  locked: boolean;
+}) {
   const type = "oriented";
 
   const dispatch = useAppDispatch();
@@ -58,6 +69,10 @@ export default function OrientedGraph({ id }: { id: string }) {
   const edges = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.edges,
   );
+
+  useEffect(() => {
+    dispatch(editorLocked({ id, type, locked }));
+  }, [id, dispatch, locked]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>
@@ -105,9 +120,17 @@ export default function OrientedGraph({ id }: { id: string }) {
           connectionLineStyle={connectionLineStyle}
           isValidConnection={isValidConnection}
           proOptions={{ hideAttribution: true }}
+          nodesFocusable={false}
+          nodesConnectable={!locked}
+          edgesFocusable={!locked}
+          edgesReconnectable={!locked}
         >
           <Background id={`bg-oriented-${id}`} />
-          <Controls />
+          <Controls
+            onInteractiveChange={(ch) => {
+              dispatch(editorLocked({ id, type, locked: locked || !ch }));
+            }}
+          />
         </ReactFlow>
       </div>
     </>
