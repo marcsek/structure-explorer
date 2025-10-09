@@ -9,12 +9,16 @@ export type OrientedGraphState = {
   selectedNodes: string[];
 };
 
-const createNode = (id: string, hidden = false): PredicateNodeType => {
+const createNode = (
+  id: string,
+  hidden = false,
+  leftOver = false,
+): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
     position: { x: 0, y: 0 },
-    data: { label: id },
+    data: { label: id, leftOver },
     hidden,
   };
 };
@@ -54,17 +58,34 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
   },
 
   syncNodes(prev, domain) {
-    const nodeById = new Map(prev.nodes.map((n) => [n.id, n]));
+    const nodeById = new Map(
+      prev.nodes.map((n) => [
+        n.id,
+        // need to reset leftOver state
+        { ...n, data: { ...n.data, leftOver: false } },
+      ]),
+    );
 
     const newNodes = domain.map(
       (element) => nodeById.get(element) ?? createNode(element, true),
     );
 
-    const selectedNodes = newNodes
+    const hasConnectingEdge = (nodeId: string) =>
+      prev.edges.some(({ source, target }) =>
+        [source, target].includes(nodeId),
+      );
+
+    const leftOverNodes = prev.nodes
+      .filter((node) => !domain.includes(node.id) && hasConnectingEdge(node.id))
+      .map((node) => ({ ...node, data: { ...node.data, leftOver: true } }));
+
+    const allNodes = [...newNodes, ...leftOverNodes];
+
+    const selectedNodes = allNodes
       .filter((node) => !node.hidden)
       .map((node) => node.id);
 
-    return { ...prev, nodes: newNodes, selectedNodes };
+    return { ...prev, nodes: allNodes, selectedNodes };
   },
 
   hideNodes(prev, toggledNode) {
@@ -88,7 +109,15 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
     );
 
-    return { ...prev, edges: newEdges };
+    const newNodes = prev.nodes.filter(
+      (n) =>
+        !n.data.leftOver ||
+        newEdges.some(
+          ({ source, target }) => source === n.id || target === n.id,
+        ),
+    );
+
+    return { ...prev, edges: newEdges, nodes: newNodes };
   },
 
   edgesToRelation(state) {

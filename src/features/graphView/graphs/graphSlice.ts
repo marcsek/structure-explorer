@@ -45,7 +45,7 @@ export type GraphManagerState = Record<
   { tupleType: TupleType; state: GraphState }
 >;
 
-type WithGraphId<T> = { id: string; type: GraphType } & T;
+type WithGraphId<T = object> = { id: string; type: GraphType } & T;
 
 export const graphManagerSlice = createSlice({
   name: "graphManager",
@@ -90,7 +90,6 @@ export const graphManagerSlice = createSlice({
       >,
     ) {
       const { id, type, changes } = action.payload;
-      console.log(changes);
       state[id].state[type].nodes = applyNodeChanges(
         changes,
         state[id].state[type].nodes,

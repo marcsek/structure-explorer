@@ -34,7 +34,7 @@ graphSliceListener.startListening({
     if (updateInterpretationPredicates.match(action)) {
       const parsedPredicate = selectParsedPredicate(state, action.payload.key);
 
-      if (parsedPredicate.error || !parsedPredicate.parsed) return;
+      if (!parsedPredicate.parsed) return;
 
       key = action.payload.key;
       tupleIntr = parsedPredicate.parsed;

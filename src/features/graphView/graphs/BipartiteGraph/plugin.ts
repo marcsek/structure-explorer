@@ -70,7 +70,13 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   },
 
   syncNodes(prev, domain, tupleType) {
-    const nodeById = new Map(prev.nodes.map((n) => [n.id, n]));
+    const nodeById = new Map(
+      prev.nodes.map((n) => [
+        n.id,
+        // need to reset leftOver state
+        { ...n, data: { ...n.data, leftOver: false } },
+      ]),
+    );
 
     const initiallyHidden = tupleType !== "function";
 
@@ -85,11 +91,28 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         createNode(element, "range", initiallyHidden),
     ]);
 
-    const selectedNodes = newNodes
+    const hasConnectingEdge = (nodeId: string) =>
+      prev.edges.some(
+        ({ source, target }) =>
+          [source, target].includes(`d-${nodeId}`) ||
+          [source, target].includes(`r-${nodeId}`),
+      );
+
+    const leftOverNodes = prev.nodes
+      .filter(
+        (node) =>
+          !domain.includes(node.id.slice("d-".length)) &&
+          hasConnectingEdge(node.id.slice("d-".length)),
+      )
+      .map((node) => ({ ...node, data: { ...node.data, leftOver: true } }));
+
+    const allNodes = [...newNodes, ...leftOverNodes];
+
+    const selectedNodes = allNodes
       .filter((node) => !node.hidden)
       .map((node) => node.id.slice("d-".length));
 
-    return { ...prev, nodes: layoutNodes(newNodes), selectedNodes };
+    return { ...prev, nodes: layoutNodes(allNodes), selectedNodes };
   },
 
   hideNodes(prev, toggledNode) {
@@ -132,6 +155,16 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     let newNodes = prev.nodes;
     const newEdges = intr.map(
       ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
+    );
+
+    newNodes = prev.nodes.filter(
+      (n) =>
+        !n.data.leftOver ||
+        newEdges.some(
+          ({ source, target }) =>
+            [source, target].includes(`d-${n.id.slice("d-".length)}`) ||
+            [source, target].includes(`r-${n.id.slice("d-".length)}`),
+        ),
     );
 
     if (tupleType === "function") {

@@ -103,7 +103,6 @@ export default function InterpretationEditorProps({
             buttons={controlButtons}
             selected={selectedEditor}
             onSelected={setSelectedEditor}
-            disabled={!!error && !isFunction && selectedEditor === "text"}
           />
         )}
       </Stack>
@@ -114,7 +113,6 @@ export default function InterpretationEditorProps({
             <CardBody>
               <GraphView
                 predName={name}
-                hasIntrError={!!error && !isFunction}
                 enableNodeFiltering={!isFunction}
                 enableGraphTypeSelector={!isFunction}
                 initialGraphType={isFunction ? "bipartite" : "oriented"}
