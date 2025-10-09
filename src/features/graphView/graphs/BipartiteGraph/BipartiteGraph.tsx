@@ -65,10 +65,9 @@ const applyNodeChangesWithLayout = (
   changes: NodeChange<BipartiteNodeType>[],
   nodes: BipartiteNodeType[],
 ) => {
-  const nonSelectionChanges = changes.filter((ch) => ch.type !== "select");
-  const newNodes = applyNodeChanges(nonSelectionChanges, nodes);
+  const newNodes = applyNodeChanges(changes, nodes);
 
-  const draggedNodeIds = nonSelectionChanges
+  const draggedNodeIds = changes
     .filter(
       (change): change is NodePositionChange =>
         change.type === "position" && !!change.dragging,
@@ -98,7 +97,7 @@ export default function BipartiteGraph({
     (state) => state.graphView[id].tupleType === "function",
   );
 
-  const { getNode, getNodeConnections } = useReactFlow();
+  const { getNode } = useReactFlow();
 
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
@@ -123,8 +122,16 @@ export default function BipartiteGraph({
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) => dispatch(onConnected({ id, type, connection })),
-    [id, dispatch],
+    (connection) =>
+      dispatch(
+        onConnected({
+          id,
+          type,
+          connection,
+          breakPrevious: representsFunction,
+        }),
+      ),
+    [id, dispatch, representsFunction],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -138,14 +145,9 @@ export default function BipartiteGraph({
         getNode(newEdge.source)?.data.origin ===
         getNode(newEdge.target)?.data.origin;
 
-      if (!representsFunction) return !duplicateEdge && !identicalOrigin;
-
-      const isValidFunction =
-        getNodeConnections({ nodeId: newEdge.source }).length === 0;
-
-      return !duplicateEdge && !identicalOrigin && isValidFunction;
+      return !duplicateEdge && !identicalOrigin;
     },
-    [edges, getNode, getNodeConnections, representsFunction],
+    [edges, getNode],
   );
 
   return (

@@ -90,6 +90,7 @@ export const graphManagerSlice = createSlice({
       >,
     ) {
       const { id, type, changes } = action.payload;
+      console.log(changes);
       state[id].state[type].nodes = applyNodeChanges(
         changes,
         state[id].state[type].nodes,
@@ -180,6 +181,7 @@ export const graphManagerSlice = createSlice({
             plugin,
             graphState,
             intr as BinaryRelation<string>,
+            graphs.tupleType,
           );
       }
     },
@@ -295,16 +297,22 @@ export const onConnected = ({
   id,
   type,
   connection,
+  breakPrevious = false,
 }: {
   id: string;
   type: GraphType;
   connection: Connection;
+  breakPrevious?: boolean;
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().graphView;
     const tupleType = managerState[id].tupleType;
+    let newEdges = [...managerState[id].state[type].edges];
 
-    const newEdges = addEdge(connection, managerState[id].state[type].edges);
+    if (breakPrevious)
+      newEdges = newEdges.filter((e) => e.source !== connection.source);
+
+    newEdges = addEdge(connection, newEdges);
 
     const relation = processEdgesToRelation(plugins[type], {
       ...managerState[id].state[type],

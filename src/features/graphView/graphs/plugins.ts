@@ -37,6 +37,7 @@ export interface Plugin<K extends GraphType> {
   syncPredIntr(
     prev: GraphState[K],
     intr: BinaryRelation<string>,
+    tupleType: TupleType,
   ): GraphState[K];
   edgesToRelation(state: GraphState[K]): BinaryRelation<string>;
 }
@@ -70,8 +71,9 @@ export function processSyncPredIntr<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   intr: BinaryRelation<string>,
+  tupleType: TupleType,
 ): GraphState[K] {
-  return plugin.syncPredIntr(prev, intr);
+  return plugin.syncPredIntr(prev, intr, tupleType);
 }
 
 export function processEdgesToRelation<K extends GraphType>(

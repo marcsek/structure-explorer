@@ -14,12 +14,13 @@ const createNode = (
   id: string,
   origin: BipartiteNodeType["data"]["origin"],
   hidden = false,
+  error = false,
 ): BipartiteNodeType => {
   return {
     id: `${origin === "domain" ? "d" : "r"}-${id}`,
     type: "predicate",
     position: { x: Infinity, y: Infinity },
-    data: { label: id, origin },
+    data: { label: id, origin, error },
     connectable: origin === "domain" ? undefined : false,
     hidden,
   };
@@ -51,7 +52,11 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     domain.forEach((domElement) => {
       const hidden = !graph.selectedNodes.includes(domElement);
-      graph.nodes.push(createNode(domElement, "domain", hidden));
+      const error =
+        type === "function" &&
+        iP.filter(([d]) => d === domElement).length !== 1;
+
+      graph.nodes.push(createNode(domElement, "domain", hidden, error));
       graph.nodes.push(createNode(domElement, "range", hidden));
     });
 
@@ -69,9 +74,13 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const initiallyHidden = tupleType !== "function";
 
+    const shouldError = (id: string) =>
+      prev.edges.filter((e) => e.source.slice("d-".length) === id).length !==
+        1 && tupleType === "function";
+
     const newNodes = domain.flatMap((element) => [
       nodeById.get(`d-${element}`) ??
-        createNode(element, "domain", initiallyHidden),
+        createNode(element, "domain", initiallyHidden, shouldError(element)),
       nodeById.get(`r-${element}`) ??
         createNode(element, "range", initiallyHidden),
     ]);
@@ -117,14 +126,32 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     };
   },
 
-  syncPredIntr(prev, intr) {
+  syncPredIntr(prev, intr, tupleType) {
     const edgeById = new Map(prev.edges.map((e) => [e.id, e]));
 
+    let newNodes = prev.nodes;
     const newEdges = intr.map(
       ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
     );
 
-    return { ...prev, edges: newEdges };
+    if (tupleType === "function") {
+      const shouldError = (id: string) =>
+        intr.filter(([from]) => from === id).length !== 1;
+
+      newNodes = prev.nodes.map((node) =>
+        node.data.origin === "domain"
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                error: shouldError(node.id.slice("d-".length)),
+              },
+            }
+          : node,
+      );
+    }
+
+    return { ...prev, edges: newEdges, nodes: newNodes };
   },
 
   edgesToRelation(state) {

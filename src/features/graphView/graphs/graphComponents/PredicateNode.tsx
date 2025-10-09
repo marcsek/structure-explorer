@@ -16,6 +16,7 @@ import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
+  error?: boolean;
 }
 
 // Omitting "domAttributes" is needed to prevent issues with immer library.
@@ -27,6 +28,8 @@ export type PredicateNodeType<
 export default function PredicateNode({
   id,
   data,
+  selectable,
+  selected,
   isConnectable,
 }: NodeProps<PredicateNodeType>) {
   const connection = useConnection();
@@ -51,8 +54,11 @@ export default function PredicateNode({
   );
 
   return (
-    <div>
-      <div className="predicateNodeBody">
+    <div
+      // TODO: not like this
+      className={`graph_editor__node ${data.error ? "border-danger" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
+    >
+      <div className={`predicateNodeBody`}>
         {!connection.inProgress && (
           <Handle
             className="predicateNodeHandle"

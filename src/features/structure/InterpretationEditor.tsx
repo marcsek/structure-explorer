@@ -109,18 +109,21 @@ export default function InterpretationEditorProps({
       </Stack>
 
       {selectedEditor !== "text" && (
-        <Card className="mb-3">
-          <CardBody>
-            <GraphView
-              predName={name}
-              hasIntrError={!!error && !isFunction}
-              enableNodeFiltering={!isFunction}
-              enableGraphTypeSelector={!isFunction}
-              initialGraphType={isFunction ? "bipartite" : "oriented"}
-              locked={interpretation?.locked}
-            />
-          </CardBody>
-        </Card>
+        <div className="mb-3">
+          <Card className={`${error ? "border-danger" : ""}`}>
+            <CardBody>
+              <GraphView
+                predName={name}
+                hasIntrError={!!error && !isFunction}
+                enableNodeFiltering={!isFunction}
+                enableGraphTypeSelector={!isFunction}
+                initialGraphType={isFunction ? "bipartite" : "oriented"}
+                locked={interpretation?.locked}
+              />
+            </CardBody>
+          </Card>
+          <p className="text-danger small mt-1">{error?.message}</p>
+        </div>
       )}
     </>
   );
