@@ -39,6 +39,10 @@ export interface Plugin<K extends GraphType> {
     intr: BinaryRelation<string>,
     tupleType: TupleType,
   ): GraphState[K];
+  deleteLeftover(
+    state: GraphState[K],
+    deleted: string,
+  ): Pick<GraphState[K], "nodes" | "edges">;
   edgesToRelation(state: GraphState[K]): BinaryRelation<string>;
 }
 
@@ -74,6 +78,14 @@ export function processSyncPredIntr<K extends GraphType>(
   tupleType: TupleType,
 ): GraphState[K] {
   return plugin.syncPredIntr(prev, intr, tupleType);
+}
+
+export function processDeleteLeftover<K extends GraphType>(
+  plugin: Plugin<K>,
+  state: GraphState[K],
+  deleted: string,
+): Pick<GraphState[K], "nodes" | "edges"> {
+  return plugin.deleteLeftover(state, deleted);
 }
 
 export function processEdgesToRelation<K extends GraphType>(

@@ -21,6 +21,7 @@ import {
 import {
   graphTypes,
   plugins,
+  processDeleteLeftover,
   processEdgesToRelation,
   processHideNodes,
   processSyncNodes,
@@ -369,6 +370,40 @@ export const selectedNodesChanged = ({
         }),
       );
     }
+  };
+};
+
+export const leftoverDeleted = ({
+  id,
+  type,
+  deletedNode,
+}: {
+  id: string;
+  type: GraphType;
+  deletedNode: string;
+}): AppThunk => {
+  return (dispatch, getState) => {
+    const managerState = getState().graphView;
+    const tupleType = managerState[id].tupleType;
+
+    const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
+      plugins[type],
+      managerState[id].state[type],
+      deletedNode,
+    );
+
+    const relation = processEdgesToRelation(plugins[type], {
+      ...managerState[id].state[type],
+      edges: newEdges,
+    });
+
+    const creator =
+      tupleType === "predicate"
+        ? updateInterpretationPredicates
+        : updateFunctionSymbols;
+
+    dispatch(setNodes({ id, type, nodes: newNodes }));
+    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
   };
 };
 

@@ -70,24 +70,29 @@ graphSliceListener.startListening({
     const parsedFuncs = selectParsedFunctions(state);
     const structure = selectStructure(state);
 
-    if (
-      !parsedPredicates.error &&
-      parsedPredicates.parsed &&
-      parsedFuncs.parsed
-    ) {
+    if (parsedPredicates.parsed && parsedFuncs.parsed) {
+      // probably only temporary until state management is refactored
+      const funcIntr = [...structure.iF.entries()].map(
+        ([key, map]) =>
+          [
+            key,
+            [...map.entries()]
+              .filter(([d, r]) => d.length > 0 && r !== undefined)
+              .map(([d, r]) => [d[0], r]),
+          ] as const,
+      );
+
+      const predIntr = [...structure.iP.entries()].map(
+        ([key, set]) =>
+          [key, [...set].filter((arr) => arr.length > 0)] as const,
+      );
+
       api.dispatch(
         tuplesChanged({
           domain: [...structure.domain],
           preds: [...parsedPredicates.parsed.entries()],
           funcs: [...parsedFuncs.parsed.entries()],
-          tupleIntr: Object.fromEntries(
-            new Map(
-              Array.from(structure.iP.entries()).map(([key, set]) => [
-                key,
-                [...set].filter((arr) => arr.length > 0),
-              ]),
-            ),
-          ),
+          tupleIntr: Object.fromEntries(new Map([...predIntr, ...funcIntr])),
         }),
       );
     }

@@ -132,4 +132,9 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     const domain = state.nodes.map((node) => node.id);
     return expandReducedPoset(relation, new Set(domain));
   },
+
+  deleteLeftover(state) {
+    // TODO
+    return { nodes: state.nodes, edges: state.edges };
+  },
 };

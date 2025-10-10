@@ -4,21 +4,24 @@ import {
   Handle,
   Position,
   useConnection,
-  useReactFlow,
   type Node,
   type NodeProps,
 } from "@xyflow/react";
-import { useAppSelector } from "../../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
+  leftoverDeleted,
   selectRelevantConstants,
   selectRelevantUnaryPreds,
 } from "../graphSlice";
 import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
+import { Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
   error?: boolean;
-  leftOver?: boolean;
+  leftover?: boolean;
 }
 
 // Omitting "domAttributes" is needed to prevent issues with immer library.
@@ -34,7 +37,7 @@ export default function PredicateNode({
   selected,
   isConnectable,
 }: NodeProps<PredicateNodeType>) {
-  const { deleteElements } = useReactFlow();
+  const dispatch = useAppDispatch();
 
   const connection = useConnection();
   const parentInfo = useGraphInfo();
@@ -57,19 +60,16 @@ export default function PredicateNode({
     selectedPreds.includes(relevant),
   );
 
-  const handleLeftOverDeletion = () => {
-    const toDelete =
-      parentInfo.type === "bipartite"
-        ? [`d-${id.slice("d-".length)}`, `r-${id.slice("d-".length)}`]
-        : [id];
+  const handleLeftOverDeletion = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
 
-    deleteElements({ nodes: toDelete.map((id) => ({ id })) });
+    dispatch(leftoverDeleted({ ...parentInfo, deletedNode: id }));
   };
 
   return (
     <div
       // TODO: not like this
-      className={`graph_editor__node ${data.error || data.leftOver ? "border-danger" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
+      className={`graph_editor__node ${data.error || data.leftover ? "border-danger" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
     >
       <div className={`predicateNodeBody`}>
         {!connection.inProgress && (
@@ -77,7 +77,7 @@ export default function PredicateNode({
             className="predicateNodeHandle"
             position={Position.Right}
             type="source"
-            isConnectable={!data.leftOver}
+            isConnectable={!data.leftover}
             isConnectableStart={isConnectable}
           />
         )}
@@ -87,22 +87,50 @@ export default function PredicateNode({
             className="predicateNodeHandle"
             position={Position.Left}
             type="target"
-            isConnectable={!data.leftOver}
+            isConnectable={!data.leftover}
             isConnectableStart={false}
           />
         )}
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <h2 style={{ margin: 0 }}>{data.label.toUpperCase()}</h2>
-          <p style={{ margin: 0 }}>{constants.join(", ")}</p>
-          {data.leftOver && (
-            <button
-              style={{ margin: 0, zIndex: 100 }}
-              onClick={handleLeftOverDeletion}
+          <h2 style={{ margin: 0, lineHeight: 0 }}>
+            {data.label.toUpperCase()}
+          </h2>
+          <Button
+            style={{
+              zIndex: 100,
+              transform: "scale(0.65)",
+              visibility: data.leftover ? "visible" : "hidden",
+              position: "absolute",
+              top: "-30px",
+              right: "-30px",
+            }}
+            variant="danger"
+            onClick={handleLeftOverDeletion}
+          >
+            <FontAwesomeIcon icon={faTrash} />
+          </Button>
+
+          {!data.leftover ? (
+            <>
+              <p style={{ margin: 0 }}>{constants.join(", ")}</p>
+              <p style={{ margin: 0 }}>{predsToDisplay.join(", ")}</p>
+            </>
+          ) : (
+            <p
+              style={{
+                fontSize: "0.65rem",
+                position: "absolute",
+                fontWeight: "normal",
+                textWrap: "nowrap",
+                bottom: -20,
+                left: "50%",
+                transform: "translateX(-50%)",
+              }}
+              className="text-danger"
             >
-              Delete
-            </button>
+              Leftover node
+            </p>
           )}
-          <p style={{ margin: 0 }}>{predsToDisplay.join(", ")}</p>
         </div>
       </div>
     </div>

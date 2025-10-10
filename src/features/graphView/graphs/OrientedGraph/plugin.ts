@@ -11,14 +11,16 @@ export type OrientedGraphState = {
 
 const createNode = (
   id: string,
-  hidden = false,
-  leftOver = false,
+  {
+    hidden = false,
+    leftover = false,
+  }: { hidden?: boolean; leftover?: boolean } = {},
 ): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
     position: { x: 0, y: 0 },
-    data: { label: id, leftOver },
+    data: { label: id, leftover },
     hidden,
   };
 };
@@ -46,12 +48,22 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
     domain.forEach((domElement) =>
       graph.nodes.push(
-        createNode(domElement, !graph.selectedNodes.includes(domElement)),
+        createNode(domElement, {
+          hidden: !graph.selectedNodes.includes(domElement),
+        }),
       ),
     );
 
     iP.forEach(([source, target]) =>
       graph.edges.push(createEdge(source, target)),
+    );
+
+    const extraElements = iP
+      .flat()
+      .filter((element) => !domain.includes(element));
+
+    extraElements.forEach((element) =>
+      graph.nodes.push(createNode(element, { leftover: true })),
     );
 
     return graph;
@@ -61,25 +73,42 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
-        // need to reset leftOver state
-        { ...n, data: { ...n.data, leftOver: false } },
+        // need to reset leftover state
+        { ...n, data: { ...n.data, leftover: false } },
       ]),
     );
 
     const newNodes = domain.map(
-      (element) => nodeById.get(element) ?? createNode(element, true),
+      (element) =>
+        nodeById.get(element) ?? createNode(element, { hidden: true }),
     );
 
-    const hasConnectingEdge = (nodeId: string) =>
-      prev.edges.some(({ source, target }) =>
-        [source, target].includes(nodeId),
+    const connectingEdges = (nodeId: string) =>
+      new Set(
+        prev.edges
+          .filter(({ source, target }) => [source, target].includes(nodeId))
+          .flatMap(({ source, target }) => [source, target]),
       );
 
-    const leftOverNodes = prev.nodes
-      .filter((node) => !domain.includes(node.id) && hasConnectingEdge(node.id))
-      .map((node) => ({ ...node, data: { ...node.data, leftOver: true } }));
+    const leftoverNodes = prev.nodes
+      .filter(
+        (node) =>
+          !domain.includes(node.id) && connectingEdges(node.id).size > 0,
+      )
+      .map((node) => ({
+        ...node,
+        data: { ...node.data, leftover: true },
+        hidden: false,
+      }));
 
-    const allNodes = [...newNodes, ...leftOverNodes];
+    //leftoverNodes.forEach((node) => {
+    //  const connecting = connectingEdges(node.id);
+    //  newNodes = newNodes.map((newNode) =>
+    //    connecting.has(newNode.id) ? { ...newNode, hidden: false } : newNode,
+    //  );
+    //});
+
+    const allNodes = [...newNodes, ...leftoverNodes];
 
     const selectedNodes = allNodes
       .filter((node) => !node.hidden)
@@ -109,11 +138,21 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
     );
 
-    const newNodes = prev.nodes.filter(
-      (n) =>
-        !n.data.leftOver ||
+    let newNodes = [...prev.nodes];
+
+    const extraElements = intr
+      .flat()
+      .filter((element) => !prev.nodes.some((node) => node.id === element));
+
+    extraElements.forEach((element) =>
+      newNodes.push(createNode(element, { leftover: true })),
+    );
+
+    newNodes = newNodes.filter(
+      (node) =>
+        !node.data.leftover ||
         newEdges.some(
-          ({ source, target }) => source === n.id || target === n.id,
+          ({ source, target }) => source === node.id || target === node.id,
         ),
     );
 
@@ -122,5 +161,15 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
   edgesToRelation(state) {
     return state.edges.map(({ source, target }) => [source, target]);
+  },
+
+  deleteLeftover(state, deleted) {
+    const newNodes = state.nodes.filter((node) => node.id !== deleted);
+
+    const newEdges = state.edges.filter(
+      ({ source, target }) => source !== deleted && target !== deleted,
+    );
+
+    return { nodes: newNodes, edges: newEdges };
   },
 };

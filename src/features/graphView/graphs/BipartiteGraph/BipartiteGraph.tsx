@@ -66,6 +66,7 @@ const applyNodeChangesWithLayout = (
   nodes: BipartiteNodeType[],
 ) => {
   const newNodes = applyNodeChanges(changes, nodes);
+  console.log(changes);
 
   const draggedNodeIds = changes
     .filter(

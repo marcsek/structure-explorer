@@ -13,14 +13,17 @@ export type BipartiteGraphState = {
 const createNode = (
   id: string,
   origin: BipartiteNodeType["data"]["origin"],
-  hidden = false,
-  error = false,
+  {
+    hidden = false,
+    error = false,
+    leftover = false,
+  }: { hidden?: boolean; error?: boolean; leftover?: boolean } = {},
 ): BipartiteNodeType => {
   return {
     id: `${origin === "domain" ? "d" : "r"}-${id}`,
     type: "predicate",
     position: { x: Infinity, y: Infinity },
-    data: { label: id, origin, error },
+    data: { label: id, origin, error, leftover },
     connectable: origin === "domain" ? undefined : false,
     hidden,
   };
@@ -56,8 +59,29 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         type === "function" &&
         iP.filter(([d]) => d === domElement).length !== 1;
 
-      graph.nodes.push(createNode(domElement, "domain", hidden, error));
-      graph.nodes.push(createNode(domElement, "range", hidden));
+      graph.nodes.push(createNode(domElement, "domain", { hidden, error }));
+      graph.nodes.push(createNode(domElement, "range", { hidden }));
+    });
+
+    const leftovers = new Set(
+      iP.flat().filter((element) => !domain.includes(element)),
+    );
+
+    leftovers.forEach((element) => {
+      graph.nodes.push(
+        createNode(element, "domain", {
+          hidden: false,
+          error: false,
+          leftover: true,
+        }),
+      );
+      graph.nodes.push(
+        createNode(element, "range", {
+          hidden: false,
+          error: false,
+          leftover: true,
+        }),
+      );
     });
 
     graph.nodes = layoutNodes(graph.nodes);
@@ -73,8 +97,8 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
-        // need to reset leftOver state
-        { ...n, data: { ...n.data, leftOver: false } },
+        // need to reset leftover state
+        { ...n, data: { ...n.data, leftover: false } },
       ]),
     );
 
@@ -86,9 +110,12 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const newNodes = domain.flatMap((element) => [
       nodeById.get(`d-${element}`) ??
-        createNode(element, "domain", initiallyHidden, shouldError(element)),
+        createNode(element, "domain", {
+          hidden: initiallyHidden,
+          error: shouldError(element),
+        }),
       nodeById.get(`r-${element}`) ??
-        createNode(element, "range", initiallyHidden),
+        createNode(element, "range", { hidden: initiallyHidden }),
     ]);
 
     const hasConnectingEdge = (nodeId: string) =>
@@ -98,18 +125,22 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
           [source, target].includes(`r-${nodeId}`),
       );
 
-    const leftOverNodes = prev.nodes
+    const leftoverNodes = prev.nodes
       .filter(
         (node) =>
           !domain.includes(node.id.slice("d-".length)) &&
           hasConnectingEdge(node.id.slice("d-".length)),
       )
-      .map((node) => ({ ...node, data: { ...node.data, leftOver: true } }));
+      .map((node) => ({
+        ...node,
+        data: { ...node.data, leftover: true },
+        hidden: false,
+      }));
 
-    const allNodes = [...newNodes, ...leftOverNodes];
+    const allNodes = [...newNodes, ...leftoverNodes];
 
     const selectedNodes = allNodes
-      .filter((node) => !node.hidden)
+      .filter((node) => !node.hidden || node.data.leftover)
       .map((node) => node.id.slice("d-".length));
 
     return { ...prev, nodes: layoutNodes(allNodes), selectedNodes };
@@ -152,26 +183,39 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   syncPredIntr(prev, intr, tupleType) {
     const edgeById = new Map(prev.edges.map((e) => [e.id, e]));
 
-    let newNodes = prev.nodes;
     const newEdges = intr.map(
       ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
     );
 
-    newNodes = prev.nodes.filter(
-      (n) =>
-        !n.data.leftOver ||
-        newEdges.some(
-          ({ source, target }) =>
-            [source, target].includes(`d-${n.id.slice("d-".length)}`) ||
-            [source, target].includes(`r-${n.id.slice("d-".length)}`),
-        ),
-    );
+    let newNodes = [...prev.nodes];
+
+    const extraElements = intr
+      .flat()
+      .filter(
+        (element) =>
+          !prev.nodes.some((node) => node.id.slice("d-".length) === element),
+      );
+
+    extraElements.forEach((element) => {
+      newNodes.push(createNode(element, "domain", { leftover: true }));
+      newNodes.push(createNode(element, "range", { leftover: true }));
+    });
+
+    newNodes = newNodes.filter((node) => {
+      if (!node.data.leftover) return true;
+
+      const baseId = node.id.slice("d-".length);
+      return newEdges.some(
+        ({ source, target }) =>
+          source === `d-${baseId}` || target === `r-${baseId}`,
+      );
+    });
 
     if (tupleType === "function") {
       const shouldError = (id: string) =>
         intr.filter(([from]) => from === id).length !== 1;
 
-      newNodes = prev.nodes.map((node) =>
+      newNodes = newNodes.map((node) =>
         node.data.origin === "domain"
           ? {
               ...node,
@@ -184,7 +228,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       );
     }
 
-    return { ...prev, edges: newEdges, nodes: newNodes };
+    return { ...prev, edges: newEdges, nodes: layoutNodes(newNodes) };
   },
 
   edgesToRelation(state) {
@@ -192,5 +236,20 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       source.slice("d-".length),
       target.slice("r-".length),
     ]);
+  },
+
+  deleteLeftover(state, deleted) {
+    const newNodes = state.nodes.filter(
+      (node) => node.id.slice("d-".length) !== deleted.slice("d-".length),
+    );
+
+    const baseId = deleted.slice("d-".length);
+    const newEdges = state.edges.filter(
+      ({ source, target }) =>
+        source.slice("d-".length) !== baseId &&
+        target.slice("r-".length) !== baseId,
+    );
+
+    return { nodes: newNodes, edges: newEdges };
   },
 };
