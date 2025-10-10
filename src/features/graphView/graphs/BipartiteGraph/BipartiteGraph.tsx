@@ -174,6 +174,7 @@ export default function BipartiteGraph({
           nodesConnectable={!locked}
           edgesFocusable={!locked}
           edgesReconnectable={!locked}
+          deleteKeyCode={null}
         >
           <Background id={`bg-bipartite-${id}`} />
           <Controls

@@ -124,6 +124,7 @@ export default function OrientedGraph({
           nodesConnectable={!locked}
           edgesFocusable={!locked}
           edgesReconnectable={!locked}
+          deleteKeyCode={null}
         >
           <Background id={`bg-oriented-${id}`} />
           <Controls

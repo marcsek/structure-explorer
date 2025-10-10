@@ -18,18 +18,14 @@ type SelectedType = "oriented" | "hasse" | "bipartite";
 export default function GraphView({
   predName,
   locked,
+  graphType = "oriented",
   enableNodeFiltering = true,
-  enableGraphTypeSelector = true,
-  initialGraphType = "oriented",
 }: {
   predName: string;
   locked: boolean;
+  graphType: SelectedType;
   enableNodeFiltering?: boolean;
-  enableGraphTypeSelector?: boolean;
-  initialGraphType?: SelectedType;
 }) {
-  const [selectedType, setSelectedType] =
-    useState<SelectedType>(initialGraphType);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [graphHudVissible, setGraphHudVissible] = useState(false);
 
@@ -42,7 +38,7 @@ export default function GraphView({
     bipartite: BipartiteGraph,
   };
 
-  const GraphComponent = graphComponents[selectedType];
+  const GraphComponent = graphComponents[graphType];
 
   return (
     <div className={"graphViewContainer " + (isFullscreen ? "fullscreen" : "")}>
@@ -50,18 +46,16 @@ export default function GraphView({
         {graphHudVissible ? (
           <GraphHUD
             id={predName}
-            type={selectedType}
-            typeSelected={setSelectedType}
+            type={graphType}
             isFullscreen={isFullscreen}
             fullScreenToggled={() => setIsFullscreen((prev) => !prev)}
             onExitClicked={() => setGraphHudVissible(false)}
             disableNodeSelector={!enableNodeFiltering}
-            disableTypeSelector={!enableGraphTypeSelector}
           />
         ) : (
           <GraphConfiguratorButton setGraphHudVissible={setGraphHudVissible} />
         )}
-        <GraphInfoContext.Provider value={{ id: predName, type: selectedType }}>
+        <GraphInfoContext.Provider value={{ id: predName, type: graphType }}>
           <ReactFlowProvider>
             <GraphComponent id={predName} locked={locked} />
           </ReactFlowProvider>

@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from "react";
+import React, { useState, type ChangeEvent } from "react";
 import type { RootState } from "../../app/store";
 import type { InterpretationState } from "./structureSlice";
 import { useAppSelector } from "../../app/hooks";
@@ -14,6 +14,8 @@ import {
   CardBody,
   Stack,
   ToggleButton,
+  DropdownButton,
+  Dropdown,
 } from "react-bootstrap";
 import GraphView from "../graphView/components/GraphView/GraphView";
 
@@ -23,8 +25,9 @@ import {
   faTableCellsLarge,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { type GraphType } from "../graphView/graphs/plugins";
 
-export type EditorType = "text" | "graph" | "matrix";
+export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
 
 interface InterpretationEditorProps {
@@ -65,11 +68,36 @@ export default function InterpretationEditorProps({
 
   const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
     { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
-    { text: <FontAwesomeIcon icon={faDiagramProject} />, value: "graph" },
-    { text: <FontAwesomeIcon icon={faTableCellsLarge} />, value: "matrix" },
   ];
 
-  if (isFunction) controlButtons.pop();
+  if (isFunction) {
+    controlButtons.push({
+      text: <FontAwesomeIcon icon={faDiagramProject} />,
+      value: "bipartite",
+    });
+  } else {
+    controlButtons.push({
+      text: <FontAwesomeIcon icon={faTableCellsLarge} />,
+      value: "matrix",
+    });
+    controlButtons.push({
+      text: <FontAwesomeIcon icon={faDiagramProject} />,
+      dropDown: [
+        {
+          text: "Oriented",
+          value: "oriented",
+        },
+        {
+          text: "Hasse",
+          value: "hasse",
+        },
+        {
+          text: "Bipartite",
+          value: "bipartite",
+        },
+      ],
+    });
+  }
 
   return (
     <>
@@ -107,15 +135,14 @@ export default function InterpretationEditorProps({
         )}
       </Stack>
 
-      {selectedEditor !== "text" && (
+      {selectedEditor !== "text" && selectedEditor !== "matrix" && (
         <div className="mb-3">
           <Card className={`${error ? "border-danger" : ""}`}>
             <CardBody>
               <GraphView
                 predName={name}
+                graphType={selectedEditor}
                 enableNodeFiltering={!isFunction}
-                enableGraphTypeSelector={!isFunction}
-                initialGraphType={isFunction ? "bipartite" : "oriented"}
                 locked={interpretation?.locked}
               />
             </CardBody>
@@ -129,7 +156,16 @@ export default function InterpretationEditorProps({
 
 interface ControlButtonsProps<T> {
   id: string;
-  buttons: { text: React.ReactNode; value: T }[];
+  buttons: (
+    | {
+        text: React.ReactNode;
+        value: T;
+      }
+    | {
+        text: React.ReactNode;
+        dropDown: { text: React.ReactNode; value: T }[];
+      }
+  )[];
   selected: T;
   onSelected: (selected: T) => void;
   disabled?: boolean;
@@ -146,22 +182,53 @@ function ControlButtons<T extends string | number>({
 
   return (
     <ButtonGroup id={id} className="w-auto flex-nowrap mb-3">
-      {buttons.map((b) => (
-        <ToggleButton
-          id={buttonId(b.value)}
-          key={buttonId(b.value)}
-          variant="outline-secondary"
-          value={b.value}
-          name={id}
-          type="radio"
-          title={`${b.value} editor`}
-          disabled={disabled}
-          checked={b.value === selected}
-          onChange={() => onSelected(b.value)}
-        >
-          {b.text}
-        </ToggleButton>
-      ))}
+      {buttons.map((b) => {
+        if ("dropDown" in b) {
+          const childValues = b.dropDown!.map((ch) => ch.value);
+
+          return (
+            <DropdownButton
+              as={ButtonGroup}
+              key={buttonId("dropDown")}
+              id={buttonId("dropDown")}
+              title={b.text}
+              variant={
+                childValues.includes(selected)
+                  ? "secondary"
+                  : "outline-secondary"
+              }
+              disabled={disabled}
+            >
+              {b.dropDown!.map((item) => (
+                <Dropdown.Item
+                  key={String(item.value)}
+                  active={item.value === selected}
+                  onClick={() => onSelected(item.value)}
+                >
+                  {item.text}
+                </Dropdown.Item>
+              ))}
+            </DropdownButton>
+          );
+        }
+
+        return (
+          <ToggleButton
+            id={buttonId(b.value)}
+            key={buttonId(b.value)}
+            variant={b.value === selected ? "secondary" : "outline-secondary"}
+            value={b.value}
+            name={id}
+            type="radio"
+            title={`${b.value} editor`}
+            disabled={disabled}
+            checked={b.value === selected}
+            onChange={() => onSelected(b.value)}
+          >
+            {b.text}
+          </ToggleButton>
+        );
+      })}
     </ButtonGroup>
   );
 }

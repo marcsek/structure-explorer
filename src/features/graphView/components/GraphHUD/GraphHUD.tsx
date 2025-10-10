@@ -8,21 +8,17 @@ import { faX } from "@fortawesome/free-solid-svg-icons";
 export default function GraphHUD({
   id,
   type,
-  typeSelected,
   isFullscreen,
   fullScreenToggled,
   onExitClicked,
   disableNodeSelector = false,
-  disableTypeSelector = false,
 }: {
   id: string;
   type: GraphType;
-  typeSelected: (type: GraphType) => void;
   isFullscreen: boolean;
   fullScreenToggled: () => void;
   onExitClicked: () => void;
   disableNodeSelector?: boolean;
-  disableTypeSelector?: boolean;
 }) {
   return (
     <Card
@@ -58,30 +54,7 @@ export default function GraphHUD({
           flexDirection: "column",
           alignItems: "center",
         }}
-      >
-        {!disableTypeSelector && (
-          <>
-            <h6>Graph Types</h6>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "center",
-                gap: "0.2rem",
-              }}
-            >
-              <button onClick={() => typeSelected("oriented")}>Oriented</button>
-              <button onClick={() => typeSelected("hasse")}>Hasse</button>
-              <button
-                style={{ margin: "0 auto" }}
-                onClick={() => typeSelected("bipartite")}
-              >
-                Bipartite
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      ></div>
       <PredicateSelector id={id} type={type} />
       {!disableNodeSelector && <NodeSelector id={id} type={type} />}
       <div style={{ minHeight: "fit-content" }}>
