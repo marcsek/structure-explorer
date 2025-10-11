@@ -66,7 +66,6 @@ const applyNodeChangesWithLayout = (
   nodes: BipartiteNodeType[],
 ) => {
   const newNodes = applyNodeChanges(changes, nodes);
-  console.log(changes);
 
   const draggedNodeIds = changes
     .filter(
@@ -174,7 +173,6 @@ export default function BipartiteGraph({
           nodesConnectable={!locked}
           edgesFocusable={!locked}
           edgesReconnectable={!locked}
-          deleteKeyCode={null}
         >
           <Background id={`bg-bipartite-${id}`} />
           <Controls

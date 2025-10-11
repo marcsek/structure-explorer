@@ -134,7 +134,6 @@ export default function HasseDiagram({
           nodesConnectable={!locked}
           edgesFocusable={!locked}
           edgesReconnectable={!locked}
-          deleteKeyCode={null}
         >
           <Background id={`bg-hasse-${id}`} />
           <Controls

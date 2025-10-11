@@ -1,6 +1,7 @@
 import { BaseEdge, type EdgeProps } from "@xyflow/react";
+import type { DirectEdgeType } from "./DirectEdge";
 
-export default function SelfConnectingEdge(props: EdgeProps) {
+export default function SelfConnectingEdge(props: EdgeProps<DirectEdgeType>) {
   const { sourceX, sourceY, targetX, targetY, markerEnd } = props;
   const radiusX = (sourceX - targetX) * 0.6;
   const radiusY = 50;
@@ -9,5 +10,11 @@ export default function SelfConnectingEdge(props: EdgeProps) {
     targetX + 2
   } ${targetY}`;
 
-  return <BaseEdge path={edgePath} markerEnd={markerEnd} />;
+  return (
+    <BaseEdge
+      className={`react-flow__edge-path ${props.data?.duplicate ? "error" : ""}`}
+      path={edgePath}
+      markerEnd={markerEnd}
+    />
+  );
 }

@@ -29,11 +29,17 @@ const createNode = (
   };
 };
 
-const createEdge = (source: string, target: string): DirectEdgeType => {
+const createEdge = (
+  source: string,
+  target: string,
+  duplicate: boolean = false,
+  error: boolean = false,
+): DirectEdgeType => {
   return {
-    id: `eg-${source}->${target}`,
+    id: `eg-${source}->${target}${duplicate ? "-duplicate" : ""}`,
     source: `d-${source}`,
     target: `r-${target}`,
+    data: { duplicate, error },
   };
 };
 
@@ -86,8 +92,24 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     graph.nodes = layoutNodes(graph.nodes);
 
-    iP.forEach(([source, target]) => {
-      graph.edges.push(createEdge(source, target));
+    const presentIds = new Set();
+    iP.forEach(([from, to]) => {
+      let edgeId = `eg-${from}->${to}`;
+
+      if (!presentIds.has(edgeId)) {
+        const shouldError =
+          type === "function" && iP.filter(([f]) => f === from).length > 1;
+
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to, false, shouldError));
+        return;
+      }
+
+      edgeId += "-duplicate";
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to, true));
+      }
     });
 
     return graph;
@@ -181,11 +203,40 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   },
 
   syncPredIntr(prev, intr, tupleType) {
-    const edgeById = new Map(prev.edges.map((e) => [e.id, e]));
+    const resetEdges = prev.edges.map((e) => ({
+      ...e,
+      data: { ...e.data, error: false },
+    }));
 
-    const newEdges = intr.map(
-      ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
-    );
+    const edgeById = new Map(resetEdges.map((e) => [e.id, e]));
+    const presentIds = new Set();
+
+    const newEdges: DirectEdgeType[] = [];
+    intr.forEach(([from, to]) => {
+      let edgeId = `eg-${from}->${to}`;
+
+      if (!presentIds.has(edgeId)) {
+        const shouldError =
+          tupleType === "function" &&
+          intr.filter(([f]) => f === from).length > 1;
+
+        presentIds.add(edgeId);
+        const edge = edgeById.get(edgeId) ?? createEdge(from, to);
+
+        edge.data ??= {};
+        edge.data.error = shouldError;
+
+        newEdges.push(edge);
+        return;
+      }
+
+      edgeId += "-duplicate";
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        const edge = edgeById.get(edgeId) ?? createEdge(from, to, true);
+        newEdges.push(edge);
+      }
+    });
 
     let newNodes = [...prev.nodes];
 

@@ -25,11 +25,16 @@ const createNode = (
   };
 };
 
-const createEdge = (source: string, target: string): DirectEdgeType => {
+const createEdge = (
+  source: string,
+  target: string,
+  duplicate: boolean = false,
+): DirectEdgeType => {
   return {
-    id: `eg-${source}->${target}`,
+    id: `eg-${source}->${target}${duplicate ? "-duplicate" : ""}`,
     source,
     target,
+    data: { duplicate },
   };
 };
 
@@ -54,9 +59,22 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       ),
     );
 
-    iP.forEach(([source, target]) =>
-      graph.edges.push(createEdge(source, target)),
-    );
+    const presentIds = new Set();
+    iP.forEach(([from, to]) => {
+      let edgeId = `eg-${from}->${to}`;
+
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to));
+        return;
+      }
+
+      edgeId += "-duplicate";
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to, true));
+      }
+    });
 
     const extraElements = iP
       .flat()
@@ -133,10 +151,26 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
   syncPredIntr(prev, intr) {
     const edgeById = new Map(prev.edges.map((e) => [e.id, e]));
+    const presentIds = new Set();
 
-    const newEdges = intr.map(
-      ([from, to]) => edgeById.get(`eg-${from}->${to}`) ?? createEdge(from, to),
-    );
+    const newEdges: DirectEdgeType[] = [];
+    intr.forEach(([from, to]) => {
+      let edgeId = `eg-${from}->${to}`;
+
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        const edge = edgeById.get(edgeId) ?? createEdge(from, to);
+        newEdges.push(edge);
+        return;
+      }
+
+      edgeId += "-duplicate";
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        const edge = edgeById.get(edgeId) ?? createEdge(from, to, true);
+        newEdges.push(edge);
+      }
+    });
 
     let newNodes = [...prev.nodes];
 

@@ -8,7 +8,12 @@ import {
 import { getEdgeParams } from "../../helpers/utils";
 import SelfConnectingEdge from "./SelfConnectingEdge";
 
-export type DirectEdgeType = Edge;
+interface DirectEdgeData extends Record<string, unknown> {
+  duplicate?: boolean;
+  error?: boolean;
+}
+
+export type DirectEdgeType = Edge<DirectEdgeData>;
 
 export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
   const source = useInternalNode(props.source);
@@ -27,10 +32,12 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
     targetY: ty,
   });
 
+  const shouldError = props.data?.duplicate || props.data?.error;
+
   return (
     <BaseEdge
       id={id}
-      className="react-flow__edge-path"
+      className={`react-flow__edge-path ${shouldError ? "error" : ""}`}
       path={path}
       markerEnd={markerEnd}
       style={style}
