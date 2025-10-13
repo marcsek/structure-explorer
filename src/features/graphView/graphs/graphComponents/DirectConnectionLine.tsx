@@ -23,7 +23,7 @@ export default function CustomConnectionLine({
   return (
     <g>
       <path
-        className="animated"
+        className="animated connection"
         style={{
           ...connectionLineStyle,
           stroke: connection.isValid ? "#22C55E99" : "red",

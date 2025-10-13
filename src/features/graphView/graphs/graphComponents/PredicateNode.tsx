@@ -69,12 +69,12 @@ export default function PredicateNode({
   return (
     <div
       // TODO: not like this
-      className={`graph_editor__node ${data.error || data.leftover ? "border-danger" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
+      className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
     >
-      <div className={`predicateNodeBody`}>
+      <div className="handle-container">
         {!connection.inProgress && (
           <Handle
-            className="predicateNodeHandle"
+            className="predicateNodeHandle source"
             position={Position.Right}
             type="source"
             isConnectable={!data.leftover}
@@ -84,13 +84,15 @@ export default function PredicateNode({
 
         {(!connection.inProgress || isTarget) && (
           <Handle
-            className="predicateNodeHandle"
+            className="predicateNodeHandle target"
             position={Position.Left}
             type="target"
             isConnectable={!data.leftover}
             isConnectableStart={false}
           />
         )}
+      </div>
+      <div className={`predicateNodeBody`}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <h2 style={{ margin: 0, lineHeight: 0 }}>
             {data.label.toUpperCase()}

@@ -34,6 +34,7 @@
 /* Customizing Default Theming */
 
 .graph_editor__node {
+  position: relative;
   box-shadow: var(--xy-node-boxshadow-default);
   border-radius: var(--xy-node-border-radius-default);
   background-color: var(--xy-node-background-color-default);
@@ -41,12 +42,17 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 10px;
   font-size: 12px;
   flex-direction: column;
-  border: var(--xy-node-border-default);
+  outline: var(--xy-node-border-default);
   color: var(--xy-node-color, var(--xy-node-color-default));
   z-index: 1000;
+
+  cursor: move;
+}
+
+.graph_editor__node.error {
+  outline-color: var(--bs-danger);
 }
 
 .graph_editor__node.selectable:focus {
@@ -60,17 +66,31 @@
 
 .graph_editor__node.selectable:hover,
 .graph_editor__node.draggable:hover {
-  border-color: var(--xy-theme-hover);
+  outline-color: var(--xy-theme-hover);
+}
+
+.graph_editor__node.error.selectable:hover,
+.graph_editor__node.error.draggable:hover {
+  outline-color: var(--bs-danger);
 }
 
 .graph_editor__node.selectable.selected {
-  border-color: var(--xy-theme-selected);
+  outline-color: var(--xy-theme-selected);
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.graph_editor__node.selectable.selected.error {
+  outline-color: var(--bs-danger);
   box-shadow: var(--xy-node-boxshadow-default);
 }
 
 .graph_editor__node-group {
   background-color: rgba(207, 182, 255, 0.4);
   border-color: #9e86ed;
+}
+
+.react-flow__connectionline {
+  z-index: 0 !important;
 }
 
 .react-flow__edge-path.error {
