@@ -1,16 +1,22 @@
 import { Position, type InternalNode } from "@xyflow/react";
 
+const edgeStrokeWidth = 2.5;
+
 function getNodeIntersection(
   intersectionNode: InternalNode,
   targetNode: InternalNode,
+  margin: number = 0,
 ) {
-  const {
-    width: intersectionNodeWidth = 0,
-    height: intersectionNodeHeight = 0,
-  } = intersectionNode.measured;
+  let { width: intersectionNodeWidth = 0, height: intersectionNodeHeight = 0 } =
+    intersectionNode.measured;
 
-  const { width: targetNodeWidth = 0, height: targetNodeHeight = 0 } =
+  let { width: targetNodeWidth = 0, height: targetNodeHeight = 0 } =
     targetNode.measured;
+
+  intersectionNodeHeight += margin * 2;
+  intersectionNodeWidth += margin * 2;
+  targetNodeWidth += margin * 2;
+  targetNodeHeight += margin * 2;
 
   const intersectionNodePosition = intersectionNode.internals.positionAbsolute;
 
@@ -19,10 +25,10 @@ function getNodeIntersection(
   const w = (intersectionNodeWidth ?? 0) / 2;
   const h = (intersectionNodeHeight ?? 0) / 2;
 
-  const x2 = intersectionNodePosition.x + w;
-  const y2 = intersectionNodePosition.y + h;
-  const x1 = targetPosition.x + targetNodeWidth / 2;
-  const y1 = targetPosition.y + targetNodeHeight / 2;
+  const x2 = intersectionNodePosition.x + w - margin;
+  const y2 = intersectionNodePosition.y + h - margin;
+  const x1 = targetPosition.x - margin + targetNodeWidth / 2;
+  const y1 = targetPosition.y - margin + targetNodeHeight / 2;
 
   const xx1 = (x1 - x2) / (2 * w) - (y1 - y2) / (2 * h);
   const yy1 = (x1 - x2) / (2 * w) + (y1 - y2) / (2 * h);
@@ -65,8 +71,17 @@ function getEdgePosition(
 }
 
 export function getEdgeParams(source: InternalNode, target: InternalNode) {
-  const sourceIntersectionPoint = getNodeIntersection(source, target);
-  const targetIntersectionPoint = getNodeIntersection(target, source);
+  const sourceIntersectionPoint = getNodeIntersection(
+    source,
+    target,
+    edgeStrokeWidth,
+  );
+
+  const targetIntersectionPoint = getNodeIntersection(
+    target,
+    source,
+    edgeStrokeWidth,
+  );
 
   const sourcePos = getEdgePosition(source, sourceIntersectionPoint);
   const targetPos = getEdgePosition(target, targetIntersectionPoint);

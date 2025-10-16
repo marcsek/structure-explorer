@@ -26,9 +26,9 @@ import {
   editorLocked,
   onConnected,
   onEdgesChanged,
-  setNodes,
+  onNodesChanged,
 } from "../graphSlice.ts";
-import { layoutNodes } from "./layout.ts";
+import { generateLayoutNodesChanges } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 
@@ -61,7 +61,7 @@ const fitViewOptions: FitViewOptions = {
   padding: "50px",
 };
 
-const applyNodeChangesWithLayout = (
+const generateNodeChangesWithLayout = (
   changes: NodeChange<BipartiteNodeType>[],
   nodes: BipartiteNodeType[],
 ) => {
@@ -74,7 +74,7 @@ const applyNodeChangesWithLayout = (
     )
     .map((change) => change.id);
 
-  return layoutNodes(newNodes, draggedNodeIds);
+  return generateLayoutNodesChanges(newNodes, draggedNodeIds);
 };
 
 export default function BipartiteGraph({
@@ -104,14 +104,14 @@ export default function BipartiteGraph({
   }, [id, dispatch, locked]);
 
   const onNodesChange = useCallback(
-    (changes: NodeChange<BipartiteNodeType>[]) =>
-      dispatch(
-        setNodes({
-          id,
-          type,
-          nodes: applyNodeChangesWithLayout(changes, nodes),
-        }),
-      ),
+    (changes: NodeChange<BipartiteNodeType>[]) => {
+      const allChanges = [
+        ...changes,
+        ...generateNodeChangesWithLayout(changes, nodes),
+      ];
+
+      dispatch(onNodesChanged({ id, type, changes: allChanges }));
+    },
     [nodes, id, dispatch],
   );
 

@@ -3,7 +3,7 @@
 .react-flow {
   --xy-background-color: #ffffff;
   /* Custom Variables */
-  --xy-theme-selected: #f57dbd;
+  --xy-theme-selected: #86b7fe;
   --xy-theme-hover: #c5c5c5;
   --xy-theme-edge-hover: black;
   --xy-theme-color-focus: #e8e8e8;
@@ -21,6 +21,7 @@
   --xy-handle-border-color-default: #aaaaaa;
 
   --xy-edge-label-color-default: #505050;
+  --xy-edge-stroke-width-default: 1.5px;
 }
 
 .react-flow.dark {
@@ -47,6 +48,8 @@
   outline: var(--xy-node-border-default);
   color: var(--xy-node-color, var(--xy-node-color-default));
   z-index: 1000;
+
+  transition: outline 0.05s ease-in-out;
 
   cursor: move;
 }
@@ -76,7 +79,9 @@
 
 .graph_editor__node.selectable.selected {
   outline-color: var(--xy-theme-selected);
-  box-shadow: var(--xy-node-boxshadow-default);
+  box-shadow:
+    var(--xy-node-boxshadow-default),
+    0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 .graph_editor__node.selectable.selected.error {
@@ -92,14 +97,38 @@
 .react-flow__connectionline {
   z-index: 0 !important;
 }
+.react-flow__arrowhead polyline.arrowclosed {
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__arrowhead.selected polyline.arrowclosed {
+  stroke: var(--xy-theme-selected);
+  fill: var(--xy-theme-selected);
+}
+
+.react-flow__arrowhead.error polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+}
 
 .react-flow__edge-path.error {
   stroke: var(--bs-danger);
+  stroke-dasharray: 5, 3;
 }
 
 .react-flow__edge.selectable:hover .react-flow__edge-path,
 .react-flow__edge.selectable.selected .react-flow__edge-path {
-  stroke: var(--xy-theme-edge-hover);
+  stroke: var(--xy-theme-selected);
+
+  marker-end: url(#selected-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path.error,
+.react-flow__edge.selectable.selected .react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  stroke-dasharray: 5, 1;
+
+  marker-end: url(#error-marker);
 }
 
 .react-flow__handle {

@@ -10,11 +10,12 @@ import {
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
   leftoverDeleted,
+  onConnected,
   selectRelevantConstants,
   selectRelevantUnaryPreds,
 } from "../graphSlice";
 import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
-import { Button } from "react-bootstrap";
+import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
@@ -66,10 +67,27 @@ export default function PredicateNode({
     dispatch(leftoverDeleted({ ...parentInfo, deletedNode: id }));
   };
 
+  const createSelfEdge = () => {
+    if (parentInfo.type === "bipartite") return;
+
+    dispatch(
+      onConnected({
+        ...parentInfo,
+        connection: {
+          source: id,
+          target: id,
+          sourceHandle: null,
+          targetHandle: null,
+        },
+      }),
+    );
+  };
+
   return (
     <div
       // TODO: not like this
       className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
+      onDoubleClick={() => createSelfEdge()}
     >
       <div className="handle-container">
         {!connection.inProgress && (
@@ -97,44 +115,49 @@ export default function PredicateNode({
           <h2 style={{ margin: 0, lineHeight: 0 }}>
             {data.label.toUpperCase()}
           </h2>
-          <Button
-            style={{
-              zIndex: 100,
-              transform: "scale(0.65)",
-              visibility: data.leftover ? "visible" : "hidden",
-              position: "absolute",
-              top: "-30px",
-              right: "-30px",
-            }}
-            variant="danger"
-            onClick={handleLeftOverDeletion}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-          </Button>
-
           {!data.leftover ? (
             <>
               <p style={{ margin: 0 }}>{constants.join(", ")}</p>
               <p style={{ margin: 0 }}>{predsToDisplay.join(", ")}</p>
             </>
           ) : (
-            <p
-              style={{
-                fontSize: "0.65rem",
-                position: "absolute",
-                fontWeight: "normal",
-                textWrap: "nowrap",
-                bottom: -20,
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
-              className="text-danger"
-            >
-              Leftover node
-            </p>
+            <>
+              <DeleteElementButton
+                onClick={handleLeftOverDeletion}
+                style={{
+                  zIndex: 100,
+                  transform: "scale(0.6)",
+                  position: "absolute",
+                  top: "-30px",
+                  right: "-30px",
+                }}
+              />
+              <p
+                style={{
+                  fontSize: "0.65rem",
+                  position: "absolute",
+                  fontWeight: "normal",
+                  textWrap: "nowrap",
+                  bottom: -20,
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                }}
+                className="text-danger"
+              >
+                Leftover node
+              </p>
+            </>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+export function DeleteElementButton(props: ButtonProps) {
+  return (
+    <Button {...props} variant="danger">
+      <FontAwesomeIcon icon={faTrash} />
+    </Button>
   );
 }

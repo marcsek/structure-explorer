@@ -45,7 +45,6 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
   type: "direct",
   markerEnd: {
     type: MarkerType.ArrowClosed,
-    color: "#b1b1b7",
   },
 };
 
@@ -85,6 +84,7 @@ export default function OrientedGraph({
       dispatch(onEdgesChanged({ id, type, changes })),
     [id, dispatch],
   );
+  console.log(edges);
 
   const onConnect: OnConnect = useCallback(
     (connection) => dispatch(onConnected({ id, type, connection })),
