@@ -47,10 +47,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   init(domain, predicate, type) {
     const iP = predicate.intr;
 
-    const initiallySelected =
-      type === "function"
-        ? [...new Set(domain.flat())]
-        : [...new Set(iP.flat())];
+    const initiallySelected = [...new Set(domain.flat())];
 
     const graph: BipartiteGraphState = {
       nodes: [],
@@ -124,8 +121,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       ]),
     );
 
-    const initiallyHidden = tupleType !== "function";
-
     const shouldError = (id: string) =>
       prev.edges.filter((e) => e.source.slice("d-".length) === id).length !==
         1 && tupleType === "function";
@@ -133,11 +128,9 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const newNodes = domain.flatMap((element) => [
       nodeById.get(`d-${element}`) ??
         createNode(element, "domain", {
-          hidden: initiallyHidden,
           error: shouldError(element),
         }),
-      nodeById.get(`r-${element}`) ??
-        createNode(element, "range", { hidden: initiallyHidden }),
+      nodeById.get(`r-${element}`) ?? createNode(element, "range"),
     ]);
 
     const hasConnectingEdge = (nodeId: string) =>

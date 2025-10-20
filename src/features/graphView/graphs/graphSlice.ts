@@ -250,10 +250,11 @@ export const graphManagerSlice = createSlice({
     ) {
       const { id, type, locked } = action.payload;
 
-      state[id].state[type].edges = state[id].state[type].edges.map((e) => ({
-        ...e,
-        selectable: !locked && e.selectable !== false,
-      }));
+      if (state[id])
+        state[id].state[type].edges = state[id].state[type].edges.map((e) => ({
+          ...e,
+          selectable: !locked && e.selectable !== false,
+        }));
     },
   },
 });

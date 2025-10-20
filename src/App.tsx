@@ -7,6 +7,7 @@ import GearButton from "./features/import/GearButton";
 import { useAppSelector } from "./app/hooks";
 import { selectTeacherMode } from "./features/teacherMode/teacherModeslice";
 import FormulaCard from "./features/formulas/FormulaCard";
+import "./App.css";
 
 function App() {
   const teacherMode = useAppSelector(selectTeacherMode);
@@ -20,7 +21,7 @@ function App() {
             ? " On"
             : " Undefined"}
         <Row>
-          <Col>
+          <Col className="min-w-0">
             <LanguageComponent />
             <StructureComponent />
             <VariablesComponent />

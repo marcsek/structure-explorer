@@ -92,6 +92,36 @@ export default function PredicateNode({
       className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
       onDoubleClick={() => createSelfEdge()}
     >
+      {!data.error && !data.leftover && (
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            top: "0",
+            left: "0",
+            right: "0",
+            borderRadius: "8px 8px 0 0",
+            zIndex: 1,
+            height: "12px",
+            overflow: "hidden",
+            pointerEvents: "none",
+          }}
+        >
+          {predsToDisplay.map((pred) => (
+            <div
+              key={pred}
+              style={{
+                backgroundColor:
+                  unaryPredsColors[
+                    allUnaryPreds.findIndex((p) => p[0] === pred) %
+                      allUnaryPreds.length
+                  ],
+                width: "100%",
+              }}
+            />
+          ))}
+        </div>
+      )}
       <div className="handle-container">
         {!connection.inProgress && (
           <Handle
@@ -120,34 +150,6 @@ export default function PredicateNode({
           </h2>
           {!data.leftover ? (
             <>
-              <div
-                style={{
-                  display: "flex",
-                  position: "absolute",
-                  top: "-12px",
-                  left: "-12px",
-                  right: "-12px",
-                  borderRadius: "8px 8px 0 0",
-                  zIndex: 2,
-                  height: "12px",
-                  overflow: "hidden",
-                  pointerEvents: "none",
-                }}
-              >
-                {predsToDisplay.map((pred) => (
-                  <div
-                    key={pred}
-                    style={{
-                      backgroundColor:
-                        unaryPredsColors[
-                          allUnaryPreds.findIndex((p) => p[0] === pred) %
-                            allUnaryPreds.length
-                        ],
-                      width: "100%",
-                    }}
-                  />
-                ))}
-              </div>
               <p style={{ margin: 0 }}>{constants.join(", ")}</p>
             </>
           ) : (

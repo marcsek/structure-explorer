@@ -1,12 +1,12 @@
 .legend-group {
+  min-width: 150px;
   display: flex;
   align-items: center;
   gap: 1rem;
   border: none;
   flex-shrink: 1;
   overflow-x: auto;
-  overflow-y: visible;
-  min-width: 0;
+  padding: 3px 3px;
 }
 
 .legend-container {
@@ -15,9 +15,6 @@
   width: 100%;
   max-width: 100%;
   gap: 0.5rem;
-  flex-shrink: 1;
-  flex-grow: 1;
-  flex-basis: 100px;
 
   min-width: 0;
 }
@@ -105,9 +102,15 @@
   width: 100%;
   border: none;
   background: transparent;
-  padding: 0.375rem 0.75rem;
+  padding: 0.5rem 1rem;
   text-align: left;
   cursor: pointer;
+
+  transition: background-color 0.1s ease-in-out;
+}
+
+.domain-header:hover {
+  background-color: var(--color-hover-bg);
 }
 
 .domain-body {
@@ -120,10 +123,14 @@
   z-index: 1000;
   background-color: white;
   min-width: 280px;
+  max-height: 390px;
+  overflow-y: auto;
   border: var(--bs-border-width) solid var(--bs-border-color);
   border-radius: var(--bs-border-radius);
   right: 0;
-  top: calc(36px + 1rem);
+  top: calc(40px + 0.5rem);
+
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 .select-all {
@@ -156,6 +163,7 @@
 
 .element-item {
   display: flex;
+  position: relative;
   align-items: center;
   justify-content: space-between;
 
@@ -168,11 +176,42 @@
   font-weight: 500;
   cursor: pointer;
   outline: none;
+
+  transition: background-color 0.1s ease-in-out;
+}
+
+.element-item:hover {
+  background-color: var(--color-hover-bg);
+}
+
+.element-item.active:hover {
+  background-color: unset;
+}
+
+.element-item.active:hover::before {
+  opacity: 0.15;
+}
+
+.element-item * {
+  z-index: 1;
 }
 
 .element-item.active {
-  background: rgba(0, 136, 255, 0.1);
   border: 1px solid #319fff;
+}
+
+.element-item.active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  background: repeating-linear-gradient(
+    -45deg,
+    #0088ff,
+    #0088ff 30px,
+    #4eadff 30px,
+    #4eadff 60px
+  );
 }
 
 .element-item:focus {

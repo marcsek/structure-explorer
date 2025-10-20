@@ -2,7 +2,6 @@ import "./EditorToolbar.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
-  predicateToggled,
   selectedNodesChanged,
   selectedPredicateChanged,
   selectRelevantUnaryPreds,
@@ -15,7 +14,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCheckDouble,
   faChevronDown,
-  faChevronUp,
 } from "@fortawesome/free-solid-svg-icons";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
@@ -142,11 +140,7 @@ export function DomainElementsSelector({
         aria-expanded={isOpen}
       >
         Domain Elements
-        {isOpen ? (
-          <FontAwesomeIcon icon={faChevronUp} />
-        ) : (
-          <FontAwesomeIcon icon={faChevronDown} />
-        )}
+        <FontAwesomeIcon size="sm" icon={faChevronDown} />
       </button>
 
       {isOpen && (

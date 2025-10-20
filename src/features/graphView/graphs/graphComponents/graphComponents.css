@@ -11,6 +11,7 @@
   align-items: center;
   font-weight: bold;
   background-color: white;
+  z-index: 3;
 }
 
 .handle-container {
@@ -29,11 +30,12 @@ div.predicateNodeHandle {
   transform: none;
   border: none;
   opacity: 0;
-  transition: opacity 0.1s cubic-bezier(0.33, 1, 0.68, 1) 0.15s;
+  z-index: 2;
 }
 
 div.predicateNodeHandle.source:hover {
   background-color: rgb(0, 0, 0, 0.05);
+  transition: opacity 0.1s cubic-bezier(0.33, 1, 0.68, 1) 0.15s;
   opacity: 1;
 }
 

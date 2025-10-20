@@ -46,7 +46,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       nodes: [],
       edges: [],
       selectedPreds: [],
-      selectedNodes: [...new Set(iP.flat())],
+      selectedNodes: [...new Set(domain.flat())],
     };
 
     if (type === "function") return graph;
@@ -97,8 +97,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     );
 
     const newNodes = domain.map(
-      (element) =>
-        nodeById.get(element) ?? createNode(element, { hidden: true }),
+      (element) => nodeById.get(element) ?? createNode(element),
     );
 
     const connectingEdges = (nodeId: string) =>
@@ -131,6 +130,8 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     const selectedNodes = allNodes
       .filter((node) => !node.hidden)
       .map((node) => node.id);
+
+    console.log(selectedNodes);
 
     return { ...prev, nodes: allNodes, selectedNodes };
   },
