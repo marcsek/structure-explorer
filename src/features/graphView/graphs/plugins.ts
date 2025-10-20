@@ -36,7 +36,7 @@ export interface Plugin<K extends GraphType> {
   hideNodes(
     prev: GraphState[K],
     toggledNode: string,
-    relevantNodes: string[],
+    relevantNodes: string[] | null,
   ): GraphState[K];
   syncPredIntr(
     prev: GraphState[K],
@@ -71,7 +71,7 @@ export function processHideNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   toggledNode: string,
-  relevantNodes: string[],
+  relevantNodes: string[] | null,
 ): GraphState[K] {
   return plugin.hideNodes(prev, toggledNode, relevantNodes);
 }

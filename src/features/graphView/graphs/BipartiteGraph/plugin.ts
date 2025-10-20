@@ -168,17 +168,23 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return { ...prev, nodes: layoutNodes(allNodes), selectedNodes };
   },
 
-  hideNodes(prev, toggledNode) {
+  hideNodes(prev, toggledNode, relevantNodes) {
     let selected = [...prev.selectedNodes];
 
     if (toggledNode === "")
       selected = prev.nodes.map((node) => node.id.slice("d-".length));
     else if (selected.includes(toggledNode))
       selected = selected.filter((pred) => pred != toggledNode);
-    else selected.push(toggledNode);
+    else if (toggledNode != "none") selected.push(toggledNode);
+
+    let newRelevantNodes = selected;
+    if (relevantNodes !== null)
+      newRelevantNodes = selected.filter((node) =>
+        relevantNodes.includes(node),
+      );
 
     const newNodes = prev.nodes.map((node) => {
-      const hidden = !selected.includes(node.id.slice("d-".length));
+      const hidden = !newRelevantNodes.includes(node.id.slice("d-".length));
       const resetPos = { x: Infinity, y: Infinity };
 
       return {
@@ -193,8 +199,8 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const newEdges = prev.edges.map((edge) => ({
       ...edge,
       hidden:
-        !selected.includes(edge.source.slice("d-".length)) ||
-        !selected.includes(edge.target.slice("d-".length)),
+        !newRelevantNodes.includes(edge.source.slice("d-".length)) ||
+        !newRelevantNodes.includes(edge.target.slice("d-".length)),
     }));
 
     return {

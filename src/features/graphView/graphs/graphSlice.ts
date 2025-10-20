@@ -114,7 +114,7 @@ export const graphManagerSlice = createSlice({
     nodeToggled(
       state,
       action: PayloadAction<
-        WithGraphId<{ node: string; relevantNodes?: string[] }>
+        WithGraphId<{ node: string; relevantNodes: string[] | null }>
       >,
     ) {
       const { id, type, node, relevantNodes = [] } = action.payload;
@@ -129,7 +129,7 @@ export const graphManagerSlice = createSlice({
 
     relevantNodesChanged(
       state,
-      action: PayloadAction<WithGraphId<{ relevantNodes: string[] }>>,
+      action: PayloadAction<WithGraphId<{ relevantNodes: string[] | null }>>,
     ) {
       const { id, type, relevantNodes = [] } = action.payload;
 
@@ -139,6 +139,31 @@ export const graphManagerSlice = createSlice({
         "none",
         relevantNodes,
       );
+    },
+
+    unaryPredicatesChanged(
+      state,
+      action: PayloadAction<{ unaryPreds: Record<string, string[]> }>,
+    ) {
+      const { unaryPreds } = action.payload;
+
+      for (const graphs of Object.values(state)) {
+        for (const graphType of graphTypes) {
+          const graphState = graphs.state[graphType];
+          const plugin = plugins[graphType];
+
+          let relevantNodes = null;
+          const selectedPreds = graphState.selectedPreds;
+          if (selectedPreds.length !== 0) {
+            relevantNodes = selectedPreds.flatMap((pred) =>
+              [...(unaryPreds[pred]?.values() ?? [])].flat(),
+            );
+          }
+
+          (graphs.state[graphType] as GraphState[typeof graphType]) =
+            processHideNodes(plugin, graphState, "none", relevantNodes);
+        }
+      }
     },
 
     tuplesChanged(
@@ -281,18 +306,22 @@ export const selectRelevantUnaryPreds = createSelector(
 export const selectRelevantDomainElements = createSelector(
   [
     selectStructure,
-    (state: RootState, id: string, type: GraphType) => ({ state, id, type }),
+    (state: RootState) => state,
+    (_: RootState, id: string) => id,
+    (_: RootState, __: string, type: GraphType) => type,
   ],
-  (struct, { state, id, type }) => {
+  (struct, state, id, type) => {
     const selectedPreds = (
       state.graphView[id].state[type] as GraphState[typeof type]
     ).selectedPreds;
 
-    const dom = selectedPreds.flatMap((pred) =>
+    if (selectedPreds.length === 0) return null;
+
+    const domain = selectedPreds.flatMap((pred) =>
       [...(struct.iP.get(pred)?.values() ?? [])].flat(),
     );
 
-    return dom;
+    return domain;
   },
 );
 
@@ -505,6 +534,7 @@ export const {
   domainChanged,
   editorLocked,
   relevantNodesChanged,
+  unaryPredicatesChanged,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

@@ -144,7 +144,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     else if (toggledNode !== "none") selected.push(toggledNode);
 
     let newRelevantNodes = selected;
-    if (relevantNodes.length > 0)
+    if (relevantNodes !== null)
       newRelevantNodes = selected.filter((node) =>
         relevantNodes.includes(node),
       );
