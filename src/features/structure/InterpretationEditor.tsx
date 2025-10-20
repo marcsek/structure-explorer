@@ -26,6 +26,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
+import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -136,18 +137,21 @@ export default function InterpretationEditorProps({
       </Stack>
 
       {selectedEditor !== "text" && selectedEditor !== "matrix" && (
-        <div className="mb-3">
-          <Card className={`${error ? "border-danger" : ""}`}>
-            <CardBody>
-              <GraphView
-                predName={name}
-                graphType={selectedEditor}
-                enableNodeFiltering={!isFunction}
-                locked={interpretation?.locked}
-              />
-            </CardBody>
-          </Card>
-          <p className="text-danger small mt-1">{error?.message}</p>
+        <div className="d-flex flex-column gap-3">
+          <GraphToolbar id={name} type={selectedEditor} />
+          <div className="mb-3">
+            <Card className={`${error ? "border-danger" : ""}`}>
+              <CardBody>
+                <GraphView
+                  predName={name}
+                  graphType={selectedEditor}
+                  enableNodeFiltering={!isFunction}
+                  locked={interpretation?.locked}
+                />
+              </CardBody>
+            </Card>
+            <p className="text-danger small mt-1">{error?.message}</p>
+          </div>
         </div>
       )}
     </>

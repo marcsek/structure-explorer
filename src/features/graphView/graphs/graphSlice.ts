@@ -111,13 +111,33 @@ export const graphManagerSlice = createSlice({
       else selected.push(predicate);
     },
 
-    nodeToggled(state, action: PayloadAction<WithGraphId<{ node: string }>>) {
-      const { id, type, node } = action.payload;
+    nodeToggled(
+      state,
+      action: PayloadAction<
+        WithGraphId<{ node: string; relevantNodes?: string[] }>
+      >,
+    ) {
+      const { id, type, node, relevantNodes = [] } = action.payload;
 
       (state[id].state[type] as GraphState[typeof type]) = processHideNodes(
         plugins[type],
         state[id].state[type],
         node,
+        relevantNodes,
+      );
+    },
+
+    relevantNodesChanged(
+      state,
+      action: PayloadAction<WithGraphId<{ relevantNodes: string[] }>>,
+    ) {
+      const { id, type, relevantNodes = [] } = action.payload;
+
+      (state[id].state[type] as GraphState[typeof type]) = processHideNodes(
+        plugins[type],
+        state[id].state[type],
+        "none",
+        relevantNodes,
       );
     },
 
@@ -207,7 +227,7 @@ export const graphManagerSlice = createSlice({
 
       state[id].state[type].edges = state[id].state[type].edges.map((e) => ({
         ...e,
-        selectable: !locked && !!e.selectable,
+        selectable: !locked && e.selectable !== false,
       }));
     },
   },
@@ -256,6 +276,24 @@ export const selectRelevantUnaryPreds = createSelector(
         (t) => t.length === 1 && t[0] === predName,
       ),
     ),
+);
+
+export const selectRelevantDomainElements = createSelector(
+  [
+    selectStructure,
+    (state: RootState, id: string, type: GraphType) => ({ state, id, type }),
+  ],
+  (struct, { state, id, type }) => {
+    const selectedPreds = (
+      state.graphView[id].state[type] as GraphState[typeof type]
+    ).selectedPreds;
+
+    const dom = selectedPreds.flatMap((pred) =>
+      [...(struct.iP.get(pred)?.values() ?? [])].flat(),
+    );
+
+    return dom;
+  },
 );
 
 export const onEdgesChanged = ({
@@ -333,14 +371,23 @@ export const onConnected = ({
 export const selectedNodesChanged = ({
   id,
   type,
-  toggledNode,
+  toggledNode = "",
 }: {
   id: string;
   type: GraphType;
-  toggledNode: string;
+  toggledNode?: string;
 }): AppThunk => {
   return (dispatch, getState) => {
-    dispatch(nodeToggled({ id, type, node: toggledNode }));
+    // TODO: Basically a hack
+    const relevantDomain = selectRelevantDomainElements(getState(), id, type);
+    dispatch(
+      nodeToggled({
+        id,
+        type,
+        node: toggledNode,
+        relevantNodes: relevantDomain,
+      }),
+    );
 
     if (type === "hasse" && getState().graphView[id].state[type].isPoset) {
       const graphState = getState().graphView[id].state[type];
@@ -370,6 +417,23 @@ export const selectedNodesChanged = ({
         }),
       );
     }
+  };
+};
+
+export const selectedPredicateChanged = ({
+  id,
+  type,
+  predicate,
+}: {
+  id: string;
+  type: GraphType;
+  predicate: string;
+}): AppThunk => {
+  return (dispatch, getState) => {
+    // TODO: Basically a hack
+    dispatch(predicateToggled({ id, type, predicate }));
+    const relevantDomain = selectRelevantDomainElements(getState(), id, type);
+    dispatch(relevantNodesChanged({ id, type, relevantNodes: relevantDomain }));
   };
 };
 
@@ -440,6 +504,7 @@ export const {
   tupleInterpretationChanged,
   domainChanged,
   editorLocked,
+  relevantNodesChanged,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

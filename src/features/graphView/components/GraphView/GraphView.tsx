@@ -53,7 +53,9 @@ export default function GraphView({
             disableNodeSelector={!enableNodeFiltering}
           />
         ) : (
-          <GraphConfiguratorButton setGraphHudVissible={setGraphHudVissible} />
+          <>
+            {/* <GraphConfiguratorButton setGraphHudVissible={setGraphHudVissible} /> */}
+          </>
         )}
         <GraphInfoContext.Provider value={{ id: predName, type: graphType }}>
           <ReactFlowProvider>

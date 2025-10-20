@@ -135,15 +135,23 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  hideNodes(prev, toggledNode) {
+  hideNodes(prev, toggledNode, relevantNodes) {
     let selected = [...prev.selectedNodes];
-    if (selected.includes(toggledNode))
+
+    if (toggledNode === "") selected = prev.nodes.map((node) => node.id);
+    else if (selected.includes(toggledNode))
       selected = selected.filter((pred) => pred != toggledNode);
-    else selected.push(toggledNode);
+    else if (toggledNode !== "none") selected.push(toggledNode);
+
+    let newRelevantNodes = selected;
+    if (relevantNodes.length > 0)
+      newRelevantNodes = selected.filter((node) =>
+        relevantNodes.includes(node),
+      );
 
     const newNodes = prev.nodes.map((node) => ({
       ...node,
-      hidden: !selected.includes(node.id),
+      hidden: !newRelevantNodes.includes(node.id),
     }));
 
     return { ...prev, nodes: newNodes, selectedNodes: selected };

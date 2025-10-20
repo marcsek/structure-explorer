@@ -170,7 +170,10 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
   hideNodes(prev, toggledNode) {
     let selected = [...prev.selectedNodes];
-    if (selected.includes(toggledNode))
+
+    if (toggledNode === "")
+      selected = prev.nodes.map((node) => node.id.slice("d-".length));
+    else if (selected.includes(toggledNode))
       selected = selected.filter((pred) => pred != toggledNode);
     else selected.push(toggledNode);
 

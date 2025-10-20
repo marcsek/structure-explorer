@@ -1,0 +1,216 @@
+import "./EditorToolbar.css";
+
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import {
+  predicateToggled,
+  selectedNodesChanged,
+  selectedPredicateChanged,
+  selectRelevantUnaryPreds,
+  selectUnaryPreds,
+} from "../../graphView/graphs/graphSlice";
+import type { GraphType } from "../../graphView/graphs/plugins";
+import { useEffect, useRef, useState } from "react";
+import { selectParsedDomain } from "../structureSlice";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faCheckDouble,
+  faChevronDown,
+  faChevronUp,
+} from "@fortawesome/free-solid-svg-icons";
+
+export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
+
+export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
+  const dispatch = useAppDispatch();
+  const unaryPreds = useAppSelector(selectUnaryPreds)?.sort();
+  const selectedPreds = useAppSelector(
+    (state) => state.graphView[id]?.state[type].selectedPreds ?? [],
+  );
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-end",
+        gap: "1rem",
+        flexShrink: 1,
+        flexGrow: 0,
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+      }}
+    >
+      {unaryPreds.length > 0 ? (
+        <div className="legend-container">
+          <h6>Unary Predicates</h6>
+          <fieldset className="legend-group">
+            {unaryPreds.map(([pred], idx) => (
+              <label
+                key={pred}
+                className="chip"
+                style={{
+                  color: unaryPredsColors[idx % unaryPredsColors.length],
+                }}
+              >
+                <input
+                  type="checkbox"
+                  name="unary preds"
+                  checked={selectedPreds.includes(pred)}
+                  onChange={() =>
+                    dispatch(
+                      selectedPredicateChanged({ id, type, predicate: pred }),
+                    )
+                  }
+                />
+                <span
+                  className="dot"
+                  style={{
+                    backgroundColor:
+                      unaryPredsColors[idx % unaryPredsColors.length],
+                  }}
+                ></span>
+                <p
+                  style={{
+                    color: selectedPreds.includes(pred)
+                      ? unaryPredsColors[idx % unaryPredsColors.length]
+                      : "",
+                  }}
+                >
+                  {pred}
+                </p>
+              </label>
+            ))}
+          </fieldset>
+        </div>
+      ) : (
+        <p style={{ margin: 0 }}>No unary predicates</p>
+      )}
+      <DomainElementsSelector id={id} type={type} />
+    </div>
+  );
+}
+
+export function DomainElementsSelector({
+  id,
+  type,
+}: {
+  id: string;
+  type: GraphType;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  const dispatch = useAppDispatch();
+  const domain = useAppSelector(selectParsedDomain)?.parsed ?? [];
+  const selectedNodes = useAppSelector(
+    (state) => state.graphView[id]?.state[type].selectedNodes,
+  );
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const toggleItem = (element: string = "") =>
+    dispatch(
+      selectedNodesChanged({
+        id,
+        type,
+        toggledNode: element,
+      }),
+    );
+
+  return (
+    <div className="domain-elements" ref={ref}>
+      <button
+        className="domain-header"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+      >
+        Domain Elements
+        {isOpen ? (
+          <FontAwesomeIcon icon={faChevronUp} />
+        ) : (
+          <FontAwesomeIcon icon={faChevronDown} />
+        )}
+      </button>
+
+      {isOpen && (
+        <div className="domain-body">
+          <button className="select-all" onClick={() => toggleItem()}>
+            <FontAwesomeIcon icon={faCheckDouble} />
+            Select All
+          </button>
+
+          <ul className="element-list">
+            {domain.map((item) => (
+              <DomainElementItem
+                key={item}
+                element={item}
+                isSelected={selectedNodes.includes(item)}
+                onToggle={() => toggleItem(item)}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DomainElementItem({
+  element,
+  isSelected,
+  onToggle,
+}: {
+  element: string;
+  isSelected: boolean;
+  onToggle: () => void;
+}) {
+  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
+  const relevantPreds = useAppSelector((state) =>
+    selectRelevantUnaryPreds(state, element),
+  )?.sort();
+
+  return (
+    <li key={element}>
+      <button
+        className={`element-item ${isSelected ? "active" : ""}`}
+        onClick={onToggle}
+        tabIndex={0}
+        aria-pressed={isSelected}
+      >
+        {element}
+        <div className="relevant-preds-list">
+          {relevantPreds.map((pred) => (
+            <span
+              key={pred}
+              style={{
+                backgroundColor:
+                  unaryPredsColors[
+                    allUnaryPreds.findIndex((p) => p[0] === pred) %
+                      allUnaryPreds.length
+                  ],
+              }}
+              className="relevant-pred"
+            />
+          ))}
+        </div>
+      </button>
+    </li>
+  );
+}

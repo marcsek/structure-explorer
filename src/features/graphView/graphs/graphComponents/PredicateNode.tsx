@@ -13,11 +13,13 @@ import {
   onConnected,
   selectRelevantConstants,
   selectRelevantUnaryPreds,
+  selectUnaryPreds,
 } from "../graphSlice";
 import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
 import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { unaryPredsColors } from "../../../structure/EditorToolbar/EditorToolbar";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -48,6 +50,7 @@ export default function PredicateNode({
     selectRelevantConstants(state, data.label),
   );
 
+  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
   const unaryPreds = useAppSelector((state) =>
     selectRelevantUnaryPreds(state, data.label),
   );
@@ -57,9 +60,9 @@ export default function PredicateNode({
       state.graphView[parentInfo.id].state[parentInfo.type].selectedPreds,
   );
 
-  const predsToDisplay = unaryPreds.filter((relevant) =>
-    selectedPreds.includes(relevant),
-  );
+  const predsToDisplay = unaryPreds
+    .filter((relevant) => selectedPreds.includes(relevant))
+    ?.sort();
 
   const handleLeftOverDeletion = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -110,15 +113,42 @@ export default function PredicateNode({
           />
         )}
       </div>
-      <div className={`predicateNodeBody`}>
+      <div className="predicateNodeBody">
         <div style={{ display: "flex", flexDirection: "column" }}>
           <h2 style={{ margin: 0, lineHeight: 0 }}>
             {data.label.toUpperCase()}
           </h2>
           {!data.leftover ? (
             <>
+              <div
+                style={{
+                  display: "flex",
+                  position: "absolute",
+                  top: "-12px",
+                  left: "-12px",
+                  right: "-12px",
+                  borderRadius: "8px 8px 0 0",
+                  zIndex: 2,
+                  height: "12px",
+                  overflow: "hidden",
+                  pointerEvents: "none",
+                }}
+              >
+                {predsToDisplay.map((pred) => (
+                  <div
+                    key={pred}
+                    style={{
+                      backgroundColor:
+                        unaryPredsColors[
+                          allUnaryPreds.findIndex((p) => p[0] === pred) %
+                            allUnaryPreds.length
+                        ],
+                      width: "100%",
+                    }}
+                  />
+                ))}
+              </div>
               <p style={{ margin: 0 }}>{constants.join(", ")}</p>
-              <p style={{ margin: 0 }}>{predsToDisplay.join(", ")}</p>
             </>
           ) : (
             <>
