@@ -33,11 +33,16 @@ export interface Plugin<K extends GraphType> {
     domain: string[],
     tupleType: TupleType,
   ): GraphState[K];
-  hideNodes(
-    prev: GraphState[K],
-    toggledNode: string,
-    relevantNodes: string[] | null,
-  ): GraphState[K];
+  // hideNodes(
+  //   prev: GraphState[K],
+  //   toggledNode: string,
+  //   relevantNodes: string[] | null,
+  // ): GraphState[K];
+  filterNodesToShow(
+    state: GraphState[K],
+    relevantNodes?: string[],
+  ): GraphState[K]["nodes"];
+  toggleNodes(state: GraphState[K], node: string): GraphState[K];
   syncPredIntr(
     prev: GraphState[K],
     intr: BinaryRelation<string>,
@@ -67,13 +72,29 @@ export function processSyncNodes<K extends GraphType>(
   return plugin.syncNodes(prev, domain, tupleType);
 }
 
-export function processHideNodes<K extends GraphType>(
+// export function processHideNodes<K extends GraphType>(
+//   plugin: Plugin<K>,
+//   prev: GraphState[K],
+//   toggledNode: string,
+//   relevantNodes: string[] | null,
+// ): GraphState[K] {
+//   return plugin.hideNodes(prev, toggledNode, relevantNodes);
+// }
+//
+export function processToggleNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
-  toggledNode: string,
-  relevantNodes: string[] | null,
+  node: string,
 ): GraphState[K] {
-  return plugin.hideNodes(prev, toggledNode, relevantNodes);
+  return plugin.toggleNodes(prev, node);
+}
+
+export function processFilterNodesToShow<K extends GraphType>(
+  plugin: Plugin<K>,
+  state: GraphState[K],
+  relevantNodes?: string[],
+): GraphState[K]["nodes"] {
+  return plugin.filterNodesToShow(state, relevantNodes);
 }
 
 export function processSyncPredIntr<K extends GraphType>(

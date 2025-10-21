@@ -23,11 +23,13 @@ import {
   plugins,
   processDeleteLeftover,
   processEdgesToRelation,
-  processHideNodes,
+  processFilterNodesToShow,
   processSyncNodes,
   processSyncPredIntr,
+  processToggleNodes,
   type GraphState,
   type GraphType,
+  type Plugin,
 } from "./plugins.ts";
 import {
   selectParsedFunctions,
@@ -104,6 +106,7 @@ export const graphManagerSlice = createSlice({
       const { id, type, predicate } = action.payload;
 
       const selected = state[id].state[type].selectedPreds;
+
       if (selected.includes(predicate))
         state[id].state[type].selectedPreds = selected.filter(
           (pred) => pred != predicate,
@@ -111,59 +114,18 @@ export const graphManagerSlice = createSlice({
       else selected.push(predicate);
     },
 
-    nodeToggled(
-      state,
-      action: PayloadAction<
-        WithGraphId<{ node: string; relevantNodes: string[] | null }>
-      >,
-    ) {
-      const { id, type, node, relevantNodes = [] } = action.payload;
+    nodeToggled(state, action: PayloadAction<WithGraphId<{ node: string }>>) {
+      const { id, type, node: toggledNode } = action.payload;
 
-      (state[id].state[type] as GraphState[typeof type]) = processHideNodes(
+      if (!state[id]) return;
+
+      const graphState = state[id].state[type];
+
+      (state[id].state[type] as GraphState[typeof type]) = processToggleNodes(
         plugins[type],
-        state[id].state[type],
-        node,
-        relevantNodes,
+        graphState,
+        toggledNode,
       );
-    },
-
-    relevantNodesChanged(
-      state,
-      action: PayloadAction<WithGraphId<{ relevantNodes: string[] | null }>>,
-    ) {
-      const { id, type, relevantNodes = [] } = action.payload;
-
-      (state[id].state[type] as GraphState[typeof type]) = processHideNodes(
-        plugins[type],
-        state[id].state[type],
-        "none",
-        relevantNodes,
-      );
-    },
-
-    unaryPredicatesChanged(
-      state,
-      action: PayloadAction<{ unaryPreds: Record<string, string[]> }>,
-    ) {
-      const { unaryPreds } = action.payload;
-
-      for (const graphs of Object.values(state)) {
-        for (const graphType of graphTypes) {
-          const graphState = graphs.state[graphType];
-          const plugin = plugins[graphType];
-
-          let relevantNodes = null;
-          const selectedPreds = graphState.selectedPreds;
-          if (selectedPreds.length !== 0) {
-            relevantNodes = selectedPreds.flatMap((pred) =>
-              [...(unaryPreds[pred]?.values() ?? [])].flat(),
-            );
-          }
-
-          (graphs.state[graphType] as GraphState[typeof graphType]) =
-            processHideNodes(plugin, graphState, "none", relevantNodes);
-        }
-      }
     },
 
     tuplesChanged(
@@ -312,19 +274,48 @@ export const selectRelevantDomainElements = createSelector(
     (_: RootState, __: string, type: GraphType) => type,
   ],
   (struct, state, id, type) => {
-    const selectedPreds = (
-      state.graphView[id].state[type] as GraphState[typeof type]
-    ).selectedPreds;
+    const selectedPreds =
+      (state.graphView[id]?.state[type] as GraphState[typeof type])
+        ?.selectedPreds ?? [];
 
-    if (selectedPreds.length === 0) return null;
+    if (selectedPreds.length === 0) return undefined;
 
-    const domain = selectedPreds.flatMap((pred) =>
+    return selectedPreds.flatMap((pred) =>
       [...(struct.iP.get(pred)?.values() ?? [])].flat(),
     );
-
-    return domain;
   },
 );
+
+// TODO: try to do better narrowing
+export function makeSelectNodes<T extends GraphType>() {
+  return createSelector(
+    [
+      (state: RootState) => state,
+      (_: RootState, id: string) => id,
+      (_: RootState, __: string, type: T) => type,
+      selectRelevantDomainElements,
+    ],
+    (
+      state: RootState,
+      id: string,
+      type: T,
+      relevantDomain: ReturnType<typeof selectRelevantDomainElements>,
+    ): GraphState[T]["nodes"] => {
+      const plugin = plugins[type] as Plugin<T>;
+      const graphState = state.graphView[id]?.state[type];
+
+      if (!graphState) return [] as GraphState[T]["nodes"];
+
+      const d = processFilterNodesToShow(
+        plugin,
+        graphState,
+        relevantDomain,
+      ) as GraphState[T]["nodes"];
+
+      return d;
+    },
+  );
+}
 
 export const onEdgesChanged = ({
   id,
@@ -408,16 +399,7 @@ export const selectedNodesChanged = ({
   toggledNode?: string;
 }): AppThunk => {
   return (dispatch, getState) => {
-    // TODO: Basically a hack
-    const relevantDomain = selectRelevantDomainElements(getState(), id, type);
-    dispatch(
-      nodeToggled({
-        id,
-        type,
-        node: toggledNode,
-        relevantNodes: relevantDomain,
-      }),
-    );
+    dispatch(nodeToggled({ id, type, node: toggledNode }));
 
     if (type === "hasse" && getState().graphView[id].state[type].isPoset) {
       const graphState = getState().graphView[id].state[type];
@@ -447,23 +429,6 @@ export const selectedNodesChanged = ({
         }),
       );
     }
-  };
-};
-
-export const selectedPredicateChanged = ({
-  id,
-  type,
-  predicate,
-}: {
-  id: string;
-  type: GraphType;
-  predicate: string;
-}): AppThunk => {
-  return (dispatch, getState) => {
-    // TODO: Basically a hack
-    dispatch(predicateToggled({ id, type, predicate }));
-    const relevantDomain = selectRelevantDomainElements(getState(), id, type);
-    dispatch(relevantNodesChanged({ id, type, relevantNodes: relevantDomain }));
   };
 };
 
@@ -534,8 +499,6 @@ export const {
   tupleInterpretationChanged,
   domainChanged,
   editorLocked,
-  relevantNodesChanged,
-  unaryPredicatesChanged,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

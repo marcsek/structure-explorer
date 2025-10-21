@@ -13,7 +13,6 @@ import {
   domainChanged,
   tupleInterpretationChanged,
   tuplesChanged,
-  unaryPredicatesChanged,
 } from "./graphSlice";
 import {
   selectParsedFunctions,
@@ -49,26 +48,6 @@ graphSliceListener.startListening({
     }
 
     api.dispatch(tupleInterpretationChanged({ name: key, intr: tupleIntr }));
-  },
-});
-
-graphSliceListener.startListening({
-  matcher: isAnyOf(updateInterpretationPredicates, updatePredicates),
-  effect(_, api) {
-    const state = api.getState();
-    const parsedPredicates = selectParsedPredicates(state);
-    const structure = selectStructure(state);
-
-    if (parsedPredicates.parsed) {
-      const predIntr = Object.fromEntries(
-        [...structure.iP.entries()].map(([key, set]) => [
-          key,
-          [...set].filter((arr) => arr.length === 1).flat(),
-        ]),
-      ) as Record<string, string[]>;
-
-      api.dispatch(unaryPredicatesChanged({ unaryPreds: predIntr }));
-    }
   },
 });
 

@@ -20,6 +20,7 @@ import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
   editorLocked,
+  makeSelectNodes,
   onConnected,
   onEdgesChanged,
   onNodesChanged,
@@ -60,11 +61,10 @@ export default function OrientedGraph({
   locked: boolean;
 }) {
   const type = "oriented";
+  const nodeSelector = makeSelectNodes<typeof type>();
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.nodes,
-  );
+  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.edges,
   );
@@ -84,7 +84,6 @@ export default function OrientedGraph({
       dispatch(onEdgesChanged({ id, type, changes })),
     [id, dispatch],
   );
-  console.log(edges);
 
   const onConnect: OnConnect = useCallback(
     (connection) => dispatch(onConnected({ id, type, connection })),

@@ -11,17 +11,13 @@ export type OrientedGraphState = {
 
 const createNode = (
   id: string,
-  {
-    hidden = false,
-    leftover = false,
-  }: { hidden?: boolean; leftover?: boolean } = {},
+  { leftover = false }: { leftover?: boolean } = {},
 ): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
     position: { x: 0, y: 0 },
     data: { label: id, leftover },
-    hidden,
   };
 };
 
@@ -51,13 +47,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
     if (type === "function") return graph;
 
-    domain.forEach((domElement) =>
-      graph.nodes.push(
-        createNode(domElement, {
-          hidden: !graph.selectedNodes.includes(domElement),
-        }),
-      ),
-    );
+    domain.forEach((domElement) => graph.nodes.push(createNode(domElement)));
 
     const presentIds = new Set();
     iP.forEach(([from, to]) => {
@@ -96,6 +86,11 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       ]),
     );
 
+    const prevDomain = prev.nodes.map((node) => node.id);
+    const addedElements = domain.filter(
+      (element) => !prevDomain.includes(element),
+    );
+
     const newNodes = domain.map(
       (element) => nodeById.get(element) ?? createNode(element),
     );
@@ -115,47 +110,37 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       .map((node) => ({
         ...node,
         data: { ...node.data, leftover: true },
-        hidden: false,
       }));
 
-    //leftoverNodes.forEach((node) => {
-    //  const connecting = connectingEdges(node.id);
-    //  newNodes = newNodes.map((newNode) =>
-    //    connecting.has(newNode.id) ? { ...newNode, hidden: false } : newNode,
-    //  );
-    //});
-
     const allNodes = [...newNodes, ...leftoverNodes];
-
-    const selectedNodes = allNodes
-      .filter((node) => !node.hidden)
-      .map((node) => node.id);
-
-    console.log(selectedNodes);
+    const selectedNodes = [...prev.selectedNodes, ...addedElements].filter(
+      (node) => domain.includes(node),
+    );
 
     return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  hideNodes(prev, toggledNode, relevantNodes) {
-    let selected = [...prev.selectedNodes];
+  filterNodesToShow(state, relevantNodes) {
+    const selected = [...state.selectedNodes];
 
-    if (toggledNode === "") selected = prev.nodes.map((node) => node.id);
-    else if (selected.includes(toggledNode))
-      selected = selected.filter((pred) => pred != toggledNode);
-    else if (toggledNode !== "none") selected.push(toggledNode);
+    return state.nodes.filter(
+      (node) =>
+        node.data.leftover ||
+        (selected.includes(node.id) &&
+          (relevantNodes?.includes(node.id) ?? true)),
+    );
+  },
 
-    let newRelevantNodes = selected;
-    if (relevantNodes !== null)
-      newRelevantNodes = selected.filter((node) =>
-        relevantNodes.includes(node),
-      );
+  toggleNodes(state, node) {
+    let newSelected = [...state.selectedNodes];
+    const allNodes = state.nodes;
 
-    const newNodes = prev.nodes.map((node) => ({
-      ...node,
-      hidden: !newRelevantNodes.includes(node.id),
-    }));
+    if (node === "") newSelected = allNodes.map((node) => node.id);
+    else if (newSelected.includes(node))
+      newSelected = newSelected.filter((selectedNode) => selectedNode != node);
+    else newSelected.push(node);
 
-    return { ...prev, nodes: newNodes, selectedNodes: selected };
+    return { ...state, selectedNodes: newSelected };
   },
 
   syncPredIntr(prev, intr) {

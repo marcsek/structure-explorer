@@ -24,6 +24,7 @@ import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
   editorLocked,
+  makeSelectNodes,
   onConnected,
   onEdgesChanged,
   onNodesChanged,
@@ -85,11 +86,10 @@ export default function BipartiteGraph({
   locked: boolean;
 }) {
   const type = "bipartite";
+  const nodeSelector = makeSelectNodes<typeof type>();
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.nodes,
-  );
+  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.edges,
   );
@@ -105,6 +105,7 @@ export default function BipartiteGraph({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) => {
+      // TODO: Why is this necessary?
       const allChanges = [
         ...changes,
         ...generateNodeChangesWithLayout(changes, nodes),

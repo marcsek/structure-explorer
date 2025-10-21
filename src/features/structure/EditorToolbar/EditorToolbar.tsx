@@ -2,8 +2,8 @@ import "./EditorToolbar.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
+  predicateToggled,
   selectedNodesChanged,
-  selectedPredicateChanged,
   selectRelevantUnaryPreds,
   selectUnaryPreds,
 } from "../../graphView/graphs/graphSlice";
@@ -56,9 +56,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                   name="unary preds"
                   checked={selectedPreds.includes(pred)}
                   onChange={() =>
-                    dispatch(
-                      selectedPredicateChanged({ id, type, predicate: pred }),
-                    )
+                    dispatch(predicateToggled({ id, type, predicate: pred }))
                   }
                 />
                 <span

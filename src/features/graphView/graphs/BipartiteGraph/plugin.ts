@@ -14,10 +14,9 @@ const createNode = (
   id: string,
   origin: BipartiteNodeType["data"]["origin"],
   {
-    hidden = false,
     error = false,
     leftover = false,
-  }: { hidden?: boolean; error?: boolean; leftover?: boolean } = {},
+  }: { error?: boolean; leftover?: boolean } = {},
 ): BipartiteNodeType => {
   return {
     id: `${origin === "domain" ? "d" : "r"}-${id}`,
@@ -25,7 +24,6 @@ const createNode = (
     position: { x: Infinity, y: Infinity },
     data: { label: id, origin, error, leftover },
     connectable: origin === "domain" ? undefined : false,
-    hidden,
   };
 };
 
@@ -57,13 +55,12 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     };
 
     domain.forEach((domElement) => {
-      const hidden = !graph.selectedNodes.includes(domElement);
       const error =
         type === "function" &&
         iP.filter(([d]) => d === domElement).length !== 1;
 
-      graph.nodes.push(createNode(domElement, "domain", { hidden, error }));
-      graph.nodes.push(createNode(domElement, "range", { hidden }));
+      graph.nodes.push(createNode(domElement, "domain", { error }));
+      graph.nodes.push(createNode(domElement, "range"));
     });
 
     const leftovers = new Set(
@@ -73,21 +70,17 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     leftovers.forEach((element) => {
       graph.nodes.push(
         createNode(element, "domain", {
-          hidden: false,
           error: false,
           leftover: true,
         }),
       );
       graph.nodes.push(
         createNode(element, "range", {
-          hidden: false,
           error: false,
           leftover: true,
         }),
       );
     });
-
-    graph.nodes = layoutNodes(graph.nodes);
 
     const presentIds = new Set();
     iP.forEach(([from, to]) => {
@@ -121,6 +114,11 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       ]),
     );
 
+    const prevDomain = new Set(
+      prev.nodes.map((node) => node.id.slice("d-".length)),
+    );
+    const addedElements = domain.filter((element) => !prevDomain.has(element));
+
     const shouldError = (id: string) =>
       prev.edges.filter((e) => e.source.slice("d-".length) === id).length !==
         1 && tupleType === "function";
@@ -149,59 +147,45 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       .map((node) => ({
         ...node,
         data: { ...node.data, leftover: true },
-        hidden: false,
       }));
 
     const allNodes = [...newNodes, ...leftoverNodes];
 
-    const selectedNodes = allNodes
-      .filter((node) => !node.hidden || node.data.leftover)
-      .map((node) => node.id.slice("d-".length));
+    const selectedNodes = [...prev.selectedNodes, ...addedElements].filter(
+      (node) => domain.includes(node),
+    );
 
-    return { ...prev, nodes: layoutNodes(allNodes), selectedNodes };
+    return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  hideNodes(prev, toggledNode, relevantNodes) {
-    let selected = [...prev.selectedNodes];
+  filterNodesToShow(state, relevantNodes) {
+    const selected = [...state.selectedNodes];
+    const dragging = state.nodes
+      .filter((node) => node.dragging)
+      .map((node) => node.id);
 
-    if (toggledNode === "")
-      selected = prev.nodes.map((node) => node.id.slice("d-".length));
-    else if (selected.includes(toggledNode))
-      selected = selected.filter((pred) => pred != toggledNode);
-    else if (toggledNode != "none") selected.push(toggledNode);
+    return layoutNodes(
+      state.nodes.filter(
+        (node) =>
+          node.data.leftover ||
+          (selected.includes(node.id.slice("d-".length)) &&
+            (relevantNodes?.includes(node.id.slice("d-".length)) ?? true)),
+      ),
+      dragging,
+    );
+  },
 
-    let newRelevantNodes = selected;
-    if (relevantNodes !== null)
-      newRelevantNodes = selected.filter((node) =>
-        relevantNodes.includes(node),
-      );
+  toggleNodes(state, node) {
+    let newSelected = [...state.selectedNodes];
+    const allNodes = state.nodes;
 
-    const newNodes = prev.nodes.map((node) => {
-      const hidden = !newRelevantNodes.includes(node.id.slice("d-".length));
-      const resetPos = { x: Infinity, y: Infinity };
+    if (node === "")
+      newSelected = allNodes.map((node) => node.id.slice("d-".length));
+    else if (newSelected.includes(node))
+      newSelected = newSelected.filter((selectedNode) => selectedNode != node);
+    else newSelected.push(node);
 
-      return {
-        ...node,
-        hidden,
-        position: hidden ? resetPos : node.position,
-      };
-    });
-
-    // React Flow doesn't correctly handle hiding edges connecting hidden nodes,
-    // so it's done manually in this case. Otherwise it's not needed.
-    const newEdges = prev.edges.map((edge) => ({
-      ...edge,
-      hidden:
-        !newRelevantNodes.includes(edge.source.slice("d-".length)) ||
-        !newRelevantNodes.includes(edge.target.slice("d-".length)),
-    }));
-
-    return {
-      ...prev,
-      nodes: layoutNodes(newNodes),
-      edges: newEdges,
-      selectedNodes: selected,
-    };
+    return { ...state, selectedNodes: newSelected };
   },
 
   syncPredIntr(prev, intr, tupleType) {
@@ -281,7 +265,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       );
     }
 
-    return { ...prev, edges: newEdges, nodes: layoutNodes(newNodes) };
+    return { ...prev, edges: newEdges, nodes: newNodes };
   },
 
   edgesToRelation(state) {
