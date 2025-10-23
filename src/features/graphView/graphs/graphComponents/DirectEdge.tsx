@@ -28,33 +28,29 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
   if (props.source === props.target) return <SelfConnectingEdge {...props} />;
 
   const { id, style } = props;
-  const { sx, sy, tx, ty } = getEdgeParams(source, target);
+  const { sourceX, sourceY, targetX, targetY } = getEdgeParams(source, target);
 
   const [path, labelX, labelY] = getStraightPath({
-    sourceX: sx,
-    sourceY: sy,
-    targetX: tx,
-    targetY: ty,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
   });
 
   const shouldError = props.data?.duplicate || props.data?.error;
-
-  const marker = shouldError
-    ? "url(#error-marker)"
-    : props.selected
-      ? "url(#selected-marker)"
-      : props.markerEnd;
 
   return (
     <>
       <GenerateMarker type="error" />
       <GenerateMarker type="selected" />
+      <GenerateMarker type="hover" />
+      <GenerateMarker type="connection" />
 
       <BaseEdge
         id={id}
         className={`react-flow__edge-path ${shouldError ? "error" : ""}`}
         path={path}
-        markerEnd={marker}
+        markerEnd={props.markerEnd}
         style={style}
       />
       <EdgeLabelRenderer>
@@ -77,7 +73,7 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
   );
 }
 
-function GenerateMarker({ type }: { type: "error" | "selected" }) {
+function GenerateMarker({ type }: { type: string }) {
   return (
     <svg style={{ position: "absolute", top: 0, left: 0 }}>
       <defs>

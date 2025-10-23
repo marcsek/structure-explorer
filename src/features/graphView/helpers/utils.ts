@@ -87,10 +87,10 @@ export function getEdgeParams(source: InternalNode, target: InternalNode) {
   const targetPos = getEdgePosition(target, targetIntersectionPoint);
 
   return {
-    sx: sourceIntersectionPoint.x,
-    sy: sourceIntersectionPoint.y,
-    tx: targetIntersectionPoint.x,
-    ty: targetIntersectionPoint.y,
+    sourceX: sourceIntersectionPoint.x,
+    sourceY: sourceIntersectionPoint.y,
+    targetX: targetIntersectionPoint.x,
+    targetY: targetIntersectionPoint.y,
     sourcePos,
     targetPos,
   };

@@ -5,7 +5,7 @@
   /* Custom Variables */
   --xy-theme-selected: #86b7fe;
   --xy-theme-hover: #c5c5c5;
-  --xy-theme-edge-hover: black;
+  --xy-theme-edge-hover: #737373;
   --xy-theme-color-focus: #e8e8e8;
 
   /* Built-in Variables see https://reactflow.dev/learn/customization/theming */
@@ -56,6 +56,10 @@
 
 .graph_editor__node.error {
   outline-color: var(--bs-danger);
+}
+
+.graph_editor__node.ghost {
+  opacity: 0.6;
 }
 
 .graph_editor__node.selectable:focus {
@@ -111,15 +115,28 @@
   fill: var(--bs-danger);
 }
 
+.react-flow__arrowhead.hover polyline.arrowclosed {
+  stroke: var(--xy-theme-edge-hover);
+  fill: var(--xy-theme-edge-hover);
+}
+
+.react-flow__arrowhead.connection polyline.arrowclosed {
+  stroke: #22c55e;
+  fill: #22c55e;
+}
+
 .react-flow__edge-path.error {
   stroke: var(--bs-danger);
   stroke-dasharray: 5, 3;
 }
 
-.react-flow__edge.selectable:hover .react-flow__edge-path,
+.react-flow__edge.selectable:hover .react-flow__edge-path {
+  stroke: var(--xy-theme-edge-hover);
+  marker-end: url(#hover-marker);
+}
+
 .react-flow__edge.selectable.selected .react-flow__edge-path {
   stroke: var(--xy-theme-selected);
-
   marker-end: url(#selected-marker);
 }
 

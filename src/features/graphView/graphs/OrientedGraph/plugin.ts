@@ -120,14 +120,25 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  filterNodesToShow(state, relevantNodes) {
+  filterNodesToShow(state, relevantNodes, hoveredPredicateIntr) {
     const selected = [...state.selectedNodes];
 
-    return state.nodes.filter(
+    const filteredNodes = state.nodes.filter(
       (node) =>
         node.data.leftover ||
         (selected.includes(node.id) &&
-          (relevantNodes?.includes(node.id) ?? true)),
+          ((relevantNodes?.includes(node.id) ?? true) ||
+            hoveredPredicateIntr?.includes(node.id))),
+    );
+
+    const isGhost = (node: PredicateNodeType) =>
+      !node.data.leftover &&
+      selected.includes(node.id) &&
+      !(relevantNodes?.includes(node.id) ?? true) &&
+      hoveredPredicateIntr?.includes(node.id);
+
+    return filteredNodes.map((node) =>
+      isGhost(node) ? { ...node, data: { ...node.data, ghost: true } } : node,
     );
   },
 

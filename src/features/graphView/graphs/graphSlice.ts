@@ -45,7 +45,7 @@ export type TupleType = "function" | "predicate";
 
 export type GraphManagerState = Record<
   string,
-  { tupleType: TupleType; state: GraphState }
+  { tupleType: TupleType; state: GraphState; hoveredPredicate: string }
 >;
 
 type WithGraphId<T = object> = { id: string; type: GraphType } & T;
@@ -128,6 +128,17 @@ export const graphManagerSlice = createSlice({
       );
     },
 
+    predicateHovered(
+      state,
+      action: PayloadAction<WithGraphId<{ predicate: string }>>,
+    ) {
+      const { id, predicate } = action.payload;
+
+      if (!state[id]) return;
+
+      state[id].hoveredPredicate = predicate;
+    },
+
     tuplesChanged(
       state,
       action: PayloadAction<{
@@ -163,6 +174,7 @@ export const graphManagerSlice = createSlice({
             hasse: plugins.hasse.init(domain, tuple, type),
             bipartite: plugins.bipartite.init(domain, tuple, type),
           },
+          hoveredPredicate: "",
         };
       });
 
@@ -286,6 +298,21 @@ export const selectRelevantDomainElements = createSelector(
   },
 );
 
+export const selectHoveredPredicateIntr = createSelector(
+  [
+    selectStructure,
+    (state: RootState) => state,
+    (_: RootState, id: string) => id,
+  ],
+  (struct, state, id) => {
+    const hoveredPredicate = state.graphView[id]?.hoveredPredicate;
+
+    if (!hoveredPredicate) return undefined;
+
+    return [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat();
+  },
+);
+
 // TODO: try to do better narrowing
 export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
@@ -294,12 +321,14 @@ export function makeSelectNodes<T extends GraphType>() {
       (_: RootState, id: string) => id,
       (_: RootState, __: string, type: T) => type,
       selectRelevantDomainElements,
+      selectHoveredPredicateIntr,
     ],
     (
       state: RootState,
       id: string,
       type: T,
       relevantDomain: ReturnType<typeof selectRelevantDomainElements>,
+      hoveredPredicateIntr: ReturnType<typeof selectHoveredPredicateIntr>,
     ): GraphState[T]["nodes"] => {
       const plugin = plugins[type] as Plugin<T>;
       const graphState = state.graphView[id]?.state[type];
@@ -310,6 +339,7 @@ export function makeSelectNodes<T extends GraphType>() {
         plugin,
         graphState,
         relevantDomain,
+        hoveredPredicateIntr,
       ) as GraphState[T]["nodes"];
 
       return d;
@@ -499,6 +529,7 @@ export const {
   tupleInterpretationChanged,
   domainChanged,
   editorLocked,
+  predicateHovered,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

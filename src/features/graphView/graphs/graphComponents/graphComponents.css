@@ -42,3 +42,17 @@ div.predicateNodeHandle.source:hover {
 div.predicateNodeHandle.target {
   z-index: 10;
 }
+
+.node-predicate-header div {
+  background-color: currentColor;
+}
+
+.node-predicate-header .stripy {
+  background: repeating-linear-gradient(
+    -45deg,
+    currentColor,
+    currentColor 5px,
+    color-mix(in srgb, currentColor 20%, transparent) 5px,
+    color-mix(in srgb, currentColor 20%, transparent) 10px
+  );
+}

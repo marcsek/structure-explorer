@@ -158,18 +158,30 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  filterNodesToShow(state, relevantNodes) {
+  filterNodesToShow(state, relevantNodes, hoveredPredicateIntr) {
     const selected = [...state.selectedNodes];
+
+    const filteredNodes = state.nodes.filter(
+      (node) =>
+        node.data.leftover ||
+        (selected.includes(node.id.slice("d-".length)) &&
+          ((relevantNodes?.includes(node.id.slice("d-".length)) ?? true) ||
+            hoveredPredicateIntr?.includes(node.id.slice("d-".length)))),
+    );
+
+    const isGhost = (node: BipartiteNodeType) =>
+      !node.data.leftover &&
+      selected.includes(node.id.slice("d-".length)) &&
+      !(relevantNodes?.includes(node.id.slice("d-".length)) ?? true) &&
+      hoveredPredicateIntr?.includes(node.id.slice("d-".length));
+
     const dragging = state.nodes
       .filter((node) => node.dragging)
       .map((node) => node.id);
 
     return layoutNodes(
-      state.nodes.filter(
-        (node) =>
-          node.data.leftover ||
-          (selected.includes(node.id.slice("d-".length)) &&
-            (relevantNodes?.includes(node.id.slice("d-".length)) ?? true)),
+      filteredNodes.map((node) =>
+        isGhost(node) ? { ...node, data: { ...node.data, ghost: true } } : node,
       ),
       dragging,
     );

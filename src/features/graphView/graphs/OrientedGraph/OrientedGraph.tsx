@@ -121,8 +121,9 @@ export default function OrientedGraph({
           proOptions={{ hideAttribution: true }}
           nodesFocusable={false}
           nodesConnectable={!locked}
-          edgesFocusable={!locked}
-          edgesReconnectable={!locked}
+          edgesFocusable={false}
+          edgesReconnectable={false}
+          connectOnClick={false}
         >
           <Background id={`bg-oriented-${id}`} />
           <Controls

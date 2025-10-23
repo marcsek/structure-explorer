@@ -172,8 +172,9 @@ export default function BipartiteGraph({
           proOptions={{ hideAttribution: true }}
           nodesFocusable={false}
           nodesConnectable={!locked}
-          edgesFocusable={!locked}
-          edgesReconnectable={!locked}
+          edgesFocusable={false}
+          edgesReconnectable={false}
+          connectOnClick={false}
         >
           <Background id={`bg-bipartite-${id}`} />
           <Controls

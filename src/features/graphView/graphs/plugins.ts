@@ -41,6 +41,7 @@ export interface Plugin<K extends GraphType> {
   filterNodesToShow(
     state: GraphState[K],
     relevantNodes?: string[],
+    hoveredPredicateIntr?: string[],
   ): GraphState[K]["nodes"];
   toggleNodes(state: GraphState[K], node: string): GraphState[K];
   syncPredIntr(
@@ -93,8 +94,9 @@ export function processFilterNodesToShow<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
   relevantNodes?: string[],
+  hoveredPredicateIntr?: string[],
 ): GraphState[K]["nodes"] {
-  return plugin.filterNodesToShow(state, relevantNodes);
+  return plugin.filterNodesToShow(state, relevantNodes, hoveredPredicateIntr);
 }
 
 export function processSyncPredIntr<K extends GraphType>(

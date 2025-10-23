@@ -2,6 +2,7 @@ import "./EditorToolbar.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
+  predicateHovered,
   predicateToggled,
   selectedNodesChanged,
   selectRelevantUnaryPreds,
@@ -11,10 +12,7 @@ import type { GraphType } from "../../graphView/graphs/plugins";
 import { useEffect, useRef, useState } from "react";
 import { selectParsedDomain } from "../structureSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCheckDouble,
-  faChevronDown,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
 
@@ -50,6 +48,12 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                 style={{
                   color: unaryPredsColors[idx % unaryPredsColors.length],
                 }}
+                onMouseEnter={() =>
+                  dispatch(predicateHovered({ id, type, predicate: pred }))
+                }
+                onMouseLeave={() =>
+                  dispatch(predicateHovered({ id, type, predicate: "" }))
+                }
               >
                 <input
                   type="checkbox"
@@ -103,6 +107,8 @@ export function DomainElementsSelector({
     (state) => state.graphView[id]?.state[type].selectedNodes,
   );
 
+  const activeFilters = domain.length !== selectedNodes.length;
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (ref.current && !ref.current.contains(event.target as Node)) {
@@ -131,14 +137,20 @@ export function DomainElementsSelector({
     );
 
   return (
-    <div className="domain-elements" ref={ref}>
+    <div
+      className={`domain-elements ${activeFilters ? "active" : ""}`}
+      ref={ref}
+    >
       <button
         className="domain-header"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
+        title="domain filters"
       >
-        Domain Elements
-        <FontAwesomeIcon size="sm" icon={faChevronDown} />
+        <div className="domain-filter-icon-container">
+          <div className="domain-filter-indicator" />
+          <FontAwesomeIcon icon={faFilter} />
+        </div>
       </button>
 
       {isOpen && (

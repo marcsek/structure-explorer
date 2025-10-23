@@ -8,9 +8,13 @@ import { useAppSelector } from "./app/hooks";
 import { selectTeacherMode } from "./features/teacherMode/teacherModeslice";
 import FormulaCard from "./features/formulas/FormulaCard";
 import "./App.css";
+import usePreset from "./usePreset";
 
 function App() {
+  usePreset();
+
   const teacherMode = useAppSelector(selectTeacherMode);
+
   return (
     <>
       <Container fluid>

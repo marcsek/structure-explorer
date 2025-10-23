@@ -24,6 +24,7 @@ import { unaryPredsColors } from "../../../structure/EditorToolbar/EditorToolbar
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
   error?: boolean;
+  ghost?: boolean;
   leftover?: boolean;
 }
 
@@ -55,13 +56,19 @@ export default function PredicateNode({
     selectRelevantUnaryPreds(state, data.label),
   );
 
+  const hoveredPred = useAppSelector(
+    (state) => state.graphView[parentInfo.id].hoveredPredicate,
+  );
+
   const selectedPreds = useAppSelector(
     (state) =>
       state.graphView[parentInfo.id].state[parentInfo.type].selectedPreds,
   );
 
+  const vissiblePreds = [hoveredPred, ...selectedPreds];
+
   const predsToDisplay = unaryPreds
-    .filter((relevant) => selectedPreds.includes(relevant))
+    .filter((relevant) => vissiblePreds.includes(relevant))
     ?.sort();
 
   const handleLeftOverDeletion = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -89,11 +96,12 @@ export default function PredicateNode({
   return (
     <div
       // TODO: not like this
-      className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
+      className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${data.ghost ? "ghost" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
       onDoubleClick={() => createSelfEdge()}
     >
       {!data.error && !data.leftover && (
         <div
+          className="node-predicate-header"
           style={{
             display: "flex",
             position: "absolute",
@@ -110,8 +118,9 @@ export default function PredicateNode({
           {predsToDisplay.map((pred) => (
             <div
               key={pred}
+              className={`${hoveredPred === pred && !selectedPreds.includes(pred) ? "stripy" : ""}`}
               style={{
-                backgroundColor:
+                color:
                   unaryPredsColors[
                     allUnaryPreds.findIndex((p) => p[0] === pred) %
                       unaryPredsColors.length
