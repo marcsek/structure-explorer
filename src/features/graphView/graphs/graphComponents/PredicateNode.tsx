@@ -114,7 +114,7 @@ export default function PredicateNode({
                 backgroundColor:
                   unaryPredsColors[
                     allUnaryPreds.findIndex((p) => p[0] === pred) %
-                      allUnaryPreds.length
+                      unaryPredsColors.length
                   ],
                 width: "100%",
               }}

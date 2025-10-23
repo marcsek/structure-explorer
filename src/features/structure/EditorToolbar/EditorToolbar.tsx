@@ -41,7 +41,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
     >
       {unaryPreds.length > 0 ? (
         <div className="legend-container">
-          <h6>Unary Predicates</h6>
+          <p>Unary Predicates</p>
           <fieldset className="legend-group">
             {unaryPreds.map(([pred], idx) => (
               <label
@@ -111,13 +111,13 @@ export function DomainElementsSelector({
     }
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("pointerdown", handleClickOutside);
     } else {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleClickOutside);
     };
   }, [isOpen]);
 
@@ -143,21 +143,31 @@ export function DomainElementsSelector({
 
       {isOpen && (
         <div className="domain-body">
-          <button className="select-all" onClick={() => toggleItem()}>
-            <FontAwesomeIcon icon={faCheckDouble} />
-            Select All
-          </button>
+          <div className="body-header">
+            <p>Selected Elements</p>
+            <button className="select-all" onClick={() => toggleItem()}>
+              <FontAwesomeIcon icon={faCheckDouble} />
+              Select All
+            </button>
+          </div>
 
-          <ul className="element-list">
-            {domain.map((item) => (
-              <DomainElementItem
-                key={item}
-                element={item}
-                isSelected={selectedNodes.includes(item)}
-                onToggle={() => toggleItem(item)}
-              />
-            ))}
-          </ul>
+          <div className="divider" />
+          <div className="element-list-container">
+            <div className="select-head">
+              <span>Element</span>
+              <span>Unary Predicates</span>
+            </div>
+            <ul className="element-list">
+              {domain.map((item) => (
+                <DomainElementItem
+                  key={item}
+                  element={item}
+                  isSelected={selectedNodes.includes(item)}
+                  onToggle={() => toggleItem(item)}
+                />
+              ))}
+            </ul>
+          </div>
         </div>
       )}
     </div>
@@ -195,7 +205,7 @@ function DomainElementItem({
                 backgroundColor:
                   unaryPredsColors[
                     allUnaryPreds.findIndex((p) => p[0] === pred) %
-                      allUnaryPreds.length
+                      unaryPredsColors.length
                   ],
               }}
               className="relevant-pred"
