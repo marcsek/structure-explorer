@@ -2,9 +2,9 @@ import "./EditorToolbar.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
+  nodeToggled,
   predicateHovered,
   predicateToggled,
-  selectedNodesChanged,
   selectRelevantUnaryPreds,
   selectUnaryPreds,
 } from "../../graphView/graphs/graphSlice";
@@ -128,13 +128,7 @@ export function DomainElementsSelector({
   }, [isOpen]);
 
   const toggleItem = (element: string = "") =>
-    dispatch(
-      selectedNodesChanged({
-        id,
-        type,
-        toggledNode: element,
-      }),
-    );
+    dispatch(nodeToggled({ id, type, node: element }));
 
   return (
     <div

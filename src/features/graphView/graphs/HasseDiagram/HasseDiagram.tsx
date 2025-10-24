@@ -20,14 +20,18 @@ import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
   editorLocked,
+  makeSelectNodes,
   onConnected,
   onEdgesChanged,
   onNodesChanged,
+  selectEdges,
+  selectPosetValidity,
 } from "../graphSlice.ts";
 import { staysValidHasseWithEdge, type BinaryRelation } from "./posetHelpers";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
+import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -62,16 +66,14 @@ export default function HasseDiagram({
   locked: boolean;
 }) {
   const type = "hasse";
+  const nodeSelector = makeSelectNodes<typeof type>();
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.nodes,
-  );
-  const edges = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.edges,
-  );
-  const isPoset = useAppSelector(
-    (state) => state.graphView[id]?.state[type].isPoset,
+  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
+  const edges = useAppSelector((state) => selectEdges(state, id, type, true));
+
+  const isPoset = useAppSelector((state) =>
+    selectPosetValidity(state, id, "hasse", true),
   );
 
   useEffect(() => {
@@ -111,38 +113,38 @@ export default function HasseDiagram({
   );
 
   return (
-    <>
-      <p>{`Is Poset: ${isPoset}`}</p>
-      <div style={{ width: "100%", flexGrow: 1 }}>
-        <ReactFlow
-          id={`hasse-${id}`}
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-          fitViewOptions={fitViewOptions}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          connectionLineComponent={CustomConnectionLine}
-          connectionLineStyle={connectionLineStyle}
-          isValidConnection={isValidConnection}
-          proOptions={{ hideAttribution: true }}
-          nodesFocusable={false}
-          nodesConnectable={!locked}
-          edgesFocusable={!locked}
-          edgesReconnectable={!locked}
-        >
-          <Background id={`bg-hasse-${id}`} />
-          <Controls
-            onInteractiveChange={(ch) => {
-              dispatch(editorLocked({ id, type, locked: locked || !ch }));
-            }}
-          />
-        </ReactFlow>
-      </div>
-    </>
+    <div style={{ width: "100%", flexGrow: 1, position: "relative" }}>
+      <ReactFlow
+        id={`hasse-${id}`}
+        nodes={isPoset ? nodes : []}
+        edges={isPoset ? edges : []}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        fitView
+        fitViewOptions={fitViewOptions}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        defaultEdgeOptions={defaultEdgeOptions}
+        connectionLineComponent={CustomConnectionLine}
+        connectionLineStyle={connectionLineStyle}
+        isValidConnection={isValidConnection}
+        proOptions={{ hideAttribution: true }}
+        nodesFocusable={false}
+        nodesConnectable={!locked}
+        edgesFocusable={false}
+        edgesReconnectable={false}
+        connectOnClick={false}
+        panOnDrag={isPoset}
+      >
+        <Background id={`bg-hasse-${id}`} />
+        <Controls
+          onInteractiveChange={(ch) => {
+            dispatch(editorLocked({ id, type, locked: locked || !ch }));
+          }}
+        />
+      </ReactFlow>
+      {!isPoset && <ErrorDialog />}
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { selectParsedDomain } from "../../../structure/structureSlice";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
-import { selectedNodesChanged } from "../../graphs/graphSlice";
+import { nodeToggled } from "../../graphs/graphSlice";
 import type { GraphType } from "../../graphs/plugins";
 
 export default function NodeSelector({
@@ -39,13 +39,7 @@ export default function NodeSelector({
               checked={selectedNodes.includes(element)}
               style={{ marginRight: "0.5rem" }}
               onChange={() =>
-                dispatch(
-                  selectedNodesChanged({
-                    id,
-                    type,
-                    toggledNode: element,
-                  }),
-                )
+                dispatch(nodeToggled({ id, type, node: element }))
               }
             />
             {element}

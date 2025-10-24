@@ -11,18 +11,17 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   type Connection,
+  type Edge,
   type EdgeChange,
   type NodeChange,
 } from "@xyflow/react";
-import {
-  expandReducedPoset,
-  type BinaryRelation,
-} from "./HasseDiagram/posetHelpers";
+import { isPoset, type BinaryRelation } from "./HasseDiagram/posetHelpers";
 import {
   graphTypes,
   plugins,
   processDeleteLeftover,
   processEdgesToRelation,
+  processFilterEdgesToShow,
   processFilterNodesToShow,
   processSyncNodes,
   processSyncPredIntr,
@@ -114,8 +113,8 @@ export const graphManagerSlice = createSlice({
       else selected.push(predicate);
     },
 
-    nodeToggled(state, action: PayloadAction<WithGraphId<{ node: string }>>) {
-      const { id, type, node: toggledNode } = action.payload;
+    nodeToggled(state, action: PayloadAction<WithGraphId<{ node?: string }>>) {
+      const { id, type, node: toggledNode = "" } = action.payload;
 
       if (!state[id]) return;
 
@@ -284,11 +283,21 @@ export const selectRelevantDomainElements = createSelector(
     (state: RootState) => state,
     (_: RootState, id: string) => id,
     (_: RootState, __: string, type: GraphType) => type,
+    (
+      _: RootState,
+      __: string,
+      ___: GraphType,
+      includeHovered: boolean = false,
+    ) => includeHovered,
   ],
-  (struct, state, id, type) => {
-    const selectedPreds =
-      (state.graphView[id]?.state[type] as GraphState[typeof type])
-        ?.selectedPreds ?? [];
+  (struct, state, id, type, includeHovered) => {
+    const selectedPreds = [
+      ...((state.graphView[id]?.state[type] as GraphState[typeof type])
+        ?.selectedPreds ?? []),
+    ];
+
+    if (includeHovered && state.graphView[id].hoveredPredicate !== "")
+      selectedPreds.push(state.graphView[id].hoveredPredicate);
 
     if (selectedPreds.length === 0) return undefined;
 
@@ -310,6 +319,34 @@ export const selectHoveredPredicateIntr = createSelector(
     if (!hoveredPredicate) return undefined;
 
     return [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat();
+  },
+);
+
+export const selectPosetValidity = createSelector(
+  [
+    selectRelevantDomainElements,
+    (state: RootState) => state,
+    (_: RootState, id: string) => id,
+  ],
+  (relevantDomain, state, id) => {
+    const graphState = state.graphView[id]?.state.hasse;
+
+    const vissibleNodes = graphState.nodes
+      .filter(
+        (node) =>
+          graphState.selectedNodes.includes(node.id) &&
+          (relevantDomain?.includes(node.id) ?? true),
+      )
+      .map((node) => node.id);
+
+    const vissibleRelation = edgesToRelation(
+      graphState.edges.filter(
+        ({ source, target }) =>
+          vissibleNodes.includes(source) && vissibleNodes.includes(target),
+      ),
+    );
+
+    return isPoset(vissibleRelation);
   },
 );
 
@@ -335,17 +372,32 @@ export function makeSelectNodes<T extends GraphType>() {
 
       if (!graphState) return [] as GraphState[T]["nodes"];
 
-      const d = processFilterNodesToShow(
+      return processFilterNodesToShow(
         plugin,
         graphState,
         relevantDomain,
         hoveredPredicateIntr,
       ) as GraphState[T]["nodes"];
-
-      return d;
     },
   );
 }
+
+export const selectEdges = createSelector(
+  [
+    (state: RootState) => state,
+    (_: RootState, id: string) => id,
+    (_: RootState, __: string, type: GraphType) => type,
+    selectRelevantDomainElements,
+  ],
+  (state, id, type, relevantDomain) => {
+    const plugin = plugins[type];
+    const graphState = state.graphView[id]?.state[type];
+
+    if (!graphState) return [] as GraphState[typeof type]["edges"];
+
+    return processFilterEdgesToShow(plugin, graphState, relevantDomain);
+  },
+);
 
 export const onEdgesChanged = ({
   id,
@@ -359,16 +411,27 @@ export const onEdgesChanged = ({
   return (dispatch, getState) => {
     const managerState = getState().graphView;
     const tupleType = managerState[id].tupleType;
+    const selectedEdges = selectEdges(getState(), id, type);
 
     const newEdges = applyEdgeChanges(
       changes,
       managerState[id].state[type].edges,
     );
 
-    const relation = processEdgesToRelation(plugins[type], {
-      ...managerState[id].state[type],
-      edges: newEdges,
-    });
+    const relevantEdges = edgesToRelation(selectedEdges);
+
+    const relation = processEdgesToRelation(
+      plugins[type],
+      {
+        ...managerState[id].state[type],
+        edges: newEdges,
+      },
+      relevantEdges,
+    );
+
+    const relationSyncedEdges = newEdges.filter(({ source, target }) =>
+      relation.some(([from, to]) => source === from && target === to),
+    );
 
     console.log("Edges Changed");
 
@@ -377,7 +440,7 @@ export const onEdgesChanged = ({
         ? updateInterpretationPredicates
         : updateFunctionSymbols;
 
-    dispatch(setEdges({ id, type, edges: newEdges }));
+    dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
     dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
   };
 };
@@ -403,10 +466,19 @@ export const onConnected = ({
 
     newEdges = addEdge(connection, newEdges);
 
-    const relation = processEdgesToRelation(plugins[type], {
-      ...managerState[id].state[type],
-      edges: newEdges,
-    });
+    const relevantEdges = [
+      ...edgesToRelation(selectEdges(getState(), id, type)),
+      [connection.source, connection.target],
+    ] as [string, string][];
+
+    const relation = processEdgesToRelation(
+      plugins[type],
+      {
+        ...managerState[id].state[type],
+        edges: newEdges,
+      },
+      relevantEdges,
+    );
 
     console.log("On Connected");
 
@@ -416,49 +488,6 @@ export const onConnected = ({
         : updateFunctionSymbols;
 
     dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
-  };
-};
-
-export const selectedNodesChanged = ({
-  id,
-  type,
-  toggledNode = "",
-}: {
-  id: string;
-  type: GraphType;
-  toggledNode?: string;
-}): AppThunk => {
-  return (dispatch, getState) => {
-    dispatch(nodeToggled({ id, type, node: toggledNode }));
-
-    if (type === "hasse" && getState().graphView[id].state[type].isPoset) {
-      const graphState = getState().graphView[id].state[type];
-      const vissibleNodes = graphState.nodes
-        .filter((node) => !node.hidden)
-        .map((node) => node.id);
-
-      const vissibleEdges = graphState.edges
-        .filter(
-          ({ source, target }) =>
-            vissibleNodes.includes(source) && vissibleNodes.includes(target),
-        )
-        .map(({ source, target }) => [
-          source,
-          target,
-        ]) as BinaryRelation<string>;
-
-      const relation = expandReducedPoset(
-        vissibleEdges,
-        new Set(vissibleNodes),
-      );
-
-      dispatch(
-        updateInterpretationPredicates({
-          key: id,
-          value: binaryRelationToString(relation),
-        }),
-      );
-    }
   };
 };
 
@@ -496,29 +525,13 @@ export const leftoverDeleted = ({
   };
 };
 
-//const initGraphManagerFromStruct = (struct: Structure, lang: Language) => {
-//  const managerState: GraphManagerState = {};
-//
-//  const binaryPreds = Object.keys(lang.predicates).filter(
-//    (pred) => lang.predicates[pred].arity === 2,
-//  );
-//
-//  binaryPreds.forEach((binaryPred) => {
-//    managerState[binaryPred] = {
-//      oriented: plugins.oriented.init(struct, binaryPred),
-//      hasse: plugins.hasse.init(struct, binaryPred),
-//      bipartite: plugins.bipartite.init(struct, binaryPred),
-//    };
-//  });
-//
-//  return managerState;
-//};
-
-const binaryRelationToString = (relation: BinaryRelation<string>) =>
+export const binaryRelationToString = (relation: BinaryRelation<string>) =>
   relation.map((pair) => `(${pair.join(",")})`).join(", ");
 
+export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
+  edges.map(({ source, target }) => [source, target]);
+
 export const {
-  //setStructure,
   setNodes,
   setEdges,
   edgeAdded,

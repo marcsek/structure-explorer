@@ -1,0 +1,63 @@
+.error-dialog-container {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  max-height: 160px;
+  transform: translateX(0%) translateY(-50%);
+  background-color: transparent;
+  padding-inline: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-dialog {
+  background-color: red;
+  max-width: 480px;
+  background-color: white;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+
+  padding: 1rem;
+
+  display: flex;
+  gap: 1rem;
+
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.error-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.error-dialog-title {
+  margin: 0;
+  line-height: 1;
+}
+
+.error-dialog-description {
+  margin: 0;
+  color: var(--bs-secondary-text-emphasis);
+  font-size: 14px;
+}
+
+.error-dialog-icon {
+  display: flex;
+  height: fit-content;
+  padding: 0.5rem;
+  border: var(--bs-border-width) solid var(--bs-danger-border-subtle);
+  color: var(--bs-danger);
+  background-color: var(--bs-danger-bg-subtle);
+  border-radius: var(--bs-border-radius);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, currentColor 20%, transparent),
+    color-mix(in srgb, currentColor 20%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 10px
+  );
+}

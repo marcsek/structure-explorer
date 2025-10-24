@@ -43,6 +43,10 @@ export interface Plugin<K extends GraphType> {
     relevantNodes?: string[],
     hoveredPredicateIntr?: string[],
   ): GraphState[K]["nodes"];
+  filterEdgesToShow(
+    state: GraphState[K],
+    relevantNodes?: string[],
+  ): GraphState[K]["edges"];
   toggleNodes(state: GraphState[K], node: string): GraphState[K];
   syncPredIntr(
     prev: GraphState[K],
@@ -53,7 +57,10 @@ export interface Plugin<K extends GraphType> {
     state: GraphState[K],
     deleted: string,
   ): Pick<GraphState[K], "nodes" | "edges">;
-  edgesToRelation(state: GraphState[K]): BinaryRelation<string>;
+  edgesToRelation(
+    state: GraphState[K],
+    relevantEdges?: [string, string][],
+  ): BinaryRelation<string>;
 }
 
 export const plugins = {
@@ -99,6 +106,14 @@ export function processFilterNodesToShow<K extends GraphType>(
   return plugin.filterNodesToShow(state, relevantNodes, hoveredPredicateIntr);
 }
 
+export function processFilterEdgesToShow<K extends GraphType>(
+  plugin: Plugin<K>,
+  state: GraphState[K],
+  relevantNodes?: string[],
+): GraphState[K]["edges"] {
+  return plugin.filterEdgesToShow(state, relevantNodes);
+}
+
 export function processSyncPredIntr<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
@@ -119,6 +134,7 @@ export function processDeleteLeftover<K extends GraphType>(
 export function processEdgesToRelation<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
+  relevantEdges?: [string, string][],
 ): BinaryRelation<string> {
-  return plugin.edgesToRelation(state);
+  return plugin.edgesToRelation(state, relevantEdges);
 }

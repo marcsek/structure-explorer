@@ -1,13 +1,12 @@
 export type BinaryRelation<T> = [T, T][];
 
 export function isPoset<T>(relation: BinaryRelation<T>) {
-  const elements = new Set<T>(relation.flat());
   const succMap = buildSuccessorMap(relation);
 
   // Ref.
-  for (const x of elements) {
-    if (!succMap.get(x)?.has(x)) return false;
-  }
+  //for (const x of elements) {
+  //  if (!succMap.get(x)?.has(x)) return false;
+  //}
 
   // Antisym.
   for (const [a, b] of relation) {
@@ -30,7 +29,10 @@ export function reducePosetRelations<T>(relation: BinaryRelation<T>) {
 
   const edges: BinaryRelation<T> = [];
   for (const [a, b] of relation) {
-    if (a === b) continue;
+    if (a === b) {
+      edges.push([a, b]);
+      continue;
+    }
 
     succMap.get(a)?.delete(b);
 
@@ -53,7 +55,7 @@ export function expandReducedPoset<T>(
     const visited = new Set<T>();
     const stack: T[] = [from];
 
-    expanded.push([from, from]);
+    //expanded.push([from, from]);
 
     while (stack.length > 0) {
       const element = stack.pop()!;
@@ -91,6 +93,9 @@ export function staysValidHasseWithEdge<T>(
     succMap.get(from)!.add(to);
 
     for (const [a, b] of relation) {
+      // Ignoring self edges
+      if (a === b) continue;
+
       succMap.get(a)?.delete(b);
 
       if (isReachable(a, b, succMap)) return false;

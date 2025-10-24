@@ -99,6 +99,7 @@ export default function OrientedGraph({
       ),
     [edges],
   );
+  console.log(nodes);
 
   return (
     <>
