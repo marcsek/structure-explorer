@@ -73,7 +73,7 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
   );
 }
 
-function GenerateMarker({ type }: { type: string }) {
+export function GenerateMarker({ type }: { type: string }) {
   return (
     <svg style={{ position: "absolute", top: 0, left: 0 }}>
       <defs>
