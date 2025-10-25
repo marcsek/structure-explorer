@@ -11,6 +11,7 @@ import {
   type EdgeTypes,
   type NodeTypes,
   type FitViewOptions,
+  useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect } from "react";
 import PredicateNodeComponent, {
@@ -32,6 +33,7 @@ import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
+import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -72,9 +74,15 @@ export default function HasseDiagram({
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector((state) => selectEdges(state, id, type, true));
 
+  const { fitView } = useReactFlow();
+
   const isPoset = useAppSelector((state) =>
     selectPosetValidity(state, id, "hasse", true),
   );
+
+  useComparatorEffect(() => {
+    fitView({ ...fitViewOptions, duration: 300 });
+  }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));

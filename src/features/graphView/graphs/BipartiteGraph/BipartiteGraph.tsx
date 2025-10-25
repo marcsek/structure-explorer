@@ -32,6 +32,7 @@ import {
 import { generateLayoutNodesChanges } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
+import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: "domain" | "range";
@@ -97,7 +98,11 @@ export default function BipartiteGraph({
     (state) => state.graphView[id].tupleType === "function",
   );
 
-  const { getNode } = useReactFlow();
+  const { getNode, fitView } = useReactFlow();
+
+  useComparatorEffect(() => {
+    fitView({ ...fitViewOptions, duration: 300 });
+  }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));

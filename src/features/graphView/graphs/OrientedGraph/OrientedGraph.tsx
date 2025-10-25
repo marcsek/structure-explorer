@@ -11,6 +11,7 @@ import {
   type EdgeTypes,
   type NodeTypes,
   type FitViewOptions,
+  useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect } from "react";
 import PredicateNodeComponent, {
@@ -28,6 +29,7 @@ import {
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
+import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -69,9 +71,15 @@ export default function OrientedGraph({
     (state) => state.graphView[id]?.state[type]?.edges,
   );
 
+  const { fitView } = useReactFlow();
+
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
+
+  useComparatorEffect(() => {
+    fitView({ ...fitViewOptions, duration: 200 });
+  }, [[nodes, (a, b) => a.id === b.id]]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>
@@ -99,7 +107,6 @@ export default function OrientedGraph({
       ),
     [edges],
   );
-  console.log(nodes);
 
   return (
     <>
