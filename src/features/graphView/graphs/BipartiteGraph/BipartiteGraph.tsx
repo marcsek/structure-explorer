@@ -101,7 +101,7 @@ export default function BipartiteGraph({
   const { getNode, fitView } = useReactFlow();
 
   useComparatorEffect(() => {
-    fitView({ ...fitViewOptions, duration: 300 });
+    fitView({ ...fitViewOptions, duration: 450 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {

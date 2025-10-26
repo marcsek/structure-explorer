@@ -41,11 +41,6 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
 
   return (
     <>
-      <GenerateMarker type="error" />
-      <GenerateMarker type="selected" />
-      <GenerateMarker type="hover" />
-      <GenerateMarker type="connection" />
-
       <BaseEdge
         id={id}
         className={`react-flow__edge-path ${shouldError ? "error" : ""}`}

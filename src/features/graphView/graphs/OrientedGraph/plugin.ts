@@ -1,5 +1,6 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
+import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Plugin } from "../plugins";
 
 export type OrientedGraphState = {
@@ -210,7 +211,12 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
   },
 
   edgesToRelation(state) {
-    return state.edges.map(({ source, target }) => [source, target]);
+    const relation = state.edges.map(({ source, target }) => [
+      source,
+      target,
+    ]) as BinaryRelation<string>;
+
+    return [relation, state.edges];
   },
 
   deleteLeftover(state, deleted) {

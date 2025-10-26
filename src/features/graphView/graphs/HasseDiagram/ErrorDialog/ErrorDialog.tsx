@@ -14,7 +14,7 @@ export default function ErrorDialog() {
           <h6 className="error-dialog-title">Not a valid poset</h6>
           <span className="error-dialog-description">
             Current filters make this predicate's interpretation not form a
-            valid poset. Adjust filters or reset the interpretation to fix it.
+            valid poset. Adjust filters or interpretation to use this editor.
           </span>
         </div>
       </div>

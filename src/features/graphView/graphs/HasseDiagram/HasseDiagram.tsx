@@ -34,6 +34,7 @@ import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
+import { computeLayout } from "./layout.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -84,9 +85,15 @@ export default function HasseDiagram({
     fitView({ ...fitViewOptions, duration: 300 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
+  // TODO: Can't GraphView manage this?
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
+
+  useEffect(() => {
+    onLayout(true, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>
@@ -103,6 +110,20 @@ export default function HasseDiagram({
   const onConnect: OnConnect = useCallback(
     (connection) => dispatch(onConnected({ id, type, connection })),
     [id, dispatch],
+  );
+
+  const onLayout = useCallback(
+    (fitAfter: boolean = true, instant: boolean = false) => {
+      const { nodeChanges } = computeLayout(nodes, edges);
+      dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+
+      if (fitAfter)
+        //TODO: Is requestAnimationFrame really necessary?
+        requestAnimationFrame(() =>
+          fitView({ ...fitViewOptions, duration: instant ? 0 : 300 }),
+        );
+    },
+    [nodes, edges, dispatch, id, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -129,7 +150,6 @@ export default function HasseDiagram({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        fitView
         fitViewOptions={fitViewOptions}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -144,12 +164,14 @@ export default function HasseDiagram({
         edgesReconnectable={false}
         connectOnClick={false}
         panOnDrag={isPoset}
+        zoomOnScroll={isPoset}
       >
         <Background id={`bg-hasse-${id}`} />
         <Controls
           onInteractiveChange={(ch) => {
             dispatch(editorLocked({ id, type, locked: locked || !ch }));
           }}
+          onLayout={onLayout}
         />
       </ReactFlow>
       {!isPoset && <ErrorDialog />}

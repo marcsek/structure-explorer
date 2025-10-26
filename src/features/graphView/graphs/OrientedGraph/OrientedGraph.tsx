@@ -30,6 +30,7 @@ import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
+import { computeLayout } from "../HasseDiagram/layout.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -78,7 +79,7 @@ export default function OrientedGraph({
   }, [id, dispatch, locked]);
 
   useComparatorEffect(() => {
-    fitView({ ...fitViewOptions, duration: 200 });
+    fitView({ ...fitViewOptions, duration: 300 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   const onNodesChange = useCallback(
@@ -96,6 +97,20 @@ export default function OrientedGraph({
   const onConnect: OnConnect = useCallback(
     (connection) => dispatch(onConnected({ id, type, connection })),
     [id, dispatch],
+  );
+
+  const onLayout = useCallback(
+    (fitAfter: boolean = true) => {
+      const { nodeChanges } = computeLayout(nodes, edges);
+      dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+
+      if (fitAfter)
+        //TODO: Is requestAnimationFrame really necessary?
+        requestAnimationFrame(() =>
+          fitView({ ...fitViewOptions, duration: 300 }),
+        );
+    },
+    [nodes, edges, dispatch, id, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -138,6 +153,7 @@ export default function OrientedGraph({
             onInteractiveChange={(ch) => {
               dispatch(editorLocked({ id, type, locked: locked || !ch }));
             }}
+            onLayout={onLayout}
           />
         </ReactFlow>
       </div>

@@ -60,7 +60,7 @@ export interface Plugin<K extends GraphType> {
   edgesToRelation(
     state: GraphState[K],
     relevantEdges?: [string, string][],
-  ): BinaryRelation<string>;
+  ): [BinaryRelation<string>, GraphState[K]["edges"]];
 }
 
 export const plugins = {
@@ -135,6 +135,6 @@ export function processEdgesToRelation<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
   relevantEdges?: [string, string][],
-): BinaryRelation<string> {
+): [BinaryRelation<string>, GraphState[K]["edges"]] {
   return plugin.edgesToRelation(state, relevantEdges);
 }

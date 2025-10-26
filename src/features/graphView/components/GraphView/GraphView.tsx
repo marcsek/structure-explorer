@@ -36,7 +36,7 @@ export default function GraphView({
   const GraphComponent = graphComponents[graphType];
 
   return (
-    <>
+    <div className="react-flow">
       {/* Edge markers need to be present in DOM before referencing them. */}
       <GenerateMarker type="error" />
       <GenerateMarker type="selected" />
@@ -54,6 +54,6 @@ export default function GraphView({
           </GraphInfoContext.Provider>
         </div>
       </div>
-    </>
+    </div>
   );
 }

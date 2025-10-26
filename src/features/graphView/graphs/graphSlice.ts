@@ -420,17 +420,14 @@ export const onEdgesChanged = ({
 
     const relevantEdges = edgesToRelation(selectedEdges);
 
-    const relation = processEdgesToRelation(
+    //TODO: Questionable use-case for this function
+    const [relation, relationSyncedEdges] = processEdgesToRelation(
       plugins[type],
       {
         ...managerState[id].state[type],
         edges: newEdges,
       },
       relevantEdges,
-    );
-
-    const relationSyncedEdges = newEdges.filter(({ source, target }) =>
-      relation.some(([from, to]) => source === from && target === to),
     );
 
     console.log("Edges Changed");
@@ -471,7 +468,7 @@ export const onConnected = ({
       [connection.source, connection.target],
     ] as [string, string][];
 
-    const relation = processEdgesToRelation(
+    const [relation] = processEdgesToRelation(
       plugins[type],
       {
         ...managerState[id].state[type],
@@ -510,7 +507,7 @@ export const leftoverDeleted = ({
       deletedNode,
     );
 
-    const relation = processEdgesToRelation(plugins[type], {
+    const [relation] = processEdgesToRelation(plugins[type], {
       ...managerState[id].state[type],
       edges: newEdges,
     });

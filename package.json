@@ -24,6 +24,7 @@
     "react-dom": "^17.0.2"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.5",
     "@fmfi-uk-1-ain-412/js-fol-parser": "^0.7.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",

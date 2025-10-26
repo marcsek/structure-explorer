@@ -254,7 +254,13 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       ),
     );
 
-    return [...expanded, ...notInExpanded];
+    const relation = [...expanded, ...notInExpanded];
+
+    const relationSyncedEdges = state.edges.filter(({ source, target }) =>
+      relation.some(([from, to]) => source === from && target === to),
+    );
+
+    return [relation, relationSyncedEdges];
   },
 
   deleteLeftover(state, deleted) {

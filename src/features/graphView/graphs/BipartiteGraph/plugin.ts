@@ -1,4 +1,5 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
+import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Plugin } from "../plugins";
 import type { BipartiteNodeType } from "./BipartiteGraph";
 import { layoutNodes } from "./layout";
@@ -203,7 +204,9 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const allNodes = state.nodes;
 
     if (node === "")
-      newSelected = allNodes.map((node) => node.id.slice("d-".length));
+      newSelected = [
+        ...new Set(allNodes.map((node) => node.id.slice("d-".length))),
+      ];
     else if (newSelected.includes(node))
       newSelected = newSelected.filter((selectedNode) => selectedNode != node);
     else newSelected.push(node);
@@ -292,10 +295,12 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   },
 
   edgesToRelation(state) {
-    return state.edges.map(({ source, target }) => [
+    const relation = state.edges.map(({ source, target }) => [
       source.slice("d-".length),
       target.slice("r-".length),
-    ]);
+    ]) as BinaryRelation<string>;
+
+    return [relation, state.edges];
   },
 
   deleteLeftover(state, deleted) {
