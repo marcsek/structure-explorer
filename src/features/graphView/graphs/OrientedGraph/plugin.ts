@@ -12,13 +12,16 @@ export type OrientedGraphState = {
 
 const createNode = (
   id: string,
-  { leftover = false }: { leftover?: boolean } = {},
+  {
+    leftover = false,
+    error = false,
+  }: { leftover?: boolean; error?: boolean } = {},
 ): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
     position: { x: 0, y: 0 },
-    data: { label: id, leftover },
+    data: { label: id, leftover, error },
   };
 };
 
@@ -26,12 +29,13 @@ const createEdge = (
   source: string,
   target: string,
   duplicate: boolean = false,
+  error: boolean = false,
 ): DirectEdgeType => {
   return {
     id: `eg-${source}->${target}${duplicate ? "-duplicate" : ""}`,
     source,
     target,
-    data: { duplicate },
+    data: { duplicate, error },
   };
 };
 
@@ -46,17 +50,24 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       selectedNodes: [...new Set(domain.flat())],
     };
 
-    if (type === "function") return graph;
+    domain.forEach((domElement) => {
+      const error =
+        type === "function" &&
+        iP.filter(([d]) => d === domElement).length !== 1;
 
-    domain.forEach((domElement) => graph.nodes.push(createNode(domElement)));
+      graph.nodes.push(createNode(domElement, { error }));
+    });
 
     const presentIds = new Set();
     iP.forEach(([from, to]) => {
       let edgeId = `eg-${from}->${to}`;
 
       if (!presentIds.has(edgeId)) {
+        const shouldError =
+          type === "function" && iP.filter(([f]) => f === from).length > 1;
+
         presentIds.add(edgeId);
-        graph.edges.push(createEdge(from, to));
+        graph.edges.push(createEdge(from, to, false, shouldError));
         return;
       }
 
@@ -72,13 +83,13 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       .filter((element) => !domain.includes(element));
 
     extraElements.forEach((element) =>
-      graph.nodes.push(createNode(element, { leftover: true })),
+      graph.nodes.push(createNode(element, { leftover: true, error: false })),
     );
 
     return graph;
   },
 
-  syncNodes(prev, domain) {
+  syncNodes(prev, domain, tupleType) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
@@ -92,8 +103,14 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       (element) => !prevDomain.includes(element),
     );
 
+    const shouldError = (id: string) =>
+      tupleType === "function" &&
+      prev.edges.filter((e) => e.source === id).length !== 1;
+
     const newNodes = domain.map(
-      (element) => nodeById.get(element) ?? createNode(element),
+      (element) =>
+        nodeById.get(element) ??
+        createNode(element, { error: shouldError(element) }),
     );
 
     const connectingEdges = (nodeId: string) =>
@@ -166,7 +183,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return { ...state, selectedNodes: newSelected };
   },
 
-  syncPredIntr(prev, intr) {
+  syncPredIntr(prev, intr, tupleType) {
     const edgeById = new Map(prev.edges.map((e) => [e.id, e]));
     const presentIds = new Set();
 
@@ -175,8 +192,16 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       let edgeId = `eg-${from}->${to}`;
 
       if (!presentIds.has(edgeId)) {
+        const shouldError =
+          tupleType === "function" &&
+          intr.filter(([f]) => f === from).length > 1;
+
         presentIds.add(edgeId);
         const edge = edgeById.get(edgeId) ?? createEdge(from, to);
+
+        edge.data ??= {};
+        edge.data.error = shouldError;
+
         newEdges.push(edge);
         return;
       }
@@ -206,6 +231,19 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
           ({ source, target }) => source === node.id || target === node.id,
         ),
     );
+
+    if (tupleType === "function") {
+      const shouldError = (id: string) =>
+        intr.filter(([from]) => from === id).length !== 1;
+
+      newNodes = newNodes.map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          error: shouldError(node.id),
+        },
+      }));
+    }
 
     return { ...prev, edges: newEdges, nodes: newNodes };
   },

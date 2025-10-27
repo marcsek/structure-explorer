@@ -71,6 +71,9 @@ export default function OrientedGraph({
   const edges = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.edges,
   );
+  const representsFunction = useAppSelector(
+    (state) => state.graphView[id].tupleType === "function",
+  );
 
   const { fitView } = useReactFlow();
 
@@ -95,8 +98,16 @@ export default function OrientedGraph({
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) => dispatch(onConnected({ id, type, connection })),
-    [id, dispatch],
+    (connection) =>
+      dispatch(
+        onConnected({
+          id,
+          type,
+          connection,
+          breakPrevious: representsFunction,
+        }),
+      ),
+    [id, dispatch, representsFunction],
   );
 
   const onLayout = useCallback(

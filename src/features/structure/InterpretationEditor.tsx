@@ -74,7 +74,16 @@ export default function InterpretationEditorProps({
   if (isFunction) {
     controlButtons.push({
       text: <FontAwesomeIcon icon={faDiagramProject} />,
-      value: "bipartite",
+      dropDown: [
+        {
+          text: "Oriented",
+          value: "oriented",
+        },
+        {
+          text: "Bipartite",
+          value: "bipartite",
+        },
+      ],
     });
   } else {
     controlButtons.push({

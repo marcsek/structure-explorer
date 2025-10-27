@@ -110,7 +110,7 @@ export default function BipartiteGraph({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) => {
-      // TODO: Why is this necessary?
+      // TODO: Why is layouting here necessary?
       const allChanges = [
         ...changes,
         ...generateNodeChangesWithLayout(changes, nodes),
