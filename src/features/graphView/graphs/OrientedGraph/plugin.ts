@@ -36,6 +36,8 @@ const createEdge = (
     source,
     target,
     data: { duplicate, error },
+    selectable: !duplicate && !error,
+    focusable: !duplicate && !error,
   };
 };
 
@@ -75,6 +77,12 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       if (!presentIds.has(edgeId)) {
         presentIds.add(edgeId);
         graph.edges.push(createEdge(from, to, true));
+
+        const validDuplicate = graph.edges.find(
+          (e) => e.id === edgeId.slice(0, -"-duplicate".length),
+        )!;
+        validDuplicate.focusable = false;
+        validDuplicate.selectable = false;
       }
     });
 
@@ -211,6 +219,12 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
         presentIds.add(edgeId);
         const edge = edgeById.get(edgeId) ?? createEdge(from, to, true);
         newEdges.push(edge);
+
+        const validDuplicate = newEdges.find(
+          (e) => e.id === edgeId.slice(0, -"-duplicate".length),
+        )!;
+        validDuplicate.focusable = false;
+        validDuplicate.selectable = false;
       }
     });
 

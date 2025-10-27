@@ -115,6 +115,12 @@
   fill: var(--bs-danger);
 }
 
+.react-flow__arrowhead.focusError polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+  stroke-width: 6px !important;
+}
+
 .react-flow__arrowhead.hover polyline.arrowclosed {
   stroke: var(--xy-theme-edge-hover);
   fill: var(--xy-theme-edge-hover);
@@ -128,6 +134,14 @@
 .react-flow__edge-path.error {
   stroke: var(--bs-danger);
   stroke-dasharray: 5, 3;
+
+  marker-end: url(#error-marker);
+}
+
+.react-flow__edge-path-focus {
+  opacity: 0;
+  stroke-width: 6px;
+  stroke: var(--bs-danger);
 }
 
 .react-flow__edge.selectable:hover .react-flow__edge-path {
@@ -140,12 +154,23 @@
   marker-end: url(#selected-marker);
 }
 
-.react-flow__edge.selectable:hover .react-flow__edge-path.error,
+.react-flow__edge.selectable:hover .react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  marker-end: url(#error-marker);
+}
+
 .react-flow__edge.selectable.selected .react-flow__edge-path.error {
   stroke: var(--bs-danger);
   stroke-dasharray: 5, 1;
 
   marker-end: url(#error-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path-focus.error,
+.react-flow__edge.selectable.selected .react-flow__edge-path-focus.error {
+  opacity: 0.2;
+  stroke-dasharray: none;
+  marker-end: url(#focusError-marker);
 }
 
 .react-flow__handle {

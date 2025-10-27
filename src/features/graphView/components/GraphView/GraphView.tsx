@@ -39,6 +39,7 @@ export default function GraphView({
     <div className="react-flow">
       {/* Edge markers need to be present in DOM before referencing them. */}
       <GenerateMarker type="error" />
+      <GenerateMarker type="focusError" />
       <GenerateMarker type="selected" />
       <GenerateMarker type="hover" />
       <GenerateMarker type="connection" />

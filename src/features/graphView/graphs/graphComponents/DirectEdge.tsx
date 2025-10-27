@@ -48,6 +48,13 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
         markerEnd={props.markerEnd}
         style={style}
       />
+      <BaseEdge
+        id={`${id}-error-focus`}
+        className={`react-flow__edge-path-focus ${shouldError ? "error" : ""}`}
+        path={path}
+        markerEnd={props.markerEnd}
+        style={style}
+      />
       <EdgeLabelRenderer>
         {shouldError && (
           <DeleteElementButton

@@ -38,6 +38,8 @@ const createEdge = (
     source,
     target,
     data: { duplicate },
+    selectable: !duplicate,
+    focusable: !duplicate,
   };
 };
 
@@ -61,6 +63,29 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     iP.forEach(([source, target]) =>
       graph.edges.push(createEdge(source, target)),
     );
+
+    const presentIds = new Set();
+    iP.forEach(([from, to]) => {
+      let edgeId = `eg-${from}->${to}`;
+
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to, false));
+        return;
+      }
+
+      edgeId += "-duplicate";
+      if (!presentIds.has(edgeId)) {
+        presentIds.add(edgeId);
+        graph.edges.push(createEdge(from, to, true));
+
+        const validDuplicate = graph.edges.find(
+          (e) => e.id === edgeId.slice(0, -"-duplicate".length),
+        )!;
+        validDuplicate.focusable = false;
+        validDuplicate.selectable = false;
+      }
+    });
 
     const extraElements = iP
       .flat()
@@ -205,6 +230,12 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
         presentIds.add(edgeId);
         const edge = edgeById.get(edgeId) ?? createEdge(from, to, true);
         newEdges.push(edge);
+
+        const validDuplicate = newEdges.find(
+          (e) => e.id === edgeId.slice(0, -"-duplicate".length),
+        )!;
+        validDuplicate.focusable = false;
+        validDuplicate.selectable = false;
       }
     });
 
