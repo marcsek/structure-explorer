@@ -138,6 +138,10 @@
   marker-end: url(#error-marker);
 }
 
+.react-flow__edge-path.helper {
+  stroke-dasharray: 5, 3;
+}
+
 .react-flow__edge-path-focus {
   opacity: 0;
   stroke-width: 6px;

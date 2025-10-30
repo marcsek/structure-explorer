@@ -6,7 +6,6 @@ import {
   expandReducedPoset,
   isPoset,
   reducePosetRelations,
-  type BinaryRelation,
 } from "./posetHelpers";
 
 export type HasseDiagramState = {
@@ -32,14 +31,15 @@ const createEdge = (
   source: string,
   target: string,
   duplicate: boolean = false,
+  helper: boolean = false,
 ): DirectEdgeType => {
   return {
     id: `eg-${source}->${target}${duplicate ? "-duplicate" : ""}`,
     source,
     target,
-    data: { duplicate },
-    selectable: !duplicate,
-    focusable: !duplicate,
+    data: { duplicate, helper },
+    selectable: !duplicate && !helper,
+    focusable: !duplicate && !helper,
   };
 };
 
@@ -189,13 +189,35 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       ),
     );
 
-    const reducedRelation = reducePosetRelations(filteredRelation);
+    const unfilteredRelation = convertEdgesToRelation(state.edges);
 
-    return state.edges.filter(
+    const reducedRelation = reducePosetRelations(filteredRelation);
+    const unfilteredReducedRelation = reducePosetRelations(unfilteredRelation);
+
+    const unfilteredEdges = state.edges.filter(
       ({ source, target, data }) =>
         data?.duplicate ||
-        reducedRelation.some(([from, to]) => source === from && target === to),
+        unfilteredReducedRelation.some(
+          ([from, to]) => source === from && target === to,
+        ),
     );
+
+    const edgeNotPresentInUnfiltered = ({ source, target }: DirectEdgeType) =>
+      reducedRelation.some(([from, to]) => source === from && target === to) &&
+      !unfilteredReducedRelation.some(
+        ([from, to]) => source === from && target === to,
+      );
+
+    const filteredEdges = state.edges
+      .filter((edge) => edgeNotPresentInUnfiltered(edge))
+      .map((e) => ({
+        ...e,
+        data: { ...e.data, helper: true },
+        selectable: false,
+        focusable: false,
+      }));
+
+    return [...unfilteredEdges, ...filteredEdges];
   },
 
   toggleNodes(state, node) {
@@ -221,7 +243,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       if (!presentIds.has(edgeId)) {
         presentIds.add(edgeId);
         const edge = edgeById.get(edgeId) ?? createEdge(from, to);
-        newEdges.push(edge);
+        newEdges.push({ ...edge, selectable: true, focusable: true });
         return;
       }
 
@@ -262,36 +284,21 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
 
   edgesToRelation(state, relevantEdges) {
     const relevantRelation = convertEdgesToRelation(
-      state.edges.filter(({ source, target }) =>
-        relevantEdges?.some(([from, to]) => source === from && target === to),
-      ),
-    );
-
-    const domain = new Set(state.nodes.map((node) => node.id));
-    const expanded = expandReducedPoset(relevantRelation, domain);
-    const relevantExpanded = expandReducedPoset(
-      relevantEdges ?? ([] as BinaryRelation<string>),
-      domain,
-    );
-
-    const notInExpanded = convertEdgesToRelation(
       state.edges.filter(
         ({ source, target, data }) =>
-          (!expanded.some(([from, to]) => source === from && target === to) &&
-            !relevantExpanded?.some(
-              ([from, to]) => source === from && target === to,
-            )) ||
-          data?.duplicate,
+          relevantEdges?.some(
+            ([from, to]) => source === from && target === to,
+          ) && !data?.helper,
       ),
     );
-
-    const relation = [...expanded, ...notInExpanded];
+    const domain = new Set(state.nodes.map((node) => node.id));
+    const expanded = expandReducedPoset(relevantRelation, domain);
 
     const relationSyncedEdges = state.edges.filter(({ source, target }) =>
-      relation.some(([from, to]) => source === from && target === to),
+      expanded.some(([from, to]) => source === from && target === to),
     );
 
-    return [relation, relationSyncedEdges];
+    return [expanded, relationSyncedEdges];
   },
 
   deleteLeftover(state, deleted) {

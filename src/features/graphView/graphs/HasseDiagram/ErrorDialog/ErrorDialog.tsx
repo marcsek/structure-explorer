@@ -11,7 +11,7 @@ export default function ErrorDialog() {
           <FontAwesomeIcon icon={faWarning} />
         </span>
         <div className="error-dialog-body">
-          <h6 className="error-dialog-title">Not a valid poset</h6>
+          <h6 className="error-dialog-title">Invalid poset</h6>
           <span className="error-dialog-description">
             Current filters make this predicate's interpretation not form a
             valid poset. Adjust filters or interpretation to use this editor.

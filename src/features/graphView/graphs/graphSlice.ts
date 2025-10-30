@@ -456,6 +456,7 @@ export const onConnected = ({
   return (dispatch, getState) => {
     const managerState = getState().graphView;
     const tupleType = managerState[id].tupleType;
+    const selectedEdges = selectEdges(getState(), id, type);
     let newEdges = [...managerState[id].state[type].edges];
 
     if (breakPrevious)
@@ -464,7 +465,7 @@ export const onConnected = ({
     newEdges = addEdge(connection, newEdges);
 
     const relevantEdges = [
-      ...edgesToRelation(selectEdges(getState(), id, type)),
+      ...edgesToRelation(selectedEdges),
       [connection.source, connection.target],
     ] as [string, string][];
 

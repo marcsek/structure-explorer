@@ -128,10 +128,9 @@ export default function HasseDiagram({
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
-      const relation: BinaryRelation<string> = edges.map((e) => [
-        e.source,
-        e.target,
-      ]);
+      const relation: BinaryRelation<string> = edges
+        .filter((e) => !e.data?.helper)
+        .map((e) => [e.source, e.target]);
 
       return staysValidHasseWithEdge(relation, [
         newEdge.source,

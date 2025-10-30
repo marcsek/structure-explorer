@@ -210,7 +210,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
         edge.data ??= {};
         edge.data.error = shouldError;
 
-        newEdges.push(edge);
+        newEdges.push({ ...edge, selectable: true, focusable: true });
         return;
       }
 

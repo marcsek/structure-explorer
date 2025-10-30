@@ -14,6 +14,7 @@ import { DeleteElementButton } from "./PredicateNode";
 interface DirectEdgeData extends Record<string, unknown> {
   duplicate?: boolean;
   error?: boolean;
+  helper?: boolean;
 }
 
 export type DirectEdgeType = Edge<DirectEdgeData>;
@@ -43,7 +44,7 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
     <>
       <BaseEdge
         id={id}
-        className={`react-flow__edge-path ${shouldError ? "error" : ""}`}
+        className={`react-flow__edge-path ${shouldError ? "error" : ""} ${props.data?.helper ? "helper" : ""}`}
         path={path}
         markerEnd={props.markerEnd}
         style={style}

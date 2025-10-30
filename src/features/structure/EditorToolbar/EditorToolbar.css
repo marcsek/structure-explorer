@@ -59,6 +59,9 @@
 }
 
 .chip input {
+  width: 12px;
+  height: 12px;
+  margin: 0;
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -73,6 +76,8 @@
 
 .chip p {
   margin: 0;
+  line-height: 1;
+  margin-bottom: 1px;
   color: var(--bs-body-color);
 }
 
@@ -161,7 +166,7 @@
   right: -6px;
   top: -4px;
 
-  background-color: var(--bs-primary);
+  background-color: var(--bs-blue);
   border-radius: 100px;
   width: 10px;
   height: 10px;
@@ -169,6 +174,15 @@
   scale: 0;
 
   transition: scale 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.domain-elements.active {
+  border-color: var(--bs-blue);
+  background-color: color-mix(
+    in srgb,
+    var(--bs-primary-bg-subtle) 40%,
+    transparent 60%
+  );
 }
 
 .domain-elements.active .domain-filter-indicator {

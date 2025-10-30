@@ -74,7 +74,6 @@ export default function OrientedGraph({
   const representsFunction = useAppSelector(
     (state) => state.graphView[id].tupleType === "function",
   );
-  console.log(edges);
 
   const { fitView } = useReactFlow();
 
