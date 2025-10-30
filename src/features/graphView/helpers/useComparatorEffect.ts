@@ -1,13 +1,15 @@
 import { useEffect, useRef } from "react";
 
 function comparatorEqual<T>(
-  arrayOld: T[],
   arrayNew: T[],
+  arrayOld: T[],
   comparator: Comparator<T>,
 ) {
   return (
-    arrayOld.length === arrayNew.length &&
-    arrayNew.every((entry, i) => comparator(entry, arrayOld[i]))
+    arrayOld.length > arrayNew.length ||
+    arrayNew.every(
+      (entry, i) => i < arrayOld.length && comparator(entry, arrayOld[i]),
+    )
   );
 }
 
@@ -25,7 +27,7 @@ export function useComparatorEffect<T>(
     !prevDeps.current ||
     deps.some(
       ([array, comp], i) =>
-        !comparatorEqual(array, prevDeps.current?.[i][0], comp),
+        !comparatorEqual(array, prevDeps.current?.[i][0] ?? [], comp),
     );
 
   useEffect(() => {
@@ -39,5 +41,7 @@ export function useComparatorEffect<T>(
       prevDeps.current = deps;
       return effect();
     }
+
+    prevDeps.current = deps;
   });
 }

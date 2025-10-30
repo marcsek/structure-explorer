@@ -15,7 +15,7 @@ import {
   useReactFlow,
   type IsValidConnection,
 } from "@xyflow/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -33,6 +33,7 @@ import { generateLayoutNodesChanges } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
+import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: "domain" | "range";
@@ -88,6 +89,7 @@ export default function BipartiteGraph({
 }) {
   const type = "bipartite";
   const nodeSelector = makeSelectNodes<typeof type>();
+  const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
@@ -99,9 +101,10 @@ export default function BipartiteGraph({
   );
 
   const { getNode, fitView } = useReactFlow();
+  const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   useComparatorEffect(() => {
-    fitView({ ...fitViewOptions, duration: 450 });
+    if (!areAllInView()) fitView({ ...fitViewOptions, duration: 450 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
@@ -158,7 +161,7 @@ export default function BipartiteGraph({
 
   return (
     <>
-      <div style={{ width: "100%", flexGrow: 1 }}>
+      <div style={{ width: "100%", flexGrow: 1 }} ref={flowWrapper}>
         <ReactFlow
           id={id}
           nodes={nodes}

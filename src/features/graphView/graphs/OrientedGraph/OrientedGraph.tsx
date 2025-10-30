@@ -13,7 +13,7 @@ import {
   type FitViewOptions,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -31,6 +31,7 @@ import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { computeLayout } from "../HasseDiagram/layout.ts";
+import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -65,6 +66,7 @@ export default function OrientedGraph({
 }) {
   const type = "oriented";
   const nodeSelector = makeSelectNodes<typeof type>();
+  const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
@@ -76,13 +78,14 @@ export default function OrientedGraph({
   );
 
   const { fitView } = useReactFlow();
+  const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
 
   useComparatorEffect(() => {
-    fitView({ ...fitViewOptions, duration: 300 });
+    if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   const onNodesChange = useCallback(
@@ -136,7 +139,7 @@ export default function OrientedGraph({
 
   return (
     <>
-      <div style={{ width: "100%", flexGrow: 1 }}>
+      <div style={{ width: "100%", flexGrow: 1 }} ref={flowWrapper}>
         <ReactFlow
           id={id}
           nodes={nodes}

@@ -13,7 +13,7 @@ import {
   type FitViewOptions,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -35,6 +35,7 @@ import Controls from "../graphComponents/Controls.tsx";
 import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { computeLayout } from "./layout.ts";
+import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -70,19 +71,21 @@ export default function HasseDiagram({
 }) {
   const type = "hasse";
   const nodeSelector = makeSelectNodes<typeof type>();
+  const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector((state) => selectEdges(state, id, type, true));
 
   const { fitView } = useReactFlow();
+  const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   const isPoset = useAppSelector((state) =>
     selectPosetValidity(state, id, "hasse", true),
   );
 
   useComparatorEffect(() => {
-    fitView({ ...fitViewOptions, duration: 300 });
+    if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   // TODO: Can't GraphView manage this?
@@ -141,7 +144,10 @@ export default function HasseDiagram({
   );
 
   return (
-    <div style={{ width: "100%", flexGrow: 1, position: "relative" }}>
+    <div
+      style={{ width: "100%", flexGrow: 1, position: "relative" }}
+      ref={flowWrapper}
+    >
       <ReactFlow
         id={`hasse-${id}`}
         nodes={isPoset ? nodes : []}
