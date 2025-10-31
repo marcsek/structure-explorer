@@ -12,7 +12,6 @@ import {
   type NodeTypes,
   type FitViewOptions,
   useReactFlow,
-  type Node,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
@@ -31,12 +30,8 @@ import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
-import { computeLayout } from "../HasseDiagram/layout.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
-import ELK, {
-  type ElkLayoutArguments,
-  type ElkNode,
-} from "elkjs/lib/elk.bundled.js";
+import { computeLayoutOriented } from "./layout.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -60,45 +55,6 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 
 const fitViewOptions: FitViewOptions = {
   padding: "50px",
-};
-
-const elk = new ELK();
-
-const getLayoutedElements = <TNode extends Node, TEdge extends Edge>(
-  nodes: TNode[],
-  edges: TEdge[],
-) => {
-  const elkOptions = {
-    "elk.algorithm": "stress",
-    "elk.stress.desiredEdgeLength": "160",
-    "elk.spacing.nodeNode": "80",
-    "elk.edge.type": "DIRECTED",
-  };
-
-  const graph: ElkNode = {
-    id: "root",
-    layoutOptions: elkOptions,
-    children: nodes.map((node) => ({
-      ...node,
-
-      width: 150,
-      height: 50,
-    })),
-    edges: edges.map((e) => ({
-      id: e.id,
-      sources: [e.source],
-      targets: [e.target],
-    })),
-  };
-
-  return elk.layout(graph).then((layoutedGraph) => ({
-    nodeChanges: (layoutedGraph.children?.map((node) => ({
-      id: node.id,
-      type: "position",
-      position: { x: node.x ?? 0, y: node.y ?? 0 },
-    })) ?? []) as NodeChange<TNode>[],
-    edges: layoutedGraph.edges,
-  }));
 };
 
 export default function OrientedGraph({
@@ -159,21 +115,11 @@ export default function OrientedGraph({
 
   const onLayout = useCallback(
     (fitAfter: boolean = true) => {
-      //const { nodeChanges } = computeLayout(nodes, edges);
-      getLayoutedElements(nodes, edges).then((res) => {
-        console.log(res);
-        dispatch(onNodesChanged({ id, type, changes: res.nodeChanges }));
+      computeLayoutOriented(nodes, edges).then((nodeChanges) => {
+        dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
 
         if (fitAfter) fitView({ ...fitViewOptions, duration: 300 });
       });
-      //const { nodeChanges } = getLayoutedElements(nodes, edges);
-      //dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
-
-      //if (fitAfter)
-      //  //TODO: Is requestAnimationFrame really necessary?
-      //  requestAnimationFrame(() =>
-      //    fitView({ ...fitViewOptions, duration: 300 }),
-      //  );
     },
     [nodes, edges, dispatch, id, fitView],
   );

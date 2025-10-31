@@ -2,7 +2,7 @@ import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Plugin } from "../plugins";
 import type { BipartiteNodeType } from "./BipartiteGraph";
-import { layoutNodes } from "./layout";
+import { computeLayoutBipartite } from "./layout";
 
 export type BipartiteGraphState = {
   nodes: BipartiteNodeType[];
@@ -193,7 +193,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       .filter((node) => node.dragging)
       .map((node) => node.id);
 
-    return layoutNodes(
+    return computeLayoutBipartite(
       filteredNodes.map((node) =>
         isGhost(node)
           ? { ...node, data: { ...node.data, ghost: true }, selectable: false }

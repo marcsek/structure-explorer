@@ -1,7 +1,7 @@
 import dagre from "@dagrejs/dagre";
 import type { Edge, Node, NodeChange } from "@xyflow/react";
 
-export const computeLayout = <TNode extends Node, TEdge extends Edge>(
+export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   nodes: TNode[],
   edges: TEdge[],
 ) => {

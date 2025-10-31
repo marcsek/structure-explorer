@@ -12,7 +12,6 @@ import {
   type NodeTypes,
   type FitViewOptions,
   useReactFlow,
-  type Node,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
@@ -35,12 +34,8 @@ import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
-import { computeLayout } from "./layout.ts";
+import { computeLayoutHasse } from "./layout.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
-import ELK, {
-  type ElkLayoutArguments,
-  type ElkNode,
-} from "elkjs/lib/elk.bundled.js";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -65,47 +60,6 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 
 const fitViewOptions: FitViewOptions = {
   padding: "50px",
-};
-
-const elk = new ELK();
-
-const getLayoutedElements = <TNode extends Node, TEdge extends Edge>(
-  nodes: TNode[],
-  edges: TEdge[],
-) => {
-  const elkOptions = {
-    "elk.algorithm": "mrtree",
-    "elk.stress.desiredEdgeLength": "160",
-    "elk.spacing.nodeNode": "80",
-    "elk.edge.type": "DIRECTED",
-    "elk.direction": "UP",
-  };
-
-  const graph: ElkNode = {
-    id: "roote",
-    layoutOptions: elkOptions,
-    children: nodes.map((node) => ({
-      ...node,
-
-      width: 140,
-      height: 75,
-    })),
-    edges: edges.map((e) => ({
-      id: e.id,
-      sources: [e.source],
-      targets: [e.target],
-    })),
-  };
-
-  console.log(graph);
-  return elk.layout(graph).then((layoutedGraph) => ({
-    nodeChanges: (layoutedGraph.children?.map((node) => ({
-      id: node.id,
-      type: "position",
-      position: { x: node.x ?? 0, y: node.y ?? 0 },
-    })) ?? []) as NodeChange<TNode>[],
-    edges: layoutedGraph.edges,
-  }));
 };
 
 export default function HasseDiagram({
@@ -163,39 +117,17 @@ export default function HasseDiagram({
 
   const onLayout = useCallback(
     (fitAfter: boolean = true, instant: boolean = false) => {
-      //const { nodeChanges } = computeLayout(nodes, edges);
-      getLayoutedElements(nodes, edges).then((res) => {
-        console.log(res);
-        dispatch(onNodesChanged({ id, type, changes: res.nodeChanges }));
+      const { nodeChanges } = computeLayoutHasse(nodes, edges);
+      dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
 
-        if (fitAfter)
-          fitView({ ...fitViewOptions, duration: instant ? 0 : 300 });
-      });
-      //const { nodeChanges } = getLayoutedElements(nodes, edges);
-      //dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
-
-      //if (fitAfter)
-      //  //TODO: Is requestAnimationFrame really necessary?
-      //  requestAnimationFrame(() =>
-      //    fitView({ ...fitViewOptions, duration: 300 }),
-      //  );
+      if (fitAfter)
+        //TODO: Is requestAnimationFrame really necessary?
+        requestAnimationFrame(() =>
+          fitView({ ...fitViewOptions, duration: instant ? 0 : 300 }),
+        );
     },
     [nodes, edges, dispatch, id, fitView],
   );
-
-  //const onLayout = useCallback(
-  //  (fitAfter: boolean = true, instant: boolean = false) => {
-  //    const { nodeChanges } = computeLayout(nodes, edges);
-  //    dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
-
-  //    if (fitAfter)
-  //      //TODO: Is requestAnimationFrame really necessary?
-  //      requestAnimationFrame(() =>
-  //        fitView({ ...fitViewOptions, duration: instant ? 0 : 300 }),
-  //      );
-  //  },
-  //  [nodes, edges, dispatch, id, fitView],
-  //);
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {

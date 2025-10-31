@@ -6,15 +6,15 @@ const startX = 0,
 const gapX = 250,
   gapY = 110;
 
-export const layoutNodes = (
+export const computeLayoutBipartite = (
   nodes: BipartiteNodeType[],
   draggedNodesIds?: string[],
 ) => {
-  const changes = generateLayoutNodesChanges(nodes, draggedNodesIds);
+  const changes = generateLayoutNodesChangesBipartite(nodes, draggedNodesIds);
   return applyNodeChanges(changes, nodes);
 };
 
-export const generateLayoutNodesChanges = (
+export const generateLayoutNodesChangesBipartite = (
   nodes: BipartiteNodeType[],
   draggedNodesIds?: string[],
 ) => {

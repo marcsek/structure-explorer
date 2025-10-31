@@ -29,7 +29,7 @@ import {
   onEdgesChanged,
   onNodesChanged,
 } from "../graphSlice.ts";
-import { generateLayoutNodesChanges } from "./layout.ts";
+import { generateLayoutNodesChangesBipartite } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
@@ -77,7 +77,7 @@ const generateNodeChangesWithLayout = (
     )
     .map((change) => change.id);
 
-  return generateLayoutNodesChanges(newNodes, draggedNodeIds);
+  return generateLayoutNodesChangesBipartite(newNodes, draggedNodeIds);
 };
 
 export default function BipartiteGraph({
