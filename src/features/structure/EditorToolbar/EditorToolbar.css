@@ -6,7 +6,7 @@
   border: none;
   flex-shrink: 1;
   overflow-x: auto;
-  padding: 3px 3px;
+  padding: 4px 4px;
   scrollbar-width: thin;
 }
 
@@ -38,7 +38,7 @@
   align-items: center;
   color: var(--bs-body-color);
   gap: 0.5rem;
-  border: var(--bs-border-width) solid var(--bs-border-color);
+  outline: var(--bs-border-width) solid var(--bs-border-color);
   border-radius: 100px;
   padding: 10px 16px;
   cursor: pointer;
@@ -46,6 +46,7 @@
   transition: all 0.1s ease-in-out;
   user-select: none;
   position: relative;
+  margin: 0;
 }
 
 .chip::after {
@@ -77,12 +78,11 @@
 .chip p {
   margin: 0;
   line-height: 1;
-  margin-bottom: 1px;
   color: var(--bs-body-color);
 }
 
 .chip:has(input:checked) {
-  border-color: currentColor;
+  outline-color: currentColor;
   background-color: color-mix(in srgb, currentColor 10%, transparent);
 }
 
@@ -90,6 +90,38 @@
 .chip:focus-within::after,
 .chip:has(input:active)::after {
   opacity: 1;
+}
+
+.legend-select-all {
+  cursor: pointer;
+  display: flex;
+  padding: 10px;
+  border-radius: var(--bs-border-radius);
+  border-radius: 100px;
+  border: none;
+  outline: 1px solid #e0e0e0;
+  background: white;
+  height: fit-content;
+  color: var(--bs-dark);
+
+  transition: background-color 0.1s ease-in-out;
+}
+
+.legend-select-all:focus {
+  outline: 1px solid #e0e0e0 !important;
+}
+
+.legend-select-all:focus-visible {
+  outline: 1px solid #e0e0e0;
+  box-shadow: 0 0 0 0.25rem rgba(211, 212, 213, 0.5);
+}
+
+.legend-select-all:hover {
+  background-color: var(--color-hover-bg);
+}
+
+.legend-select-all svg {
+  width: 16px;
 }
 
 .domain-elements {
@@ -103,6 +135,8 @@
   text-wrap: nowrap;
   flex-shrink: 0;
   margin-bottom: 3px;
+  margin-top: 3px;
+  box-sizing: border-box;
   color: var(--bs-dark);
 }
 

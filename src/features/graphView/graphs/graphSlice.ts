@@ -100,13 +100,16 @@ export const graphManagerSlice = createSlice({
 
     predicateToggled(
       state,
-      action: PayloadAction<WithGraphId<{ predicate: string }>>,
+      action: PayloadAction<WithGraphId<{ predicate: string | string[] }>>,
     ) {
       const { id, type, predicate } = action.payload;
 
+      console.log(predicate);
       const selected = state[id].state[type].selectedPreds;
 
-      if (selected.includes(predicate))
+      if (Array.isArray(predicate))
+        state[id].state[type].selectedPreds = predicate;
+      else if (selected.includes(predicate))
         state[id].state[type].selectedPreds = selected.filter(
           (pred) => pred != predicate,
         );

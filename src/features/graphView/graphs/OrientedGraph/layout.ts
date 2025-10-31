@@ -29,8 +29,8 @@ export const computeLayoutOriented = async <
 
   const children: ElkNode[] = nodeIds.map((id) => ({
     id,
-    width: 240,
-    height: 150,
+    width: 120,
+    height: 75,
   }));
 
   const edges: ElkExtendedEdge[] = filteredEdges.map((e) => ({

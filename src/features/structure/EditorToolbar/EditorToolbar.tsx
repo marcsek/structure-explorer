@@ -41,46 +41,63 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
         <div className="legend-container">
           <p>Unary Predicates</p>
           <fieldset className="legend-group">
-            {unaryPreds.map(([pred], idx) => (
-              <label
-                key={pred}
-                className="chip"
-                style={{
-                  color: unaryPredsColors[idx % unaryPredsColors.length],
-                }}
-                onMouseEnter={() =>
-                  dispatch(predicateHovered({ id, type, predicate: pred }))
-                }
-                onMouseLeave={() =>
-                  dispatch(predicateHovered({ id, type, predicate: "" }))
+            <>
+              <button
+                className="legend-select-all"
+                title="Select all"
+                onClick={() =>
+                  dispatch(
+                    predicateToggled({
+                      id,
+                      type,
+                      predicate: unaryPreds.map(([pred]) => pred),
+                    }),
+                  )
                 }
               >
-                <input
-                  type="checkbox"
-                  name="unary preds"
-                  checked={selectedPreds.includes(pred)}
-                  onChange={() =>
-                    dispatch(predicateToggled({ id, type, predicate: pred }))
+                <FontAwesomeIcon icon={faCheckDouble} />
+              </button>
+              {unaryPreds.map(([pred], idx) => (
+                <label
+                  key={pred}
+                  className="chip"
+                  style={{
+                    color: unaryPredsColors[idx % unaryPredsColors.length],
+                  }}
+                  onMouseEnter={() =>
+                    dispatch(predicateHovered({ id, type, predicate: pred }))
                   }
-                />
-                <span
-                  className="dot"
-                  style={{
-                    backgroundColor:
-                      unaryPredsColors[idx % unaryPredsColors.length],
-                  }}
-                ></span>
-                <p
-                  style={{
-                    color: selectedPreds.includes(pred)
-                      ? unaryPredsColors[idx % unaryPredsColors.length]
-                      : "",
-                  }}
+                  onMouseLeave={() =>
+                    dispatch(predicateHovered({ id, type, predicate: "" }))
+                  }
                 >
-                  {pred}
-                </p>
-              </label>
-            ))}
+                  <input
+                    type="checkbox"
+                    name="unary preds"
+                    checked={selectedPreds.includes(pred)}
+                    onChange={() =>
+                      dispatch(predicateToggled({ id, type, predicate: pred }))
+                    }
+                  />
+                  <span
+                    className="dot"
+                    style={{
+                      backgroundColor:
+                        unaryPredsColors[idx % unaryPredsColors.length],
+                    }}
+                  ></span>
+                  <p
+                    style={{
+                      color: selectedPreds.includes(pred)
+                        ? unaryPredsColors[idx % unaryPredsColors.length]
+                        : "",
+                    }}
+                  >
+                    {pred}
+                  </p>
+                </label>
+              ))}
+            </>
           </fieldset>
         </div>
       ) : (
@@ -139,7 +156,7 @@ export function DomainElementsSelector({
         className="domain-header"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        title="domain filters"
+        title="Domain filters"
       >
         <div className="domain-filter-icon-container">
           <div className="domain-filter-indicator" />
