@@ -146,7 +146,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
 
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
-      ...(hoveredPredicateIntr ?? []),
+      ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
     const filteredNodes = state.nodes.filter(
@@ -161,7 +161,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       !node.data.leftover &&
       selected.includes(node.id) &&
       !(relevantNodes?.includes(node.id) ?? true) &&
-      hoveredPredicateIntr?.includes(node.id);
+      hoveredPredicateIntr?.flat().includes(node.id);
 
     return filteredNodes.map((node) =>
       isGhost(node)

@@ -43,16 +43,33 @@ div.predicateNodeHandle.target {
   z-index: 10;
 }
 
-.node-predicate-header div {
-  background-color: currentColor;
-}
-
-.node-predicate-header .stripy {
+.node-predicate-header-item {
   background: repeating-linear-gradient(
     -45deg,
     currentColor,
-    currentColor 5px,
-    color-mix(in srgb, currentColor 20%, transparent) 5px,
-    color-mix(in srgb, currentColor 20%, transparent) 10px
+    currentColor 7px,
+    color-mix(in srgb, currentColor 20%, transparent) 7px,
+    color-mix(in srgb, currentColor 20%, transparent) 14px
   );
+  background-color: currentColor;
+  z-index: 3;
+}
+
+.node-predicate-header-stripy-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.8) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  mix-blend-mode: lighten;
+  z-index: 2;
+}
+
+.node-predicate-header .stripy {
+  z-index: 1;
 }

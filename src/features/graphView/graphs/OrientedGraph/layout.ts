@@ -5,10 +5,10 @@ import ELK, {
 } from "elkjs/lib/elk.bundled.js";
 
 const elkOptions = {
-  "elk.algorithm": "stress",
-  "elk.stress.desiredEdgeLength": "200",
+  "elk.algorithm": "force",
+  "elk.force.model": "EADES",
   "elk.direction": "RIGHT",
-  "elk.spacing.nodeNode": "50",
+  "elk.spacing.nodeNode": "70",
   "elk.edgeRouting": "STRAIGHT",
 };
 

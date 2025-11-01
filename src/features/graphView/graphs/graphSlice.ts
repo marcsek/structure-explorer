@@ -44,7 +44,7 @@ export type TupleType = "function" | "predicate";
 
 export type GraphManagerState = Record<
   string,
-  { tupleType: TupleType; state: GraphState; hoveredPredicate: string }
+  { tupleType: TupleType; state: GraphState; hoveredPredicates: string[] }
 >;
 
 type WithGraphId<T = object> = { id: string; type: GraphType } & T;
@@ -132,13 +132,13 @@ export const graphManagerSlice = createSlice({
 
     predicateHovered(
       state,
-      action: PayloadAction<WithGraphId<{ predicate: string }>>,
+      action: PayloadAction<WithGraphId<{ predicates: string[] }>>,
     ) {
-      const { id, predicate } = action.payload;
+      const { id, predicates } = action.payload;
 
       if (!state[id]) return;
 
-      state[id].hoveredPredicate = predicate;
+      state[id].hoveredPredicates = predicates;
     },
 
     tuplesChanged(
@@ -176,7 +176,7 @@ export const graphManagerSlice = createSlice({
             hasse: plugins.hasse.init(domain, tuple, type),
             bipartite: plugins.bipartite.init(domain, tuple, type),
           },
-          hoveredPredicate: "",
+          hoveredPredicates: [],
         };
       });
 
@@ -299,8 +299,8 @@ export const selectRelevantDomainElements = createSelector(
         ?.selectedPreds ?? []),
     ];
 
-    if (includeHovered && state.graphView[id].hoveredPredicate !== "")
-      selectedPreds.push(state.graphView[id].hoveredPredicate);
+    if (includeHovered)
+      selectedPreds.push(...state.graphView[id].hoveredPredicates);
 
     if (selectedPreds.length === 0) return undefined;
 
@@ -317,11 +317,13 @@ export const selectHoveredPredicateIntr = createSelector(
     (_: RootState, id: string) => id,
   ],
   (struct, state, id) => {
-    const hoveredPredicate = state.graphView[id]?.hoveredPredicate;
+    const hoveredPredicates = state.graphView[id]?.hoveredPredicates;
 
-    if (!hoveredPredicate) return undefined;
+    if (hoveredPredicates.length === 0) return undefined;
 
-    return [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat();
+    return hoveredPredicates.map((hoveredPredicate) =>
+      [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat(),
+    );
   },
 );
 

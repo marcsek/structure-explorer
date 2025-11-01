@@ -23,6 +23,15 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
     (state) => state.graphView[id]?.state[type].selectedPreds ?? [],
   );
 
+  const handleSelectAll = () => {
+    const allSelected = selectedPreds.length === unaryPreds.length;
+    const newSelectedPreds = allSelected
+      ? []
+      : unaryPreds.map(([pred]) => pred);
+
+    dispatch(predicateToggled({ id, type, predicate: newSelectedPreds }));
+  };
+
   return (
     <div
       style={{
@@ -45,14 +54,18 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
               <button
                 className="legend-select-all"
                 title="Select all"
-                onClick={() =>
+                onClick={handleSelectAll}
+                onMouseEnter={() =>
                   dispatch(
-                    predicateToggled({
+                    predicateHovered({
                       id,
                       type,
-                      predicate: unaryPreds.map(([pred]) => pred),
+                      predicates: unaryPreds.map((p) => p[0]),
                     }),
                   )
+                }
+                onMouseLeave={() =>
+                  dispatch(predicateHovered({ id, type, predicates: [] }))
                 }
               >
                 <FontAwesomeIcon icon={faCheckDouble} />
@@ -65,10 +78,10 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                     color: unaryPredsColors[idx % unaryPredsColors.length],
                   }}
                   onMouseEnter={() =>
-                    dispatch(predicateHovered({ id, type, predicate: pred }))
+                    dispatch(predicateHovered({ id, type, predicates: [pred] }))
                   }
                   onMouseLeave={() =>
-                    dispatch(predicateHovered({ id, type, predicate: "" }))
+                    dispatch(predicateHovered({ id, type, predicates: [] }))
                   }
                 >
                   <input

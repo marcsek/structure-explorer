@@ -41,7 +41,7 @@ export interface Plugin<K extends GraphType> {
   filterNodesToShow(
     state: GraphState[K],
     relevantNodes?: string[],
-    hoveredPredicateIntr?: string[],
+    hoveredPredicateIntr?: string[][],
   ): GraphState[K]["nodes"];
   filterEdgesToShow(
     state: GraphState[K],
@@ -101,7 +101,7 @@ export function processFilterNodesToShow<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
   relevantNodes?: string[],
-  hoveredPredicateIntr?: string[],
+  hoveredPredicateIntr?: string[][],
 ): GraphState[K]["nodes"] {
   return plugin.filterNodesToShow(state, relevantNodes, hoveredPredicateIntr);
 }

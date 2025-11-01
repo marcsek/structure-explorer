@@ -151,7 +151,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
-      ...(hoveredPredicateIntr ?? []),
+      ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
     const filteredNodes = state.nodes.filter(
@@ -166,13 +166,14 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       !node.data.leftover &&
       selected.includes(node.id) &&
       !(relevantNodes?.includes(node.id) ?? true) &&
-      hoveredPredicateIntr?.includes(node.id);
+      hoveredPredicateIntr?.flat().includes(node.id);
 
-    return filteredNodes.map((node) =>
+    const d = filteredNodes.map((node) =>
       isGhost(node)
         ? { ...node, data: { ...node.data, ghost: true }, selectable: false }
         : node,
     );
+    return d;
   },
 
   filterEdgesToShow(state) {

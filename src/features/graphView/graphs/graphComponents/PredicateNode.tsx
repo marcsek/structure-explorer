@@ -56,8 +56,8 @@ export default function PredicateNode({
     selectRelevantUnaryPreds(state, data.label),
   );
 
-  const hoveredPred = useAppSelector(
-    (state) => state.graphView[parentInfo.id].hoveredPredicate,
+  const hoveredPreds = useAppSelector(
+    (state) => state.graphView[parentInfo.id].hoveredPredicates,
   );
 
   const selectedPreds = useAppSelector(
@@ -65,7 +65,7 @@ export default function PredicateNode({
       state.graphView[parentInfo.id].state[parentInfo.type].selectedPreds,
   );
 
-  const vissiblePreds = [hoveredPred, ...selectedPreds];
+  const vissiblePreds = [...hoveredPreds, ...selectedPreds];
 
   const predsToDisplay = unaryPreds
     .filter((relevant) => vissiblePreds.includes(relevant))
@@ -115,10 +115,11 @@ export default function PredicateNode({
             pointerEvents: "none",
           }}
         >
+          <div className="node-predicate-header-stripy-overlay" />
           {predsToDisplay.map((pred) => (
             <div
               key={pred}
-              className={`${hoveredPred === pred && !selectedPreds.includes(pred) ? "stripy" : ""}`}
+              className={`node-predicate-header-item ${hoveredPreds.includes(pred) && !selectedPreds.includes(pred) ? "stripy" : ""}`}
               style={{
                 color:
                   unaryPredsColors[

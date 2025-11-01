@@ -172,7 +172,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
-      ...(hoveredPredicateIntr ?? []),
+      ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
     const filteredNodes = state.nodes.filter(
@@ -187,7 +187,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       !node.data.leftover &&
       selected.includes(node.id.slice("d-".length)) &&
       !(relevantNodes?.includes(node.id.slice("d-".length)) ?? true) &&
-      hoveredPredicateIntr?.includes(node.id.slice("d-".length));
+      hoveredPredicateIntr?.flat().includes(node.id.slice("d-".length));
 
     const dragging = state.nodes
       .filter((node) => node.dragging)
