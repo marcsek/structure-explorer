@@ -8,8 +8,14 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: "BT" });
 
+  const nodeIds = nodes.map((n) => n.id);
+  const filteredEdges = edges.filter(
+    ({ source, target }) =>
+      nodeIds.includes(source) && nodeIds.includes(target),
+  );
+
   nodes.forEach((n) => dagreGraph.setNode(n.id, { width: 120, height: 75 }));
-  edges.forEach((e) => dagreGraph.setEdge(e.source, e.target));
+  filteredEdges.forEach((e) => dagreGraph.setEdge(e.source, e.target));
 
   dagre.layout(dagreGraph);
 

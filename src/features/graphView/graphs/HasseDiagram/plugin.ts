@@ -6,6 +6,7 @@ import {
   expandReducedPoset,
   isPoset,
   reducePosetRelations,
+  type BinaryRelation,
 } from "./posetHelpers";
 
 export type HasseDiagramState = {
@@ -294,11 +295,20 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     const domain = new Set(state.nodes.map((node) => node.id));
     const expanded = expandReducedPoset(relevantRelation, domain);
 
-    const relationSyncedEdges = state.edges.filter(({ source, target }) =>
-      expanded.some(([from, to]) => source === from && target === to),
+    const relationSyncedEdges = state.edges.filter(
+      ({ source, target, data }) =>
+        expanded.some(([from, to]) => source === from && target === to) ||
+        data?.helper ||
+        data?.duplicate,
     );
 
-    return [expanded, relationSyncedEdges];
+    const duplicates = state.edges
+      .filter(({ data }) => data?.duplicate)
+      .map(({ source, target }) => [source, target]) as BinaryRelation<string>;
+
+    const newRelation = [...expanded, ...duplicates];
+
+    return [newRelation, relationSyncedEdges];
   },
 
   deleteLeftover(state, deleted) {

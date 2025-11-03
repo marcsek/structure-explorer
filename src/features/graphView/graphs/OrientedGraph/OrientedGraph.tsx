@@ -13,7 +13,7 @@ import {
   type FitViewOptions,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -76,6 +76,7 @@ export default function OrientedGraph({
   const representsFunction = useAppSelector(
     (state) => state.graphView[id].tupleType === "function",
   );
+  const [didLayout, setDidLayout] = useState(false);
 
   const { fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -83,6 +84,11 @@ export default function OrientedGraph({
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
+
+  useEffect(() => {
+    onLayout(true, true, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
@@ -114,12 +120,24 @@ export default function OrientedGraph({
   );
 
   const onLayout = useCallback(
-    (fitAfter: boolean = true) => {
-      computeLayoutOriented(nodes, edges).then((nodeChanges) => {
-        dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+    (
+      fitAfter: boolean = true,
+      instant: boolean = false,
+      onlyIfNotMoved: boolean = false,
+    ) => {
+      const nodesMoved = !nodes.every(
+        ({ position }) => position.x === 0 && position.y === 0,
+      );
 
-        if (fitAfter) fitView({ ...fitViewOptions, duration: 300 });
-      });
+      if (!onlyIfNotMoved || !nodesMoved) {
+        computeLayoutOriented(nodes, edges).then((nodeChanges) => {
+          dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+
+          if (fitAfter)
+            fitView({ ...fitViewOptions, duration: instant ? 0 : 300 });
+          setDidLayout(true);
+        });
+      } else setDidLayout(true);
     },
     [nodes, edges, dispatch, id, fitView],
   );
@@ -139,7 +157,7 @@ export default function OrientedGraph({
       <div style={{ width: "100%", flexGrow: 1 }} ref={flowWrapper}>
         <ReactFlow
           id={id}
-          nodes={nodes}
+          nodes={didLayout ? nodes : []}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}

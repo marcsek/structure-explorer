@@ -94,7 +94,7 @@ export default function HasseDiagram({
   }, [id, dispatch, locked]);
 
   useEffect(() => {
-    onLayout(true, true);
+    onLayout(true, true, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -116,9 +116,19 @@ export default function HasseDiagram({
   );
 
   const onLayout = useCallback(
-    (fitAfter: boolean = true, instant: boolean = false) => {
-      const { nodeChanges } = computeLayoutHasse(nodes, edges);
-      dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+    (
+      fitAfter: boolean = true,
+      instant: boolean = false,
+      onlyIfNotMoved: boolean = false,
+    ) => {
+      const nodesMoved = !nodes.every(
+        ({ position }) => position.x === 0 && position.y === 0,
+      );
+
+      if (!onlyIfNotMoved || !nodesMoved) {
+        const { nodeChanges } = computeLayoutHasse(nodes, edges);
+        dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+      }
 
       if (fitAfter)
         //TODO: Is requestAnimationFrame really necessary?
