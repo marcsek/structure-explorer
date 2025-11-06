@@ -10,6 +10,15 @@
   scrollbar-width: thin;
 }
 
+.legend-toolbar {
+  min-width: 150px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  scrollbar-width: thin;
+}
+
 .element-with-scroll::-webkit-scrollbar {
   height: 4px;
 }
@@ -92,11 +101,10 @@
   opacity: 1;
 }
 
-.legend-select-all {
+.legend-button {
   cursor: pointer;
   display: flex;
   padding: 10px;
-  border-radius: var(--bs-border-radius);
   border-radius: 100px;
   border: none;
   outline: 1px solid #e0e0e0;
@@ -107,21 +115,44 @@
   transition: background-color 0.1s ease-in-out;
 }
 
-.legend-select-all:focus {
+.legend-button:focus {
   outline: 1px solid #e0e0e0 !important;
 }
 
-.legend-select-all:focus-visible {
+.legend-button:focus-visible {
   outline: 1px solid #e0e0e0;
   box-shadow: 0 0 0 0.25rem rgba(211, 212, 213, 0.5);
 }
 
-.legend-select-all:hover {
+.legend-button:hover {
   background-color: var(--color-hover-bg);
 }
 
-.legend-select-all svg {
+.legend-button > * {
   width: 16px;
+  height: 16px;
+}
+
+.domain-button {
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+  padding: 0;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.domain-button > * {
+  margin-bottom: 6px;
+}
+
+.divider-legend {
+  width: var(--bs-border-width);
+  margin: 5px 0px;
+  background-color: var(--bs-border-color);
+  align-self: stretch;
 }
 
 .domain-elements {
@@ -210,8 +241,10 @@
   transition: scale 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.domain-elements.active {
+.domain-elements.active,
+.domain-button.active {
   border-color: var(--bs-blue);
+  outline-color: var(--bs-blue) !important;
   background-color: color-mix(
     in srgb,
     var(--bs-primary-bg-subtle) 40%,

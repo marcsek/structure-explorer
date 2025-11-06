@@ -167,7 +167,12 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return { ...prev, nodes: allNodes, selectedNodes };
   },
 
-  filterNodesToShow(state, relevantNodes, hoveredPredicateIntr) {
+  filterNodesToShow(
+    state,
+    unaryFilterDomain,
+    relevantNodes,
+    hoveredPredicateIntr,
+  ) {
     const selected = [...state.selectedNodes];
 
     const relevantNodesWithHovered = [
@@ -180,6 +185,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         node.data.leftover ||
         (selected.includes(node.id.slice("d-".length)) &&
           (relevantNodesWithHovered.length === 0 ||
+            !unaryFilterDomain ||
             relevantNodesWithHovered?.includes(node.id.slice("d-".length)))),
     );
 

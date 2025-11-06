@@ -10,6 +10,8 @@ import {
 import { getEdgeParams } from "../../helpers/utils";
 import SelfConnectingEdge from "./SelfConnectingEdge";
 import { DeleteElementButton } from "./PredicateNode";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar } from "@fortawesome/free-solid-svg-icons";
 
 interface DirectEdgeData extends Record<string, unknown> {
   duplicate?: boolean;
@@ -40,6 +42,42 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
 
   const shouldError = props.data?.duplicate || props.data?.error;
 
+  let labelContent = null;
+
+  if (shouldError) {
+    labelContent = (
+      <DeleteElementButton
+        style={{
+          position: "absolute",
+          transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.6)`,
+          pointerEvents: "all",
+          zIndex: 100,
+        }}
+        className="nodrag nopan"
+        onClick={() => deleteElements({ edges: [{ id }] })}
+      >
+        delete
+      </DeleteElementButton>
+    );
+  } else if (props.data?.helper) {
+    labelContent = (
+      <FontAwesomeIcon
+        style={{
+          position: "absolute",
+          transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.8)`,
+          pointerEvents: "all",
+          color: "#b1b1b7",
+          backgroundColor: "white",
+          borderRadius: "100px",
+          padding: "0.1rem",
+        }}
+        className="nodrag nopan"
+        size="sm"
+        icon={faStar}
+      />
+    );
+  }
+
   return (
     <>
       <BaseEdge
@@ -56,22 +94,7 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
         markerEnd={props.markerEnd}
         style={style}
       />
-      <EdgeLabelRenderer>
-        {shouldError && (
-          <DeleteElementButton
-            style={{
-              position: "absolute",
-              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.6)`,
-              pointerEvents: "all",
-              zIndex: 100,
-            }}
-            className="nodrag nopan"
-            onClick={() => deleteElements({ edges: [{ id }] })}
-          >
-            delete
-          </DeleteElementButton>
-        )}
-      </EdgeLabelRenderer>
+      <EdgeLabelRenderer>{labelContent}</EdgeLabelRenderer>
     </>
   );
 }
