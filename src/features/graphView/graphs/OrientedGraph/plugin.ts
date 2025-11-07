@@ -6,8 +6,6 @@ import type { Plugin } from "../plugins";
 export type OrientedGraphState = {
   nodes: PredicateNodeType[];
   edges: DirectEdgeType[];
-  selectedPreds: string[];
-  selectedNodes: string[];
   warning?: string;
 };
 
@@ -49,8 +47,6 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     const graph: OrientedGraphState = {
       nodes: [],
       edges: [],
-      selectedPreds: [],
-      selectedNodes: [...new Set(domain.flat())],
     };
 
     domain.forEach((domElement) => {
@@ -98,7 +94,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return graph;
   },
 
-  syncNodes(prev, domain, tupleType) {
+  syncNodes(prev, domain, selectedNodes, tupleType) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
@@ -140,21 +136,20 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       }));
 
     const allNodes = [...newNodes, ...leftoverNodes];
-    const selectedNodes = [...prev.selectedNodes, ...addedElements].filter(
+    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
       (node) => domain.includes(node),
     );
 
-    return { ...prev, nodes: allNodes, selectedNodes };
+    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
   },
 
   filterNodesToShow(
     state,
     unaryFilterDomain,
+    selectedNodes,
     relevantNodes,
     hoveredPredicateIntr,
   ) {
-    const selected = [...state.selectedNodes];
-
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
@@ -163,7 +158,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     const filteredNodes = state.nodes.filter(
       (node) =>
         node.data.leftover ||
-        (selected.includes(node.id) &&
+        (selectedNodes.includes(node.id) &&
           (relevantNodesWithHovered.length === 0 ||
             !unaryFilterDomain ||
             relevantNodesWithHovered?.includes(node.id))),
@@ -171,7 +166,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
 
     const isGhost = (node: PredicateNodeType) =>
       !node.data.leftover &&
-      selected.includes(node.id) &&
+      selectedNodes.includes(node.id) &&
       !(relevantNodes?.includes(node.id) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id);
 
@@ -187,8 +182,8 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return state.edges;
   },
 
-  toggleNodes(state, node) {
-    let newSelected = [...state.selectedNodes];
+  toggleNodes(state, node, selectedNodes) {
+    let newSelected = [...selectedNodes];
     const allNodes = state.nodes;
 
     if (node === "") newSelected = allNodes.map((node) => node.id);
@@ -196,7 +191,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       newSelected = newSelected.filter((selectedNode) => selectedNode != node);
     else newSelected.push(node);
 
-    return { ...state, selectedNodes: newSelected };
+    return [state, newSelected];
   },
 
   syncPredIntr(prev, intr, tupleType) {

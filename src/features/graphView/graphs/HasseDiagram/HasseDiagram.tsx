@@ -84,9 +84,7 @@ export default function HasseDiagram({
   const { fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
-  const isPoset = useAppSelector((state) =>
-    selectPosetValidity(state, id, "hasse", true),
-  );
+  const isPoset = useAppSelector((state) => selectPosetValidity(state, id));
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });

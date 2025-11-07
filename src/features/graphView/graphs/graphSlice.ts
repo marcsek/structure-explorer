@@ -47,7 +47,9 @@ export type GraphManagerState = Record<
   {
     tupleType: TupleType;
     state: GraphState;
-    hoveredPredicates: string[];
+    hoveredUnary: string[];
+    selectedUnary: string[];
+    selectedNodes: string[];
     unaryFilterDomain: boolean;
     unaryFilterHovered: boolean;
   }
@@ -104,21 +106,17 @@ export const graphManagerSlice = createSlice({
       );
     },
 
-    predicateToggled(
+    unaryPredicateToggled(
       state,
       action: PayloadAction<WithGraphId<{ predicate: string | string[] }>>,
     ) {
-      const { id, type, predicate } = action.payload;
+      const { id, predicate } = action.payload;
 
-      console.log(predicate);
-      const selected = state[id].state[type].selectedPreds;
+      const selected = state[id].selectedUnary;
 
-      if (Array.isArray(predicate))
-        state[id].state[type].selectedPreds = predicate;
+      if (Array.isArray(predicate)) state[id].selectedUnary = predicate;
       else if (selected.includes(predicate))
-        state[id].state[type].selectedPreds = selected.filter(
-          (pred) => pred != predicate,
-        );
+        state[id].selectedUnary = selected.filter((pred) => pred != predicate);
       else selected.push(predicate);
     },
 
@@ -129,11 +127,15 @@ export const graphManagerSlice = createSlice({
 
       const graphState = state[id].state[type];
 
-      (state[id].state[type] as GraphState[typeof type]) = processToggleNodes(
+      const [newState, newSelectedNodes] = processToggleNodes(
         plugins[type],
         graphState,
         toggledNode,
+        state[id].selectedNodes,
       );
+
+      (state[id].state[type] as GraphState[typeof type]) = newState;
+      state[id].selectedNodes = newSelectedNodes;
     },
 
     predicateHovered(
@@ -144,7 +146,7 @@ export const graphManagerSlice = createSlice({
 
       if (!state[id]) return;
 
-      state[id].hoveredPredicates = predicates;
+      state[id].hoveredUnary = predicates;
     },
 
     unaryFilterDomainHovered(
@@ -201,7 +203,9 @@ export const graphManagerSlice = createSlice({
             hasse: plugins.hasse.init(domain, tuple, type),
             bipartite: plugins.bipartite.init(domain, tuple, type),
           },
-          hoveredPredicates: [],
+          selectedNodes: [...new Set(domain.flat())],
+          selectedUnary: [],
+          hoveredUnary: [],
           unaryFilterDomain: true,
           unaryFilterHovered: false,
         };
@@ -241,8 +245,16 @@ export const graphManagerSlice = createSlice({
           const plugin = plugins[graphType];
           const domain = action.payload;
 
-          (graphs.state[graphType] as GraphState[typeof graphType]) =
-            processSyncNodes(plugin, graphState, domain, graphs.tupleType);
+          const [newState, selectedNodes] = processSyncNodes(
+            plugin,
+            graphState,
+            domain,
+            graphs.selectedNodes,
+            graphs.tupleType,
+          );
+
+          (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
+          graphs.selectedNodes = selectedNodes;
         }
       }
     },
@@ -329,16 +341,13 @@ export const selectRelevantDomainElements = createSelector(
       includeHovered: boolean = false,
     ) => includeHovered,
   ],
-  (struct, state, id, type, includeHovered) => {
-    const selectedPreds = [
-      ...((state.graphView[id]?.state[type] as GraphState[typeof type])
-        ?.selectedPreds ?? []),
-    ];
+  (struct, state, id, includeHovered) => {
+    const selectedPreds = [...(state.graphView[id]?.selectedUnary ?? [])];
 
     if (includeHovered) {
       if (state.graphView[id]?.unaryFilterHovered) return [...struct.domain];
 
-      selectedPreds.push(...state.graphView[id].hoveredPredicates);
+      selectedPreds.push(...state.graphView[id].hoveredUnary);
     }
 
     if (selectedPreds.length === 0 || !state.graphView[id].unaryFilterDomain)
@@ -357,7 +366,7 @@ export const selectHoveredIntr = createSelector(
     (_: RootState, id: string) => id,
   ],
   (struct, state, id) => {
-    const hoveredPredicates = state.graphView[id]?.hoveredPredicates;
+    const hoveredPredicates = state.graphView[id]?.hoveredUnary;
 
     if (state.graphView[id]?.unaryFilterHovered) return [[...struct.domain]];
 
@@ -370,26 +379,16 @@ export const selectHoveredIntr = createSelector(
 );
 
 export const selectPosetValidity = createSelector(
-  [
-    selectRelevantDomainElements,
-    (state: RootState) => state,
-    (_: RootState, id: string) => id,
-  ],
-  (relevantDomain, state, id) => {
+  [(state: RootState) => state, (_: RootState, id: string) => id],
+  (state, id) => {
     const graphState = state.graphView[id]?.state.hasse;
 
-    const vissibleNodes = graphState.nodes
-      .filter(
-        (node) =>
-          graphState.selectedNodes.includes(node.id) &&
-          (relevantDomain?.includes(node.id) ?? true),
-      )
-      .map((node) => node.id);
+    const nodes = graphState.nodes.map((node) => node.id);
 
     const vissibleRelation = edgesToRelation(
       graphState.edges.filter(
         ({ source, target }) =>
-          vissibleNodes.includes(source) && vissibleNodes.includes(target),
+          nodes.includes(source) && nodes.includes(target),
       ),
     );
 
@@ -425,6 +424,7 @@ export function makeSelectNodes<T extends GraphType>() {
         plugin,
         graphState,
         unaryFilterDomain,
+        state.graphView[id]?.selectedNodes ?? [],
         relevantDomain,
         hoveredPredicateIntr,
       ) as GraphState[T]["nodes"];
@@ -445,7 +445,12 @@ export const selectEdges = createSelector(
 
     if (!graphState) return [] as GraphState[typeof type]["edges"];
 
-    return processFilterEdgesToShow(plugin, graphState, relevantDomain);
+    return processFilterEdgesToShow(
+      plugin,
+      graphState,
+      state.graphView[id].selectedNodes,
+      relevantDomain,
+    );
   },
 );
 
@@ -584,7 +589,7 @@ export const {
   setEdges,
   edgeAdded,
   onNodesChanged,
-  predicateToggled,
+  unaryPredicateToggled,
   nodeToggled,
   tuplesChanged,
   tupleInterpretationChanged,

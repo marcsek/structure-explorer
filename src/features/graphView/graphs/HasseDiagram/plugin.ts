@@ -12,8 +12,6 @@ import {
 export type HasseDiagramState = {
   nodes: PredicateNodeType[];
   edges: DirectEdgeType[];
-  selectedPreds: string[];
-  selectedNodes: string[];
   warning?: string;
 };
 
@@ -52,8 +50,6 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     const graph: HasseDiagramState = {
       nodes: [],
       edges: [],
-      selectedPreds: [],
-      selectedNodes: [...new Set(domain.flat())],
     };
 
     if (type === "function") return graph;
@@ -100,7 +96,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     return graph;
   },
 
-  syncNodes(prev, domain) {
+  syncNodes(prev, domain, selectedNodes) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
@@ -136,21 +132,20 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       }));
 
     const allNodes = [...newNodes, ...leftoverNodes];
-    const selectedNodes = [...prev.selectedNodes, ...addedElements].filter(
+    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
       (node) => domain.includes(node),
     );
 
-    return { ...prev, nodes: allNodes, selectedNodes };
+    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
   },
 
   filterNodesToShow(
     state,
     unaryFilterDomain,
+    selectedNodes,
     relevantNodes,
     hoveredPredicateIntr,
   ) {
-    const selected = [...state.selectedNodes];
-
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
@@ -159,7 +154,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     const filteredNodes = state.nodes.filter(
       (node) =>
         node.data.leftover ||
-        (selected.includes(node.id) &&
+        (selectedNodes.includes(node.id) &&
           (relevantNodesWithHovered.length === 0 ||
             !unaryFilterDomain ||
             relevantNodesWithHovered?.includes(node.id))),
@@ -167,7 +162,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
 
     const isGhost = (node: PredicateNodeType) =>
       !node.data.leftover &&
-      selected.includes(node.id) &&
+      selectedNodes.includes(node.id) &&
       !(relevantNodes?.includes(node.id) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id);
 
@@ -178,14 +173,12 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     );
   },
 
-  filterEdgesToShow(state, relevantNodes) {
-    const selected = [...state.selectedNodes];
-
+  filterEdgesToShow(state, selectedNodes, relevantNodes) {
     const filteredNodes = state.nodes
       .filter(
         (node) =>
           node.data.leftover ||
-          (selected.includes(node.id) &&
+          (selectedNodes.includes(node.id) &&
             (relevantNodes?.includes(node.id) ?? true)),
       )
       .map((node) => node.id);
@@ -228,8 +221,8 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     return [...unfilteredEdges, ...filteredEdges];
   },
 
-  toggleNodes(state, node) {
-    let newSelected = [...state.selectedNodes];
+  toggleNodes(state, node, selectedNodes) {
+    let newSelected = [...selectedNodes];
     const allNodes = state.nodes;
 
     if (node === "") newSelected = allNodes.map((node) => node.id);
@@ -237,7 +230,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       newSelected = newSelected.filter((selectedNode) => selectedNode != node);
     else newSelected.push(node);
 
-    return { ...state, selectedNodes: newSelected };
+    return [state, newSelected];
   },
 
   syncPredIntr(prev, intr) {

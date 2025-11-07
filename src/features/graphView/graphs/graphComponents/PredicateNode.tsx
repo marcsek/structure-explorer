@@ -57,12 +57,11 @@ export default function PredicateNode({
   );
 
   const hoveredPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id].hoveredPredicates,
+    (state) => state.graphView[parentInfo.id].hoveredUnary,
   );
 
   const selectedPreds = useAppSelector(
-    (state) =>
-      state.graphView[parentInfo.id].state[parentInfo.type].selectedPreds,
+    (state) => state.graphView[parentInfo.id].selectedUnary,
   );
 
   const vissiblePreds = [...hoveredPreds, ...selectedPreds];

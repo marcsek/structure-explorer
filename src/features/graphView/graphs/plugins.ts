@@ -31,8 +31,9 @@ export interface Plugin<K extends GraphType> {
   syncNodes(
     prev: GraphState[K],
     domain: string[],
+    selectedNodes: string[],
     tupleType: TupleType,
-  ): GraphState[K];
+  ): [GraphState[K], string[]];
   // hideNodes(
   //   prev: GraphState[K],
   //   toggledNode: string,
@@ -41,14 +42,20 @@ export interface Plugin<K extends GraphType> {
   filterNodesToShow(
     state: GraphState[K],
     unaryFilterDomain: boolean,
+    selectedNodes: string[],
     relevantNodes?: string[],
     hoveredPredicateIntr?: string[][],
   ): GraphState[K]["nodes"];
   filterEdgesToShow(
     state: GraphState[K],
+    selectedNodes: string[],
     relevantNodes?: string[],
   ): GraphState[K]["edges"];
-  toggleNodes(state: GraphState[K], node: string): GraphState[K];
+  toggleNodes(
+    state: GraphState[K],
+    node: string,
+    selectedNodes: string[],
+  ): [GraphState[K], string[]];
   syncPredIntr(
     prev: GraphState[K],
     intr: BinaryRelation<string>,
@@ -76,9 +83,10 @@ export function processSyncNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   domain: string[],
+  selectedNodes: string[],
   tupleType: TupleType,
-): GraphState[K] {
-  return plugin.syncNodes(prev, domain, tupleType);
+): [GraphState[K], string[]] {
+  return plugin.syncNodes(prev, domain, selectedNodes, tupleType);
 }
 
 // export function processHideNodes<K extends GraphType>(
@@ -94,20 +102,23 @@ export function processToggleNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   node: string,
-): GraphState[K] {
-  return plugin.toggleNodes(prev, node);
+  selectedNodes: string[],
+): [GraphState[K], string[]] {
+  return plugin.toggleNodes(prev, node, selectedNodes);
 }
 
 export function processFilterNodesToShow<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
   unaryFilterDomain: boolean,
+  selectedNodes: string[],
   relevantNodes?: string[],
   hoveredPredicateIntr?: string[][],
 ): GraphState[K]["nodes"] {
   return plugin.filterNodesToShow(
     state,
     unaryFilterDomain,
+    selectedNodes,
     relevantNodes,
     hoveredPredicateIntr,
   );
@@ -116,9 +127,10 @@ export function processFilterNodesToShow<K extends GraphType>(
 export function processFilterEdgesToShow<K extends GraphType>(
   plugin: Plugin<K>,
   state: GraphState[K],
+  selectedNodes: string[],
   relevantNodes?: string[],
 ): GraphState[K]["edges"] {
-  return plugin.filterEdgesToShow(state, relevantNodes);
+  return plugin.filterEdgesToShow(state, selectedNodes, relevantNodes);
 }
 
 export function processSyncPredIntr<K extends GraphType>(

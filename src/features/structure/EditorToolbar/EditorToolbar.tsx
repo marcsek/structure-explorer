@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
   nodeToggled,
   predicateHovered,
-  predicateToggled,
+  unaryPredicateToggled,
   selectRelevantUnaryPreds,
   selectUnaryPreds,
   unaryFilterDomainHovered,
@@ -27,7 +27,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
   const dispatch = useAppDispatch();
   const unaryPreds = useAppSelector(selectUnaryPreds)?.sort();
   const selectedPreds = useAppSelector(
-    (state) => state.graphView[id]?.state[type].selectedPreds ?? [],
+    (state) => state.graphView[id]?.selectedUnary ?? [],
   );
   const unaryFilterDomain = useAppSelector(
     (state) => state.graphView[id]?.unaryFilterDomain,
@@ -39,7 +39,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
       ? []
       : unaryPreds.map(([pred]) => pred);
 
-    dispatch(predicateToggled({ id, type, predicate: newSelectedPreds }));
+    dispatch(unaryPredicateToggled({ id, type, predicate: newSelectedPreds }));
   };
 
   return (
@@ -117,7 +117,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                       checked={selectedPreds.includes(pred)}
                       onChange={() =>
                         dispatch(
-                          predicateToggled({ id, type, predicate: pred }),
+                          unaryPredicateToggled({ id, type, predicate: pred }),
                         )
                       }
                     />
@@ -167,7 +167,7 @@ export function DomainElementsSelector({
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectParsedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector(
-    (state) => state.graphView[id]?.state[type].selectedNodes,
+    (state) => state.graphView[id]?.selectedNodes,
   );
 
   const activeFilters = domain.length !== selectedNodes.length;

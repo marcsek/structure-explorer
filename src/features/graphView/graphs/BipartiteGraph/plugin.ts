@@ -7,8 +7,6 @@ import { computeLayoutBipartite } from "./layout";
 export type BipartiteGraphState = {
   nodes: BipartiteNodeType[];
   edges: DirectEdgeType[];
-  selectedPreds: string[];
-  selectedNodes: string[];
   warning?: string;
 };
 
@@ -49,13 +47,9 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   init(domain, predicate, type) {
     const iP = predicate.intr;
 
-    const initiallySelected = [...new Set(domain.flat())];
-
     const graph: BipartiteGraphState = {
       nodes: [],
       edges: [],
-      selectedPreds: [],
-      selectedNodes: initiallySelected,
     };
 
     domain.forEach((domElement) => {
@@ -115,7 +109,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return graph;
   },
 
-  syncNodes(prev, domain, tupleType) {
+  syncNodes(prev, domain, selectedNodes, tupleType) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
@@ -161,21 +155,20 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const allNodes = [...newNodes, ...leftoverNodes];
 
-    const selectedNodes = [...prev.selectedNodes, ...addedElements].filter(
+    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
       (node) => domain.includes(node),
     );
 
-    return { ...prev, nodes: allNodes, selectedNodes };
+    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
   },
 
   filterNodesToShow(
     state,
     unaryFilterDomain,
+    selectedNodes,
     relevantNodes,
     hoveredPredicateIntr,
   ) {
-    const selected = [...state.selectedNodes];
-
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? []),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
@@ -184,7 +177,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const filteredNodes = state.nodes.filter(
       (node) =>
         node.data.leftover ||
-        (selected.includes(node.id.slice("d-".length)) &&
+        (selectedNodes.includes(node.id.slice("d-".length)) &&
           (relevantNodesWithHovered.length === 0 ||
             !unaryFilterDomain ||
             relevantNodesWithHovered?.includes(node.id.slice("d-".length)))),
@@ -192,7 +185,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const isGhost = (node: BipartiteNodeType) =>
       !node.data.leftover &&
-      selected.includes(node.id.slice("d-".length)) &&
+      selectedNodes.includes(node.id.slice("d-".length)) &&
       !(relevantNodes?.includes(node.id.slice("d-".length)) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id.slice("d-".length));
 
@@ -214,8 +207,8 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return state.edges;
   },
 
-  toggleNodes(state, node) {
-    let newSelected = [...state.selectedNodes];
+  toggleNodes(state, node, selectedNodes) {
+    let newSelected = [...selectedNodes];
     const allNodes = state.nodes;
 
     if (node === "")
@@ -226,7 +219,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       newSelected = newSelected.filter((selectedNode) => selectedNode != node);
     else newSelected.push(node);
 
-    return { ...state, selectedNodes: newSelected };
+    return [state, newSelected];
   },
 
   syncPredIntr(prev, intr, tupleType) {
