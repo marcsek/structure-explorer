@@ -157,7 +157,7 @@ export const selectParsedDomain = createSelector(
   [selectDomainText],
   (domain) => {
     try {
-      let parsedDomain = parseDomain(domain);
+      const parsedDomain = parseDomain(domain);
       if (parsedDomain.length === 0)
         return {
           error: new Error("Domain cannot be empty"),
@@ -389,13 +389,13 @@ export const selectStructureErrors = createSelector(
       }
     }
 
-    for (const [name, _] of predicates.parsed ?? []) {
+    for (const [name] of predicates.parsed ?? []) {
       if (selectParsedPredicate(state, name).error !== undefined) {
         return false;
       }
     }
 
-    for (const [name, _] of functions.parsed ?? []) {
+    for (const [name] of functions.parsed ?? []) {
       if (selectParsedFunction(state, name).error !== undefined) {
         return false;
       }

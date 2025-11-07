@@ -6,6 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
+  user-select: none;
 }
 
 .error-dialog-container.center {
@@ -16,8 +18,8 @@
 }
 
 .error-dialog-container.corner {
-  top: 0.5rem;
-  left: 0.5rem;
+  bottom: 0.5rem;
+  right: 0.5rem;
   padding-inline: 0;
 }
 
@@ -37,7 +39,7 @@
 
 .error-dialog-container.corner .error-dialog {
   padding: 0.5rem;
-  max-width: 275px;
+  max-width: 300px;
   align-items: center;
   gap: 0.5rem;
 }
@@ -91,6 +93,9 @@
 .error-dialog-container.error .error-dialog-icon {
   border-color: var(--bs-danger-border-subtle);
   color: var(--bs-danger);
+}
+
+.error-dialog-container.corner.error .error-dialog-icon {
   background: none;
   background-color: color-mix(
     in srgb,
@@ -102,6 +107,9 @@
 .error-dialog-container.warning .error-dialog-icon {
   border-color: var(--bs-warning-border-subtle);
   color: var(--bs-warning);
+}
+
+.error-dialog-container.corner.warning .error-dialog-icon {
   background: none;
   background-color: color-mix(
     in srgb,
@@ -113,6 +121,9 @@
 .error-dialog-container.info .error-dialog-icon {
   border-color: var(--bs-info-border-subtle);
   color: var(--bs-info);
+}
+
+.error-dialog-container.corner.info .error-dialog-icon {
   background: none;
   background-color: color-mix(
     in srgb,

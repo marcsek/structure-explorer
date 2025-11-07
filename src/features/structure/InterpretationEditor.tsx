@@ -110,12 +110,8 @@ export default function InterpretationEditorProps({
   }
 
   return (
-    <>
-      <Stack
-        direction="horizontal"
-        gap={3}
-        className="align-items-start justify-content-between"
-      >
+    <Stack gap={3}>
+      <Stack direction="horizontal" gap={3} className="align-items-start">
         {selectedEditor === "text" ? (
           <InputGroupTitle
             label=""
@@ -130,7 +126,7 @@ export default function InterpretationEditorProps({
             error={error}
           />
         ) : (
-          <span className="input-group-text mb-3 w-auto">
+          <span className="input-group-text w-auto">
             <InlineMath>{prefixRawNoEnd}</InlineMath>
           </span>
         )}
@@ -146,9 +142,9 @@ export default function InterpretationEditorProps({
       </Stack>
 
       {selectedEditor !== "text" && selectedEditor !== "matrix" && (
-        <div className="d-flex flex-column gap-3">
+        <Stack gap={2}>
           <GraphToolbar id={name} type={selectedEditor} />
-          <div className="mb-3">
+          <div>
             <Card className={`${error ? "border-danger" : ""}`}>
               <CardBody>
                 <GraphView
@@ -161,9 +157,9 @@ export default function InterpretationEditorProps({
             </Card>
             <p className="text-danger small mt-1">{error?.message}</p>
           </div>
-        </div>
+        </Stack>
       )}
-    </>
+    </Stack>
   );
 }
 
@@ -194,7 +190,7 @@ function ControlButtons<T extends string | number>({
   const buttonId = (value: string | number) => `${id}-${value}`;
 
   return (
-    <ButtonGroup id={id} className="w-auto flex-nowrap mb-3">
+    <ButtonGroup id={id} className="ms-auto">
       {buttons.map((b) => {
         if ("dropDown" in b) {
           const childValues = b.dropDown!.map((ch) => ch.value);

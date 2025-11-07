@@ -44,7 +44,6 @@ export default function GearButton() {
         variant="secondary"
         title={<FontAwesomeIcon icon={faGear} />}
         autoClose={false}
-        className="mt-2"
       >
         <Dropdown.Item onClick={handleImportClick}>Import</Dropdown.Item>
         <Dropdown.Item onClick={() => dispatch(exportAppState())}>

@@ -1,41 +1,32 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import StructureComponent from "./features/structure/StructureComponent";
 import VariablesComponent from "./features/variables/VariablesComponent";
-import { Col, Container, Row } from "react-bootstrap";
+import { Col, Container, Row, Stack } from "react-bootstrap";
 import LanguageComponent from "./features/language/LanguageComponent";
-import GearButton from "./features/import/GearButton";
-import { useAppSelector } from "./app/hooks";
-import { selectTeacherMode } from "./features/teacherMode/teacherModeslice";
 import FormulaCard from "./features/formulas/FormulaCard";
 import "./App.css";
 import usePreset from "./usePreset";
+import Header from "./components_helper/Header";
 
 function App() {
   usePreset();
 
-  const teacherMode = useAppSelector(selectTeacherMode);
-
   return (
-    <>
-      <Container fluid>
-        <GearButton /> Teacher mode:
-        {teacherMode === false
-          ? " Off"
-          : teacherMode === true
-            ? " On"
-            : " Undefined"}
-        <Row>
-          <Col className="min-w-0">
+    <Container fluid className="mt-2 mb-2">
+      <Header />
+      <Row>
+        <Col xs={12} lg={6}>
+          <Stack gap={3}>
             <LanguageComponent />
             <StructureComponent />
             <VariablesComponent />
-          </Col>
-          <Col>
-            <FormulaCard />
-          </Col>
-        </Row>
-      </Container>
-    </>
+          </Stack>
+        </Col>
+        <Col xs={12} lg={6}>
+          <FormulaCard />
+        </Col>
+      </Row>
+    </Container>
   );
 }
 

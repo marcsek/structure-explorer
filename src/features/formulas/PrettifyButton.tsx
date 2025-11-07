@@ -10,7 +10,7 @@ export default function PrettifyButton() {
   const allFormulas = useAppSelector(selectFormulas);
   const dispatch = useAppDispatch();
   const evaluatedFormulas = useAppSelector((state) =>
-    allFormulas.map((_, id) => selectEvaluatedFormula(state, id))
+    allFormulas.map((_, id) => selectEvaluatedFormula(state, id)),
   );
 
   const prettifyAll = () => {

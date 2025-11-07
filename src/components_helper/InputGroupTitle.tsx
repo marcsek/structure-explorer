@@ -33,13 +33,13 @@ export default function InputGroupTitle({
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
   return (
-    <>
+    <Form.Group className="w-100">
       {label != "" && (
         <Form.Label htmlFor={`${id}-${label.toLowerCase()}`}>
           {label}
         </Form.Label>
       )}
-      <InputGroup className="mb-3" hasValidation={!!error}>
+      <InputGroup hasValidation={!!error}>
         <InputGroup.Text>{prefix}</InputGroup.Text>
         <Form.Control
           className="flex-grow-1"
@@ -63,6 +63,6 @@ export default function InputGroupTitle({
 
         <ErrorFeedback error={error} text={text}></ErrorFeedback>
       </InputGroup>
-    </>
+    </Form.Group>
   );
 }

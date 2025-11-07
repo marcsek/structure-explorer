@@ -1,7 +1,5 @@
-import { Col, Row, Table } from "react-bootstrap";
-import Card from "react-bootstrap/Card";
+import { Table } from "react-bootstrap";
 import FormulaComponent from "./FormulaComponent";
-import TooltipButton from "../../components_helper/TooltipButton";
 import Button from "react-bootstrap/Button";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectFormulas, type FormulaState, addFormula } from "./formulasSlice";
@@ -9,46 +7,41 @@ import { InlineMath } from "react-katex";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
+import ComponentCard from "../../components_helper/ComponentCard";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
   const allFormulas = useAppSelector(selectFormulas);
 
   return (
-    <>
-      <Card className="mb-3 mt-3">
-        <Card.Header as="h4">
-          <Row>
-            <Col>
-              Truth of formulas in{" "}
-              <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
-            </Col>
-            <Col xs="auto">
-              <TooltipButton text={help}></TooltipButton>
-            </Col>
-          </Row>
-        </Card.Header>
-        <Card.Body>
-          {allFormulas.length > 0 && <PrettifyButton />}
+    <ComponentCard
+      heading={
+        <span>
+          Truth of formulas in{" "}
+          <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
+        </span>
+      }
+      help={help}
+    >
+      {allFormulas.length > 0 && <PrettifyButton />}
 
-          {allFormulas.map((formula: FormulaState, index: number) => (
-            <FormulaComponent
-              id={index}
-              key={index}
-              text={formula.text}
-              guess={formula.guess}
-            />
-          ))}
+      {allFormulas.map((formula: FormulaState, index: number) => (
+        <FormulaComponent
+          id={index}
+          key={index}
+          text={formula.text}
+          guess={formula.guess}
+        />
+      ))}
 
-          <Button variant="success" onClick={() => dispatch(addFormula())}>
-            <FontAwesomeIcon icon={faPlus} /> Add
-          </Button>
-        </Card.Body>
-      </Card>
-    </>
+      <Button variant="success" onClick={() => dispatch(addFormula())}>
+        <FontAwesomeIcon icon={faPlus} /> Add
+      </Button>
+    </ComponentCard>
   );
 }
 
+/* eslint-disable */
 const help = (
   <>
     <p>
