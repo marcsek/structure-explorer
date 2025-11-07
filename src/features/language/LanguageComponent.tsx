@@ -20,7 +20,7 @@ import {
   lockFunctions,
   updatePredicates,
 } from "./languageSlice";
-import ComponentCard from "../../components_helper/ComponentCard";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();

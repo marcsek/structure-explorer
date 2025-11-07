@@ -8,7 +8,7 @@ import {
   selectVariablesText,
   updateVariables,
 } from "./variablesSlice";
-import ComponentCard from "../../components_helper/ComponentCard";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function VariablesComponent() {
   const dispatch = useAppDispatch();

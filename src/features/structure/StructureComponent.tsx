@@ -26,7 +26,7 @@ import {
   selectParsedPredicates,
 } from "../language/languageSlice";
 import InterpretationEditor from "./InterpretationEditor";
-import ComponentCard from "../../components_helper/ComponentCard";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function StructureComponent() {
   const dispatch = useAppDispatch();
@@ -63,7 +63,7 @@ export default function StructureComponent() {
 
         {constants.parsed && constants.parsed.size > 0 && (
           <div>
-            <h3 className="h6">Constants interpretation</h3>
+            <h3 className="h6 fw-normal">Constants interpretation</h3>
 
             <Stack gap={3}>
               {Array.from(constants.parsed ?? []).map((name, index) => (
@@ -93,7 +93,7 @@ export default function StructureComponent() {
 
         {predicates.parsed && predicates.parsed.size > 0 && (
           <div>
-            <h3 className="h6">Predicates interpretation</h3>
+            <h3 className="h6 fw-normal">Predicates interpretation</h3>
 
             <Stack gap={3}>
               {Array.from(predicates.parsed ?? []).map(([name], index) => (
@@ -123,7 +123,7 @@ export default function StructureComponent() {
 
         {functions.parsed && functions.parsed.size > 0 && (
           <div>
-            <h3 className="h6">Functions interpretation</h3>
+            <h3 className="h6 fw-normal">Functions interpretation</h3>
 
             <Stack gap={3}>
               {Array.from(functions.parsed ?? []).map(([from], index) => (

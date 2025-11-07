@@ -29,7 +29,7 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
       onToggle={() => setShow(!show)}
     >
       <Button
-        className="ms-auto"
+        className="ms-auto bg-white"
         variant="outline-info"
         style={{ padding: "0.2rem 0.4rem" }}
         title="Help"

@@ -1,0 +1,17 @@
+.component-card {
+  border: var(--bs-border-width) solid var(--bs-light-border-subtle);
+}
+
+.component-card-header {
+  border: none;
+  background-color: transparent;
+  border-bottom: var(--bs-border-width) solid var(--bs-light-border-subtle);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--bs-light-border-subtle) 50%, transparent),
+    color-mix(in srgb, var(--bs-light-border-subtle) 50%, transparent) 1px,
+    color-mix(in srgb, gray 0%, transparent) 1px,
+    color-mix(in srgb, gray 0%, transparent) 16px
+  );
+}

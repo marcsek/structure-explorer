@@ -7,7 +7,7 @@ import { InlineMath } from "react-katex";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
-import ComponentCard from "../../components_helper/ComponentCard";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
