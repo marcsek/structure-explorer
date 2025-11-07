@@ -78,15 +78,17 @@ export function staysValidHasseWithEdge<T>(
   relation: BinaryRelation<T>,
   [from, to]: [T, T],
   preserveEdges: boolean = true,
-) {
-  if (from === to) return false;
+): [boolean, string] {
+  if (from === to) return [false, "Source same as target."];
 
   const succMap = buildSuccessorMap(relation);
 
-  if (succMap.get(from)?.has(to)) return false;
+  if (succMap.get(from)?.has(to)) return [false, "Edge already exists."];
 
-  if (isReachable(to, from, succMap) || isReachable(from, to, succMap))
-    return false;
+  if (isReachable(to, from, succMap)) return [false, "Edge creates a cycle."];
+
+  if (isReachable(from, to, succMap))
+    return [false, "Indirect path already exists."];
 
   if (preserveEdges) {
     if (!succMap.has(from)) succMap.set(from, new Set());
@@ -98,13 +100,17 @@ export function staysValidHasseWithEdge<T>(
 
       succMap.get(a)?.delete(b);
 
-      if (isReachable(a, b, succMap)) return false;
+      if (isReachable(a, b, succMap))
+        return [
+          false,
+          "Edge introduces redundancy considering the whole interpretation.",
+        ];
 
       succMap.get(a)?.add(b);
     }
   }
 
-  return true;
+  return [true, ""];
 }
 
 function buildSuccessorMap<T>(relation: BinaryRelation<T>) {

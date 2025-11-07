@@ -9,6 +9,7 @@ export type BipartiteGraphState = {
   edges: DirectEdgeType[];
   selectedPreds: string[];
   selectedNodes: string[];
+  warning?: string;
 };
 
 const createNode = (

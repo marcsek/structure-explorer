@@ -135,6 +135,7 @@ export default function PredicateNode({
       <div className="handle-container">
         {!connection.inProgress && (
           <Handle
+            id={`source-${id}`}
             className="predicateNodeHandle source"
             position={Position.Right}
             type="source"
@@ -145,6 +146,7 @@ export default function PredicateNode({
 
         {(!connection.inProgress || isTarget) && (
           <Handle
+            id={`target-${id}`}
             className="predicateNodeHandle target"
             position={Position.Left}
             type="target"

@@ -27,12 +27,13 @@ import {
   onNodesChanged,
   selectEdges,
   selectPosetValidity,
+  warningChanged,
 } from "../graphSlice.ts";
 import { staysValidHasseWithEdge, type BinaryRelation } from "./posetHelpers";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
-import ErrorDialog from "./ErrorDialog/ErrorDialog.tsx";
+import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { computeLayoutHasse } from "./layout.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
@@ -76,6 +77,9 @@ export default function HasseDiagram({
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector((state) => selectEdges(state, id, type, true));
+  const warning = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.warning,
+  );
 
   const { fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -145,13 +149,38 @@ export default function HasseDiagram({
         .filter((e) => !e.data?.helper)
         .map((e) => [e.source, e.target]);
 
-      return staysValidHasseWithEdge(relation, [
+      const [ok, error] = staysValidHasseWithEdge(relation, [
         newEdge.source,
         newEdge.target,
       ]);
+
+      if (!ok) dispatch(warningChanged({ id, type, warning: error }));
+
+      return ok;
     },
-    [edges],
+    [dispatch, edges, id],
   );
+
+  const onConnectEnd = useCallback(() => {
+    dispatch(warningChanged({ id, type, warning: undefined }));
+  }, [dispatch, id]);
+
+  let messageDialog;
+
+  if (!isPoset)
+    messageDialog = (
+      <MessageDialog
+        type="error"
+        position="center"
+        title="Invalid poset"
+        body="This predicate’s interpretation does not form a valid poset. Adjust
+            it to enable this editor."
+      />
+    );
+  else if (warning)
+    messageDialog = (
+      <MessageDialog type="error" position="corner" body={warning} />
+    );
 
   return (
     <div
@@ -165,6 +194,7 @@ export default function HasseDiagram({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
         fitViewOptions={fitViewOptions}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -189,7 +219,7 @@ export default function HasseDiagram({
           onLayout={onLayout}
         />
       </ReactFlow>
-      {!isPoset && <ErrorDialog />}
+      {messageDialog}
     </div>
   );
 }

@@ -1,0 +1,122 @@
+.error-dialog-container {
+  position: absolute;
+  max-height: 160px;
+  background-color: transparent;
+  padding-inline: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-dialog-container.center {
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateX(0%) translateY(-50%);
+}
+
+.error-dialog-container.corner {
+  top: 0.5rem;
+  left: 0.5rem;
+  padding-inline: 0;
+}
+
+.error-dialog {
+  max-width: 480px;
+  background-color: white;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+
+  padding: 1rem;
+
+  display: flex;
+  gap: 1rem;
+
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.error-dialog-container.corner .error-dialog {
+  padding: 0.5rem;
+  max-width: 275px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.error-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.error-dialog-container.corner .error-dialog-body {
+  line-height: 1;
+}
+
+.error-dialog-title {
+  margin: 0;
+  line-height: 1;
+}
+
+.error-dialog-container.corner .error-dialog-title {
+  font-size: 14px;
+}
+
+.error-dialog-description {
+  margin: 0;
+  color: var(--bs-secondary-text-emphasis);
+  font-size: 14px;
+}
+
+.error-dialog-icon {
+  display: flex;
+  height: fit-content;
+  padding: 0.5rem;
+  border: var(--bs-border-width) solid var(--bs-danger-border-subtle);
+  border-radius: var(--bs-border-radius);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, currentColor 20%, transparent),
+    color-mix(in srgb, currentColor 20%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 10px
+  );
+}
+
+.error-dialog-container.corner.error .error-dialog-icon,
+.error-dialog-container.corner.warning .error-dialog-icon {
+  padding: 0.5rem;
+}
+
+.error-dialog-container.error .error-dialog-icon {
+  border-color: var(--bs-danger-border-subtle);
+  color: var(--bs-danger);
+  background: none;
+  background-color: color-mix(
+    in srgb,
+    var(--bs-danger-bg-subtle) 50%,
+    transparent
+  );
+}
+
+.error-dialog-container.warning .error-dialog-icon {
+  border-color: var(--bs-warning-border-subtle);
+  color: var(--bs-warning);
+  background: none;
+  background-color: color-mix(
+    in srgb,
+    var(--bs-warning-bg-subtle) 50%,
+    transparent
+  );
+}
+
+.error-dialog-container.info .error-dialog-icon {
+  border-color: var(--bs-info-border-subtle);
+  color: var(--bs-info);
+  background: none;
+  background-color: color-mix(
+    in srgb,
+    var(--bs-info-bg-subtle) 50%,
+    transparent
+  );
+}

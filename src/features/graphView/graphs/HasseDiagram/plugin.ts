@@ -14,6 +14,7 @@ export type HasseDiagramState = {
   edges: DirectEdgeType[];
   selectedPreds: string[];
   selectedNodes: string[];
+  warning?: string;
 };
 
 const createNode = (

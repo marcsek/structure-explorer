@@ -28,12 +28,14 @@ import {
   onConnected,
   onEdgesChanged,
   onNodesChanged,
+  warningChanged,
 } from "../graphSlice.ts";
 import { generateLayoutNodesChangesBipartite } from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
+import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: "domain" | "range";
@@ -99,6 +101,9 @@ export default function BipartiteGraph({
   const representsFunction = useAppSelector(
     (state) => state.graphView[id].tupleType === "function",
   );
+  const warning = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.warning,
+  );
 
   const { getNode, fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -154,14 +159,28 @@ export default function BipartiteGraph({
         getNode(newEdge.source)?.data.origin ===
         getNode(newEdge.target)?.data.origin;
 
+      if (duplicateEdge)
+        dispatch(warningChanged({ id, type, warning: "Edge already exists." }));
+      else if (identicalOrigin)
+        dispatch(
+          warningChanged({ id, type, warning: "Both nodes are in domain." }),
+        );
+
       return !duplicateEdge && !identicalOrigin;
     },
-    [edges, getNode],
+    [dispatch, edges, getNode, id],
   );
+
+  const onConnectEnd = useCallback(() => {
+    dispatch(warningChanged({ id, type, warning: undefined }));
+  }, [dispatch, id]);
 
   return (
     <>
-      <div style={{ width: "100%", flexGrow: 1 }} ref={flowWrapper}>
+      <div
+        style={{ width: "100%", flexGrow: 1, position: "relative" }}
+        ref={flowWrapper}
+      >
         <ReactFlow
           id={id}
           nodes={nodes}
@@ -169,6 +188,7 @@ export default function BipartiteGraph({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
           fitView
           fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
@@ -191,6 +211,9 @@ export default function BipartiteGraph({
             }}
           />
         </ReactFlow>
+        {warning && (
+          <MessageDialog type="error" position="corner" body={warning} />
+        )}
       </div>
     </>
   );

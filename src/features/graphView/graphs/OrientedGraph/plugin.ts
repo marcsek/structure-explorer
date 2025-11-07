@@ -8,6 +8,7 @@ export type OrientedGraphState = {
   edges: DirectEdgeType[];
   selectedPreds: string[];
   selectedNodes: string[];
+  warning?: string;
 };
 
 const createNode = (

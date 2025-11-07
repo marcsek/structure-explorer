@@ -4,6 +4,10 @@ import {
   type ConnectionLineComponentProps,
 } from "@xyflow/react";
 import { getEdgeParams } from "../../helpers/utils";
+import { useDispatch } from "react-redux";
+import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
+import { useEffect } from "react";
+import { warningChanged } from "../graphSlice";
 
 export default function CustomConnectionLine({
   fromX,
@@ -15,6 +19,8 @@ export default function CustomConnectionLine({
   toNode,
 }: ConnectionLineComponentProps) {
   const connection = useConnection();
+  const dispatch = useDispatch();
+  const parentInfo = useGraphInfo();
 
   const isValid = connection.isValid && toNode;
 
@@ -25,6 +31,11 @@ export default function CustomConnectionLine({
   const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
 
   const marker = isValid ? "url(#connection-marker)" : "";
+
+  useEffect(() => {
+    if (!connection.toHandle?.id || connection.isValid)
+      dispatch(warningChanged({ ...parentInfo, warning: undefined }));
+  }, [connection.toHandle?.id, connection.isValid, dispatch, parentInfo]);
 
   return (
     <g>

@@ -25,6 +25,7 @@ import {
   onConnected,
   onEdgesChanged,
   onNodesChanged,
+  warningChanged,
 } from "../graphSlice.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
@@ -32,6 +33,7 @@ import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
+import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -76,6 +78,10 @@ export default function OrientedGraph({
   const representsFunction = useAppSelector(
     (state) => state.graphView[id].tupleType === "function",
   );
+  const warning = useAppSelector(
+    (state) => state.graphView[id]?.state[type]?.warning,
+  );
+
   const [didLayout, setDidLayout] = useState(false);
 
   const { fitView } = useReactFlow();
@@ -143,18 +149,30 @@ export default function OrientedGraph({
   );
 
   const isValidConnection: IsValidConnection = useCallback(
-    (newEdge) =>
-      // no duplicate edges
-      !edges.some(
+    (newEdge) => {
+      const duplicateEdges = edges.some(
         (edge) =>
           newEdge.source === edge.source && newEdge.target === edge.target,
-      ),
-    [edges],
+      );
+
+      if (duplicateEdges)
+        dispatch(warningChanged({ id, type, warning: "Edge already exists." }));
+
+      return !duplicateEdges;
+    },
+    [dispatch, edges, id],
   );
+
+  const onConnectEnd = useCallback(() => {
+    dispatch(warningChanged({ id, type, warning: undefined }));
+  }, [dispatch, id]);
 
   return (
     <>
-      <div style={{ width: "100%", flexGrow: 1 }} ref={flowWrapper}>
+      <div
+        style={{ width: "100%", flexGrow: 1, position: "relative" }}
+        ref={flowWrapper}
+      >
         <ReactFlow
           id={id}
           nodes={didLayout ? nodes : []}
@@ -162,6 +180,7 @@ export default function OrientedGraph({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
           fitView
           fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
@@ -185,6 +204,9 @@ export default function OrientedGraph({
             onLayout={onLayout}
           />
         </ReactFlow>
+        {warning && (
+          <MessageDialog type="error" position="corner" body={warning} />
+        )}
       </div>
     </>
   );

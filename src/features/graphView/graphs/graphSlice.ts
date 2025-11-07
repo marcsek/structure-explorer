@@ -259,6 +259,15 @@ export const graphManagerSlice = createSlice({
           selectable: !locked && e.focusable !== false,
         }));
     },
+
+    warningChanged(
+      state,
+      action: PayloadAction<WithGraphId<{ warning?: string }>>,
+    ) {
+      const { id, type, warning } = action.payload;
+
+      if (state[id]) state[id].state[type].warning = warning;
+    },
   },
 });
 
@@ -584,6 +593,7 @@ export const {
   predicateHovered,
   unaryFilterDomainToggled,
   unaryFilterDomainHovered,
+  warningChanged,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;
