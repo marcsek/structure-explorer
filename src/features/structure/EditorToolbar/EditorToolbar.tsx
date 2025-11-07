@@ -14,7 +14,11 @@ import type { GraphType } from "../../graphView/graphs/plugins";
 import { useEffect, useRef, useState } from "react";
 import { selectParsedDomain } from "../structureSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faCheckDouble,
+  faFilter,
+} from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
@@ -120,10 +124,13 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                     <span
                       className="dot"
                       style={{
-                        backgroundColor:
-                          unaryPredsColors[idx % unaryPredsColors.length],
+                        color: unaryPredsColors[idx % unaryPredsColors.length],
                       }}
-                    ></span>
+                    >
+                      {selectedPreds.includes(pred) && (
+                        <FontAwesomeIcon icon={faCheck} />
+                      )}
+                    </span>
                     <p
                       style={{
                         color: selectedPreds.includes(pred)
