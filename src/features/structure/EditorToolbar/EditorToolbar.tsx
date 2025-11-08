@@ -20,6 +20,7 @@ import {
   faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
+import { Stack } from "react-bootstrap";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
 
@@ -43,113 +44,127 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-end",
-        gap: "1rem",
-        flexShrink: 1,
-        flexGrow: 0,
-        width: "100%",
-        maxWidth: "100%",
-        minWidth: 0,
-      }}
-    >
-      {unaryPreds.length > 0 ? (
-        <div className="legend-container">
-          <p>Unary Predicates</p>
-          <div className="legend-toolbar">
-            <button
-              className={`legend-button domain-button ${!unaryFilterDomain ? "active" : ""}`}
-              title="Select domain"
-              onClick={() => dispatch(unaryFilterDomainToggled({ id, type }))}
-              onMouseEnter={() =>
-                dispatch(unaryFilterDomainHovered({ id, type, hovered: true }))
-              }
-              onMouseLeave={() =>
-                dispatch(unaryFilterDomainHovered({ id, type, hovered: false }))
-              }
-            >
-              <InlineMath>{String.raw`\mathcal{D}`}</InlineMath>
-            </button>
-            <div className="divider-legend" />
-            <fieldset className="legend-group">
-              <>
-                <button
-                  className="legend-button legend-select-all"
-                  title="Select all"
-                  onClick={handleSelectAll}
-                  onMouseEnter={() =>
-                    dispatch(
-                      predicateHovered({
-                        id,
-                        type,
-                        predicates: unaryPreds.map((p) => p[0]),
-                      }),
-                    )
-                  }
-                  onMouseLeave={() =>
-                    dispatch(predicateHovered({ id, type, predicates: [] }))
-                  }
-                >
-                  <FontAwesomeIcon icon={faCheckDouble} />
-                </button>
-                {unaryPreds.map(([pred], idx) => (
-                  <label
-                    key={pred}
-                    className="chip"
-                    style={{
-                      color: unaryPredsColors[idx % unaryPredsColors.length],
-                    }}
+    <div>
+      {/* <p className="m-0" style={{ flexShrink: 0 }}> */}
+      {/*   Interpretation Filters */}
+      {/* </p> */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: "1rem",
+          flexShrink: 1,
+          flexGrow: 0,
+          width: "100%",
+          maxWidth: "100%",
+          minWidth: 0,
+        }}
+      >
+        {unaryPreds.length > 0 ? (
+          <div className="legend-container">
+            <div className="legend-toolbar">
+              <button
+                className={`legend-button domain-button ${!unaryFilterDomain ? "active" : ""}`}
+                title="Select domain"
+                onClick={() => dispatch(unaryFilterDomainToggled({ id, type }))}
+                onMouseEnter={() =>
+                  dispatch(
+                    unaryFilterDomainHovered({ id, type, hovered: true }),
+                  )
+                }
+                onMouseLeave={() =>
+                  dispatch(
+                    unaryFilterDomainHovered({ id, type, hovered: false }),
+                  )
+                }
+              >
+                <InlineMath>{String.raw`\mathcal{D}`}</InlineMath>
+              </button>
+              <div className="divider-legend" />
+              <fieldset className="legend-group">
+                <>
+                  <button
+                    className="legend-button legend-select-all"
+                    title="Select all"
+                    onClick={handleSelectAll}
                     onMouseEnter={() =>
                       dispatch(
-                        predicateHovered({ id, type, predicates: [pred] }),
+                        predicateHovered({
+                          id,
+                          type,
+                          predicates: unaryPreds.map((p) => p[0]),
+                        }),
                       )
                     }
                     onMouseLeave={() =>
                       dispatch(predicateHovered({ id, type, predicates: [] }))
                     }
                   >
-                    <input
-                      type="checkbox"
-                      name="unary preds"
-                      checked={selectedPreds.includes(pred)}
-                      onChange={() =>
-                        dispatch(
-                          unaryPredicateToggled({ id, type, predicate: pred }),
-                        )
-                      }
-                    />
-                    <span
-                      className="dot"
+                    <FontAwesomeIcon icon={faCheckDouble} />
+                  </button>
+                  {unaryPreds.map(([pred], idx) => (
+                    <label
+                      key={pred}
+                      className="chip"
                       style={{
                         color: unaryPredsColors[idx % unaryPredsColors.length],
                       }}
+                      onMouseEnter={() =>
+                        dispatch(
+                          predicateHovered({ id, type, predicates: [pred] }),
+                        )
+                      }
+                      onMouseLeave={() =>
+                        dispatch(predicateHovered({ id, type, predicates: [] }))
+                      }
                     >
-                      {selectedPreds.includes(pred) && (
-                        <FontAwesomeIcon icon={faCheck} />
-                      )}
-                    </span>
-                    <p
-                      style={{
-                        color: selectedPreds.includes(pred)
-                          ? unaryPredsColors[idx % unaryPredsColors.length]
-                          : "",
-                      }}
-                    >
-                      {pred}
-                    </p>
-                  </label>
-                ))}
-              </>
-            </fieldset>
+                      <input
+                        type="checkbox"
+                        name="unary preds"
+                        checked={selectedPreds.includes(pred)}
+                        onChange={() =>
+                          dispatch(
+                            unaryPredicateToggled({
+                              id,
+                              type,
+                              predicate: pred,
+                            }),
+                          )
+                        }
+                      />
+                      <span
+                        className="dot"
+                        style={{
+                          color:
+                            unaryPredsColors[idx % unaryPredsColors.length],
+                        }}
+                      >
+                        {selectedPreds.includes(pred) && (
+                          <FontAwesomeIcon icon={faCheck} />
+                        )}
+                      </span>
+                      <p
+                        style={{
+                          color: selectedPreds.includes(pred)
+                            ? unaryPredsColors[idx % unaryPredsColors.length]
+                            : "",
+                        }}
+                      >
+                        {pred}
+                      </p>
+                    </label>
+                  ))}
+                </>
+              </fieldset>
+            </div>
           </div>
-        </div>
-      ) : (
-        <p style={{ margin: 0 }}>No unary predicates</p>
-      )}
-      <DomainElementsSelector id={id} type={type} />
+        ) : (
+          <p style={{ margin: 0 }}>No unary predicates</p>
+        )}
+        <DomainElementsSelector id={id} type={type} />
+      </div>
     </div>
   );
 }

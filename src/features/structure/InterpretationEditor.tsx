@@ -11,7 +11,6 @@ import { InlineMath } from "react-katex";
 import {
   ButtonGroup,
   Card,
-  CardBody,
   Stack,
   ToggleButton,
   Dropdown,
@@ -39,6 +38,14 @@ interface InterpretationEditorProps {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
 }
+
+const editorTypeFullNameLookup: Record<EditorType, string> = {
+  oriented: "Oriented Graph",
+  hasse: "Hasse Diagram",
+  bipartite: "Bipartite Graph",
+  matrix: "Matrix Editor",
+  text: "Text Editor",
+};
 
 export default function InterpretationEditorProps({
   name,
@@ -125,9 +132,40 @@ export default function InterpretationEditorProps({
             error={error}
           />
         ) : (
-          <span className="input-group-text w-auto">
-            <InlineMath>{prefixRawNoEnd}</InlineMath>
-          </span>
+          <Stack direction="horizontal" className="flex-grow-1" gap={3}>
+            <Stack
+              direction="horizontal"
+              className="input-group-text w-auto flex-wrap flex-shrink-0"
+              gap={3}
+            >
+              <span className="text-body-secondary fw-light">
+                <InlineMath>{prefixRawNoEnd}</InlineMath>
+              </span>
+
+              <span className="text-body-secondary">/</span>
+              <span className="text-body text-capitalize fw-medium">
+                {editorTypeFullNameLookup[selectedEditor]}
+              </span>
+            </Stack>
+            <svg
+              width="100%"
+              style={{
+                height: "1px",
+                width: "100%",
+              }}
+            >
+              <line
+                x1="0"
+                y1="1"
+                x2="100%"
+                y2="1"
+                stroke="var(--bs-light-border-subtle)"
+                stroke-width="2"
+                stroke-dasharray="16 16"
+                stroke-dashoffset="2"
+              />
+            </svg>
+          </Stack>
         )}
 
         {isTuple && (
@@ -141,18 +179,18 @@ export default function InterpretationEditorProps({
       </Stack>
 
       {selectedEditor !== "text" && selectedEditor !== "matrix" && (
-        <Stack gap={2}>
+        <Stack gap={2} className="border border-light-subtle border-0 rounded">
           <GraphToolbar id={name} type={selectedEditor} />
           <div>
-            <Card className={`${error ? "border-danger" : ""}`}>
-              <CardBody>
+            <Card className={`${error ? "border-danger" : "border-0"}`}>
+              <Card.Body className="p-2 border border-light-subtle rounded">
                 <GraphView
                   predName={name}
                   graphType={selectedEditor}
                   enableNodeFiltering={!isFunction}
                   locked={interpretation?.locked}
                 />
-              </CardBody>
+              </Card.Body>
             </Card>
             <p className="text-danger small mt-1">{error?.message}</p>
           </div>
