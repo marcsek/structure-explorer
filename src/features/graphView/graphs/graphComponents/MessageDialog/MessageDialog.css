@@ -26,7 +26,7 @@
 .error-dialog {
   max-width: 480px;
   background-color: white;
-  border: var(--bs-border-width) solid var(--bs-border-color);
+  border: var(--bs-border-width) solid var(--bs-light-border-subtle);
   border-radius: var(--bs-border-radius);
 
   padding: 1rem;

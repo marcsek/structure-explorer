@@ -160,9 +160,9 @@ export default function InterpretationEditorProps({
                 x2="100%"
                 y2="1"
                 stroke="var(--bs-light-border-subtle)"
-                stroke-width="2"
-                stroke-dasharray="16 16"
-                stroke-dashoffset="2"
+                strokeWidth="2"
+                strokeDasharray="16 16"
+                strokeDashoffset="2"
               />
             </svg>
           </Stack>

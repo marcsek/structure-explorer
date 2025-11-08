@@ -341,7 +341,7 @@ export const selectRelevantDomainElements = createSelector(
       includeHovered: boolean = false,
     ) => includeHovered,
   ],
-  (struct, state, id, includeHovered) => {
+  (struct, state, id, _, includeHovered) => {
     const selectedPreds = [...(state.graphView[id]?.selectedUnary ?? [])];
 
     if (includeHovered) {
@@ -353,9 +353,13 @@ export const selectRelevantDomainElements = createSelector(
     if (selectedPreds.length === 0 || !state.graphView[id].unaryFilterDomain)
       return undefined;
 
-    return selectedPreds.flatMap((pred) =>
-      [...(struct.iP.get(pred)?.values() ?? [])].flat(),
-    );
+    return [
+      ...new Set(
+        selectedPreds.flatMap((pred) =>
+          [...(struct.iP.get(pred)?.values() ?? [])].flat(),
+        ),
+      ),
+    ];
   },
 );
 

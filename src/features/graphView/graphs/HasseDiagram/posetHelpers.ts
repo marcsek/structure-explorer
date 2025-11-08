@@ -103,7 +103,7 @@ export function staysValidHasseWithEdge<T>(
       if (isReachable(a, b, succMap))
         return [
           false,
-          "Edge introduces redundancy considering the whole interpretation.",
+          "Edge introduces redundancy when considering the whole interpretation.",
         ];
 
       succMap.get(a)?.add(b);

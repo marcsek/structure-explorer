@@ -16,7 +16,7 @@ export default function MessageDialog({
 }) {
   return (
     <div className={`error-dialog-container ${type} ${position}`}>
-      <div className="error-dialog">
+      <div className="error-dialog shadow-sm">
         <span className="error-dialog-icon">
           <FontAwesomeIcon icon={faWarning} />
         </span>
