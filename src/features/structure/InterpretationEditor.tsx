@@ -14,7 +14,6 @@ import {
   CardBody,
   Stack,
   ToggleButton,
-  DropdownButton,
   Dropdown,
 } from "react-bootstrap";
 import GraphView from "../graphView/components/GraphView/GraphView";
@@ -194,30 +193,30 @@ function ControlButtons<T extends string | number>({
       {buttons.map((b) => {
         if ("dropDown" in b) {
           const childValues = b.dropDown!.map((ch) => ch.value);
+          const isActive = childValues.includes(selected);
 
           return (
-            <DropdownButton
-              as={ButtonGroup}
-              key={buttonId("dropDown")}
-              id={buttonId("dropDown")}
-              title={b.text}
-              variant={
-                childValues.includes(selected)
-                  ? "secondary"
-                  : "outline-secondary"
-              }
-              disabled={disabled}
-            >
-              {b.dropDown!.map((item) => (
-                <Dropdown.Item
-                  key={String(item.value)}
-                  active={item.value === selected}
-                  onClick={() => onSelected(item.value)}
-                >
-                  {item.text}
-                </Dropdown.Item>
-              ))}
-            </DropdownButton>
+            <Dropdown as={ButtonGroup} key={buttonId("dropDown")}>
+              <Dropdown.Toggle
+                id={buttonId("dropDown")}
+                disabled={disabled}
+                variant={isActive ? "secondary" : "outline-secondary"}
+              >
+                {b.text}
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                {b.dropDown!.map((item) => (
+                  <Dropdown.Item
+                    key={String(item.value)}
+                    active={item.value === selected}
+                    onClick={() => onSelected(item.value)}
+                  >
+                    {item.text}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
           );
         }
 
@@ -225,7 +224,7 @@ function ControlButtons<T extends string | number>({
           <ToggleButton
             id={buttonId(b.value)}
             key={buttonId(b.value)}
-            variant={b.value === selected ? "secondary" : "outline-secondary"}
+            variant="outline-secondary"
             value={b.value}
             name={id}
             type="radio"

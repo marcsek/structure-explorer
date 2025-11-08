@@ -26,7 +26,7 @@ import {
   selectParsedPredicates,
 } from "../language/languageSlice";
 import InterpretationEditor from "./InterpretationEditor";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../components_helper/ComponentAccordion/ComponentCard.tsx";
 
 export default function StructureComponent() {
   const dispatch = useAppDispatch();
@@ -38,6 +38,7 @@ export default function StructureComponent() {
 
   return (
     <ComponentCard
+      eventKey="structure"
       heading={
         <span>
           Structure <InlineMath>{String.raw`\mathcal{M} = (D, i)`}</InlineMath>

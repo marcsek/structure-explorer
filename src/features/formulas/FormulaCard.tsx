@@ -7,7 +7,7 @@ import { InlineMath } from "react-katex";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../components_helper/ComponentAccordion/ComponentCard.tsx";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
@@ -15,6 +15,7 @@ export default function FormulaCard() {
 
   return (
     <ComponentCard
+      eventKey="formulas"
       heading={
         <span>
           Truth of formulas in{" "}

@@ -1,0 +1,44 @@
+.component-accordion {
+  border: var(--bs-border-width) solid var(--bs-light-border-subtle);
+}
+
+.component-card:first-of-type .component-card-header {
+  border-top: none;
+}
+
+.component-card-header {
+  border: none;
+  background-color: transparent;
+  border-top: var(--bs-border-width) solid var(--bs-light-border-subtle);
+  border-bottom: var(--bs-border-width) solid var(--bs-light-border-subtle);
+  border-radius: unset !important;
+  width: 100%;
+
+  user-select: none;
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--bs-light-border-subtle) 35%, transparent),
+    color-mix(in srgb, var(--bs-light-border-subtle) 35%, transparent) 2px,
+    color-mix(in srgb, gray 0%, transparent) 2px,
+    color-mix(in srgb, gray 0%, transparent) 16px
+  );
+}
+
+.component-card-header:hover {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--bs-light-border-subtle) 75%, transparent),
+    color-mix(in srgb, var(--bs-light-border-subtle) 75%, transparent) 2px,
+    color-mix(in srgb, var(--bs-light) 100%, transparent) 2px,
+    color-mix(in srgb, var(--bs-light) 100%, transparent) 16px
+  );
+}
+
+.component-card-header > * {
+  height: 2rem;
+}
+
+.component-card + .component-card {
+  margin-top: -1px;
+}
