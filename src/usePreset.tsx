@@ -10,7 +10,6 @@ export default function usePreset() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    console.log(window.location.pathname);
     if (window.location.pathname === "/preset") {
       dispatch(
         updatePredicates(

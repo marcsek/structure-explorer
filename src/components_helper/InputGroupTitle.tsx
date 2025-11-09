@@ -33,7 +33,7 @@ export default function InputGroupTitle({
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
   return (
-    <Form.Group className="w-100">
+    <Form.Group className="flex-grow-1">
       {label != "" && (
         <Form.Label htmlFor={`${id}-${label.toLowerCase()}`}>
           {label}
@@ -42,7 +42,6 @@ export default function InputGroupTitle({
       <InputGroup hasValidation={!!error}>
         <InputGroup.Text>{prefix}</InputGroup.Text>
         <Form.Control
-          className="flex-grow-1"
           placeholder={placeholder}
           aria-label={placeholder}
           aria-describedby="basic-addon2"

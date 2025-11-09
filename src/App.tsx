@@ -16,7 +16,7 @@ function App() {
     <Container fluid className="mt-2 mb-2">
       <Header />
       <Row className="g-3">
-        <Col xs={12} lg={6}>
+        <Col xs={12} xl={6}>
           <ComponentAccordion
             defaultActiveKey={["language", "structure", "variables"]}
           >
@@ -25,7 +25,7 @@ function App() {
             <VariablesComponent />
           </ComponentAccordion>
         </Col>
-        <Col xs={12} lg={6}>
+        <Col xs={12} xl={6}>
           <ComponentAccordion defaultActiveKey={["formulas"]}>
             <FormulaCard />
           </ComponentAccordion>

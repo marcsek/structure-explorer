@@ -25,6 +25,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
 import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
+import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -132,42 +133,11 @@ export default function InterpretationEditorProps({
             error={error}
           />
         ) : (
-          <Stack direction="horizontal" className="flex-grow-1" gap={3}>
-            <Stack
-              direction="horizontal"
-              className="input-group-text w-auto flex-wrap flex-shrink-0"
-              gap={3}
-            >
-              <span className="text-body-secondary fw-light">
-                <InlineMath>{prefixRawNoEnd}</InlineMath>
-              </span>
-
-              <span className="text-body-secondary">/</span>
-              <span className="text-body text-capitalize fw-medium">
-                {editorTypeFullNameLookup[selectedEditor]}
-              </span>
-            </Stack>
-            <svg
-              width="100%"
-              style={{
-                height: "1px",
-                width: "100%",
-              }}
-            >
-              <line
-                x1="0"
-                y1="1"
-                x2="100%"
-                y2="1"
-                stroke="var(--bs-light-border-subtle)"
-                strokeWidth="2"
-                strokeDasharray="16 16"
-                strokeDashoffset="2"
-              />
-            </svg>
-          </Stack>
+          <EditorHeader
+            base={prefixRawNoEnd}
+            editor={editorTypeFullNameLookup[selectedEditor]}
+          />
         )}
-
         {isTuple && (
           <ControlButtons
             id={`controls-${id}`}
@@ -179,11 +149,13 @@ export default function InterpretationEditorProps({
       </Stack>
 
       {selectedEditor !== "text" && selectedEditor !== "matrix" && (
-        <Stack gap={2} className="border border-light-subtle border-0 rounded">
+        <Stack gap={2}>
           <GraphToolbar id={name} type={selectedEditor} />
           <div>
-            <Card className={`${error ? "border-danger" : "border-0"}`}>
-              <Card.Body className="p-2 border border-light-subtle rounded">
+            <Card className="border-0">
+              <Card.Body
+                className={`p-2 border rounded ${error ? "border-danger" : "border-light-subtle"}`}
+              >
                 <GraphView
                   predName={name}
                   graphType={selectedEditor}
@@ -192,10 +164,35 @@ export default function InterpretationEditorProps({
                 />
               </Card.Body>
             </Card>
-            <p className="text-danger small mt-1">{error?.message}</p>
+            <p className="text-danger small mt-1 mb-0">{error?.message}</p>
           </div>
         </Stack>
       )}
+    </Stack>
+  );
+}
+
+interface EditorHeaderProps {
+  base: string;
+  editor: string;
+}
+
+function EditorHeader({ base, editor }: EditorHeaderProps) {
+  return (
+    <Stack direction="horizontal" className="flex-grow-1" gap={3}>
+      <Stack
+        direction="horizontal"
+        className="input-group-text flex-shrink-0 justify-content-center align-items-center"
+        gap={2}
+      >
+        <span className="text-body-secondary fw-light">
+          <InlineMath>{base}</InlineMath>
+        </span>
+
+        <ForwardSlashIcon className="text-body-secondary" size="1rem" />
+        <span className="text-body text-capitalize fw-medium">{editor}</span>
+      </Stack>
+      <div className="dashed-hr" />
     </Stack>
   );
 }
@@ -228,23 +225,24 @@ function ControlButtons<T extends string | number>({
 
   return (
     <ButtonGroup id={id} className="ms-auto">
-      {buttons.map((b) => {
-        if ("dropDown" in b) {
-          const childValues = b.dropDown!.map((ch) => ch.value);
+      {buttons.map((button) => {
+        if ("dropDown" in button) {
+          const childValues = button.dropDown.map((ch) => ch.value);
           const isActive = childValues.includes(selected);
 
           return (
             <Dropdown as={ButtonGroup} key={buttonId("dropDown")}>
               <Dropdown.Toggle
                 id={buttonId("dropDown")}
+                className="btn-bd-light-outline"
                 disabled={disabled}
-                variant={isActive ? "secondary" : "outline-secondary"}
+                active={isActive}
               >
-                {b.text}
+                {button.text}
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                {b.dropDown!.map((item) => (
+                {button.dropDown!.map((item) => (
                   <Dropdown.Item
                     key={String(item.value)}
                     active={item.value === selected}
@@ -260,18 +258,18 @@ function ControlButtons<T extends string | number>({
 
         return (
           <ToggleButton
-            id={buttonId(b.value)}
-            key={buttonId(b.value)}
-            variant="outline-secondary"
-            value={b.value}
+            id={buttonId(button.value)}
+            key={buttonId(button.value)}
+            className="btn-bd-light-outline"
+            value={button.value}
             name={id}
             type="radio"
-            title={`${b.value} editor`}
+            title={`${button.value} editor`}
             disabled={disabled}
-            checked={b.value === selected}
-            onChange={() => onSelected(b.value)}
+            checked={button.value === selected}
+            onChange={() => onSelected(button.value)}
           >
-            {b.text}
+            {button.text}
           </ToggleButton>
         );
       })}

@@ -1,3 +1,36 @@
 .min-w-0 {
   min-width: 0;
 }
+
+.btn-bd-light-outline {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-bg: var(--bs-light-bg-subtle);
+  --bs-btn-border-color: var(--bs-border-color);
+  --bs-btn-hover-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--bs-secondary-bg);
+  --bs-btn-hover-border-color: var(--bs-border-color);
+  --bs-btn-focus-shadow-rgb: 211, 217, 223;
+  --bs-btn-active-color: var(--bs-body-color);
+  --bs-btn-active-bg: var(--bs-secondary-bg);
+  --bs-btn-active-border-color: var(--bs-border-color);
+  --bs-btn-disabled-color: var(--bs-secondary-color);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--bs-border-color);
+}
+
+.dashed-hr {
+  height: 1px;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  background-color: transparent;
+
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--bs-light-border-subtle) 0 16px,
+    transparent 16px 32px
+  );
+
+  flex-shrink: 1;
+  display: block;
+}
