@@ -20,7 +20,6 @@ import {
   faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
-import { Stack } from "react-bootstrap";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
 
