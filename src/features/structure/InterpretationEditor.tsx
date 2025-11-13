@@ -118,7 +118,11 @@ export default function InterpretationEditorProps({
 
   return (
     <Stack gap={3}>
-      <Stack direction="horizontal" gap={3} className="align-items-start">
+      <Stack
+        direction="horizontal"
+        gap={3}
+        className={`align-items-start ${selectedEditor !== "text" ? "flex-wrap" : ""} `}
+      >
         {selectedEditor === "text" ? (
           <InputGroupTitle
             label=""

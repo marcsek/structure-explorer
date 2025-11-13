@@ -20,6 +20,7 @@ import {
   faFilter,
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
+import { Button } from "react-bootstrap";
 
 export const unaryPredsColors = ["#00B8D9", "#22C55E", "#FFAB00", "#FF70A4"];
 
@@ -47,25 +48,12 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
       {/* <p className="m-0" style={{ flexShrink: 0 }}> */}
       {/*   Interpretation Filters */}
       {/* </p> */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
-          gap: "1rem",
-          flexShrink: 1,
-          flexGrow: 0,
-          width: "100%",
-          maxWidth: "100%",
-          minWidth: 0,
-        }}
-      >
+      <div className="editor-toolbar">
         {unaryPreds.length > 0 ? (
           <div className="legend-container">
             <div className="legend-toolbar">
-              <button
-                className={`legend-button domain-button ${!unaryFilterDomain ? "active" : ""}`}
+              <Button
+                className={`domain-button editor-toolbar-button legend-button  ${!unaryFilterDomain ? "active" : ""}`}
                 title="Select domain"
                 onClick={() => dispatch(unaryFilterDomainToggled({ id, type }))}
                 onMouseEnter={() =>
@@ -80,12 +68,12 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                 }
               >
                 <InlineMath>{String.raw`\mathcal{D}`}</InlineMath>
-              </button>
+              </Button>
               <div className="divider-legend" />
               <fieldset className="legend-group">
                 <>
-                  <button
-                    className="legend-button legend-select-all"
+                  <Button
+                    className="legend-select-all editor-toolbar-button legend-button"
                     title="Select all"
                     onClick={handleSelectAll}
                     onMouseEnter={() =>
@@ -102,7 +90,7 @@ export function GraphToolbar({ id, type }: { id: string; type: GraphType }) {
                     }
                   >
                     <FontAwesomeIcon icon={faCheckDouble} />
-                  </button>
+                  </Button>
                   {unaryPreds.map(([pred], idx) => (
                     <label
                       key={pred}
@@ -212,17 +200,17 @@ export function DomainElementsSelector({
       className={`domain-elements ${activeFilters ? "active" : ""}`}
       ref={ref}
     >
-      <button
-        className="domain-header"
+      <Button
+        className={`domain-header editor-toolbar-button ${activeFilters ? "active" : ""}`}
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
-        title="Domain filters"
+        title="Domain Filters"
       >
         <div className="domain-filter-icon-container">
           <div className="domain-filter-indicator" />
           <FontAwesomeIcon icon={faFilter} />
         </div>
-      </button>
+      </Button>
 
       {isOpen && (
         <div className="domain-body">

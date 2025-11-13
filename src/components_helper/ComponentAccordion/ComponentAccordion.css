@@ -1,5 +1,6 @@
 .component-accordion {
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
+  overflow: hidden;
 }
 
 .component-card:first-of-type .component-card-header {
@@ -20,8 +21,8 @@
     -45deg,
     color-mix(in srgb, var(--bs-light-border-subtle) 35%, transparent),
     color-mix(in srgb, var(--bs-light-border-subtle) 35%, transparent) 2px,
-    color-mix(in srgb, gray 0%, transparent) 2px,
-    color-mix(in srgb, gray 0%, transparent) 16px
+    transparent 2px,
+    transparent 16px
   );
 }
 
@@ -30,8 +31,8 @@
     -45deg,
     color-mix(in srgb, var(--bs-light-border-subtle) 75%, transparent),
     color-mix(in srgb, var(--bs-light-border-subtle) 75%, transparent) 2px,
-    color-mix(in srgb, var(--bs-light) 100%, transparent) 2px,
-    color-mix(in srgb, var(--bs-light) 100%, transparent) 16px
+    var(--bs-light) 2px,
+    var(--bs-light) 16px
   );
 }
 

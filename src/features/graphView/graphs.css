@@ -206,6 +206,43 @@
   height: 5px;
 }
 
+.react-flow__controls {
+  background-color: var(--bs-white);
+  border-radius: var(--bs-border-radius);
+  overflow: hidden;
+  border: 1px solid var(--bs-light-border-subtle);
+  box-shadow: var(--bs-box-shadow-sm);
+  padding: 0.25rem 0.25rem;
+  color: var(--bs-body);
+}
+
+.react-flow__controls .react-flow__controls-button {
+  height: unset;
+  width: unset;
+  border-radius: calc(var(--bs-border-radius) - 0.125rem);
+
+  padding: 0.25rem 0.375rem;
+  height: 26px;
+  width: 26px;
+}
+
+.react-flow__controls-button svg {
+  max-width: 14px;
+  max-height: unset;
+}
+
+.react-flow__controls.horizontal .react-flow__controls-button {
+  /* border-right: 1px solid var(--bs-light-border-subtle); */
+  border-right: none;
+}
+
+.react-flow__controls-divider {
+  align-self: stretch;
+  margin: 0rem 0.25rem;
+  width: 1px;
+  background-color: var(--bs-light-border-subtle);
+}
+
 /* 
   Custom Example CSS  - This CSS is to improve the example experience.
   You can remove it if you want to use the default styles.
