@@ -8,14 +8,7 @@ import {
 } from "../language/languageSlice";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
-import {
-  ButtonGroup,
-  Card,
-  Stack,
-  ToggleButton,
-  Dropdown,
-} from "react-bootstrap";
-import GraphView from "../graphView/components/GraphView/GraphView";
+import { ButtonGroup, Stack, ToggleButton, Dropdown } from "react-bootstrap";
 
 import {
   faDiagramProject,
@@ -24,8 +17,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
-import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
 import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
+import DrawerEditor from "./DrawerEditor/DrawerEditor";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -152,50 +145,51 @@ export default function InterpretationEditorProps({
         )}
       </Stack>
 
-      {selectedEditor !== "text" && selectedEditor !== "matrix" && (
-        <Stack gap={2}>
-          <GraphToolbar id={name} type={selectedEditor} />
-          <div>
-            <Card className="border-0">
-              <Card.Body
-                className={`p-2 border rounded ${error ? "border-danger" : "border-light-subtle"}`}
-              >
-                <GraphView
-                  predName={name}
-                  graphType={selectedEditor}
-                  enableNodeFiltering={!isFunction}
-                  locked={interpretation?.locked}
-                />
-              </Card.Body>
-            </Card>
-            <p className="text-danger small mt-1 mb-0">{error?.message}</p>
-          </div>
-        </Stack>
+      {selectedEditor !== "text" && (
+        <DrawerEditor
+          predicateName={name}
+          type={selectedEditor}
+          predicateDisplayName={prefixRawNoEnd}
+          editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
+          locked={interpretation?.locked}
+          error={error}
+        />
       )}
     </Stack>
   );
 }
 
-interface EditorHeaderProps {
+interface EditorTitleProps {
   base: string;
   editor: string;
+  style?: "flat" | "background";
 }
 
-function EditorHeader({ base, editor }: EditorHeaderProps) {
+export function EditorTitle({
+  base,
+  editor,
+  style = "background",
+}: EditorTitleProps) {
+  return (
+    <Stack
+      direction="horizontal"
+      className={`${style === "background" ? "input-group-text" : ""} flex-shrink-0 align-items-center`}
+      gap={2}
+    >
+      <span className="text-body-secondary fw-light">
+        <InlineMath>{base}</InlineMath>
+      </span>
+
+      <ForwardSlashIcon className="text-body-secondary" size="1rem" />
+      <span className="text-body text-capitalize fw-medium">{editor}</span>
+    </Stack>
+  );
+}
+
+export function EditorHeader(props: EditorTitleProps) {
   return (
     <Stack direction="horizontal" className="flex-grow-1" gap={3}>
-      <Stack
-        direction="horizontal"
-        className="input-group-text flex-shrink-0 justify-content-center align-items-center"
-        gap={2}
-      >
-        <span className="text-body-secondary fw-light">
-          <InlineMath>{base}</InlineMath>
-        </span>
-
-        <ForwardSlashIcon className="text-body-secondary" size="1rem" />
-        <span className="text-body text-capitalize fw-medium">{editor}</span>
-      </Stack>
+      <EditorTitle {...props} />
       <div className="dashed-hr" />
     </Stack>
   );

@@ -1,4 +1,5 @@
 import {
+  faDownLeftAndUpRightToCenter,
   faExpand,
   faHexagonNodes,
   faLock,
@@ -16,9 +17,11 @@ import {
   type ViewportHelperFunctionOptions,
 } from "@xyflow/react";
 import { useState } from "react";
+import type { OnExpandedViewChange } from "../../components/GraphView/GraphView";
 
 const defaultFitViewOptions: FitViewOptions = {
   padding: "50px",
+  maxZoom: 1,
   duration: 300,
 };
 
@@ -28,10 +31,14 @@ const defaultZoomOptions: ViewportHelperFunctionOptions = {
 
 export default function Controls({
   showInteractive = false,
+  expandedView = false,
+  onExpandedViewChange,
   onInteractiveChange,
   onLayout,
 }: {
   showInteractive?: boolean;
+  expandedView?: boolean;
+  onExpandedViewChange?: OnExpandedViewChange;
   onInteractiveChange?: (change: boolean) => void;
   onLayout?: () => void;
 }) {
@@ -44,6 +51,10 @@ export default function Controls({
     setIsInteractive((prev) => !prev);
   };
 
+  const handleExpandedViewChange = () => {
+    onExpandedViewChange?.(!expandedView);
+  };
+
   return (
     <XYControls
       orientation="horizontal"
@@ -53,8 +64,15 @@ export default function Controls({
       showZoom={false}
       onInteractiveChange={onInteractiveChange}
     >
-      <ControlButton title="Full Screen" onClick={() => {}}>
-        <FontAwesomeIcon icon={faUpRightAndDownLeftFromCenter} fixedWidth />
+      <ControlButton title="Expanded View" onClick={handleExpandedViewChange}>
+        <FontAwesomeIcon
+          icon={
+            expandedView
+              ? faDownLeftAndUpRightToCenter
+              : faUpRightAndDownLeftFromCenter
+          }
+          fixedWidth
+        />
       </ControlButton>
 
       <div className="react-flow__controls-divider" />
@@ -72,7 +90,7 @@ export default function Controls({
 
       <ControlButton
         title="Fit View"
-        onClick={() => fitView({ padding: "50px", duration: 300 })}
+        onClick={() => fitView(defaultFitViewOptions)}
       >
         <FontAwesomeIcon icon={faExpand} fixedWidth />
       </ControlButton>

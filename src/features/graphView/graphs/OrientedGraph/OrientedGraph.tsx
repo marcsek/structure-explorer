@@ -34,6 +34,7 @@ import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
+import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -57,14 +58,19 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 
 const fitViewOptions: FitViewOptions = {
   padding: "50px",
+  maxZoom: 1,
 };
 
 export default function OrientedGraph({
   id,
   locked,
+  expandedView = false,
+  onExpandedViewChange,
 }: {
   id: string;
   locked: boolean;
+  expandedView?: boolean;
+  onExpandedViewChange?: OnExpandedViewChange;
 }) {
   const type = "oriented";
   const nodeSelector = makeSelectNodes<typeof type>();
@@ -90,6 +96,10 @@ export default function OrientedGraph({
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
+
+  useEffect(() => {
+    requestAnimationFrame(() => fitView({ ...fitViewOptions }));
+  }, [expandedView, fitView]);
 
   useEffect(() => {
     onLayout(true, true, true);
@@ -198,6 +208,8 @@ export default function OrientedGraph({
         >
           <Background id={`bg-oriented-${id}`} />
           <Controls
+            expandedView={expandedView}
+            onExpandedViewChange={onExpandedViewChange}
             onInteractiveChange={(ch) => {
               dispatch(editorLocked({ id, type, locked: locked || !ch }));
             }}

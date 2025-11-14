@@ -1,6 +1,7 @@
 .component-accordion {
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
   overflow: hidden;
+  position: unset;
 }
 
 .component-card:first-of-type .component-card-header {

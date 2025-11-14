@@ -1,0 +1,58 @@
+.drawer-editor-container.expanded {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  padding: 2.5rem;
+}
+
+.drawer-container-body {
+  height: 100%;
+}
+
+.drawer-editor-container.expanded .drawer-container-body {
+  background-color: var(--bs-white);
+  border: var(--bs-border-width) solid var(--bs-light-border-subtle);
+  border-radius: var(--bs-border-radius);
+  box-shadow: var(--bs-box-shadow-sm);
+  padding: 1rem;
+}
+
+.drawer-editor-container.expanded.error .drawer-container-body {
+  border-color: var(--bs-danger);
+}
+
+.drawer-editor-expanded-backdrop {
+  position: absolute;
+  background-color: rgb(255, 255, 255, 0.8);
+  inset: 0;
+  z-index: -1;
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--bs-light-border-subtle) 35%, white),
+    color-mix(in srgb, var(--bs-light-border-subtle) 35%, white) 2px,
+    color-mix(in srgb, var(--bs-white) 90%, transparent) 2px,
+    color-mix(in srgb, var(--bs-white) 90%, transparent) 16px
+  );
+}
+
+.divider-drawer-container-body {
+  align-self: stretch;
+  height: 1px;
+  background-color: var(--bs-light-border-subtle);
+  margin-inline: -1rem;
+}
+
+.drawer-editor-container {
+  padding: 0;
+}
+
+.drawer-editor-container.bordered {
+  padding: 0.5rem;
+  border: 1px solid var(--bs-light-border-subtle);
+  border-radius: var(--bs-border-radius);
+}
+
+.drawer-editor-container.bordered.error {
+  border-color: var(--bs-danger);
+}

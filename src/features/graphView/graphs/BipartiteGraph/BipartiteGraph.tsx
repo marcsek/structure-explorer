@@ -36,6 +36,7 @@ import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
+import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: "domain" | "range";
@@ -64,6 +65,7 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
 
 const fitViewOptions: FitViewOptions = {
   padding: "50px",
+  maxZoom: 1,
 };
 
 const generateNodeChangesWithLayout = (
@@ -85,9 +87,13 @@ const generateNodeChangesWithLayout = (
 export default function BipartiteGraph({
   id,
   locked,
+  expandedView = false,
+  onExpandedViewChange,
 }: {
   id: string;
   locked: boolean;
+  expandedView?: boolean;
+  onExpandedViewChange?: OnExpandedViewChange;
 }) {
   const type = "bipartite";
   const nodeSelector = makeSelectNodes<typeof type>();
@@ -115,6 +121,10 @@ export default function BipartiteGraph({
   useEffect(() => {
     dispatch(editorLocked({ id, type, locked }));
   }, [id, dispatch, locked]);
+
+  useEffect(() => {
+    requestAnimationFrame(() => fitView({ ...fitViewOptions }));
+  }, [expandedView, fitView]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType>[]) => {
@@ -206,6 +216,8 @@ export default function BipartiteGraph({
         >
           <Background id={`bg-bipartite-${id}`} />
           <Controls
+            expandedView={expandedView}
+            onExpandedViewChange={onExpandedViewChange}
             onInteractiveChange={(ch) => {
               dispatch(editorLocked({ id, type, locked: locked || !ch }));
             }}
