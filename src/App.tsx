@@ -14,7 +14,9 @@ function App() {
 
   return (
     <Container fluid className="mt-2 mb-2">
-      <Header />
+      <Row className="g-3">
+        <Header />
+      </Row>
       <Row className="g-3">
         <Col xs={12} xl={6}>
           <ComponentAccordion

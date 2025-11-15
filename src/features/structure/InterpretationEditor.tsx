@@ -17,8 +17,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
-import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
-import DrawerEditor from "./DrawerEditor/DrawerEditor";
+import DrawerEditor from "../drawerEditor/DrawerEditor";
+import type { EditorTitleProps } from "../drawerEditor/EditorTitle";
+import EditorTitle from "../drawerEditor/EditorTitle";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -159,34 +160,7 @@ export default function InterpretationEditorProps({
   );
 }
 
-interface EditorTitleProps {
-  base: string;
-  editor: string;
-  style?: "flat" | "background";
-}
-
-export function EditorTitle({
-  base,
-  editor,
-  style = "background",
-}: EditorTitleProps) {
-  return (
-    <Stack
-      direction="horizontal"
-      className={`${style === "background" ? "input-group-text" : ""} flex-shrink-0 align-items-center`}
-      gap={2}
-    >
-      <span className="text-body-secondary fw-light">
-        <InlineMath>{base}</InlineMath>
-      </span>
-
-      <ForwardSlashIcon className="text-body-secondary" size="1rem" />
-      <span className="text-body text-capitalize fw-medium">{editor}</span>
-    </Stack>
-  );
-}
-
-export function EditorHeader(props: EditorTitleProps) {
+function EditorHeader(props: EditorTitleProps) {
   return (
     <Stack direction="horizontal" className="flex-grow-1" gap={3}>
       <EditorTitle {...props} />
@@ -234,6 +208,7 @@ function ControlButtons<T extends string | number>({
                 id={buttonId("dropDown")}
                 className="btn-bd-light-outline"
                 disabled={disabled}
+                role="toolbar"
                 active={isActive}
               >
                 {button.text}
@@ -260,8 +235,8 @@ function ControlButtons<T extends string | number>({
             key={buttonId(button.value)}
             className="btn-bd-light-outline"
             value={button.value}
-            name={id}
             type="radio"
+            name={id}
             title={`${button.value} editor`}
             disabled={disabled}
             checked={button.value === selected}

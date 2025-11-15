@@ -1,10 +1,11 @@
 import "./DrawerEditor.css";
 
 import { Card, Stack } from "react-bootstrap";
-import { GraphToolbar } from "../EditorToolbar/EditorToolbar";
-import GraphView from "../../graphView/components/GraphView/GraphView";
-import { EditorTitle, type EditorType } from "../InterpretationEditor";
+import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
+import GraphView from "../graphView/components/GraphView/GraphView";
+import { type EditorType } from "../structure/InterpretationEditor";
 import { useState } from "react";
+import EditorTitle from "./EditorTitle";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -41,7 +42,7 @@ export default function DrawerEditor({
         />
       )}
 
-      <Stack gap={3} className="drawer-container-body">
+      <Stack gap={3} className="drawer-editor-container-body">
         {expandedView && (
           <>
             <EditorTitle
@@ -49,13 +50,15 @@ export default function DrawerEditor({
               editor={editorDisplayName}
               style="flat"
             />
-            <div className="divider-drawer-container-body" />
+            <div className="drawer-editor-divider-container-body" />
           </>
         )}
 
         <GraphToolbar id={predicateName} type={type} />
 
-        {expandedView && <div className="divider-drawer-container-body" />}
+        {expandedView && (
+          <div className="drawer-editor-divider-container-body" />
+        )}
 
         <Stack gap={1} className="drawer-editor-container">
           <Card className="border-0" style={{ height: "100%" }}>

@@ -19,7 +19,7 @@ import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
 import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { unaryPredsColors } from "../../../structure/EditorToolbar/EditorToolbar";
+import { unaryPredicatesColors } from "../../../drawerEditor/unaryPredicateColors";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -121,9 +121,9 @@ export default function PredicateNode({
               className={`node-predicate-header-item ${hoveredPreds.includes(pred) && !selectedPreds.includes(pred) ? "stripy" : ""}`}
               style={{
                 color:
-                  unaryPredsColors[
+                  unaryPredicatesColors[
                     allUnaryPreds.findIndex((p) => p[0] === pred) %
-                      unaryPredsColors.length
+                      unaryPredicatesColors.length
                   ],
                 width: "100%",
               }}

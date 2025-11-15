@@ -4,7 +4,7 @@ import { Accordion, Card, type AccordionProps } from "react-bootstrap";
 
 export default function ComponentAccordion({
   as = Card,
-  className,
+  className = "",
   alwaysOpen = true,
   defaultActiveKey,
   children,
@@ -13,7 +13,7 @@ export default function ComponentAccordion({
   return (
     <Accordion
       as={as}
-      className={`component-accordion ${className ? className : "shadow-sm"}`}
+      className={`component-accordion shadow-sm ${className}`}
       defaultActiveKey={defaultActiveKey}
       alwaysOpen={alwaysOpen}
       {...props}

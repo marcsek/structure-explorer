@@ -39,7 +39,6 @@ const createEdge = (
     target: `r-${target}`,
     data: { duplicate, error },
     selectable: !duplicate && !error,
-    focusable: !duplicate && !error,
   };
 };
 
@@ -101,7 +100,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         const validDuplicate = graph.edges.find(
           (e) => e.id === edgeId.slice(0, -"-duplicate".length),
         )!;
-        validDuplicate.focusable = false;
         validDuplicate.selectable = false;
       }
     });
@@ -246,7 +244,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         edge.data ??= {};
         edge.data.error = shouldError;
 
-        newEdges.push({ ...edge, selectable: true, focusable: true });
+        newEdges.push({ ...edge, selectable: true });
         return;
       }
 
@@ -259,7 +257,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         const validDuplicate = newEdges.find(
           (e) => e.id === edgeId.slice(0, -"-duplicate".length),
         )!;
-        validDuplicate.focusable = false;
         validDuplicate.selectable = false;
       }
     });

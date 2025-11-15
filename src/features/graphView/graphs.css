@@ -232,7 +232,6 @@
 }
 
 .react-flow__controls.horizontal .react-flow__controls-button {
-  /* border-right: 1px solid var(--bs-light-border-subtle); */
   border-right: none;
 }
 

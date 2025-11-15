@@ -1,0 +1,86 @@
+.editor-toolbar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex: 0 1 auto;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  margin-block: -0.25rem;
+}
+
+.editor-toolbar-button {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-bg: var(--bs-white);
+  --bs-btn-border-color: var(--bs-border-color);
+
+  --bs-btn-hover-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--color-hover-bg);
+  --bs-btn-hover-border-color: var(--bs-border-color);
+
+  --bs-btn-focus-shadow-rgb: 211, 217, 223;
+  --bs-btn-active-color: var(--bs-body-color);
+  --bs-btn-active-bg: var(--bs-light-bg-subtle);
+  --bs-btn-active-border-color: var(--bs-border-color);
+
+  --bs-btn-disabled-color: var(--bs-secondary-color);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: var(--bs-border-color);
+
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.legend-button {
+  box-sizing: content-box;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 4px;
+  border-radius: 100px;
+  padding: 0;
+}
+
+.editor-toolbar-button > * {
+  width: 16px;
+  height: 16px;
+}
+
+.domain-button > * {
+  margin-bottom: 6px;
+}
+
+.legend-select-all {
+  margin: 0;
+}
+
+.select-all {
+  color: #171717;
+  font-family: inherit;
+  font-size: 0.8rem;
+  background-color: oklch(97% 0 0);
+  border: 0px solid #e7e7e7;
+  padding: 2px 8px;
+  font-weight: 400;
+  border-radius: 6px;
+  cursor: pointer;
+  width: fit-content;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.select-all:focus-visible {
+  box-shadow: 0 0 0 0.25rem rgba(130, 138, 145, 0.5);
+  outline: none;
+}
+
+.select-all svg {
+  font-size: 0.8rem;
+}
