@@ -10,14 +10,75 @@
 }
 
 .unary-preds-filters-group {
-  min-width: 150px;
+  flex: 1;
   display: flex;
   align-items: center;
-  flex-shrink: 1;
   gap: 0.5rem;
   overflow-x: auto;
+  scroll-behavior: smooth;
   padding: 0.25rem;
   scrollbar-width: thin;
+}
+
+.unary-preds-filters-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.scroll-button {
+  border: none;
+  background: none;
+  color: var(--bs-body-color);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding-inline: 0.5rem;
+
+  color: #171717;
+  font-size: 0.875rem;
+  background-color: oklch(97% 0 0);
+  border-radius: 4px;
+  z-index: 1;
+}
+
+.scroll-button-background {
+  position: absolute;
+  top: 0;
+  padding-block: 0.25rem;
+  height: 46px;
+  border: none;
+  color: var(--bs-body-color);
+  z-index: 2;
+  display: flex;
+}
+
+.scroll-button-background.left {
+  left: -1px;
+  padding-left: 0;
+  padding-right: 20px;
+
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, white 100%, transparent) 70%,
+    transparent
+  );
+}
+
+.scroll-button-background.right {
+  right: -1px;
+  padding-right: 0;
+  padding-left: 20px;
+
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, white 100%, transparent) 70%,
+    transparent
+  );
 }
 
 .unary-preds-filters-checkbox {

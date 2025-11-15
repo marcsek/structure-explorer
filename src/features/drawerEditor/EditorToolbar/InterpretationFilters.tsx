@@ -10,10 +10,16 @@ import {
 } from "../../graphView/graphs/graphSlice";
 import type { GraphType } from "../../graphView/graphs/plugins";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faCheckDouble } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAngleLeft,
+  faAngleRight,
+  faCheck,
+  faCheckDouble,
+} from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import { getUnaryPredicateColor } from "../unaryPredicateColors";
+import useScrollControls from "./useScrollControls";
 
 export interface InterpretationFiltersProps {
   id: string;
@@ -63,6 +69,7 @@ function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
   const selectedPredicates = useAppSelector(
     (state) => state.graphView[id]?.selectedUnary ?? [],
   );
+  const scrollControls = useScrollControls({ edgeMargin: 40 });
 
   const handleSelectAll = () => {
     const allSelected = selectedPredicates.length === predicates.length;
@@ -82,50 +89,77 @@ function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
   };
 
   return (
-    <fieldset className="unary-preds-filters-group">
-      <Button
-        className="legend-select-all editor-toolbar-button legend-button"
-        title="Select all"
-        onClick={handleSelectAll}
-        onMouseEnter={() => handlePredicateHover(predicates.map((p) => p[0]))}
-        onMouseLeave={() => handlePredicateHover([])}
-      >
-        <FontAwesomeIcon icon={faCheckDouble} />
-      </Button>
+    <div className="unary-preds-filters-wrapper">
+      {scrollControls.showLeftControl && (
+        <div className="scroll-button-background left">
+          <button
+            className="scroll-button left"
+            onClick={() => scrollControls.scrollIntoView("left")}
+          >
+            <FontAwesomeIcon icon={faAngleLeft} />
+          </button>
+        </div>
+      )}
 
-      {predicates.map(([predicate], idx) => (
-        <label
-          key={predicate}
-          className="unary-preds-filters-checkbox"
-          style={{ color: getUnaryPredicateColor(idx) }}
-          onMouseEnter={() => handlePredicateHover([predicate])}
+      <fieldset
+        className="unary-preds-filters-group"
+        ref={scrollControls.scrollContainerRef}
+      >
+        <Button
+          className="legend-select-all editor-toolbar-button legend-button"
+          title="Select all"
+          onClick={handleSelectAll}
+          onMouseEnter={() => handlePredicateHover(predicates.map((p) => p[0]))}
           onMouseLeave={() => handlePredicateHover([])}
         >
-          <input
-            type="checkbox"
-            name="unary preds"
-            checked={selectedPredicates.includes(predicate)}
-            onChange={() => handlePredicateToggle(predicate)}
-          />
-          <span
-            className="unary-preds-filters-checkbox-indicator"
+          <FontAwesomeIcon icon={faCheckDouble} />
+        </Button>
+
+        {predicates.map(([predicate], idx) => (
+          <label
+            key={predicate}
+            className="unary-preds-filters-checkbox"
             style={{ color: getUnaryPredicateColor(idx) }}
+            onMouseEnter={() => handlePredicateHover([predicate])}
+            onMouseLeave={() => handlePredicateHover([])}
           >
-            {selectedPredicates.includes(predicate) && (
-              <FontAwesomeIcon icon={faCheck} />
-            )}
-          </span>
-          <p
-            style={{
-              color: selectedPredicates.includes(predicate)
-                ? getUnaryPredicateColor(idx)
-                : "",
-            }}
+            <input
+              type="checkbox"
+              name="unary preds"
+              checked={selectedPredicates.includes(predicate)}
+              onChange={() => handlePredicateToggle(predicate)}
+            />
+            <span
+              className="unary-preds-filters-checkbox-indicator"
+              style={{ color: getUnaryPredicateColor(idx) }}
+            >
+              {selectedPredicates.includes(predicate) && (
+                <FontAwesomeIcon icon={faCheck} />
+              )}
+            </span>
+            <p
+              style={{
+                color: selectedPredicates.includes(predicate)
+                  ? getUnaryPredicateColor(idx)
+                  : "",
+              }}
+            >
+              {predicate}
+            </p>
+          </label>
+        ))}
+      </fieldset>
+
+      {scrollControls.showRightControl && (
+        <div className="scroll-button-background right">
+          <button
+            className="scroll-button right"
+            onClick={() => scrollControls.scrollIntoView("right")}
           >
-            {predicate}
-          </p>
-        </label>
-      ))}
-    </fieldset>
+            <FontAwesomeIcon icon={faAngleRight} />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
