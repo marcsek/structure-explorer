@@ -38,10 +38,13 @@ export default function useScrollControls(options?: UseScrollViewOptions) {
 
     container.addEventListener("scroll", handleScroll);
     window.addEventListener("resize", handleScroll);
+    const resizeObserver = new ResizeObserver(handleScroll);
+    resizeObserver.observe(container);
 
     return () => {
       container.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
+      resizeObserver.disconnect();
     };
   }, []);
 

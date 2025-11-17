@@ -19,7 +19,7 @@ import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
 import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { unaryPredicatesColors } from "../../../drawerEditor/unaryPredicateColors";
+import { getUnaryPredicateColor } from "../../../drawerEditor/unaryPredicateColors";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -37,38 +37,17 @@ export type PredicateNodeType<
 export default function PredicateNode({
   id,
   data,
-  selectable,
-  selected,
   isConnectable,
 }: NodeProps<PredicateNodeType>) {
   const dispatch = useAppDispatch();
 
   const connection = useConnection();
   const parentInfo = useGraphInfo();
-  const isTarget = connection.inProgress && connection.fromNode.id !== id;
+  const hasTarget = connection.inProgress && connection.fromNode.id !== id;
 
   const constants = useAppSelector((state) =>
     selectRelevantConstants(state, data.label),
   );
-
-  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
-  const unaryPreds = useAppSelector((state) =>
-    selectRelevantUnaryPreds(state, data.label),
-  );
-
-  const hoveredPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id].hoveredUnary,
-  );
-
-  const selectedPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id].selectedUnary,
-  );
-
-  const vissiblePreds = [...hoveredPreds, ...selectedPreds];
-
-  const predsToDisplay = unaryPreds
-    .filter((relevant) => vissiblePreds.includes(relevant))
-    ?.sort();
 
   const handleLeftOverDeletion = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -92,107 +71,109 @@ export default function PredicateNode({
     );
   };
 
-  return (
-    <div
-      // TODO: not like this
-      className={`graph_editor__node ${data.error || data.leftover ? "error" : ""} ${data.ghost ? "ghost" : ""} ${selectable ? "selectable" : ""} ${selected ? "selected" : ""}`}
-      onDoubleClick={() => createSelfEdge()}
-    >
-      {!data.error && !data.leftover && (
-        <div
-          className="node-predicate-header"
-          style={{
-            display: "flex",
-            position: "absolute",
-            top: "0",
-            left: "0",
-            right: "0",
-            borderRadius: "8px 8px 0 0",
-            zIndex: 1,
-            height: "12px",
-            overflow: "hidden",
-            pointerEvents: "none",
-          }}
-        >
-          <div className="node-predicate-header-stripy-overlay" />
-          {predsToDisplay.map((pred) => (
-            <div
-              key={pred}
-              className={`node-predicate-header-item ${hoveredPreds.includes(pred) && !selectedPreds.includes(pred) ? "stripy" : ""}`}
-              style={{
-                color:
-                  unaryPredicatesColors[
-                    allUnaryPreds.findIndex((p) => p[0] === pred) %
-                      unaryPredicatesColors.length
-                  ],
-                width: "100%",
-              }}
-            />
-          ))}
-        </div>
-      )}
-      <div className="handle-container">
-        {!connection.inProgress && (
-          <Handle
-            id={`source-${id}`}
-            className="predicateNodeHandle source"
-            position={Position.Right}
-            type="source"
-            isConnectable={!data.leftover}
-            isConnectableStart={isConnectable}
-          />
-        )}
+  const hasErrorState = data.error || data.leftover;
 
-        {(!connection.inProgress || isTarget) && (
-          <Handle
-            id={`target-${id}`}
-            className="predicateNodeHandle target"
-            position={Position.Left}
-            type="target"
-            isConnectable={!data.leftover}
-            isConnectableStart={false}
-          />
-        )}
-      </div>
-      <div className="predicateNodeBody">
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <h2 style={{ margin: 0, lineHeight: 0 }}>
-            {data.label.toUpperCase()}
-          </h2>
+  return (
+    <>
+      <div
+        className={`predicate-node ${hasErrorState ? "error" : ""} ${data.ghost ? "ghost" : ""}`}
+        onDoubleClick={() => createSelfEdge()}
+      >
+        {!hasErrorState && <UnaryPredicatesIndicator domainId={data.label} />}
+
+        <div className="predicate-node-handle-container">
+          {!connection.inProgress && (
+            <Handle
+              id={`source-${id}`}
+              className="predicate-node-handle source"
+              position={Position.Right}
+              type="source"
+              isConnectable={!data.leftover}
+              isConnectableStart={isConnectable}
+            />
+          )}
+
+          {(!connection.inProgress || hasTarget) && (
+            <Handle
+              id={`target-${id}`}
+              className="predicate-node-handle target"
+              position={Position.Left}
+              type="target"
+              isConnectable={!data.leftover}
+              isConnectableStart={false}
+            />
+          )}
+        </div>
+
+        <div className="predicate-node-body">
+          <span className="predicate-node-label">{data.label}</span>
           {!data.leftover ? (
             <>
-              <p style={{ margin: 0 }}>{constants.join(", ")}</p>
+              {constants.length > 0 && (
+                <span className="predicate-node-constants">
+                  {constants.join(", ")}
+                </span>
+              )}
             </>
           ) : (
-            <>
-              <DeleteElementButton
-                onClick={handleLeftOverDeletion}
-                style={{
-                  zIndex: 100,
-                  transform: "scale(0.6)",
-                  position: "absolute",
-                  top: "-30px",
-                  right: "-30px",
-                }}
-              />
-              <p
-                style={{
-                  fontSize: "0.65rem",
-                  position: "absolute",
-                  fontWeight: "normal",
-                  textWrap: "nowrap",
-                  bottom: -20,
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                }}
-                className="text-danger"
-              >
-                Leftover node
-              </p>
-            </>
+            <span className="predicate-node-error-text">Leftover node</span>
           )}
         </div>
       </div>
+
+      {data.leftover && (
+        <DeleteElementButton
+          onClick={handleLeftOverDeletion}
+          className="predicate-node-delete-button"
+        />
+      )}
+    </>
+  );
+}
+
+interface UnaryPredicatesIndicatorProps {
+  domainId: string;
+}
+
+function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
+  const parentInfo = useGraphInfo();
+  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
+
+  const unaryPreds = useAppSelector((state) =>
+    selectRelevantUnaryPreds(state, domainId),
+  );
+
+  const hoveredPreds = useAppSelector(
+    (state) => state.graphView[parentInfo.id].hoveredUnary,
+  );
+
+  const selectedPreds = useAppSelector(
+    (state) => state.graphView[parentInfo.id].selectedUnary,
+  );
+
+  const vissiblePreds = [...hoveredPreds, ...selectedPreds];
+
+  const predsToDisplay = unaryPreds
+    .filter((relevant) => vissiblePreds.includes(relevant))
+    ?.sort();
+
+  const isPreviewed = (pred: string) =>
+    hoveredPreds.includes(pred) && !selectedPreds.includes(pred);
+
+  return (
+    <div className="predicate-node-indicator">
+      <div className="predicate-node-indicator-stripy-overlay" />
+      {predsToDisplay.map((pred) => (
+        <div
+          key={pred}
+          className={`predicate-node-indicator-item ${isPreviewed(pred) ? "stripy" : ""}`}
+          style={{
+            color: getUnaryPredicateColor(
+              allUnaryPreds.findIndex((p) => p[0] === pred),
+            ),
+          }}
+        />
+      ))}
     </div>
   );
 }
