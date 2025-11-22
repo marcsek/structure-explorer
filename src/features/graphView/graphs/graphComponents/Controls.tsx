@@ -32,12 +32,14 @@ const defaultZoomOptions: ViewportHelperFunctionOptions = {
 export default function Controls({
   showInteractive = false,
   expandedView = false,
+  fitViewOptions = defaultFitViewOptions,
   onExpandedViewChange,
   onInteractiveChange,
   onLayout,
 }: {
   showInteractive?: boolean;
   expandedView?: boolean;
+  fitViewOptions?: FitViewOptions;
   onExpandedViewChange?: OnExpandedViewChange;
   onInteractiveChange?: (change: boolean) => void;
   onLayout?: () => void;
@@ -58,25 +60,13 @@ export default function Controls({
   return (
     <XYControls
       orientation="horizontal"
-      fitViewOptions={defaultFitViewOptions}
+      position="bottom-right"
+      fitViewOptions={fitViewOptions}
       showInteractive={false}
       showFitView={false}
       showZoom={false}
       onInteractiveChange={onInteractiveChange}
     >
-      <ControlButton title="Expanded View" onClick={handleExpandedViewChange}>
-        <FontAwesomeIcon
-          icon={
-            expandedView
-              ? faDownLeftAndUpRightToCenter
-              : faUpRightAndDownLeftFromCenter
-          }
-          fixedWidth
-        />
-      </ControlButton>
-
-      <div className="react-flow__controls-divider" />
-
       <ControlButton title="Zoom In" onClick={() => zoomIn(defaultZoomOptions)}>
         <FontAwesomeIcon icon={faPlus} fixedWidth />
       </ControlButton>
@@ -88,10 +78,7 @@ export default function Controls({
         <FontAwesomeIcon icon={faMinus} fixedWidth />
       </ControlButton>
 
-      <ControlButton
-        title="Fit View"
-        onClick={() => fitView(defaultFitViewOptions)}
-      >
+      <ControlButton title="Fit View" onClick={() => fitView(fitViewOptions)}>
         <FontAwesomeIcon icon={faExpand} fixedWidth />
       </ControlButton>
 
@@ -112,6 +99,19 @@ export default function Controls({
           />
         </ControlButton>
       )}
+
+      <div className="react-flow__controls-divider" />
+
+      <ControlButton title="Expanded View" onClick={handleExpandedViewChange}>
+        <FontAwesomeIcon
+          icon={
+            expandedView
+              ? faDownLeftAndUpRightToCenter
+              : faUpRightAndDownLeftFromCenter
+          }
+          fixedWidth
+        />
+      </ControlButton>
     </XYControls>
   );
 }

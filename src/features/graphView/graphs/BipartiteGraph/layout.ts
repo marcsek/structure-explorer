@@ -1,10 +1,25 @@
 import { applyNodeChanges, type NodeChange } from "@xyflow/react";
 import type { BipartiteNodeType } from "./BipartiteGraph";
 
-const startX = 0,
-  startY = 0;
-const gapX = 250,
-  gapY = 110;
+const paddingX = 40,
+  paddingY = 20;
+const gapY = 35;
+
+const groupContainerWidth = 200;
+const groupContainerGap = 50;
+
+export const computeGroupContainerBounds = (nodes: BipartiteNodeType[]) => {
+  const stackedHeight =
+    nodes.reduce((sum, n) => sum + (n.measured?.height ?? 0), 0) / 2;
+
+  return {
+    bounds: {
+      width: groupContainerWidth,
+      height: stackedHeight + 2 * paddingY + (nodes.length / 2 - 1) * gapY,
+    },
+    offset: { x: (groupContainerGap + groupContainerWidth) / 2, y: 0 },
+  };
+};
 
 export const computeLayoutBipartite = (
   nodes: BipartiteNodeType[],
@@ -18,8 +33,8 @@ export const generateLayoutNodesChangesBipartite = (
   nodes: BipartiteNodeType[],
   draggedNodesIds?: string[],
 ) => {
-  let domainY = startY,
-    rangeY = startY;
+  let domainY = paddingY,
+    rangeY = paddingY;
 
   const vissible = nodes.filter((node) => !node.hidden);
   const ordered = vissible.sort((a, b) => a.position.y - b.position.y);
@@ -27,7 +42,14 @@ export const generateLayoutNodesChangesBipartite = (
 
   ordered.forEach((node) => {
     const origin = node.data.origin;
-    const x = startX + (gapX / 2) * (origin === "domain" ? -1 : 1);
+
+    const nodeHeight = node.measured?.height ?? 0;
+    const nodeWidth = node.measured?.width ?? 0;
+
+    const x =
+      origin === "domain"
+        ? groupContainerWidth - paddingX - nodeWidth
+        : paddingX;
     const y = origin === "domain" ? domainY : rangeY;
 
     const newNode = node;
@@ -44,8 +66,8 @@ export const generateLayoutNodesChangesBipartite = (
         position: { x, y },
       });
 
-    domainY += origin === "domain" ? gapY : 0;
-    rangeY += origin === "range" ? gapY : 0;
+    domainY += origin === "domain" ? gapY + nodeHeight : 0;
+    rangeY += origin === "range" ? gapY + nodeHeight : 0;
 
     return newNode;
   });

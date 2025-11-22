@@ -14,8 +14,10 @@ import {
   type FitViewOptions,
   useReactFlow,
   type IsValidConnection,
+  type Node,
+  useNodesInitialized,
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -30,16 +32,24 @@ import {
   onNodesChanged,
   warningChanged,
 } from "../graphSlice.ts";
-import { generateLayoutNodesChangesBipartite } from "./layout.ts";
+import {
+  computeGroupContainerBounds,
+  generateLayoutNodesChangesBipartite,
+} from "./layout.ts";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
+import SetGroupNode, {
+  type SetGroupNodeType,
+} from "../graphComponents/SetGroupNode.tsx";
+
+export type OriginSet = "domain" | "range";
 
 export type BipartiteNodeType = PredicateNodeType<{
-  origin: "domain" | "range";
+  origin: OriginSet;
 }>;
 
 const connectionLineStyle = {
@@ -48,6 +58,7 @@ const connectionLineStyle = {
 
 const nodeTypes: NodeTypes = {
   predicate: PredicateNodeComponent,
+  setGroup: SetGroupNode,
 };
 
 const edgeTypes: EdgeTypes = {
@@ -63,9 +74,34 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
   },
 };
 
+const groupNodeOptions = {
+  selectable: false,
+  focusable: false,
+  draggable: false,
+  deletable: false,
+  connectable: false,
+  type: "setGroup",
+} satisfies Partial<Node>;
+
 const fitViewOptions: FitViewOptions = {
-  padding: "50px",
+  padding: "35px",
   maxZoom: 1,
+};
+
+const createGroupNode = (
+  originSet: OriginSet,
+  size: { width: number; height: number },
+  offset: { x: number; y: number },
+): SetGroupNodeType => {
+  return {
+    id: `${originSet}-group`,
+    position: offset,
+    ...size,
+    measured: size,
+    data: { label: originSet, origin: originSet },
+    className: `set-group-node origin-${originSet}`,
+    ...groupNodeOptions,
+  };
 };
 
 const generateNodeChangesWithLayout = (
@@ -82,6 +118,24 @@ const generateNodeChangesWithLayout = (
     .map((change) => change.id);
 
   return generateLayoutNodesChangesBipartite(newNodes, draggedNodeIds);
+};
+
+const addGroupNodes = (nodes: BipartiteNodeType[]) => {
+  const { bounds, offset } = computeGroupContainerBounds(nodes);
+
+  const domainGroup = createGroupNode("domain", bounds, {
+    ...offset,
+    x: -offset.x,
+  });
+  const rangeGroup = createGroupNode("range", bounds, offset);
+
+  const childNodes = nodes.map((node) => ({
+    ...node,
+    parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
+    extent: "parent",
+  })) satisfies BipartiteNodeType[];
+
+  return [domainGroup, rangeGroup, ...childNodes];
 };
 
 export default function BipartiteGraph({
@@ -110,6 +164,7 @@ export default function BipartiteGraph({
   const warning = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.warning,
   );
+  const nodesInitialized = useNodesInitialized();
 
   const { getNode, fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -123,20 +178,34 @@ export default function BipartiteGraph({
   }, [id, dispatch, locked]);
 
   useEffect(() => {
+    if (nodesInitialized) {
+      fitView(fitViewOptions);
+    }
+  }, [fitView, nodesInitialized]);
+
+  useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
   }, [expandedView, fitView]);
 
+  const groupedNodes = useMemo(() => addGroupNodes(nodes), [nodes]);
+
+  console.log(groupedNodes);
+
   const onNodesChange = useCallback(
-    (changes: NodeChange<BipartiteNodeType>[]) => {
-      // TODO: Why is layouting here necessary?
+    (changes: NodeChange<BipartiteNodeType | Node>[]) => {
+      const bipartiteNodeChanges = changes.filter(
+        (ch): ch is NodeChange<BipartiteNodeType> =>
+          ch.type === "add" || getNode(ch.id)?.type !== "setGroup",
+      );
+
       const allChanges = [
-        ...changes,
-        ...generateNodeChangesWithLayout(changes, nodes),
+        ...bipartiteNodeChanges,
+        ...generateNodeChangesWithLayout(bipartiteNodeChanges, nodes),
       ];
 
       dispatch(onNodesChanged({ id, type, changes: allChanges }));
     },
-    [nodes, id, dispatch],
+    [nodes, id, dispatch, getNode],
   );
 
   const onEdgesChange = useCallback(
@@ -171,10 +240,15 @@ export default function BipartiteGraph({
 
       if (duplicateEdge)
         dispatch(warningChanged({ id, type, warning: "Edge already exists." }));
-      else if (identicalOrigin)
+      else if (identicalOrigin) {
         dispatch(
-          warningChanged({ id, type, warning: "Both nodes are in domain." }),
+          warningChanged({
+            id,
+            type,
+            warning: "Only edges from domain to range nodes are valid.",
+          }),
         );
+      }
 
       return !duplicateEdge && !identicalOrigin;
     },
@@ -193,14 +267,12 @@ export default function BipartiteGraph({
       >
         <ReactFlow
           id={id}
-          nodes={nodes}
+          nodes={groupedNodes}
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
-          fitView
-          fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
@@ -217,6 +289,7 @@ export default function BipartiteGraph({
           <Background id={`bg-bipartite-${id}`} />
           <Controls
             expandedView={expandedView}
+            fitViewOptions={{ ...fitViewOptions, maxZoom: 1, duration: 300 }}
             onExpandedViewChange={onExpandedViewChange}
             onInteractiveChange={(ch) => {
               dispatch(editorLocked({ id, type, locked: locked || !ch }));

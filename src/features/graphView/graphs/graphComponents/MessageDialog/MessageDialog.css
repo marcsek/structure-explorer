@@ -19,7 +19,7 @@
 
 .error-dialog-container.corner {
   bottom: 0.5rem;
-  right: 0.5rem;
+  left: 0.5rem;
   padding-inline: 0;
 }
 

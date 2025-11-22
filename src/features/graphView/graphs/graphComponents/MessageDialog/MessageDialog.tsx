@@ -2,6 +2,7 @@ import "./MessageDialog.css";
 
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { ReactNode } from "react";
 
 export default function MessageDialog({
   type,
@@ -12,7 +13,7 @@ export default function MessageDialog({
   type: "error" | "warning" | "info";
   position: "center" | "corner";
   title?: string;
-  body: string;
+  body: ReactNode;
 }) {
   return (
     <div className={`error-dialog-container ${type} ${position}`}>

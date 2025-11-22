@@ -32,7 +32,7 @@
 .predicate-node-label {
   width: 100%;
   margin: 0;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -42,7 +42,7 @@
 .predicate-node-constants {
   width: 100%;
   justify-self: flex-end;
-  color: var(--bs-secondary-color);
+  color: var(--bs-tertiary-color);
 
   white-space: nowrap;
   overflow: hidden;
@@ -128,4 +128,70 @@
   position: absolute;
   top: -15px;
   right: -15px;
+}
+
+.set-group-node.origin-domain {
+  --set-group-bg: color-mix(in srgb, #ffab00, transparent 95%);
+  --set-group-border-color: color-mix(in srgb, #ffab00, transparent 50%);
+  --set-group-color: color-mix(in srgb, #ffab00, transparent 25%);
+}
+
+.set-group-node.origin-range {
+  --set-group-bg: color-mix(in srgb, #00b8d9, transparent 95%);
+  --set-group-border-color: color-mix(in srgb, #00b8d9, transparent 50%);
+  --set-group-color: color-mix(in srgb, #00b8d9, transparent 25%);
+}
+
+.set-group-node {
+  outline: none;
+  background-color: var(--set-group-bg);
+  color: var(--set-group-color);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.set-group-node-border {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.node-border-rect {
+  fill: none;
+  stroke: var(--set-group-border-color);
+  stroke-width: 2;
+  stroke-dasharray: 10 10;
+  rx: 10px;
+  ry: 10px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+}
+
+.set-group-node-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.set-group-node-label {
+  position: absolute;
+  width: fit-content;
+  font-family: monospace;
+  top: 0;
+  line-height: 1;
+  transform: translateY(calc(-100% - 0.5rem));
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.set-group-node.origin-domain .set-group-node-label {
+  left: 0;
+}
+
+.set-group-node.origin-range .set-group-node-label {
+  right: 0;
 }

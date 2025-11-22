@@ -104,6 +104,8 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       }
     });
 
+    graph.nodes = computeLayoutBipartite(graph.nodes);
+
     return graph;
   },
 
@@ -151,7 +153,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         data: { ...node.data, leftover: true },
       }));
 
-    const allNodes = [...newNodes, ...leftoverNodes];
+    const allNodes = computeLayoutBipartite([...newNodes, ...leftoverNodes]);
 
     const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
       (node) => domain.includes(node),
