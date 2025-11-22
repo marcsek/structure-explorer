@@ -286,7 +286,9 @@ export default function BipartiteGraph({
           edgesReconnectable={false}
           connectOnClick={false}
         >
-          <Background id={`bg-bipartite-${id}`} />
+          <Background
+            id={`bg-bipartite-${id}-${expandedView ? "expanded" : ""}`}
+          />
           <Controls
             expandedView={expandedView}
             fitViewOptions={{ ...fitViewOptions, maxZoom: 1, duration: 300 }}

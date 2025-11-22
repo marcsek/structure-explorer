@@ -1,11 +1,12 @@
 import "./DrawerEditor.css";
 
-import { Card, Stack } from "react-bootstrap";
+import { Card, CloseButton, Modal, Stack } from "react-bootstrap";
 import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import { type EditorType } from "../structure/InterpretationEditor";
-import { useState } from "react";
-import EditorTitle from "./EditorTitle";
+import { useState, type ReactNode } from "react";
+import { InlineMath } from "react-katex";
+import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -14,69 +15,126 @@ interface DrawerEditorProps {
   type: DrawerEditorType;
   predicateDisplayName: string;
   editorDisplayName: string;
+  controlButtons: ReactNode;
   locked?: boolean;
   error?: Error;
 }
 
-export default function DrawerEditor({
+export default function DrawerEditor(props: DrawerEditorProps) {
+  const [expandedView, setExpandedView] = useState(false);
+
+  return (
+    <>
+      <Modal
+        show={expandedView}
+        onHide={() => setExpandedView(false)}
+        dialogClassName="drawer-editor-modal-dialog"
+        contentClassName="drawer-editor-modal-content"
+        centered
+      >
+        <DrawerEditorContent
+          expandedView
+          setExpandedView={setExpandedView}
+          {...props}
+        />
+      </Modal>
+      <DrawerEditorContent setExpandedView={setExpandedView} {...props} />
+    </>
+  );
+}
+
+interface DrawerEditorContentProps extends DrawerEditorProps {
+  expandedView?: boolean;
+  setExpandedView: (value: boolean) => void;
+}
+
+function DrawerEditorContent({
+  expandedView = false,
+  setExpandedView,
   predicateName,
   type,
+  controlButtons,
   predicateDisplayName,
   editorDisplayName,
   locked = false,
   error,
-}: DrawerEditorProps) {
-  const [expandedView, setExpandedView] = useState(false);
-
-  // TODO
-  if (type === "matrix") return null;
-
+}: DrawerEditorContentProps) {
   return (
-    <div
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
-    >
-      {expandedView && (
-        <div
-          className="drawer-editor-expanded-backdrop"
-          onClick={() => setExpandedView(false)}
-        />
-      )}
-
-      <Stack gap={3} className="drawer-editor-container-body">
-        {expandedView && (
-          <>
+    <>
+      <Stack
+        className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
+      >
+        <div className="drawer-editor-header">
+          <Stack direction="horizontal">
             <EditorTitle
               base={predicateDisplayName}
               editor={editorDisplayName}
-              style="flat"
             />
-            <div className="drawer-editor-divider-container-body" />
-          </>
-        )}
-
-        <GraphToolbar id={predicateName} type={type} />
-
-        {expandedView && (
-          <div className="drawer-editor-divider-container-body" />
-        )}
-
-        <Stack gap={1} className="drawer-editor-container">
-          <Card className="border-0" style={{ height: "100%" }}>
-            <Card.Body
-              className={`drawer-editor-container ${!expandedView ? "bordered" : ""} ${error ? "error" : ""}`}
+            <Stack
+              direction="horizontal"
+              className="drawer-editor-header-control-group"
             >
-              <GraphView
-                predName={predicateName}
-                graphType={type}
-                locked={locked}
-                expandedView={expandedView}
-                onExpandedViewChange={(expanded) => setExpandedView(expanded)}
-              />
-            </Card.Body>
-          </Card>
-          <p className="text-danger small m-0">{error?.message}</p>
+              {controlButtons}
+              {expandedView && (
+                <CloseButton onClick={() => setExpandedView(false)} />
+              )}
+            </Stack>
+          </Stack>
+        </div>
+        <Stack className="drawer-editor-container-body">
+          {type !== "matrix" && (
+            <>
+              <div className="drawer-editor-toolbar-container">
+                <GraphToolbar id={predicateName} type={type} />
+              </div>
+
+              <Stack>
+                <Card className="border-0" style={{ height: "100%" }}>
+                  <Card.Body
+                    className={`drawer-editor-view-container ${error ? "error" : ""}`}
+                  >
+                    <GraphView
+                      predName={predicateName}
+                      graphType={type}
+                      locked={locked}
+                      expandedView={expandedView}
+                      onExpandedViewChange={(expanded) =>
+                        setExpandedView(expanded)
+                      }
+                    />
+                  </Card.Body>
+                  {expandedView && error?.message && (
+                    <p className="text-danger small m-1">{error?.message}</p>
+                  )}
+                </Card>
+              </Stack>
+            </>
+          )}
         </Stack>
       </Stack>
-    </div>
+      {!expandedView && (
+        <p className="text-danger small m-0">{error?.message}</p>
+      )}
+    </>
+  );
+}
+
+export interface EditorTitleProps {
+  base: string;
+  editor: string;
+}
+
+function EditorTitle({ base, editor }: EditorTitleProps) {
+  return (
+    <Stack className="drawer-editor-title">
+      <span className="fw-light">
+        <InlineMath>{base}</InlineMath>
+      </span>
+
+      <ForwardSlashIcon className="text-body-secondary" size="1rem" />
+      <span className="text-body-secondary text-capitalize fw-medium">
+        {editor}
+      </span>
+    </Stack>
   );
 }

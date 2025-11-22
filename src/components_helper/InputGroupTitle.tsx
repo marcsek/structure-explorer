@@ -10,6 +10,7 @@ interface Props {
   id: string;
   prefix: ReactNode;
   suffix: ReactNode;
+  controlButtons?: ReactNode;
   placeholder: string;
   text: string;
   onChange(event: ChangeEvent<HTMLInputElement>): void;
@@ -23,6 +24,7 @@ export default function InputGroupTitle({
   id,
   prefix,
   suffix,
+  controlButtons = null,
   placeholder,
   text,
   onChange,
@@ -59,6 +61,8 @@ export default function InputGroupTitle({
             {`${lockChecker === true ? "Unlock" : "Lock"}`}
           </Button>
         )}
+
+        {controlButtons}
 
         <ErrorFeedback error={error} text={text}></ErrorFeedback>
       </InputGroup>

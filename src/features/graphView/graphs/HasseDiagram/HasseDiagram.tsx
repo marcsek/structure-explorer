@@ -219,7 +219,7 @@ export default function HasseDiagram({
         panOnDrag={isPoset}
         zoomOnScroll={isPoset}
       >
-        <Background id={`bg-hasse-${id}`} />
+        <Background id={`bg-hasse-${id}-${expandedView ? "expanded" : ""}`} />
         <Controls
           expandedView={expandedView}
           onExpandedViewChange={onExpandedViewChange}

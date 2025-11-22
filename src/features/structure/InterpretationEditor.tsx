@@ -18,8 +18,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
-import type { EditorTitleProps } from "../drawerEditor/EditorTitle";
-import EditorTitle from "../drawerEditor/EditorTitle";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -111,7 +109,7 @@ export default function InterpretationEditorProps({
   }
 
   return (
-    <Stack gap={3}>
+    <Stack gap={0}>
       <Stack
         direction="horizontal"
         gap={3}
@@ -123,6 +121,17 @@ export default function InterpretationEditorProps({
             id={id}
             prefix={<InlineMath>{prefixRaw}</InlineMath>}
             suffix={isConstant ? "" : <InlineMath>{suffixRaw}</InlineMath>}
+            controlButtons={
+              isTuple &&
+              selectedEditor === "text" && (
+                <ControlButtons
+                  id={`controls-${id}`}
+                  buttons={controlButtons}
+                  selected={selectedEditor}
+                  onSelected={setSelectedEditor}
+                />
+              )
+            }
             placeholder=""
             text={interpretation?.text ?? ""}
             lockChecker={interpretation?.locked}
@@ -131,19 +140,22 @@ export default function InterpretationEditorProps({
             error={error}
           />
         ) : (
-          <EditorHeader
-            base={prefixRawNoEnd}
-            editor={editorTypeFullNameLookup[selectedEditor]}
-          />
+          <>
+            {/* <EditorHeader */}
+            {/*   base={prefixRawNoEnd} */}
+            {/*   editor={editorTypeFullNameLookup[selectedEditor]} */}
+            {/* /> */}
+          </>
         )}
-        {isTuple && (
-          <ControlButtons
-            id={`controls-${id}`}
-            buttons={controlButtons}
-            selected={selectedEditor}
-            onSelected={setSelectedEditor}
-          />
-        )}
+
+        {/* {isTuple && selectedEditor === "text" && ( */}
+        {/*   <ControlButtons */}
+        {/*     id={`controls-${id}`} */}
+        {/*     buttons={controlButtons} */}
+        {/*     selected={selectedEditor} */}
+        {/*     onSelected={setSelectedEditor} */}
+        {/*   /> */}
+        {/* )} */}
       </Stack>
 
       {selectedEditor !== "text" && (
@@ -154,17 +166,16 @@ export default function InterpretationEditorProps({
           editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
           locked={interpretation?.locked}
           error={error}
+          controlButtons={
+            <ControlButtons
+              id={`controls-${id}`}
+              buttons={controlButtons}
+              selected={selectedEditor}
+              onSelected={setSelectedEditor}
+            />
+          }
         />
       )}
-    </Stack>
-  );
-}
-
-function EditorHeader(props: EditorTitleProps) {
-  return (
-    <Stack direction="horizontal" className="flex-grow-1" gap={3}>
-      <EditorTitle {...props} />
-      <div className="dashed-hr" />
     </Stack>
   );
 }
@@ -196,7 +207,7 @@ function ControlButtons<T extends string | number>({
   const buttonId = (value: string | number) => `${id}-${value}`;
 
   return (
-    <ButtonGroup id={id} className="ms-auto">
+    <ButtonGroup id={id} className="morphed-button-group">
       {buttons.map((button) => {
         if ("dropDown" in button) {
           const childValues = button.dropDown.map((ch) => ch.value);

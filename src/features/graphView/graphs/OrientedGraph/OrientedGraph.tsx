@@ -206,7 +206,9 @@ export default function OrientedGraph({
           edgesReconnectable={false}
           connectOnClick={false}
         >
-          <Background id={`bg-oriented-${id}`} />
+          <Background
+            id={`bg-oriented-${id}-${expandedView ? "expanded" : ""}`}
+          />
           <Controls
             expandedView={expandedView}
             onExpandedViewChange={onExpandedViewChange}
