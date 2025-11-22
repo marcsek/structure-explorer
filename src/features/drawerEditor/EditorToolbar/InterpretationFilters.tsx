@@ -20,6 +20,8 @@ import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import { getUnaryPredicateColor } from "../unaryPredicateColors";
 import useScrollControls from "./useScrollControls";
+import { useRef } from "react";
+import useDraggingScroll from "./useDragginScroll";
 
 export interface InterpretationFiltersProps {
   id: string;
@@ -69,7 +71,11 @@ function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
   const selectedPredicates = useAppSelector(
     (state) => state.graphView[id]?.selectedUnary ?? [],
   );
-  const scrollControls = useScrollControls({ edgeMargin: 40 });
+
+  const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
+
+  useDraggingScroll(filtersGroupRef);
+  const scrollControls = useScrollControls(filtersGroupRef, { edgeMargin: 40 });
 
   const handleSelectAll = () => {
     const allSelected = selectedPredicates.length === predicates.length;
@@ -101,10 +107,7 @@ function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
         </div>
       )}
 
-      <fieldset
-        className="unary-preds-filters-group"
-        ref={scrollControls.scrollContainerRef}
-      >
+      <fieldset className="unary-preds-filters-group" ref={filtersGroupRef}>
         <Button
           className="legend-select-all editor-toolbar-button legend-button"
           title="Select all"

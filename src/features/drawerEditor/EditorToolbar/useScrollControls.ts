@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, type RefObject } from "react";
 
 const defaultScrollIntoViewOptions: ScrollIntoViewOptions = {
   behavior: "smooth",
@@ -11,13 +11,15 @@ interface UseScrollViewOptions {
   edgeMargin?: number;
 }
 
-export default function useScrollControls(options?: UseScrollViewOptions) {
+export default function useScrollControls(
+  scrollContainerRef: RefObject<HTMLElement>,
+  options?: UseScrollViewOptions,
+) {
   const {
     scrollIntoViewOptions = defaultScrollIntoViewOptions,
     edgeMargin = 0,
   } = options ?? {};
 
-  const scrollContainerRef = useRef<HTMLFieldSetElement>(null);
   const [showLeftControl, setShowLeftButton] = useState(false);
   const [showRightControl, setShowRightButton] = useState(false);
 
@@ -46,6 +48,7 @@ export default function useScrollControls(options?: UseScrollViewOptions) {
       window.removeEventListener("resize", handleScroll);
       resizeObserver.disconnect();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const scrollIntoView = (direction: "left" | "right") => {
@@ -73,19 +76,14 @@ export default function useScrollControls(options?: UseScrollViewOptions) {
     if (direction === "right") {
       childrenByOffset
         .find((child) => isOverflowingRight(child) && !isOverflowingLeft(child))
-        ?.scrollIntoView(scrollIntoViewOptions);
+        ?.scrollIntoView({ ...scrollIntoViewOptions, inline: "start" });
     } else {
       childrenByOffset
         .reverse()
         .find((child) => isOverflowingLeft(child) && !isOverflowingRight(child))
-        ?.scrollIntoView(scrollIntoViewOptions);
+        ?.scrollIntoView({ ...scrollIntoViewOptions, inline: "end" });
     }
   };
 
-  return {
-    scrollContainerRef,
-    scrollIntoView,
-    showLeftControl,
-    showRightControl,
-  };
+  return { scrollIntoView, showLeftControl, showRightControl };
 }
