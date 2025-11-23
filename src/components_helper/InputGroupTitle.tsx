@@ -1,9 +1,10 @@
 import type { ChangeEvent, ReactNode } from "react";
-import { Form, InputGroup, Button } from "react-bootstrap";
+import { Form, InputGroup } from "react-bootstrap";
 import { SyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../app/hooks";
 import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
+import LockButton from "./LockButton";
 
 interface Props {
   label: string;
@@ -29,7 +30,7 @@ export default function InputGroupTitle({
   text,
   onChange,
   locker,
-  lockChecker,
+  lockChecker = false,
   error,
 }: Props) {
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
@@ -56,14 +57,9 @@ export default function InputGroupTitle({
 
         {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}
 
-        {teacherMode && (
-          <Button variant="secondary" onClick={() => locker()}>
-            {`${lockChecker === true ? "Unlock" : "Lock"}`}
-          </Button>
-        )}
-
         {controlButtons}
 
+        {teacherMode && <LockButton locker={locker} locked={lockChecker} />}
         <ErrorFeedback error={error} text={text}></ErrorFeedback>
       </InputGroup>
     </Form.Group>

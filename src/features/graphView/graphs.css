@@ -219,6 +219,7 @@
   box-shadow: var(--bs-box-shadow-sm);
   padding: 0.25rem 0.25rem;
   color: var(--bs-body);
+  margin: 1rem;
 }
 
 .react-flow__controls .react-flow__controls-button {

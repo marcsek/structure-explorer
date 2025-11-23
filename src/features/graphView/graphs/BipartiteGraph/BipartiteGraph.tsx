@@ -45,6 +45,7 @@ import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.
 import SetGroupNode, {
   type SetGroupNodeType,
 } from "../graphComponents/SetGroupNode.tsx";
+import { partition } from "../../helpers/utils.ts";
 
 export type OriginSet = "domain" | "range";
 
@@ -72,6 +73,7 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     color: "#b1b1b7",
   },
+  zIndex: 1,
 };
 
 const groupNodeOptions = {
@@ -129,13 +131,18 @@ const addGroupNodes = (nodes: BipartiteNodeType[]) => {
   });
   const rangeGroup = createGroupNode("range", bounds, offset);
 
-  const childNodes = nodes.map((node) => ({
+  const childNodes: BipartiteNodeType[] = nodes.map((node) => ({
     ...node,
     parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
     extent: "parent",
-  })) satisfies BipartiteNodeType[];
+  }));
 
-  return [domainGroup, rangeGroup, ...childNodes];
+  const [childrenDomain, childrenRange] = partition(
+    childNodes,
+    (n) => n.data.origin === "domain",
+  );
+
+  return [domainGroup, ...childrenDomain, rangeGroup, ...childrenRange];
 };
 
 export default function BipartiteGraph({
@@ -188,8 +195,6 @@ export default function BipartiteGraph({
   }, [expandedView, fitView]);
 
   const groupedNodes = useMemo(() => addGroupNodes(nodes), [nodes]);
-
-  console.log(groupedNodes);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<BipartiteNodeType | Node>[]) => {

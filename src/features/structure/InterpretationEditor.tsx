@@ -18,6 +18,8 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
+import { selectTeacherMode } from "../teacherMode/teacherModeslice";
+import LockButton from "../../components_helper/LockButton";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -40,6 +42,19 @@ const editorTypeFullNameLookup: Record<EditorType, string> = {
   text: "Text Editor",
 };
 
+const omitControlButtons = (
+  controlButtons: ControlButtonsProps<EditorType>["buttons"],
+  omit: EditorType[],
+) => {
+  if (omit.length === 0) return controlButtons;
+
+  return controlButtons.filter(({ value }) =>
+    Array.isArray(value)
+      ? value.every((v) => !omit.includes(v))
+      : !omit.includes(value),
+  );
+};
+
 export default function InterpretationEditorProps({
   name,
   id,
@@ -58,6 +73,8 @@ export default function InterpretationEditorProps({
       selectParsedFunctions(state).parsed?.get(name) === 1,
   );
   const { error } = useAppSelector((state) => parser(state, name));
+  const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+
   const escapedName = name.replace(/_/g, "\\_");
 
   const isFunction = type === "function";
@@ -73,6 +90,7 @@ export default function InterpretationEditorProps({
   if (isFunction) {
     controlButtons.push({
       text: <FontAwesomeIcon icon={faDiagramProject} />,
+      value: ["oriented", "bipartite"],
       dropDown: [
         {
           text: "Oriented",
@@ -91,6 +109,7 @@ export default function InterpretationEditorProps({
     });
     controlButtons.push({
       text: <FontAwesomeIcon icon={faDiagramProject} />,
+      value: ["oriented", "hasse", "bipartite"],
       dropDown: [
         {
           text: "Oriented",
@@ -115,7 +134,7 @@ export default function InterpretationEditorProps({
         gap={3}
         className={`align-items-start ${selectedEditor !== "text" ? "flex-wrap" : ""} `}
       >
-        {selectedEditor === "text" ? (
+        {selectedEditor === "text" && (
           <InputGroupTitle
             label=""
             id={id}
@@ -139,23 +158,7 @@ export default function InterpretationEditorProps({
             onChange={onChange}
             error={error}
           />
-        ) : (
-          <>
-            {/* <EditorHeader */}
-            {/*   base={prefixRawNoEnd} */}
-            {/*   editor={editorTypeFullNameLookup[selectedEditor]} */}
-            {/* /> */}
-          </>
         )}
-
-        {/* {isTuple && selectedEditor === "text" && ( */}
-        {/*   <ControlButtons */}
-        {/*     id={`controls-${id}`} */}
-        {/*     buttons={controlButtons} */}
-        {/*     selected={selectedEditor} */}
-        {/*     onSelected={setSelectedEditor} */}
-        {/*   /> */}
-        {/* )} */}
       </Stack>
 
       {selectedEditor !== "text" && (
@@ -164,16 +167,20 @@ export default function InterpretationEditorProps({
           type={selectedEditor}
           predicateDisplayName={prefixRawNoEnd}
           editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
+          locker={locker}
           locked={interpretation?.locked}
           error={error}
-          controlButtons={
+          buildControlButtons={(omit) => (
             <ControlButtons
               id={`controls-${id}`}
-              buttons={controlButtons}
+              buttons={omitControlButtons(controlButtons, omit ?? [])}
               selected={selectedEditor}
               onSelected={setSelectedEditor}
+              teacherMode={teacherMode}
+              locked={interpretation?.locked}
+              locker={locker}
             />
-          }
+          )}
         />
       )}
     </Stack>
@@ -189,11 +196,15 @@ interface ControlButtonsProps<T> {
       }
     | {
         text: React.ReactNode;
+        value: T[];
         dropDown: { text: React.ReactNode; value: T }[];
       }
   )[];
   selected: T;
   onSelected: (selected: T) => void;
+  teacherMode?: boolean;
+  locked?: boolean;
+  locker?: () => void;
   disabled?: boolean;
 }
 
@@ -202,12 +213,15 @@ function ControlButtons<T extends string | number>({
   buttons,
   selected,
   onSelected,
+  teacherMode = false,
+  locked = false,
+  locker,
   disabled = false,
 }: ControlButtonsProps<T>) {
   const buttonId = (value: string | number) => `${id}-${value}`;
 
   return (
-    <ButtonGroup id={id} className="morphed-button-group">
+    <ButtonGroup id={id} className="editor-controls-buttons-group">
       {buttons.map((button) => {
         if ("dropDown" in button) {
           const childValues = button.dropDown.map((ch) => ch.value);
@@ -257,6 +271,8 @@ function ControlButtons<T extends string | number>({
           </ToggleButton>
         );
       })}
+
+      {locker && teacherMode && <LockButton locker={locker} locked={locked} />}
     </ButtonGroup>
   );
 }

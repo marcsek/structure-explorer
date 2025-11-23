@@ -29,7 +29,7 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
       onToggle={() => setShow(!show)}
     >
       <Button
-        className="ms-auto rounded-circle p-1 btn-bd-info-outline"
+        className="rounded-circle p-1 btn-bd-info-outline"
         variant="outline-dark"
         style={{ display: "flex" }}
         title="Help"

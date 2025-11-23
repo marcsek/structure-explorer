@@ -34,3 +34,13 @@
   flex-shrink: 1;
   display: block;
 }
+
+.col-divider {
+  border-right: 1px solid var(--bs-border-color);
+}
+
+@media (max-width: 1200px) {
+  .col-divider {
+    border-right: none;
+  }
+}

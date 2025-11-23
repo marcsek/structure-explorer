@@ -15,7 +15,8 @@ interface DrawerEditorProps {
   type: DrawerEditorType;
   predicateDisplayName: string;
   editorDisplayName: string;
-  controlButtons: ReactNode;
+  buildControlButtons: (omit?: EditorType[]) => ReactNode;
+  locker: () => void;
   locked?: boolean;
   error?: Error;
 }
@@ -53,7 +54,7 @@ function DrawerEditorContent({
   setExpandedView,
   predicateName,
   type,
-  controlButtons,
+  buildControlButtons,
   predicateDisplayName,
   editorDisplayName,
   locked = false,
@@ -74,7 +75,7 @@ function DrawerEditorContent({
               direction="horizontal"
               className="drawer-editor-header-control-group"
             >
-              {controlButtons}
+              {buildControlButtons(expandedView ? ["text"] : undefined)}
               {expandedView && (
                 <CloseButton onClick={() => setExpandedView(false)} />
               )}

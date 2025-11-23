@@ -8,7 +8,7 @@ import {
   selectVariablesText,
   updateVariables,
 } from "./variablesSlice";
-import ComponentCard from "../../components_helper/ComponentAccordion/ComponentCard.tsx";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function VariablesComponent() {
   const dispatch = useAppDispatch();
@@ -17,11 +17,7 @@ export default function VariablesComponent() {
   const { error } = useAppSelector(selectParsedVariables);
 
   return (
-    <ComponentCard
-      eventKey="variables"
-      heading={<span>Variable assignment</span>}
-      help={help}
-    >
+    <ComponentCard heading={<span>Variable assignment</span>} help={help}>
       <InputGroupTitle
         label={"Variable assignment of individual variables"}
         id="variables"

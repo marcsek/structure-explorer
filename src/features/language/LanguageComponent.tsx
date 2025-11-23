@@ -20,7 +20,7 @@ import {
   lockFunctions,
   updatePredicates,
 } from "./languageSlice";
-import ComponentCard from "../../components_helper/ComponentAccordion/ComponentCard.tsx";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -37,7 +37,6 @@ export default function LanguageComponent() {
 
   return (
     <ComponentCard
-      eventKey="language"
       heading={
         <span>
           Language <InlineMath>{String.raw`\mathcal{L}`}</InlineMath>

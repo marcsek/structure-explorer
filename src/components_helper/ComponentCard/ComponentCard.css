@@ -1,0 +1,22 @@
+.component-card {
+  border: none;
+}
+
+.component-card > * {
+  padding-inline: 0;
+}
+
+.component-card-header {
+  border: 1px solid transparent;
+  height: 2rem;
+  width: 100%;
+  padding-block: 0;
+
+  background-color: unset;
+
+  gap: 1rem;
+}
+
+.component-card-body {
+  padding-top: 0.5rem;
+}
