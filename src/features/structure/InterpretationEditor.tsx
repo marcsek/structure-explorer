@@ -129,6 +129,7 @@ export default function InterpretationEditorProps({
 
   return (
     <Stack gap={0}>
+      {/* TODO: Redundant. Keeping it in case something gets added. */}
       <Stack
         direction="horizontal"
         gap={3}

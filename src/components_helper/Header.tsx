@@ -14,7 +14,7 @@ export default function Header() {
         : " Undefined";
 
   return (
-    <Stack className="mb-2">
+    <Stack className="mb-2" direction="horizontal" gap={3}>
       <GearButton />
       <span>Teacher mode: {teacherModeStatus}</span>
     </Stack>
