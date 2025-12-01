@@ -1,4 +1,4 @@
-import type { PayloadAction, UnknownAction } from "@reduxjs/toolkit";
+import type { UnknownAction } from "@reduxjs/toolkit";
 import {
   selectConstantsValidation,
   selectFunctionsValidation,
@@ -35,17 +35,7 @@ import {
 } from "../variables/variablesSlice";
 import type { ValidationError } from "./textViewSlice";
 
-export interface ActionCreatorWithMeta<
-  P,
-  T extends string,
-  M extends object = object,
-> {
-  (payload: P, meta: M): PayloadAction<P, T, M>;
-  type: T;
-  match(action: unknown): action is PayloadAction<P, T, M>;
-}
-
-export type TextViewTypes =
+export type TextViewType =
   | "constants"
   | "predicates"
   | "functions"
@@ -55,11 +45,11 @@ export type TextViewTypes =
   | "function_interpretation"
   | "variables";
 
-export interface TextViewDescriptor<TParsed> {
-  parse: (value: string, state: RootState) => TParsed;
-  update: (key: string, parsed: TParsed) => UnknownAction;
-  toText: (structured: unknown) => string;
-  validate?: (state: RootState, key?: string) => ValidationError | undefined;
+export interface TextViewDescriptor<TStructured> {
+  parse: (value: string, state: RootState) => TStructured;
+  syncAction: (key: string, parsed: TStructured) => UnknownAction;
+  toText: (structured: TStructured) => string;
+  validate: (state: RootState, key?: string) => ValidationError | undefined;
 }
 
 interface TextViewTypeMap {
@@ -78,43 +68,43 @@ export const textViewDescriptors: {
 } = {
   constants: {
     parse: (value) => parseConstants(value),
-    toText: (structured) => (structured as string[]).join(", "),
-    update: (_, parsed) => updateConstants(parsed, { source: "textView" }),
+    toText: (structured) => structured.join(", "),
+    syncAction: (_, parsed) =>
+      textTypeToSyncReducer.constants(parsed, { source: "textView" }),
     validate: (state) => selectConstantsValidation(state)?.error,
   },
 
   predicates: {
     parse: (value) => parsePredicates(value),
     toText: (structured) =>
-      (structured as SymbolWithArity[])
-        .map(({ name, arity }) => `${name}/${arity}`)
-        .join(", "),
-    update: (_, parsed) => updatePredicates(parsed, { source: "textView" }),
+      structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
+    syncAction: (_, parsed) =>
+      textTypeToSyncReducer.predicates(parsed, { source: "textView" }),
     validate: (state) => selectPredicatesValidation(state)?.error,
   },
 
   functions: {
     parse: (value) => parseFunctions(value),
     toText: (structured) =>
-      (structured as SymbolWithArity[])
-        .map(({ name, arity }) => `${name}/${arity}`)
-        .join(", "),
-    update: (_, parsed) => updateFunctions(parsed, { source: "textView" }),
+      structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
+    syncAction: (_, parsed) =>
+      textTypeToSyncReducer.functions(parsed, { source: "textView" }),
     validate: (state) => selectFunctionsValidation(state)?.error,
   },
 
   domain: {
     parse: (value) => parseDomain(value),
-    toText: (structured) => (structured as string[]).join(", "),
-    update: (_, parsed) => updateDomain(parsed, { source: "textView" }),
+    toText: (structured) => structured.join(", "),
+    syncAction: (_, parsed) =>
+      textTypeToSyncReducer.domain(parsed, { source: "textView" }),
     validate: (state) => selectDomainValidation(state)?.error,
   },
 
   constant_interpretation: {
     parse: (value) => value,
-    toText: (v) => v as string,
-    update: (key, parsed) =>
-      updateInterpretationConstants(
+    toText: (structured) => structured,
+    syncAction: (key, parsed) =>
+      textTypeToSyncReducer.constant_interpretation(
         { key, value: parsed },
         { source: "textView" },
       ),
@@ -124,14 +114,14 @@ export const textViewDescriptors: {
 
   predicate_interpretation: {
     parse: (value) => parseTuples(value),
-    toText: (v) =>
-      (v as TupleInterpretationState["value"])
+    toText: (structured) =>
+      structured
         .map((tuple) =>
           tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
         )
         .join(", "),
-    update: (key, parsed) =>
-      updateInterpretationPredicates(
+    syncAction: (key, parsed) =>
+      textTypeToSyncReducer.predicate_interpretation(
         { key, value: parsed },
         { source: "textView" },
       ),
@@ -141,14 +131,17 @@ export const textViewDescriptors: {
 
   function_interpretation: {
     parse: (value) => parseTuples(value),
-    toText: (v) =>
-      (v as TupleInterpretationState["value"])
+    toText: (structured) =>
+      structured
         .map((tuple) =>
           tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
         )
         .join(", "),
-    update: (key, parsed) =>
-      updateFunctionSymbols({ key, value: parsed }, { source: "textView" }),
+    syncAction: (key, parsed) =>
+      textTypeToSyncReducer.function_interpretation(
+        { key, value: parsed },
+        { source: "textView" },
+      ),
     validate: (state, key) =>
       selectFunctionsInterpretationValidation(state, key!)?.error,
   },
@@ -156,8 +149,32 @@ export const textViewDescriptors: {
   variables: {
     parse: (value, state) =>
       parseValuation(value, selectLanguage(state).getParserLanguage()),
-    toText: (structured) => JSON.stringify(structured),
-    update: (_, parsed) => updateVariables(parsed, { source: "textView" }),
+    toText: (structured) =>
+      structured.map(([from, to]) => `${from}->${to}`).join(", "),
+    syncAction: (_, parsed) =>
+      textTypeToSyncReducer.variables(parsed, { source: "textView" }),
     validate: (state) => selectVariablesValidation(state)?.error,
   },
 };
+
+export const textTypeToSyncReducer = {
+  constants: updateConstants,
+  predicates: updatePredicates,
+  functions: updateFunctions,
+  domain: updateDomain,
+  predicate_interpretation: updateInterpretationPredicates,
+  constant_interpretation: updateInterpretationConstants,
+  function_interpretation: updateFunctionSymbols,
+  variables: updateVariables,
+} as const satisfies Record<TextViewType, unknown>;
+
+export const textViewSyncReducers = Object.values(textTypeToSyncReducer);
+
+export const syncReducerTypeToTextType: Record<string, TextViewType> =
+  Object.entries(textTypeToSyncReducer).reduce(
+    (acc, [textType, action]) => {
+      acc[action.type] = textType as TextViewType;
+      return acc;
+    },
+    {} as Record<string, TextViewType>,
+  );

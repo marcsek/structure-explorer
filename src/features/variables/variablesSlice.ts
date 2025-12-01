@@ -1,12 +1,10 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import {
-  createValidationError,
-  prepareWithSourceMeta,
-  type PayloadActionSource,
-} from "../language/languageSlice";
+import { type PayloadActionSource } from "../language/languageSlice";
 import { selectParsedDomain } from "../structure/structureSlice";
+import { createValidationError } from "../../common/errors";
+import { prepareWithSourceMeta } from "../../common/redux";
 
 export type VariableRepresentation = { from: string; to: string };
 

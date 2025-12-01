@@ -2,8 +2,6 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import {
-  createValidationError,
-  prepareWithSourceMeta,
   selectLanguage,
   selectParsedConstants,
   selectParsedFunctions,
@@ -13,6 +11,8 @@ import {
 import Structure, { type DomainElement } from "../../model/Structure";
 import type { Symbol } from "../../model/Language";
 import type { ValidationError } from "../textView/textViewSlice";
+import { createValidationError } from "../../common/errors";
+import { prepareWithSourceMeta } from "../../common/redux";
 
 export interface InterpretationState {
   text: string;

@@ -48,6 +48,7 @@ export default function InputGroupTitle({
           placeholder={placeholder}
           aria-label={placeholder}
           aria-describedby="basic-addon2"
+          autoComplete="off"
           value={text}
           onChange={onChange}
           id={`${id}-${label.toLowerCase()}`}

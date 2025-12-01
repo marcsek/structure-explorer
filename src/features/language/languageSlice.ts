@@ -2,8 +2,9 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import Language from "../../model/Language";
-import type { ValidationError } from "../textView/textViewSlice";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { createValidationError } from "../../common/errors";
+import { prepareWithSourceMeta } from "../../common/redux";
 
 export interface BaseLanguageState {
   locked: boolean;
@@ -28,14 +29,6 @@ const initialState: LanguageState = {
   predicates: { value: [], locked: false },
   functions: { value: [], locked: false },
 };
-
-export const prepareWithSourceMeta = <P>(
-  payload: P,
-  meta: { source?: string } = {},
-) => ({
-  payload,
-  meta,
-});
 
 export type PayloadActionSource<P = void> = PayloadAction<
   P,
@@ -98,15 +91,6 @@ export const selectPredicatesLock = (state: RootState) =>
   state.language.predicates.locked;
 export const selectFunctionsLock = (state: RootState) =>
   state.language.functions.locked;
-
-export const createValidationError = (message: string) => {
-  return {
-    error: {
-      kind: "validation",
-      message,
-    } as ValidationError,
-  };
-};
 
 export const selectConstantsValidation = createSelector(
   [(state: RootState) => state.language.constants],
