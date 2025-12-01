@@ -3,22 +3,13 @@ import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
-  selectDomain,
-  selectParsedDomain,
-  updateInterpretationConstants,
-  selectIcName,
-  selectParsedConstant,
-  updateFunctionSymbols,
-  selectParsedPredicate,
-  selectIpName,
-  selectIfName,
-  selectParsedFunction,
   lockDomain,
   lockInterpretationConstants,
   lockInterpretationPredicates,
   lockFunctionSymbols,
-  updateInterpretationPredicates,
-  updateDomain,
+  selectIcLock,
+  selectIpLock,
+  selectIfLock,
 } from "./structureSlice";
 import {
   selectParsedConstants,
@@ -27,11 +18,19 @@ import {
 } from "../language/languageSlice";
 import InterpretationEditor from "./InterpretationEditor";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import {
+  selectValidatedTextView,
+  updateTextView,
+} from "../textView/textViewSlice.ts";
 
 export default function StructureComponent() {
   const dispatch = useAppDispatch();
-  const domain = useAppSelector(selectDomain);
-  const domainError = useAppSelector(selectParsedDomain);
+
+  const domainTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "domain"),
+  );
+  const domainLocked = useAppSelector((state) => state.structure.domain.locked);
+
   const constants = useAppSelector(selectParsedConstants);
   const predicates = useAppSelector(selectParsedPredicates);
   const functions = useAppSelector(selectParsedFunctions);
@@ -52,13 +51,13 @@ export default function StructureComponent() {
           prefix={<InlineMath>{String.raw`\mathcal{D} = \{`}</InlineMath>}
           suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
           placeholder="Domain"
-          text={domain.text}
+          text={domainTextView.value}
           onChange={(e) => {
-            dispatch(updateDomain(e.target.value));
+            dispatch(updateTextView({ type: "domain", value: e.target.value }));
           }}
           locker={() => dispatch(lockDomain())}
-          lockChecker={domain.locked}
-          error={domainError.error}
+          lockChecker={domainLocked}
+          error={domainTextView.error}
         />
 
         {constants.parsed && constants.parsed.size > 0 && (
@@ -72,11 +71,12 @@ export default function StructureComponent() {
                   id={`constant-${index}`}
                   type="constant"
                   key={`constant-${index}`}
-                  selector={selectIcName}
-                  parser={selectParsedConstant}
+                  textViewType="constant_interpretation"
+                  lockSelector={selectIcLock}
                   onChange={(e) => {
                     dispatch(
-                      updateInterpretationConstants({
+                      updateTextView({
+                        type: "constant_interpretation",
                         key: name,
                         value: e.target.value,
                       }),
@@ -102,14 +102,15 @@ export default function StructureComponent() {
                   name={name}
                   id={`predicate-${index}`}
                   key={`predicate-${index}`}
-                  selector={selectIpName}
-                  parser={selectParsedPredicate}
+                  textViewType="predicate_interpretation"
+                  lockSelector={selectIpLock}
                   locker={() =>
                     dispatch(lockInterpretationPredicates({ key: name }))
                   }
                   onChange={(e) => {
                     dispatch(
-                      updateInterpretationPredicates({
+                      updateTextView({
+                        type: "predicate_interpretation",
                         key: name,
                         value: e.target.value,
                       }),
@@ -126,24 +127,25 @@ export default function StructureComponent() {
             <h3 className="h6 fw-normal">Functions interpretation</h3>
 
             <Stack gap={3}>
-              {Array.from(functions.parsed ?? []).map(([from], index) => (
+              {Array.from(functions.parsed ?? []).map(([name], index) => (
                 <InterpretationEditor
-                  name={from}
+                  name={name}
                   type="function"
                   id={`function-${index}`}
                   key={`function-${index}`}
-                  selector={selectIfName}
+                  textViewType="function_interpretation"
+                  lockSelector={selectIfLock}
                   onChange={(e) => {
                     dispatch(
-                      updateFunctionSymbols({
-                        key: from,
+                      updateTextView({
+                        type: "function_interpretation",
+                        key: name,
                         value: e.target.value,
                       }),
                     );
                   }}
-                  parser={selectParsedFunction}
                   locker={() => {
-                    dispatch(lockFunctionSymbols({ key: from }));
+                    dispatch(lockFunctionSymbols({ key: name }));
                   }}
                 />
               ))}

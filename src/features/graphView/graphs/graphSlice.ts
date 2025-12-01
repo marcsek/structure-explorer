@@ -305,6 +305,7 @@ export const selectBinaryFunctions = createSelector(
   },
 );
 
+// TODO: This selector can be better
 export const selectRelevantConstants = createSelector(
   [selectStructure, (_: RootState, predName: string) => predName],
   (struct, predName) =>
@@ -498,7 +499,7 @@ export const onEdgesChanged = ({
         : updateFunctionSymbols;
 
     dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
-    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
+    dispatch(creator({ key: id, value: relation }));
   };
 };
 
@@ -545,7 +546,7 @@ export const onConnected = ({
         ? updateInterpretationPredicates
         : updateFunctionSymbols;
 
-    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
+    dispatch(creator({ key: id, value: relation }));
   };
 };
 
@@ -579,7 +580,7 @@ export const leftoverDeleted = ({
         : updateFunctionSymbols;
 
     dispatch(setNodes({ id, type, nodes: newNodes }));
-    dispatch(creator({ key: id, value: binaryRelationToString(relation) }));
+    dispatch(creator({ key: id, value: relation }));
   };
 };
 

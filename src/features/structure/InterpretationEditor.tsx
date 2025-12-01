@@ -1,6 +1,4 @@
 import React, { useState, type ChangeEvent } from "react";
-import type { RootState } from "../../app/store";
-import type { InterpretationState } from "./structureSlice";
 import { useAppSelector } from "../../app/hooks";
 import {
   selectParsedFunctions,
@@ -20,6 +18,11 @@ import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
+import {
+  selectValidatedTextView,
+  type TextViewTypes,
+} from "../textView/textViewSlice";
+import type { RootState } from "../../app/store";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -28,10 +31,10 @@ interface InterpretationEditorProps {
   id: string;
   name: string;
   type: InterpretationType;
-  selector: (state: RootState, name: string) => InterpretationState;
-  parser: (state: RootState, name: string) => { error?: Error };
+  textViewType: TextViewTypes;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
+  lockSelector: (state: RootState, name: string) => boolean;
 }
 
 const editorTypeFullNameLookup: Record<EditorType, string> = {
@@ -59,20 +62,24 @@ export default function InterpretationEditorProps({
   name,
   id,
   type,
-  selector,
-  parser,
+  textViewType,
   onChange,
   locker,
+  lockSelector,
 }: InterpretationEditorProps) {
   const [selectedEditor, setSelectedEditor] = useState<EditorType>("text");
 
-  const interpretation = useAppSelector((state) => selector(state, name));
+  const textView = useAppSelector((state) =>
+    selectValidatedTextView(state, textViewType, name),
+  );
+
+  const locked = useAppSelector((state) => lockSelector(state, name));
+
   const isTuple = useAppSelector(
     (state) =>
       selectParsedPredicates(state).parsed?.get(name) === 2 ||
       selectParsedFunctions(state).parsed?.get(name) === 1,
   );
-  const { error } = useAppSelector((state) => parser(state, name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
   const escapedName = name.replace(/_/g, "\\_");
@@ -153,11 +160,11 @@ export default function InterpretationEditorProps({
               )
             }
             placeholder=""
-            text={interpretation?.text ?? ""}
-            lockChecker={interpretation?.locked}
+            text={textView.value}
+            lockChecker={locked}
             locker={locker}
             onChange={onChange}
-            error={error}
+            error={textView.error}
           />
         )}
       </Stack>
@@ -169,8 +176,8 @@ export default function InterpretationEditorProps({
           predicateDisplayName={prefixRawNoEnd}
           editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
           locker={locker}
-          locked={interpretation?.locked}
-          error={error}
+          locked={locked}
+          error={textView.error}
           buildControlButtons={(omit) => (
             <ControlButtons
               id={`controls-${id}`}
@@ -178,7 +185,7 @@ export default function InterpretationEditorProps({
               selected={selectedEditor}
               onSelected={setSelectedEditor}
               teacherMode={teacherMode}
-              locked={interpretation?.locked}
+              locked={locked}
               locker={locker}
             />
           )}

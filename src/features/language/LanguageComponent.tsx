@@ -3,14 +3,6 @@ import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
-  selectConstantsText,
-  selectParsedConstants,
-  selectParsedFunctions,
-  selectParsedPredicates,
-  selectFunctionsText,
-  selectPredicatesText,
-  updateConstants,
-  updateFunctions,
   selectSymbolsClash,
   selectConstantsLock,
   selectPredicatesLock,
@@ -18,21 +10,30 @@ import {
   lockPredicates,
   lockConstants,
   lockFunctions,
-  updatePredicates,
 } from "./languageSlice";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import {
+  selectValidatedTextView,
+  updateTextView,
+} from "../textView/textViewSlice.ts";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
-  const constantsText = useAppSelector(selectConstantsText);
+
+  const constantsTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "constants"),
+  );
+  const predicatesTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "predicates"),
+  );
+  const functionsTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "functions"),
+  );
+
   const constantsLock = useAppSelector(selectConstantsLock);
-  const predicatesText = useAppSelector(selectPredicatesText);
   const predicatesLock = useAppSelector(selectPredicatesLock);
-  const functionsText = useAppSelector(selectFunctionsText);
   const functionsLock = useAppSelector(selectFunctionsLock);
-  const constantsErorrs = useAppSelector(selectParsedConstants);
-  const predicatesErorrs = useAppSelector(selectParsedPredicates);
-  const functionsErrors = useAppSelector(selectParsedFunctions);
+
   const symbolsClash = useAppSelector(selectSymbolsClash);
 
   return (
@@ -51,11 +52,13 @@ export default function LanguageComponent() {
           prefix={<InlineMath>{String.raw`\mathcal{C_L} = \{`}</InlineMath>}
           suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
           placeholder="Constants"
-          text={constantsText}
+          text={constantsTextView.value}
           onChange={(e) => {
-            dispatch(updateConstants(e.target.value));
+            dispatch(
+              updateTextView({ type: "constants", value: e.target.value }),
+            );
           }}
-          error={constantsErorrs.error}
+          error={constantsTextView.error}
           lockChecker={constantsLock}
           locker={() => dispatch(lockConstants())}
         />
@@ -68,11 +71,13 @@ export default function LanguageComponent() {
           }
           suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
           placeholder="Predicates"
-          text={predicatesText}
+          text={predicatesTextView.value}
           onChange={(e) => {
-            dispatch(updatePredicates(e.target.value));
+            dispatch(
+              updateTextView({ type: "predicates", value: e.target.value }),
+            );
           }}
-          error={predicatesErorrs.error}
+          error={predicatesTextView.error}
           lockChecker={predicatesLock}
           locker={() => dispatch(lockPredicates())}
         />
@@ -85,11 +90,13 @@ export default function LanguageComponent() {
           }
           suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
           placeholder="Functions"
-          text={functionsText}
+          text={functionsTextView.value}
           onChange={(e) => {
-            dispatch(updateFunctions(e.target.value));
+            dispatch(
+              updateTextView({ type: "functions", value: e.target.value }),
+            );
           }}
-          error={functionsErrors.error}
+          error={functionsTextView.error}
           lockChecker={functionsLock}
           locker={() => dispatch(lockFunctions())}
         />

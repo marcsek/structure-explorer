@@ -1,165 +1,176 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import {
-  parseConstants,
-  parsePredicates,
-  parseFunctions,
-  SyntaxError,
-} from "@fmfi-uk-1-ain-412/js-fol-parser";
 import Language from "../../model/Language";
+import type { ValidationError } from "../textView/textViewSlice";
+import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
+
+export interface BaseLanguageState {
+  locked: boolean;
+}
+
+export interface ConstantsState extends BaseLanguageState {
+  value: string[];
+}
+
+export interface AritySymbolsState extends BaseLanguageState {
+  value: [string, number][];
+}
 
 export interface LanguageState {
-  constants: { text: string; locked: boolean };
-  predicates: { text: string; locked: boolean };
-  functions: { text: string; locked: boolean };
+  constants: ConstantsState;
+  predicates: AritySymbolsState;
+  functions: AritySymbolsState;
 }
 
 const initialState: LanguageState = {
-  constants: {
-    text: "",
-    locked: false,
-  },
-  predicates: {
-    text: "",
-    locked: false,
-  },
-  functions: {
-    text: "",
-    locked: false,
-  },
+  constants: { value: [], locked: false },
+  predicates: { value: [], locked: false },
+  functions: { value: [], locked: false },
 };
+
+export const prepareWithSourceMeta = <P>(
+  payload: P,
+  meta: { source?: string } = {},
+) => ({
+  payload,
+  meta,
+});
+
+export type PayloadActionSource<P = void> = PayloadAction<
+  P,
+  string,
+  { source?: string }
+>;
 
 export const languageSlice = createSlice({
   name: "language",
   initialState,
   reducers: {
-    importLanguageState: (_state, action: PayloadAction<string>) => {
+    importLanguageState(_state, action: PayloadAction<string>) {
       return JSON.parse(action.payload);
     },
 
-    updateConstants: (state, action: PayloadAction<string>) => {
-      state.constants.text = action.payload;
+    updateConstants: {
+      reducer(state, action: PayloadActionSource<string[]>) {
+        state.constants.value = action.payload;
+      },
+      prepare: prepareWithSourceMeta<string[]>,
     },
 
-    lockConstants: (state) => {
+    lockConstants(state) {
       state.constants.locked = !state.constants.locked;
     },
 
-    updatePredicates: (state, action: PayloadAction<string>) => {
-      state.predicates.text = action.payload;
+    updatePredicates: {
+      reducer(state, action: PayloadActionSource<SymbolWithArity[]>) {
+        state.predicates.value = action.payload.map(({ name, arity }) => [
+          name,
+          arity,
+        ]);
+      },
+      prepare: prepareWithSourceMeta<SymbolWithArity[]>,
     },
 
-    lockPredicates: (state) => {
+    lockPredicates(state) {
       state.predicates.locked = !state.predicates.locked;
     },
 
-    updateFunctions: (state, action: PayloadAction<string>) => {
-      state.functions.text = action.payload;
+    updateFunctions: {
+      reducer(state, action: PayloadActionSource<SymbolWithArity[]>) {
+        state.functions.value = action.payload.map(({ name, arity }) => [
+          name,
+          arity,
+        ]);
+      },
+      prepare: prepareWithSourceMeta<SymbolWithArity[]>,
     },
 
-    lockFunctions: (state) => {
+    lockFunctions(state) {
       state.functions.locked = !state.functions.locked;
     },
   },
 });
 
-export const {
-  updateConstants,
-  updatePredicates,
-  updateFunctions,
-  importLanguageState,
-  lockConstants,
-  lockFunctions,
-  lockPredicates,
-} = languageSlice.actions;
-
-export default languageSlice.reducer;
-export const selectConstantsText = (state: RootState) =>
-  state.language.constants.text;
 export const selectConstantsLock = (state: RootState) =>
   state.language.constants.locked;
-export const selectPredicatesText = (state: RootState) =>
-  state.language.predicates.text;
 export const selectPredicatesLock = (state: RootState) =>
   state.language.predicates.locked;
-export const selectFunctionsText = (state: RootState) =>
-  state.language.functions.text;
 export const selectFunctionsLock = (state: RootState) =>
   state.language.functions.locked;
 
-export const selectParsedConstants = createSelector(
-  [selectConstantsText],
-  (constants) => {
-    try {
-      const parsed = parseConstants(constants);
-      parsed.forEach((element) => {
-        if (parsed.filter((element2) => element === element2).length > 1) {
-          throw new Error(`Constant ${element} is already defined`);
-        }
-      });
+export const createValidationError = (message: string) => {
+  return {
+    error: {
+      kind: "validation",
+      message,
+    } as ValidationError,
+  };
+};
 
-      return { parsed: new Set(parsed) };
-    } catch (error) {
-      if (error instanceof SyntaxError || error instanceof Error) {
-        return { error: error };
+export const selectConstantsValidation = createSelector(
+  [(state: RootState) => state.language.constants],
+  ({ value: constants }) => {
+    for (const element of constants) {
+      if (constants.filter((element2) => element === element2).length > 1) {
+        return createValidationError(`Constant ${element} is already defined`);
       }
-
-      throw error;
     }
+
+    return { error: undefined };
   },
 );
-export const selectParsedPredicates = createSelector(
-  [selectPredicatesText],
-  (predicates) => {
-    try {
-      const parsed = parsePredicates(predicates);
 
-      parsed.forEach((element) => {
-        if (
-          parsed.filter((element2) => element.name === element2.name).length > 1
-        ) {
-          throw new Error(`Predicate ${element.name} is already defined`);
-        }
-      });
+export const selectParsedConstants = createSelector(
+  [selectConstantsValidation, (state: RootState) => state.language.constants],
+  ({ error }, { value: constants }) => {
+    if (error) return { error };
 
-      return {
-        parsed: new Map(parsed.map(({ name, arity }) => [name, arity])),
-      };
-    } catch (error) {
-      if (error instanceof SyntaxError || error instanceof Error) {
-        return { error: error };
+    return { parsed: new Set(constants) };
+  },
+);
+
+export const selectPredicatesValidation = createSelector(
+  [(state: RootState) => state.language.predicates],
+  ({ value: predicates }) => {
+    for (const [name] of predicates) {
+      if (predicates.filter(([name2]) => name === name2).length > 1) {
+        return createValidationError(`Predicate ${name} is already defined`);
       }
-
-      throw error;
     }
+
+    return { error: undefined };
+  },
+);
+
+export const selectParsedPredicates = createSelector(
+  [selectPredicatesValidation, (state: RootState) => state.language.predicates],
+  ({ error }, { value }) => {
+    if (error) return { error };
+
+    return { parsed: new Map(value) };
+  },
+);
+
+export const selectFunctionsValidation = createSelector(
+  [(state: RootState) => state.language.functions],
+  ({ value: functions }) => {
+    for (const [name] of functions) {
+      if (functions.filter(([name2]) => name === name2).length > 1) {
+        return createValidationError(`Function ${name} is already defined`);
+      }
+    }
+
+    return { error: undefined };
   },
 );
 
 export const selectParsedFunctions = createSelector(
-  [selectFunctionsText],
-  (functions) => {
-    try {
-      const parsed = parseFunctions(functions);
+  [selectFunctionsValidation, (state: RootState) => state.language.functions],
+  ({ error }, { value }) => {
+    if (error) return { error };
 
-      parsed.forEach((element) => {
-        if (
-          parsed.filter((element2) => element.name === element2.name).length > 1
-        ) {
-          throw new Error(`Function ${element.name} is already defined`);
-        }
-      });
-
-      return {
-        parsed: new Map(parsed.map(({ name, arity }) => [name, arity])),
-      };
-    } catch (error) {
-      if (error instanceof SyntaxError || error instanceof Error) {
-        return { error: error };
-      }
-
-      throw error;
-    }
+    return { parsed: new Map(value) };
   },
 );
 
@@ -205,3 +216,15 @@ export const selectLanguage = createSelector(
     );
   },
 );
+
+export const {
+  updateConstants,
+  updatePredicates,
+  updateFunctions,
+  importLanguageState,
+  lockConstants,
+  lockFunctions,
+  lockPredicates,
+} = languageSlice.actions;
+
+export default languageSlice.reducer;

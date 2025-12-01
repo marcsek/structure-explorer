@@ -7,6 +7,7 @@ import { type EditorType } from "../structure/InterpretationEditor";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
+import type { InterpretationError } from "../textView/textViewSlice";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -18,7 +19,7 @@ interface DrawerEditorProps {
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
   locker: () => void;
   locked?: boolean;
-  error?: Error;
+  error?: InterpretationError;
 }
 
 export default function DrawerEditor(props: DrawerEditorProps) {

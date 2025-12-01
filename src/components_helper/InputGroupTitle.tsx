@@ -1,10 +1,10 @@
 import type { ChangeEvent, ReactNode } from "react";
 import { Form, InputGroup } from "react-bootstrap";
-import { SyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../app/hooks";
 import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
 import LockButton from "./LockButton";
+import type { InterpretationError } from "../features/textView/textViewSlice";
 
 interface Props {
   label: string;
@@ -17,7 +17,7 @@ interface Props {
   onChange(event: ChangeEvent<HTMLInputElement>): void;
   locker: () => void;
   lockChecker: boolean | undefined;
-  error?: Error | SyntaxError;
+  error?: InterpretationError;
 }
 
 export default function InputGroupTitle({

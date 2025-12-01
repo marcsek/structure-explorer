@@ -1,32 +1,34 @@
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import {
-  lockVariables,
-  selectParsedVariables,
-  selectVariablesLock,
-  selectVariablesText,
-  updateVariables,
-} from "./variablesSlice";
+import { lockVariables, selectVariablesLock } from "./variablesSlice";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import {
+  selectValidatedTextView,
+  updateTextView,
+} from "../textView/textViewSlice.ts";
 
 export default function VariablesComponent() {
   const dispatch = useAppDispatch();
-  const text = useAppSelector(selectVariablesText);
+
+  const textView = useAppSelector((state) =>
+    selectValidatedTextView(state, "variables"),
+  );
   const lock = useAppSelector(selectVariablesLock);
-  const { error } = useAppSelector(selectParsedVariables);
 
   return (
     <ComponentCard heading={<span>Variable assignment</span>} help={help}>
       <InputGroupTitle
         label={"Variable assignment of individual variables"}
         id="variables"
-        text={text}
+        text={textView.value}
         prefix={<InlineMath>{String.raw`e = \{`}</InlineMath>}
         suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
         placeholder="assignments"
-        onChange={(e) => dispatch(updateVariables(e.target.value))}
-        error={error}
+        onChange={(e) =>
+          dispatch(updateTextView({ type: "variables", value: e.target.value }))
+        }
+        error={textView.error}
         lockChecker={lock}
         locker={() => dispatch(lockVariables())}
       />

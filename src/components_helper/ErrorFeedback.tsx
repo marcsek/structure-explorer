@@ -1,8 +1,10 @@
 import { SyntaxError, type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { Form } from "react-bootstrap";
+import type { InterpretationError } from "../features/textView/textViewSlice";
 
+// TODO
 interface Props {
-  error: SyntaxError | Error | undefined;
+  error: SyntaxError | Error | InterpretationError | undefined;
   text: string;
 }
 
@@ -33,9 +35,10 @@ export default function ErrorFeedback({ error, text }: Props) {
     <>
       <Form.Control.Feedback type="invalid">
         {error.message}
-        {error instanceof SyntaxError && (
-          <LocationDisplay location={error.location} text={text} />
-        )}
+        {error instanceof SyntaxError ||
+          (!(error instanceof Error) && error.kind === "syntax" && (
+            <LocationDisplay location={error.location} text={text} />
+          ))}
       </Form.Control.Feedback>
     </>
   );

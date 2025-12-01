@@ -12,25 +12,39 @@ export default function usePreset() {
   useEffect(() => {
     if (window.location.pathname === "/preset") {
       dispatch(
-        updatePredicates(
-          "teaches/2, student/1, janitor/1, principal/1, teacher/1",
-        ),
+        updatePredicates([
+          { name: "teaches", arity: 2 },
+          { name: "student", arity: 1 },
+          { name: "janitor", arity: 1 },
+          { name: "principal", arity: 1 },
+          { name: "teacher", arity: 1 },
+        ]),
       );
 
-      dispatch(updateDomain("A, B, C, D, E"));
+      dispatch(updateDomain(["A", "B", "C", "D", "E"]));
+
       dispatch(
-        updateInterpretationPredicates({ key: "student", value: "A, B" }),
+        updateInterpretationPredicates({
+          key: "student",
+          value: [["A"], ["B"]],
+        }),
       );
       dispatch(
-        updateInterpretationPredicates({ key: "janitor", value: "C, D" }),
+        updateInterpretationPredicates({
+          key: "janitor",
+          value: [["C"], ["D"]],
+        }),
       );
       dispatch(
-        updateInterpretationPredicates({ key: "principal", value: "A, C, E" }),
+        updateInterpretationPredicates({
+          key: "principal",
+          value: [["A"], ["C"], ["E"]],
+        }),
       );
       dispatch(
         updateInterpretationPredicates({
           key: "teacher",
-          value: "A, B, C, D, E",
+          value: [["A"], ["B"], ["C"], ["D"], ["E"]],
         }),
       );
     }
