@@ -1,8 +1,8 @@
 import React, { useState, type ChangeEvent } from "react";
 import { useAppSelector } from "../../app/hooks";
 import {
-  selectParsedFunctions,
-  selectParsedPredicates,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
 } from "../language/languageSlice";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
@@ -18,11 +18,9 @@ import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
-import {
-  selectValidatedTextView,
-  type TextViewTypes,
-} from "../textView/textViewSlice";
 import type { RootState } from "../../app/store";
+import type { TextViewType } from "../textView/textViews";
+import { selectValidatedTextView } from "../textView/textViewSlice";
 
 export type EditorType = "text" | "matrix" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -31,7 +29,7 @@ interface InterpretationEditorProps {
   id: string;
   name: string;
   type: InterpretationType;
-  textViewType: TextViewTypes;
+  textViewType: TextViewType;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
   lockSelector: (state: RootState, name: string) => boolean;
@@ -77,8 +75,8 @@ export default function InterpretationEditorProps({
 
   const isTuple = useAppSelector(
     (state) =>
-      selectParsedPredicates(state).parsed?.get(name) === 2 ||
-      selectParsedFunctions(state).parsed?.get(name) === 1,
+      selectValidatedPredicates(state).parsed?.get(name) === 2 ||
+      selectValidatedFunctions(state).parsed?.get(name) === 1,
   );
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 

@@ -31,8 +31,8 @@ import {
   type Plugin,
 } from "./plugins.ts";
 import {
-  selectParsedFunctions,
-  selectParsedPredicates,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
 } from "../../language/languageSlice.ts";
 import {
   selectStructure,
@@ -290,18 +290,22 @@ export const selectTupleType = createSelector(
 );
 
 export const selectBinaryPreds = createSelector(
-  [selectParsedPredicates],
+  [selectValidatedPredicates],
   (preds) => {
     if (preds.error) return [];
-    return [...preds.parsed.entries()].filter(([, arity]) => arity === 2);
+    return [...(preds.parsed.entries() ?? [])].filter(
+      ([, arity]) => arity === 2,
+    );
   },
 );
 
 export const selectBinaryFunctions = createSelector(
-  [selectParsedFunctions],
+  [selectValidatedFunctions],
   (funcs) => {
     if (funcs.error) return [];
-    return [...funcs.parsed.entries()].filter(([, arity]) => arity === 1);
+    return [...(funcs.parsed.entries() ?? [])].filter(
+      ([, arity]) => arity === 1,
+    );
   },
 );
 
@@ -313,10 +317,12 @@ export const selectRelevantConstants = createSelector(
 );
 
 export const selectUnaryPreds = createSelector(
-  [selectParsedPredicates],
+  [selectValidatedPredicates],
   (preds) => {
     if (preds.error) return [];
-    return [...preds.parsed.entries()].filter(([, arity]) => arity === 1);
+    return [...(preds.parsed.entries() ?? [])].filter(
+      ([, arity]) => arity === 1,
+    );
   },
 );
 

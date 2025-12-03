@@ -4,24 +4,19 @@ import type { RootState } from "../../app/store";
 import Language from "../../model/Language";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { createValidationError } from "../../common/errors";
-import { prepareWithSourceMeta } from "../../common/redux";
+import {
+  prepareWithSourceMeta,
+  type LockableValue,
+  type Validated,
+} from "../../common/redux";
 
-export interface BaseLanguageState {
-  locked: boolean;
-}
-
-export interface ConstantsState extends BaseLanguageState {
-  value: string[];
-}
-
-export interface AritySymbolsState extends BaseLanguageState {
-  value: [string, number][];
-}
+export type ConstantsRepresentation = string[];
+export type AritySymbolsRepresentation = [string, number][];
 
 export interface LanguageState {
-  constants: ConstantsState;
-  predicates: AritySymbolsState;
-  functions: AritySymbolsState;
+  constants: LockableValue<ConstantsRepresentation>;
+  predicates: LockableValue<AritySymbolsRepresentation>;
+  functions: LockableValue<AritySymbolsRepresentation>;
 }
 
 const initialState: LanguageState = {
@@ -45,10 +40,10 @@ export const languageSlice = createSlice({
     },
 
     updateConstants: {
-      reducer(state, action: PayloadActionSource<string[]>) {
+      reducer(state, action: PayloadActionSource<ConstantsRepresentation>) {
         state.constants.value = action.payload;
       },
-      prepare: prepareWithSourceMeta<string[]>,
+      prepare: prepareWithSourceMeta<ConstantsRepresentation>,
     },
 
     lockConstants(state) {
@@ -92,74 +87,67 @@ export const selectPredicatesLock = (state: RootState) =>
 export const selectFunctionsLock = (state: RootState) =>
   state.language.functions.locked;
 
-export const selectConstantsValidation = createSelector(
+export const selectValidatedConstants = createSelector(
   [(state: RootState) => state.language.constants],
   ({ value: constants }) => {
+    const result: Validated<Set<string>> = { parsed: new Set(constants) };
+
     for (const element of constants) {
       if (constants.filter((element2) => element === element2).length > 1) {
-        return createValidationError(`Constant ${element} is already defined`);
+        result.error = createValidationError(
+          `Constant ${element} is already defined`,
+        );
       }
     }
 
-    return { error: undefined };
+    return result;
   },
 );
 
-export const selectParsedConstants = createSelector(
-  [selectConstantsValidation, (state: RootState) => state.language.constants],
-  ({ error }, { value: constants }) => {
-    if (error) return { error };
-
-    return { parsed: new Set(constants) };
-  },
-);
-
-export const selectPredicatesValidation = createSelector(
+export const selectValidatedPredicates = createSelector(
   [(state: RootState) => state.language.predicates],
-  ({ value: predicates }) => {
+  ({ value: predicates }): Validated<Map<string, number>> => {
+    const result: Validated<Map<string, number>> = {
+      parsed: new Map(predicates),
+    };
+
     for (const [name] of predicates) {
       if (predicates.filter(([name2]) => name === name2).length > 1) {
-        return createValidationError(`Predicate ${name} is already defined`);
+        result.error = createValidationError(
+          `Predicate ${name} is already defined`,
+        );
       }
     }
 
-    return { error: undefined };
+    return result;
   },
 );
 
-export const selectParsedPredicates = createSelector(
-  [selectPredicatesValidation, (state: RootState) => state.language.predicates],
-  ({ error }, { value }) => {
-    if (error) return { error };
-
-    return { parsed: new Map(value) };
-  },
-);
-
-export const selectFunctionsValidation = createSelector(
+export const selectValidatedFunctions = createSelector(
   [(state: RootState) => state.language.functions],
-  ({ value: functions }) => {
+  ({ value: functions }): Validated<Map<string, number>> => {
+    const result: Validated<Map<string, number>> = {
+      parsed: new Map(functions),
+    };
+
     for (const [name] of functions) {
       if (functions.filter(([name2]) => name === name2).length > 1) {
-        return createValidationError(`Function ${name} is already defined`);
+        result.error = createValidationError(
+          `Function ${name} is already defined`,
+        );
       }
     }
 
-    return { error: undefined };
-  },
-);
-
-export const selectParsedFunctions = createSelector(
-  [selectFunctionsValidation, (state: RootState) => state.language.functions],
-  ({ error }, { value }) => {
-    if (error) return { error };
-
-    return { parsed: new Map(value) };
+    return result;
   },
 );
 
 export const selectSymbolsClash = createSelector(
-  [selectParsedConstants, selectParsedPredicates, selectParsedFunctions],
+  [
+    selectValidatedConstants,
+    selectValidatedPredicates,
+    selectValidatedFunctions,
+  ],
   (consts, preds, funcs) => {
     let err = undefined;
     if (!consts.parsed) return "";
@@ -171,11 +159,11 @@ export const selectSymbolsClash = createSelector(
     const functions = new Set(funcs.parsed.keys());
 
     constants.forEach((element) => {
-      if (preds.parsed.has(element)) {
+      if (predicates.has(element)) {
         err = `Constant ${element} is also defined in predicates`;
       }
 
-      if (funcs.parsed.has(element)) {
+      if (functions.has(element)) {
         err = `Constant ${element} is also defined in functions`;
       }
     });
@@ -191,7 +179,11 @@ export const selectSymbolsClash = createSelector(
 );
 
 export const selectLanguage = createSelector(
-  [selectParsedConstants, selectParsedPredicates, selectParsedFunctions],
+  [
+    selectValidatedConstants,
+    selectValidatedPredicates,
+    selectValidatedFunctions,
+  ],
   (constants, predicates, functions) => {
     return new Language(
       constants.parsed ?? new Set(),

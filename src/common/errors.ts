@@ -1,6 +1,6 @@
 import { type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
 
-interface BaseError {
+export interface BaseError {
   kind: string;
   message: string;
 }
@@ -14,11 +14,8 @@ export interface ValidationError extends BaseError {
   kind: "validation";
 }
 
-export const createValidationError = (message: string) => {
-  return {
-    error: {
-      kind: "validation",
-      message,
-    } as ValidationError,
-  };
+export const createValidationError = (message: string): ValidationError => {
+  return { kind: "validation", message };
 };
+
+export type InterpretationError = SyntaxError | ValidationError;

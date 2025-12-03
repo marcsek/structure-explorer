@@ -24,7 +24,7 @@ import Equivalence from "../../model/formula/Formula.Equivalence";
 import ExistentialQuant from "../../model/formula/Formula.ExistentialQuant";
 import { selectLanguage } from "../language/languageSlice";
 import {
-  selectParsedDomain,
+  selectValidatedDomain,
   selectStructure,
 } from "../structure/structureSlice";
 import UniversalQuant from "../../model/formula/Formula.UniversalQuant";
@@ -86,7 +86,7 @@ export const formulasSlice = createSlice({
 
     gameGoBack: (
       state,
-      action: PayloadAction<{ id: number; index: number }>
+      action: PayloadAction<{ id: number; index: number }>,
     ) => {
       const { id, index } = action.payload;
 
@@ -98,7 +98,7 @@ export const formulasSlice = createSlice({
       action: PayloadAction<{
         id: number;
         formula: 0 | 1 | undefined;
-      }>
+      }>,
     ) => {
       const { id, formula } = action.payload;
 
@@ -113,7 +113,7 @@ export const formulasSlice = createSlice({
       action: PayloadAction<{
         id: number;
         formula: 0 | 1 | undefined;
-      }>
+      }>,
     ) => {
       const { id, formula } = action.payload;
 
@@ -128,7 +128,7 @@ export const formulasSlice = createSlice({
       action: PayloadAction<{
         id: number;
         element: string;
-      }>
+      }>,
     ) => {
       const { id, element } = action.payload;
 
@@ -143,7 +143,7 @@ export const formulasSlice = createSlice({
       action: PayloadAction<{
         id: number;
         element: string;
-      }>
+      }>,
     ) => {
       const { id, element } = action.payload;
 
@@ -159,7 +159,7 @@ export const formulasSlice = createSlice({
 
     updateText: (
       state,
-      action: PayloadAction<{ id: number; text: string }>
+      action: PayloadAction<{ id: number; text: string }>,
     ) => {
       const { id, text } = action.payload;
       state.allFormulas[id].text = text;
@@ -167,7 +167,7 @@ export const formulasSlice = createSlice({
 
     updateGuess: (
       state,
-      action: PayloadAction<{ id: number; guess: boolean | null }>
+      action: PayloadAction<{ id: number; guess: boolean | null }>,
     ) => {
       const { id, guess } = action.payload;
       state.allFormulas[id].guess = guess;
@@ -217,7 +217,7 @@ export const selectEvaluatedFormula = createSelector(
       functionApplication: (
         symbol: string,
         args: Array<Term>,
-        ee: ErrorExpected
+        ee: ErrorExpected,
       ) => {
         language.checkFunctionArity(symbol, args, ee);
         return new FunctionTerm(symbol, args);
@@ -250,7 +250,7 @@ export const selectEvaluatedFormula = createSelector(
       const formula = parseFormulaWithPrecedence(
         form.text,
         language.getParserLanguage(),
-        factories
+        factories,
       );
       //error = formula.toString();
 
@@ -267,7 +267,7 @@ export const selectEvaluatedFormula = createSelector(
     }
 
     return {};
-  }
+  },
 );
 
 export const selectCurrentGameFormula = createSelector(
@@ -290,13 +290,13 @@ export const selectCurrentGameFormula = createSelector(
 
       if (type === "delta" || type === "gamma") {
         newFormula = newFormula.formula.getSignedSubFormulas(
-          newFormula.sign
+          newFormula.sign,
         )[0];
       }
     }
 
     return newFormula;
-  }
+  },
 );
 
 export const selectCurrentAssignment = createSelector(
@@ -305,7 +305,7 @@ export const selectCurrentAssignment = createSelector(
     selectEvaluatedFormula,
     selectValuation,
     selectFormulaGuess,
-    selectParsedDomain,
+    selectValidatedDomain,
   ],
   (choices, { formula }, e, userGuess, { parsed: domain }) => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
@@ -334,19 +334,19 @@ export const selectCurrentAssignment = createSelector(
         if (f instanceof QuantifiedFormula) {
           current.set(f.getVariableName(), element!);
           newFormula = newFormula.formula.getSignedSubFormulas(
-            newFormula.sign
+            newFormula.sign,
           )[0];
         }
       }
     }
     return current;
-  }
+  },
 );
 
 export const selectGameButtons = createSelector(
   [
     selectCurrentGameFormula,
-    selectParsedDomain,
+    selectValidatedDomain,
     selectStructure,
     selectCurrentAssignment,
   ],
@@ -377,7 +377,7 @@ export const selectGameButtons = createSelector(
           .getSignedSubFormulas(sign)
           .map(
             ({ formula: f, sign: s }) =>
-              `ℳ ${s === true ? "⊨" : "⊭"} ${f.toString()}`
+              `ℳ ${s === true ? "⊨" : "⊭"} ${f.toString()}`,
           ),
         subformulas: formula.getSignedSubFormulas(sign),
         type: "beta",
@@ -416,7 +416,7 @@ export const selectGameButtons = createSelector(
         type: "gamma",
       };
     }
-  }
+  },
 );
 
 export type BubbleFormat = {
@@ -472,7 +472,7 @@ export const selectHistoryData = createSelector(
         step.winFormula = f.winningSubformulas(
           s,
           structure,
-          currentValuation
+          currentValuation,
         )[0];
       } else if (type === "gamma" && f instanceof QuantifiedFormula) {
         step.winElement = f.winningElements(s, structure, currentValuation)[0];
@@ -508,7 +508,7 @@ export const selectHistoryData = createSelector(
     }
 
     return history;
-  }
+  },
 );
 
 export const selectIsVerifiedGame = createSelector(
@@ -528,7 +528,7 @@ export const selectIsVerifiedGame = createSelector(
     } catch (error) {
       return false;
     }
-  }
+  },
 );
 
 export const selectGameResetIndex = createSelector(
@@ -536,7 +536,7 @@ export const selectGameResetIndex = createSelector(
     selectHistoryData,
     selectStructure,
     selectFormulaChoices,
-    selectParsedDomain,
+    selectValidatedDomain,
   ],
   (data, structure, choices, domain) => {
     if (data.length === 0) return 0;
@@ -569,7 +569,7 @@ export const selectGameResetIndex = createSelector(
             ? prev.sf.formula.winningSubformulas(
                 prev.sf.sign,
                 structure,
-                prev.valuation
+                prev.valuation,
               )[0]
             : undefined;
       } catch (error) {}
@@ -580,7 +580,7 @@ export const selectGameResetIndex = createSelector(
           ? prev.sf.formula.winningElements(
               prev.sf.sign,
               structure,
-              prev.valuation
+              prev.valuation,
             )[0]
           : undefined;
 
@@ -590,7 +590,7 @@ export const selectGameResetIndex = createSelector(
           ? prev.sf.formula.winningElements(
               prev.sf.sign,
               structure,
-              prev.valuation
+              prev.valuation,
             )
           : undefined;
 
@@ -603,7 +603,7 @@ export const selectGameResetIndex = createSelector(
 
       const prevWinningFormulaStr = prevWinningFormula
         ? prevWinningFormula.formula.signedFormulaToString(
-            prevWinningFormula.sign
+            prevWinningFormula.sign,
           )
         : undefined;
       const currentFormulaStr = sf.formula.signedFormulaToString(sf.sign);
@@ -630,7 +630,7 @@ export const selectGameResetIndex = createSelector(
     console.log(data);
 
     return index;
-  }
+  },
 );
 
 export default formulasSlice.reducer;

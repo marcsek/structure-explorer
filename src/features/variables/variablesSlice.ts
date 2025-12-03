@@ -2,16 +2,16 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { type PayloadActionSource } from "../language/languageSlice";
-import { selectParsedDomain } from "../structure/structureSlice";
+import { selectValidatedDomain } from "../structure/structureSlice";
 import { createValidationError } from "../../common/errors";
-import { prepareWithSourceMeta } from "../../common/redux";
+import {
+  prepareWithSourceMeta,
+  type LockableValue,
+  type Validated,
+} from "../../common/redux";
 
 export type VariableRepresentation = { from: string; to: string };
-
-export interface VariablesState {
-  value: VariableRepresentation[];
-  locked: boolean;
-}
+export type VariablesState = LockableValue<VariableRepresentation[]>;
 
 const initialState: VariablesState = { value: [], locked: false };
 
@@ -38,33 +38,28 @@ export const variablesSlice = createSlice({
 
 export const selectVariablesLock = (state: RootState) => state.variables.locked;
 
-export const selectVariablesValidation = createSelector(
-  [selectParsedDomain, (state: RootState) => state.variables],
+export const selectValidatedVariables = createSelector(
+  [selectValidatedDomain, (state: RootState) => state.variables],
   (domain, { value: variables }) => {
+    const result: Validated<VariableRepresentation[]> = { parsed: variables };
+
     for (const { to } of variables) {
       if (
         (domain.parsed && domain.parsed.includes(to) == false) ||
         !domain.parsed
       ) {
-        return createValidationError(`${to} is not an element of domain`);
+        result.error = createValidationError(
+          `${to} is not an element of domain`,
+        );
       }
     }
 
-    return { error: undefined };
-  },
-);
-
-export const selectParsedVariables = createSelector(
-  [selectVariablesValidation, (state: RootState) => state.variables],
-  ({ error }, { value }) => {
-    if (error) return { error };
-
-    return { parsed: value };
+    return result;
   },
 );
 
 export const selectValuation = createSelector(
-  [selectParsedVariables],
+  [selectValidatedVariables],
   (variables) => {
     if (variables.parsed === undefined) return new Map<string, string>();
 

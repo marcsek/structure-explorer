@@ -2,7 +2,7 @@ import "./DomainSelector.css";
 
 import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { selectParsedDomain } from "../../structure/structureSlice";
+import { selectValidatedDomain } from "../../structure/structureSlice";
 import {
   nodeToggled,
   selectRelevantUnaryPreds,
@@ -24,7 +24,7 @@ export default function DomainSelector({ id, type }: DomainSelectorProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const domain = useAppSelector(selectParsedDomain)?.parsed ?? [];
+  const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector(
     (state) => state.graphView[id]?.selectedNodes,
   );

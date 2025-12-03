@@ -4,7 +4,7 @@ import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../app/hooks";
 import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
 import LockButton from "./LockButton";
-import type { InterpretationError } from "../features/textView/textViewSlice";
+import type { InterpretationError } from "../common/errors";
 
 interface Props {
   label: string;

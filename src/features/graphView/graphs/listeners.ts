@@ -1,8 +1,8 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import {
-  selectParsedDomain,
-  selectParsedFunction,
-  selectParsedPredicate,
+  selectValidatedDomain,
+  selectValidatedFunction,
+  selectValidatedPredicate,
   selectStructure,
   updateDomain,
   updateFunctionSymbols,
@@ -15,8 +15,8 @@ import {
   tuplesChanged,
 } from "./graphSlice";
 import {
-  selectParsedFunctions,
-  selectParsedPredicates,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
   updateFunctions,
   updatePredicates,
 } from "../../language/languageSlice";
@@ -32,14 +32,17 @@ graphSliceListener.startListening({
     let tupleIntr: string[][] = [];
 
     if (updateInterpretationPredicates.match(action)) {
-      const parsedPredicate = selectParsedPredicate(state, action.payload.key);
+      const parsedPredicate = selectValidatedPredicate(
+        state,
+        action.payload.key,
+      );
 
       if (!parsedPredicate.parsed) return;
 
       key = action.payload.key;
       tupleIntr = parsedPredicate.parsed;
     } else if (updateFunctionSymbols.match(action)) {
-      const parsedFunction = selectParsedFunction(state, action.payload.key);
+      const parsedFunction = selectValidatedFunction(state, action.payload.key);
 
       if (!parsedFunction.parsed) return;
 
@@ -55,7 +58,7 @@ graphSliceListener.startListening({
   actionCreator: updateDomain,
   effect(_, api) {
     const state = api.getState();
-    const parsedDomain = selectParsedDomain(state);
+    const parsedDomain = selectValidatedDomain(state);
 
     if (!parsedDomain.error && parsedDomain.parsed)
       api.dispatch(domainChanged(parsedDomain.parsed));
@@ -66,8 +69,8 @@ graphSliceListener.startListening({
   matcher: isAnyOf(updatePredicates, updateFunctions),
   effect(_, api) {
     const state = api.getState();
-    const parsedPredicates = selectParsedPredicates(state);
-    const parsedFuncs = selectParsedFunctions(state);
+    const parsedPredicates = selectValidatedPredicates(state);
+    const parsedFuncs = selectValidatedFunctions(state);
     const structure = selectStructure(state);
 
     if (parsedPredicates.parsed && parsedFuncs.parsed) {

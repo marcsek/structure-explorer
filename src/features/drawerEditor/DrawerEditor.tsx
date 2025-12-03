@@ -7,7 +7,7 @@ import { type EditorType } from "../structure/InterpretationEditor";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
-import type { InterpretationError } from "../textView/textViewSlice";
+import type { InterpretationError } from "../../common/errors";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 

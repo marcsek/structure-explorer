@@ -12,9 +12,9 @@ import {
   selectIfLock,
 } from "./structureSlice";
 import {
-  selectParsedConstants,
-  selectParsedFunctions,
-  selectParsedPredicates,
+  selectValidatedConstants,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
 } from "../language/languageSlice";
 import InterpretationEditor from "./InterpretationEditor";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
@@ -31,9 +31,9 @@ export default function StructureComponent() {
   );
   const domainLocked = useAppSelector((state) => state.structure.domain.locked);
 
-  const constants = useAppSelector(selectParsedConstants);
-  const predicates = useAppSelector(selectParsedPredicates);
-  const functions = useAppSelector(selectParsedFunctions);
+  const constants = useAppSelector(selectValidatedConstants);
+  const predicates = useAppSelector(selectValidatedPredicates);
+  const functions = useAppSelector(selectValidatedFunctions);
 
   return (
     <ComponentCard

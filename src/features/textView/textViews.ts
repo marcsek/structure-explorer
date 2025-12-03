@@ -1,12 +1,13 @@
 import type { UnknownAction } from "@reduxjs/toolkit";
 import {
-  selectConstantsValidation,
-  selectFunctionsValidation,
   selectLanguage,
-  selectPredicatesValidation,
+  selectValidatedConstants,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
   updateConstants,
   updateFunctions,
   updatePredicates,
+  type ConstantsRepresentation,
 } from "../language/languageSlice";
 import type { RootState } from "../../app/store";
 import {
@@ -19,21 +20,23 @@ import {
   type SymbolWithArity,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import {
-  selectConstantsInterpretationValidation,
-  selectDomainValidation,
-  selectFunctionsInterpretationValidation,
-  selectPredicatesInterpretationValidation,
+  selectValidatedConstant,
+  selectValidatedDomain,
+  selectValidatedFunction,
+  selectValidatedPredicate,
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationConstants,
   updateInterpretationPredicates,
-  type TupleInterpretationState,
+  type ConstantInterpretation,
+  type DomainInterpretation,
+  type TupleInterpretation,
 } from "../structure/structureSlice";
 import {
-  selectVariablesValidation,
+  selectValidatedVariables,
   updateVariables,
 } from "../variables/variablesSlice";
-import type { ValidationError } from "./textViewSlice";
+import type { ValidationError } from "../../common/errors";
 
 export type TextViewType =
   | "constants"
@@ -53,14 +56,14 @@ export interface TextViewDescriptor<TStructured> {
 }
 
 interface TextViewTypeMap {
-  constants: string[];
+  constants: ConstantsRepresentation;
   predicates: SymbolWithArity[];
   functions: SymbolWithArity[];
-  domain: string[];
-  constant_interpretation: string;
-  predicate_interpretation: TupleInterpretationState["value"];
-  function_interpretation: TupleInterpretationState["value"];
-  variables: ReturnType<typeof parseValuation>;
+  domain: DomainInterpretation;
+  constant_interpretation: ConstantInterpretation;
+  predicate_interpretation: TupleInterpretation;
+  function_interpretation: TupleInterpretation;
+  variables: [string, string][];
 }
 
 export const textViewDescriptors: {
@@ -71,7 +74,7 @@ export const textViewDescriptors: {
     toText: (structured) => structured.join(", "),
     syncAction: (_, parsed) =>
       textTypeToSyncReducer.constants(parsed, { source: "textView" }),
-    validate: (state) => selectConstantsValidation(state)?.error,
+    validate: (state) => selectValidatedConstants(state)?.error,
   },
 
   predicates: {
@@ -80,7 +83,7 @@ export const textViewDescriptors: {
       structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
     syncAction: (_, parsed) =>
       textTypeToSyncReducer.predicates(parsed, { source: "textView" }),
-    validate: (state) => selectPredicatesValidation(state)?.error,
+    validate: (state) => selectValidatedPredicates(state)?.error,
   },
 
   functions: {
@@ -89,7 +92,7 @@ export const textViewDescriptors: {
       structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
     syncAction: (_, parsed) =>
       textTypeToSyncReducer.functions(parsed, { source: "textView" }),
-    validate: (state) => selectFunctionsValidation(state)?.error,
+    validate: (state) => selectValidatedFunctions(state)?.error,
   },
 
   domain: {
@@ -97,7 +100,7 @@ export const textViewDescriptors: {
     toText: (structured) => structured.join(", "),
     syncAction: (_, parsed) =>
       textTypeToSyncReducer.domain(parsed, { source: "textView" }),
-    validate: (state) => selectDomainValidation(state)?.error,
+    validate: (state) => selectValidatedDomain(state)?.error,
   },
 
   constant_interpretation: {
@@ -108,8 +111,7 @@ export const textViewDescriptors: {
         { key, value: parsed },
         { source: "textView" },
       ),
-    validate: (state, key) =>
-      selectConstantsInterpretationValidation(state, key!)?.error,
+    validate: (state, key) => selectValidatedConstant(state, key!).error,
   },
 
   predicate_interpretation: {
@@ -125,8 +127,7 @@ export const textViewDescriptors: {
         { key, value: parsed },
         { source: "textView" },
       ),
-    validate: (state, key) =>
-      selectPredicatesInterpretationValidation(state, key!)?.error,
+    validate: (state, key) => selectValidatedPredicate(state, key!).error,
   },
 
   function_interpretation: {
@@ -142,8 +143,7 @@ export const textViewDescriptors: {
         { key, value: parsed },
         { source: "textView" },
       ),
-    validate: (state, key) =>
-      selectFunctionsInterpretationValidation(state, key!)?.error,
+    validate: (state, key) => selectValidatedFunction(state, key!).error,
   },
 
   variables: {
@@ -153,7 +153,7 @@ export const textViewDescriptors: {
       structured.map(([from, to]) => `${from}->${to}`).join(", "),
     syncAction: (_, parsed) =>
       textTypeToSyncReducer.variables(parsed, { source: "textView" }),
-    validate: (state) => selectVariablesValidation(state)?.error,
+    validate: (state) => selectValidatedVariables(state).error,
   },
 };
 

@@ -1,6 +1,6 @@
 import { SyntaxError, type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { Form } from "react-bootstrap";
-import type { InterpretationError } from "../features/textView/textViewSlice";
+import type { InterpretationError } from "../common/errors";
 
 // TODO
 interface Props {

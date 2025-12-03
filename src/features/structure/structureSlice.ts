@@ -3,43 +3,32 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import {
   selectLanguage,
-  selectParsedConstants,
-  selectParsedFunctions,
-  selectParsedPredicates,
+  selectValidatedConstants,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
   type PayloadActionSource,
 } from "../language/languageSlice";
 import Structure, { type DomainElement } from "../../model/Structure";
 import type { Symbol } from "../../model/Language";
-import type { ValidationError } from "../textView/textViewSlice";
-import { createValidationError } from "../../common/errors";
-import { prepareWithSourceMeta } from "../../common/redux";
+import {
+  createValidationError,
+  type ValidationError,
+} from "../../common/errors";
+import {
+  prepareWithSourceMeta,
+  type LockableValue,
+  type Validated,
+} from "../../common/redux";
 
-export interface InterpretationState {
-  text: string;
-  locked: boolean;
-}
-
-export interface BaseStructureState {
-  locked: boolean;
-}
-
-export interface DomainInterpretationState extends BaseStructureState {
-  value: string[];
-}
-
-export interface ConstantInterpretationState extends BaseStructureState {
-  value: string;
-}
-
-export interface TupleInterpretationState extends BaseStructureState {
-  value: string[][];
-}
+export type DomainInterpretation = string[];
+export type ConstantInterpretation = string;
+export type TupleInterpretation = string[][];
 
 export interface StructureState {
-  domain: DomainInterpretationState;
-  iC: Record<string, ConstantInterpretationState>;
-  iP: Record<string, TupleInterpretationState>;
-  iF: Record<string, TupleInterpretationState>;
+  domain: LockableValue<DomainInterpretation>;
+  iC: Record<string, LockableValue<ConstantInterpretation>>;
+  iP: Record<string, LockableValue<TupleInterpretation>>;
+  iF: Record<string, LockableValue<TupleInterpretation>>;
 }
 
 const initialState: StructureState = {
@@ -73,7 +62,7 @@ export const structureSlice = createSlice({
         state,
         action: PayloadActionSource<{
           key: string;
-          value: ConstantInterpretationState["value"];
+          value: ConstantInterpretation;
         }>,
       ) {
         const { key, value } = action.payload;
@@ -84,7 +73,7 @@ export const structureSlice = createSlice({
 
       prepare: prepareWithSourceMeta<{
         key: string;
-        value: ConstantInterpretationState["value"];
+        value: ConstantInterpretation;
       }>,
     },
 
@@ -101,7 +90,7 @@ export const structureSlice = createSlice({
         state,
         action: PayloadActionSource<{
           key: string;
-          value: TupleInterpretationState["value"];
+          value: TupleInterpretation;
         }>,
       ) {
         const { key, value } = action.payload;
@@ -112,7 +101,7 @@ export const structureSlice = createSlice({
 
       prepare: prepareWithSourceMeta<{
         key: string;
-        value: TupleInterpretationState["value"];
+        value: TupleInterpretation;
       }>,
     },
 
@@ -132,7 +121,7 @@ export const structureSlice = createSlice({
         state,
         action: PayloadActionSource<{
           key: string;
-          value: TupleInterpretationState["value"];
+          value: TupleInterpretation;
         }>,
       ) {
         const { key, value } = action.payload;
@@ -143,7 +132,7 @@ export const structureSlice = createSlice({
 
       prepare: prepareWithSourceMeta<{
         key: string;
-        value: TupleInterpretationState["value"];
+        value: TupleInterpretation;
       }>,
     },
 
@@ -179,61 +168,50 @@ export const selectIfName = (state: RootState, name: string) =>
 export const selectIfLock = (state: RootState, name: string) =>
   state.structure.iF[name]?.locked ?? false;
 
-export const selectDomainValidation = createSelector(
+export const selectValidatedDomain = createSelector(
   [(state: RootState) => state.structure.domain],
-  ({ value: domain }) => {
+  ({ value: domain }): Validated<string[]> => {
+    const result: Validated<DomainInterpretation> = { parsed: domain };
+
     if (domain.length === 0)
-      return createValidationError("Domain cannot be empty");
+      result.error = createValidationError("Domain cannot be empty");
 
-    return { error: undefined };
+    return result;
   },
 );
 
-export const selectParsedDomain = createSelector(
-  [selectDomainValidation, (state: RootState) => state.structure.domain],
-  ({ error }, { value }) => {
-    if (error) return { error };
-
-    return { parsed: value };
-  },
-);
-
-export const selectConstantsInterpretationValidation = createSelector(
-  [selectIcName, selectParsedDomain],
+export const selectValidatedConstant = createSelector(
+  [selectIcName, selectValidatedDomain],
   (constant, domain) => {
+    const result: Validated<ConstantInterpretation> = {
+      parsed: constant?.value ?? "",
+    };
+
     if (!constant || constant.value === "")
-      return createValidationError("Interpretation must be defined");
+      result.error = createValidationError("Interpretation must be defined");
+    else if (!domain.parsed || !domain.parsed.includes(constant.value))
+      result.error = createValidationError("This element is not in domain.");
 
-    if (!domain.parsed || !domain.parsed.includes(constant.value))
-      return createValidationError("This element is not in domain.");
-
-    return { error: undefined };
+    return result;
   },
 );
 
-export const selectParsedConstant = createSelector(
-  [selectConstantsInterpretationValidation, selectIcName],
-  ({ error }, iC) => {
-    return { error, parsed: iC?.value };
-  },
-);
-
-export const selectPredicatesInterpretationValidation = createSelector(
+export const selectValidatedPredicate = createSelector(
   [
     selectIpName,
-    selectParsedDomain,
-    selectParsedPredicates,
+    selectValidatedDomain,
+    selectValidatedPredicates,
     (_: RootState, name: string) => name,
   ],
   (interpretation, domain, preds, name) => {
-    if (!preds.parsed) return undefined;
-    if (!domain.parsed) return undefined;
-    if (!interpretation) return undefined;
+    if (!preds.parsed) return {};
+    if (!domain.parsed) return {};
+    if (!interpretation) return {};
 
     const arity = preds.parsed.get(name);
     const size = arity === 1 ? "element" : `${arity}-tuple`;
 
-    let error: { error?: ValidationError } = { error: undefined };
+    let error: ValidationError | undefined = undefined;
 
     for (const tuple of interpretation.value) {
       if (tuple.length !== arity) {
@@ -265,16 +243,7 @@ export const selectPredicatesInterpretationValidation = createSelector(
       }
     }
 
-    return error;
-  },
-);
-
-export const selectParsedPredicate = createSelector(
-  [selectPredicatesInterpretationValidation, selectIpName],
-  (error, iP) => {
-    if (!error) return {};
-
-    return { parsed: iP?.value, error: error.error };
+    return { parsed: interpretation.value ?? [], error };
   },
 );
 
@@ -298,16 +267,16 @@ function getAllPossibleCombinations(arr: string[], size: number): string[][] {
   return result;
 }
 
-export const selectFunctionsInterpretationValidation = createSelector(
+export const selectValidatedFunction = createSelector(
   [
     selectIfName,
-    selectParsedDomain,
-    selectParsedFunctions,
+    selectValidatedDomain,
+    selectValidatedFunctions,
     (_: RootState, name: string) => name,
   ],
   (interpretation, domain, functions, name) => {
-    if (!functions.parsed) return undefined;
-    if (!domain.parsed) return undefined;
+    if (functions.parsed.size === 0) return {};
+    if (domain.parsed.length === 0) return {};
 
     const arity = functions.parsed.get(name) ?? 0;
     let all = getAllPossibleCombinations(domain.parsed, arity);
@@ -317,14 +286,16 @@ export const selectFunctionsInterpretationValidation = createSelector(
       const examplePrints = all.length <= 3 ? `${examples}` : `${examples}...`;
       const actualSize = all[0].length === 1 ? "elements" : `${arity}-tuples`;
 
-      return createValidationError(
-        `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`,
-      );
+      return {
+        error: createValidationError(
+          `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`,
+        ),
+      };
     }
 
     const size = arity === 1 ? "element" : `${arity + 1}-tuple`;
 
-    let error: { error?: ValidationError } = { error: undefined };
+    let error: ValidationError | undefined = undefined;
 
     interpretation.value.forEach((tuple) => {
       if (arity !== undefined && tuple.length != arity + 1) {
@@ -336,13 +307,13 @@ export const selectFunctionsInterpretationValidation = createSelector(
       }
 
       tuple.forEach((element) => {
-        if (!domain.parsed.includes(element)) {
+        if (!domain.parsed?.includes(element)) {
           error = createValidationError(`Element ${element} is not in domain.`);
           return;
         }
       });
 
-      if (error.error) return error;
+      if (error) return error;
 
       interpretation.value.forEach((tuple2) => {
         if (
@@ -370,7 +341,7 @@ export const selectFunctionsInterpretationValidation = createSelector(
       }
     });
 
-    if (!error.error && all.length !== 0) {
+    if (!error && all.length !== 0) {
       const examplePrints = all.length <= 3 ? `${examples}` : `${examples}...`;
       const actual_size = all[0].length === 1 ? "elements" : `${arity}-tuples`;
       error = createValidationError(
@@ -378,44 +349,35 @@ export const selectFunctionsInterpretationValidation = createSelector(
       );
     }
 
-    return error;
-  },
-);
-
-export const selectParsedFunction = createSelector(
-  [selectFunctionsInterpretationValidation, selectIfName],
-  (error, iF) => {
-    if (!error) return {};
-
-    return { parsed: iF?.value, error: error.error };
+    return { parsed: interpretation?.value ?? [], error };
   },
 );
 
 export const selectStructureErrors = createSelector(
   [
     (state: RootState) => state,
-    selectParsedConstants,
-    selectParsedPredicates,
-    selectParsedFunctions,
-    selectParsedDomain,
+    selectValidatedConstants,
+    selectValidatedPredicates,
+    selectValidatedFunctions,
+    selectValidatedDomain,
   ],
   (state, constants, predicates, functions, domain) => {
     if (domain.error !== undefined) return false;
 
     for (const name of constants.parsed ?? []) {
-      if (selectParsedConstant(state, name).error !== undefined) {
+      if (selectValidatedConstant(state, name).error !== undefined) {
         return false;
       }
     }
 
     for (const [name] of predicates.parsed ?? []) {
-      if (selectParsedPredicate(state, name).error !== undefined) {
+      if (selectValidatedPredicate(state, name).error !== undefined) {
         return false;
       }
     }
 
     for (const [name] of functions.parsed ?? []) {
-      if (selectParsedFunction(state, name).error !== undefined) {
+      if (selectValidatedFunction(state, name).error !== undefined) {
         return false;
       }
     }
@@ -425,7 +387,7 @@ export const selectStructureErrors = createSelector(
 );
 
 export const selectStructure = createSelector(
-  [(state: RootState) => state, selectLanguage, selectParsedDomain],
+  [(state: RootState) => state, selectLanguage, selectValidatedDomain],
   (state, language, domain) => {
     const usedConstants = language.constants;
     const usedPredicates = language.predicates;
@@ -436,17 +398,17 @@ export const selectStructure = createSelector(
     const iF = new Map<Symbol, Map<DomainElement[], DomainElement>>();
 
     usedConstants.forEach((name) => {
-      const value = selectParsedConstant(state, name).parsed ?? "";
+      const value = selectValidatedConstant(state, name).parsed ?? "";
       iC.set(name, value);
     });
 
     usedPredicates.forEach((_, name) => {
-      const value = selectParsedPredicate(state, name)?.parsed ?? [[]];
+      const value = selectValidatedPredicate(state, name)?.parsed ?? [[]];
       iP.set(name, new Set(value));
     });
 
     usedFunctions.forEach((_, name) => {
-      const valuation = selectParsedFunction(state, name).parsed ?? [[]];
+      const valuation = selectValidatedFunction(state, name).parsed ?? [[]];
 
       const map = new Map<DomainElement[], DomainElement>();
 

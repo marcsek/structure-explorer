@@ -1,3 +1,16 @@
+import type { ValidationError } from "./errors";
+
+export interface LockableValue<T> {
+  locked: boolean;
+  value: T;
+}
+
+// TODO: Radsej, parsed vzdy a error optional
+export type Validated<T> = {
+  parsed: T;
+  error?: ValidationError;
+};
+
 export const prepareWithSourceMeta = <P>(
   payload: P,
   meta: { source?: string } = {},

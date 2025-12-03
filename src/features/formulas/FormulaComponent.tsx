@@ -25,10 +25,10 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import GameComponent from "../game/GameComponent";
 import { useEffect, useState } from "react";
 import {
-  selectParsedDomain,
+  selectValidatedDomain,
   selectStructureErrors,
 } from "../structure/structureSlice";
-import { selectParsedVariables } from "../variables/variablesSlice";
+import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
 
@@ -46,11 +46,11 @@ export default function FormulaComponent({ id, text, guess }: Props) {
   );
   const [begin, setBegin] = useState(false);
 
-  const domain = useAppSelector(selectParsedDomain);
+  const domain = useAppSelector(selectValidatedDomain);
   const isVerified = useAppSelector((state) => selectIsVerifiedGame(state, id));
   const backIndex = useAppSelector((state) => selectGameResetIndex(state, id));
   const structureErrors = useAppSelector(selectStructureErrors);
-  const variablesErrors = useAppSelector(selectParsedVariables);
+  const variablesErrors = useAppSelector(selectValidatedVariables);
   const teacherMode = useAppSelector(selectTeacherMode);
   const locked = useAppSelector((state) => selectFormulaLock(state, id));
   const lockedGuess = useAppSelector((state) =>

@@ -8,22 +8,7 @@ import {
   syncReducerTypeToTextType,
   type TextViewType,
 } from "./textViews";
-
-interface BaseError {
-  kind: string;
-  message: string;
-}
-
-export interface SyntaxError extends BaseError {
-  kind: "syntax";
-  location: ParserSyntaxError["location"];
-}
-
-export interface ValidationError extends BaseError {
-  kind: "validation";
-}
-
-export type InterpretationError = SyntaxError | ValidationError;
+import type { SyntaxError } from "../../common/errors";
 
 export interface TextViewEntry {
   type: TextViewType;
