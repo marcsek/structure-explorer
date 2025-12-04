@@ -106,7 +106,7 @@ export const selectValidatedTextView = createSelector(
     (_, type: TextViewType) => type,
     (_, __, key?: string) => key,
     (state: RootState, type: TextViewType, key?: string) =>
-      getValidator(state, type, key ?? type),
+      selectValidation(state, type, key ?? type),
     (state: RootState, type, key?: string) => state.textView[key ?? type],
   ],
   (_, __, validationError, entry) => {
@@ -161,6 +161,10 @@ const updateActionByTextType = <T extends TextViewType>(
   return textViewDescriptors[textType].syncAction(key, parsed);
 };
 
-const getValidator = (state: RootState, type: TextViewType, key: string) => {
+const selectValidation = (
+  state: RootState,
+  type: TextViewType,
+  key: string,
+) => {
   return textViewDescriptors[type].validate(state, key);
 };

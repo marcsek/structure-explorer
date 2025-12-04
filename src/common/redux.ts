@@ -5,7 +5,6 @@ export interface LockableValue<T> {
   value: T;
 }
 
-// TODO: Radsej, parsed vzdy a error optional
 export type Validated<T> = {
   parsed: T;
   error?: ValidationError;

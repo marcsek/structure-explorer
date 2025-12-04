@@ -38,6 +38,17 @@ import {
 } from "../variables/variablesSlice";
 import type { ValidationError } from "../../common/errors";
 
+interface TextViewTypeMap {
+  constants: ConstantsRepresentation;
+  predicates: SymbolWithArity[];
+  functions: SymbolWithArity[];
+  domain: DomainInterpretation;
+  constant_interpretation: ConstantInterpretation;
+  predicate_interpretation: TupleInterpretation;
+  function_interpretation: TupleInterpretation;
+  variables: [string, string][];
+}
+
 export type TextViewType =
   | "constants"
   | "predicates"
@@ -53,17 +64,6 @@ export interface TextViewDescriptor<TStructured> {
   syncAction: (key: string, parsed: TStructured) => UnknownAction;
   toText: (structured: TStructured) => string;
   validate: (state: RootState, key?: string) => ValidationError | undefined;
-}
-
-interface TextViewTypeMap {
-  constants: ConstantsRepresentation;
-  predicates: SymbolWithArity[];
-  functions: SymbolWithArity[];
-  domain: DomainInterpretation;
-  constant_interpretation: ConstantInterpretation;
-  predicate_interpretation: TupleInterpretation;
-  function_interpretation: TupleInterpretation;
-  variables: [string, string][];
 }
 
 export const textViewDescriptors: {
