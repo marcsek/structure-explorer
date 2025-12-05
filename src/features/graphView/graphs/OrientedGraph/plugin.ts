@@ -92,18 +92,13 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     return graph;
   },
 
-  syncNodes(prev, domain, selectedNodes, tupleType) {
+  syncNodes(prev, domain, tupleType) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
         // need to reset leftover state
         { ...n, data: { ...n.data, leftover: false } },
       ]),
-    );
-
-    const prevDomain = prev.nodes.map((node) => node.id);
-    const addedElements = domain.filter(
-      (element) => !prevDomain.includes(element),
     );
 
     const shouldError = (id: string) =>
@@ -134,11 +129,8 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       }));
 
     const allNodes = [...newNodes, ...leftoverNodes];
-    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
-      (node) => domain.includes(node),
-    );
 
-    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
+    return { ...prev, nodes: allNodes };
   },
 
   filterNodesToShow(

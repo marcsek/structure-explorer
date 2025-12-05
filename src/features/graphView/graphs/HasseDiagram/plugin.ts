@@ -94,18 +94,13 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     return graph;
   },
 
-  syncNodes(prev, domain, selectedNodes) {
+  syncNodes(prev, domain) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
         // need to reset leftover state
         { ...n, data: { ...n.data, leftover: false } },
       ]),
-    );
-
-    const prevDomain = prev.nodes.map((node) => node.id);
-    const addedElements = domain.filter(
-      (element) => !prevDomain.includes(element),
     );
 
     const newNodes = domain.map(
@@ -130,11 +125,8 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       }));
 
     const allNodes = [...newNodes, ...leftoverNodes];
-    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
-      (node) => domain.includes(node),
-    );
 
-    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
+    return { ...prev, nodes: allNodes };
   },
 
   filterNodesToShow(

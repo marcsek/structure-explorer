@@ -4,29 +4,30 @@ import { useEffect, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
 import {
-  nodeToggled,
   selectRelevantUnaryPreds,
   selectUnaryPreds,
 } from "../../graphView/graphs/graphSlice";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
-import { getUnaryPredicateColor } from "../unaryPredicateColors";
-import type { GraphType } from "../../graphView/graphs/plugins";
+import {
+  nodeToggled,
+  selectSelectedNodes,
+} from "../../editorToolbar/editorToolbarSlice";
+import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 
 export interface DomainSelectorProps {
   id: string;
-  type: GraphType;
 }
 
-export default function DomainSelector({ id, type }: DomainSelectorProps) {
+export default function DomainSelector({ id }: DomainSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
-  const selectedNodes = useAppSelector(
-    (state) => state.graphView[id]?.selectedNodes,
+  const selectedNodes = useAppSelector((state) =>
+    selectSelectedNodes(state, id),
   );
 
   const activeFilters = domain.length !== selectedNodes.length;
@@ -50,7 +51,7 @@ export default function DomainSelector({ id, type }: DomainSelectorProps) {
   }, [isOpen]);
 
   const toggleItem = (element: string = "") =>
-    dispatch(nodeToggled({ id, type, node: element }));
+    dispatch(nodeToggled({ id, domain, node: element }));
 
   return (
     <div

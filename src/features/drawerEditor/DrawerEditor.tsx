@@ -1,7 +1,7 @@
 import "./DrawerEditor.css";
 
 import { Card, CloseButton, Modal, Stack } from "react-bootstrap";
-import { GraphToolbar } from "./EditorToolbar/EditorToolbar";
+import { GraphToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import { type EditorType } from "../structure/InterpretationEditor";
 import { useState, type ReactNode } from "react";
@@ -40,6 +40,7 @@ export default function DrawerEditor(props: DrawerEditorProps) {
           {...props}
         />
       </Modal>
+
       <DrawerEditorContent setExpandedView={setExpandedView} {...props} />
     </>
   );
@@ -83,37 +84,37 @@ function DrawerEditorContent({
             </Stack>
           </Stack>
         </div>
-        <Stack className="drawer-editor-container-body">
-          {type !== "matrix" && (
-            <>
-              <div className="drawer-editor-toolbar-container">
-                <GraphToolbar id={predicateName} type={type} />
-              </div>
 
-              <Stack>
-                <Card className="border-0" style={{ height: "100%" }}>
-                  <Card.Body
-                    className={`drawer-editor-view-container ${error ? "error" : ""}`}
-                  >
-                    <GraphView
-                      predName={predicateName}
-                      graphType={type}
-                      locked={locked}
-                      expandedView={expandedView}
-                      onExpandedViewChange={(expanded) =>
-                        setExpandedView(expanded)
-                      }
-                    />
-                  </Card.Body>
-                  {expandedView && error?.message && (
-                    <p className="text-danger small m-1">{error?.message}</p>
-                  )}
-                </Card>
-              </Stack>
-            </>
+        <Stack className="drawer-editor-container-body">
+          <div className="drawer-editor-toolbar-container">
+            <GraphToolbar id={predicateName} />
+          </div>
+
+          {type !== "matrix" && (
+            <Stack>
+              <Card className="border-0" style={{ height: "100%" }}>
+                <Card.Body
+                  className={`drawer-editor-view-container ${error ? "error" : ""}`}
+                >
+                  <GraphView
+                    predName={predicateName}
+                    graphType={type}
+                    locked={locked}
+                    expandedView={expandedView}
+                    onExpandedViewChange={(expanded) =>
+                      setExpandedView(expanded)
+                    }
+                  />
+                </Card.Body>
+                {expandedView && error?.message && (
+                  <p className="text-danger small m-1">{error?.message}</p>
+                )}
+              </Card>
+            </Stack>
           )}
         </Stack>
       </Stack>
+
       {!expandedView && (
         <p className="text-danger small m-0">{error?.message}</p>
       )}

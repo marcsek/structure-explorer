@@ -31,9 +31,8 @@ export interface Plugin<K extends GraphType> {
   syncNodes(
     prev: GraphState[K],
     domain: string[],
-    selectedNodes: string[],
     tupleType: TupleType,
-  ): [GraphState[K], string[]];
+  ): GraphState[K];
   // hideNodes(
   //   prev: GraphState[K],
   //   toggledNode: string,
@@ -83,10 +82,9 @@ export function processSyncNodes<K extends GraphType>(
   plugin: Plugin<K>,
   prev: GraphState[K],
   domain: string[],
-  selectedNodes: string[],
   tupleType: TupleType,
-): [GraphState[K], string[]] {
-  return plugin.syncNodes(prev, domain, selectedNodes, tupleType);
+): GraphState[K] {
+  return plugin.syncNodes(prev, domain, tupleType);
 }
 
 // export function processHideNodes<K extends GraphType>(

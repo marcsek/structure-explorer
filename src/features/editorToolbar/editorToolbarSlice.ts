@@ -1,0 +1,212 @@
+import {
+  createSelector,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+import { domainChanged } from "../graphView/graphs/graphSlice";
+import type { RootState } from "../../app/store";
+import { selectStructure } from "../structure/structureSlice";
+
+export type EditorToolbarEntry = {
+  hoveredUnary: string[];
+  selectedUnary: string[];
+  selectedNodes?: string[];
+  unaryFilterDomain: boolean;
+  unaryFilterHovered: boolean;
+};
+
+export type EditorToolbarState = Record<string, EditorToolbarEntry>;
+
+const initialState: EditorToolbarState = {};
+
+type WithEditorId<T = object> = { id: string } & T;
+
+export const editorToolbarSlice = createSlice({
+  name: "editorToolbar",
+  initialState,
+  reducers: {
+    unaryPredicateToggled(
+      state,
+      action: PayloadAction<WithEditorId<{ predicate: string | string[] }>>,
+    ) {
+      const { id, predicate } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id]);
+
+      const selected = state[id].selectedUnary;
+
+      if (Array.isArray(predicate)) state[id].selectedUnary = predicate;
+      else if (selected.includes(predicate))
+        state[id].selectedUnary = selected.filter((pred) => pred != predicate);
+      else selected.push(predicate);
+    },
+
+    nodeToggled(
+      state,
+      action: PayloadAction<WithEditorId<{ domain: string[]; node?: string }>>,
+    ) {
+      const { id, domain, node: toggledNode = "" } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id], domain);
+
+      const selectedNodes = state[id].selectedNodes ?? domain;
+
+      if (toggledNode === "") state[id].selectedNodes = domain;
+      else if (selectedNodes.includes(toggledNode))
+        state[id].selectedNodes = selectedNodes.filter(
+          (selectedNode) => selectedNode != toggledNode,
+        );
+      else state[id].selectedNodes = [...selectedNodes, toggledNode];
+    },
+
+    predicateHovered(
+      state,
+      action: PayloadAction<WithEditorId<{ predicates: string[] }>>,
+    ) {
+      const { id, predicates } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id]);
+
+      state[id].hoveredUnary = predicates;
+    },
+
+    unaryFilterDomainHovered(
+      state,
+      action: PayloadAction<WithEditorId<{ hovered: boolean }>>,
+    ) {
+      const { id, hovered } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id]);
+
+      state[id].unaryFilterHovered = hovered;
+    },
+
+    unaryFilterDomainToggled(state, action: PayloadAction<WithEditorId>) {
+      const { id } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id]);
+
+      state[id].unaryFilterDomain = !state[id].unaryFilterDomain;
+    },
+  },
+
+  extraReducers(builder) {
+    builder.addCase(domainChanged, (state, action) => {
+      for (const entry of Object.values(state)) {
+        entry.selectedNodes = action.payload;
+      }
+    });
+  },
+});
+
+export const selectSelectedUnary = createSelector(
+  [(state: RootState, id: string) => state.editorToolbar[id]?.selectedUnary],
+  (selectedUnary) => selectedUnary ?? [],
+);
+
+export const selectHoveredUnary = createSelector(
+  [(state: RootState, id: string) => state.editorToolbar[id]?.hoveredUnary],
+  (hoveredUnary) => hoveredUnary ?? [],
+);
+
+export const selectUnaryFilterDomain = createSelector(
+  [
+    (state: RootState, id: string) =>
+      state.editorToolbar[id]?.unaryFilterDomain,
+  ],
+  (unaryFilterDomain) => unaryFilterDomain ?? true,
+);
+
+export const selectUnaryFilterDomainHovered = createSelector(
+  [
+    (state: RootState, id: string) =>
+      state.editorToolbar[id]?.unaryFilterHovered,
+  ],
+  (unaryFilterHovered) => unaryFilterHovered ?? false,
+);
+
+export const selectSelectedNodes = createSelector(
+  [
+    (state: RootState) => state.structure.domain,
+    (state: RootState, id: string) => state.editorToolbar[id]?.selectedNodes,
+  ],
+  (domain, selectedNodes) => {
+    return selectedNodes ? selectedNodes : domain.value;
+  },
+);
+
+export const selectRelevantDomainElements = createSelector(
+  [
+    selectStructure,
+    selectSelectedUnary,
+    selectUnaryFilterDomainHovered,
+    selectUnaryFilterDomain,
+    selectHoveredUnary,
+    (_: RootState, __: string, includeHovered: boolean = false) =>
+      includeHovered,
+  ],
+  (
+    struct,
+    selectedUnary,
+    unaryFilterHovered,
+    unaryFilterDomain,
+    hoveredUnary,
+    includeHovered,
+  ) => {
+    const selectedPreds = [...selectedUnary];
+
+    if (includeHovered) {
+      if (unaryFilterHovered) return [...struct.domain];
+
+      selectedPreds.push(...hoveredUnary);
+    }
+
+    if (selectedPreds.length === 0 || !unaryFilterDomain) return undefined;
+
+    return [
+      ...new Set(
+        selectedPreds.flatMap((pred) =>
+          [...(struct.iP.get(pred)?.values() ?? [])].flat(),
+        ),
+      ),
+    ];
+  },
+);
+
+export const selectHoveredIntr = createSelector(
+  [selectStructure, selectHoveredUnary, selectUnaryFilterDomainHovered],
+  (struct, hoveredUnary, unaryFilterHovered) => {
+    if (unaryFilterHovered) return [[...struct.domain]];
+
+    if (hoveredUnary.length === 0) return undefined;
+
+    return hoveredUnary.map((hoveredPredicate) =>
+      [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat(),
+    );
+  },
+);
+
+export default editorToolbarSlice.reducer;
+
+export const {
+  nodeToggled,
+  predicateHovered,
+  unaryFilterDomainHovered,
+  unaryFilterDomainToggled,
+  unaryPredicateToggled,
+} = editorToolbarSlice.actions;
+
+const initializeStateIfNotSet = (
+  state: EditorToolbarEntry | undefined,
+  selectedNodes?: string[],
+): EditorToolbarEntry => {
+  if (state) return state;
+
+  return {
+    hoveredUnary: [],
+    selectedUnary: [],
+    selectedNodes: selectedNodes,
+    unaryFilterDomain: true,
+    unaryFilterHovered: false,
+  };
+};

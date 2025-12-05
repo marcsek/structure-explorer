@@ -25,7 +25,6 @@ import {
   processFilterNodesToShow,
   processSyncNodes,
   processSyncPredIntr,
-  processToggleNodes,
   type GraphState,
   type GraphType,
   type Plugin,
@@ -39,6 +38,12 @@ import {
   updateFunctionSymbols,
   updateInterpretationPredicates,
 } from "../../structure/structureSlice.ts";
+import {
+  selectHoveredIntr,
+  selectRelevantDomainElements,
+  selectSelectedNodes,
+  selectUnaryFilterDomain,
+} from "../../editorToolbar/editorToolbarSlice.ts";
 
 export type TupleType = "function" | "predicate";
 
@@ -47,11 +52,6 @@ export type GraphManagerState = Record<
   {
     tupleType: TupleType;
     state: GraphState;
-    hoveredUnary: string[];
-    selectedUnary: string[];
-    selectedNodes: string[];
-    unaryFilterDomain: boolean;
-    unaryFilterHovered: boolean;
   }
 >;
 
@@ -106,68 +106,6 @@ export const graphManagerSlice = createSlice({
       );
     },
 
-    unaryPredicateToggled(
-      state,
-      action: PayloadAction<WithGraphId<{ predicate: string | string[] }>>,
-    ) {
-      const { id, predicate } = action.payload;
-
-      const selected = state[id].selectedUnary;
-
-      if (Array.isArray(predicate)) state[id].selectedUnary = predicate;
-      else if (selected.includes(predicate))
-        state[id].selectedUnary = selected.filter((pred) => pred != predicate);
-      else selected.push(predicate);
-    },
-
-    nodeToggled(state, action: PayloadAction<WithGraphId<{ node?: string }>>) {
-      const { id, type, node: toggledNode = "" } = action.payload;
-
-      if (!state[id]) return;
-
-      const graphState = state[id].state[type];
-
-      const [newState, newSelectedNodes] = processToggleNodes(
-        plugins[type],
-        graphState,
-        toggledNode,
-        state[id].selectedNodes,
-      );
-
-      (state[id].state[type] as GraphState[typeof type]) = newState;
-      state[id].selectedNodes = newSelectedNodes;
-    },
-
-    predicateHovered(
-      state,
-      action: PayloadAction<WithGraphId<{ predicates: string[] }>>,
-    ) {
-      const { id, predicates } = action.payload;
-
-      if (!state[id]) return;
-
-      state[id].hoveredUnary = predicates;
-    },
-
-    unaryFilterDomainHovered(
-      state,
-      action: PayloadAction<WithGraphId<{ hovered: boolean }>>,
-    ) {
-      const { id, hovered } = action.payload;
-
-      if (!state[id]) return;
-
-      state[id].unaryFilterHovered = hovered;
-    },
-
-    unaryFilterDomainToggled(state, action: PayloadAction<WithGraphId>) {
-      const { id } = action.payload;
-
-      if (!state[id]) return;
-
-      state[id].unaryFilterDomain = !state[id].unaryFilterDomain;
-    },
-
     tuplesChanged(
       state,
       action: PayloadAction<{
@@ -203,11 +141,6 @@ export const graphManagerSlice = createSlice({
             hasse: plugins.hasse.init(domain, tuple, type),
             bipartite: plugins.bipartite.init(domain, tuple, type),
           },
-          selectedNodes: [...new Set(domain.flat())],
-          selectedUnary: [],
-          hoveredUnary: [],
-          unaryFilterDomain: true,
-          unaryFilterHovered: false,
         };
       });
 
@@ -245,16 +178,14 @@ export const graphManagerSlice = createSlice({
           const plugin = plugins[graphType];
           const domain = action.payload;
 
-          const [newState, selectedNodes] = processSyncNodes(
+          const newState = processSyncNodes(
             plugin,
             graphState,
             domain,
-            graphs.selectedNodes,
             graphs.tupleType,
           );
 
           (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
-          graphs.selectedNodes = selectedNodes;
         }
       }
     },
@@ -336,60 +267,6 @@ export const selectRelevantUnaryPreds = createSelector(
     ),
 );
 
-export const selectRelevantDomainElements = createSelector(
-  [
-    selectStructure,
-    (state: RootState) => state,
-    (_: RootState, id: string) => id,
-    (_: RootState, __: string, type: GraphType) => type,
-    (
-      _: RootState,
-      __: string,
-      ___: GraphType,
-      includeHovered: boolean = false,
-    ) => includeHovered,
-  ],
-  (struct, state, id, _, includeHovered) => {
-    const selectedPreds = [...(state.graphView[id]?.selectedUnary ?? [])];
-
-    if (includeHovered) {
-      if (state.graphView[id]?.unaryFilterHovered) return [...struct.domain];
-
-      selectedPreds.push(...state.graphView[id].hoveredUnary);
-    }
-
-    if (selectedPreds.length === 0 || !state.graphView[id].unaryFilterDomain)
-      return undefined;
-
-    return [
-      ...new Set(
-        selectedPreds.flatMap((pred) =>
-          [...(struct.iP.get(pred)?.values() ?? [])].flat(),
-        ),
-      ),
-    ];
-  },
-);
-
-export const selectHoveredIntr = createSelector(
-  [
-    selectStructure,
-    (state: RootState) => state,
-    (_: RootState, id: string) => id,
-  ],
-  (struct, state, id) => {
-    const hoveredPredicates = state.graphView[id]?.hoveredUnary;
-
-    if (state.graphView[id]?.unaryFilterHovered) return [[...struct.domain]];
-
-    if (hoveredPredicates.length === 0) return undefined;
-
-    return hoveredPredicates.map((hoveredPredicate) =>
-      [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat(),
-    );
-  },
-);
-
 export const selectPosetValidity = createSelector(
   [(state: RootState) => state, (_: RootState, id: string) => id],
   (state, id) => {
@@ -415,8 +292,15 @@ export function makeSelectNodes<T extends GraphType>() {
       (state: RootState) => state,
       (_: RootState, id: string) => id,
       (_: RootState, __: string, type: T) => type,
-      selectRelevantDomainElements,
+      (
+        state: RootState,
+        id: string,
+        _: GraphType,
+        includeHovered: boolean = false,
+      ) => selectRelevantDomainElements(state, id, includeHovered),
       selectHoveredIntr,
+      selectSelectedNodes,
+      selectUnaryFilterDomain,
     ],
     (
       state: RootState,
@@ -424,19 +308,19 @@ export function makeSelectNodes<T extends GraphType>() {
       type: T,
       relevantDomain: ReturnType<typeof selectRelevantDomainElements>,
       hoveredPredicateIntr: ReturnType<typeof selectHoveredIntr>,
+      selectedNodes,
+      unaryFilterDomain,
     ): GraphState[T]["nodes"] => {
       const plugin = plugins[type] as Plugin<T>;
       const graphState = state.graphView[id]?.state[type];
 
       if (!graphState) return [] as GraphState[T]["nodes"];
 
-      const unaryFilterDomain = state.graphView[id].unaryFilterDomain;
-
       return processFilterNodesToShow(
         plugin,
         graphState,
         unaryFilterDomain,
-        state.graphView[id]?.selectedNodes ?? [],
+        selectedNodes,
         relevantDomain,
         hoveredPredicateIntr,
       ) as GraphState[T]["nodes"];
@@ -449,9 +333,15 @@ export const selectEdges = createSelector(
     (state: RootState) => state,
     (_: RootState, id: string) => id,
     (_: RootState, __: string, type: GraphType) => type,
-    selectRelevantDomainElements,
+    (
+      state: RootState,
+      id: string,
+      _: GraphType,
+      includeHovered: boolean = false,
+    ) => selectRelevantDomainElements(state, id, includeHovered),
+    selectSelectedNodes,
   ],
-  (state, id, type, relevantDomain) => {
+  (state, id, type, relevantDomain, selectedNodes) => {
     const plugin = plugins[type];
     const graphState = state.graphView[id]?.state[type];
 
@@ -460,7 +350,7 @@ export const selectEdges = createSelector(
     return processFilterEdgesToShow(
       plugin,
       graphState,
-      state.graphView[id].selectedNodes,
+      selectedNodes,
       relevantDomain,
     );
   },
@@ -601,15 +491,10 @@ export const {
   setEdges,
   edgeAdded,
   onNodesChanged,
-  unaryPredicateToggled,
-  nodeToggled,
   tuplesChanged,
   tupleInterpretationChanged,
   domainChanged,
   editorLocked,
-  predicateHovered,
-  unaryFilterDomainToggled,
-  unaryFilterDomainHovered,
   warningChanged,
 } = graphManagerSlice.actions;
 

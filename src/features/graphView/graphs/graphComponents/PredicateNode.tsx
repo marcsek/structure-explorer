@@ -20,6 +20,10 @@ import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { getUnaryPredicateColor } from "../../../drawerEditor/unaryPredicateColors";
+import {
+  selectHoveredUnary,
+  selectSelectedUnary,
+} from "../../../editorToolbar/editorToolbarSlice";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -143,12 +147,12 @@ function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
     selectRelevantUnaryPreds(state, domainId),
   );
 
-  const hoveredPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id].hoveredUnary,
+  const hoveredPreds = useAppSelector((state) =>
+    selectHoveredUnary(state, parentInfo.id),
   );
 
-  const selectedPreds = useAppSelector(
-    (state) => state.graphView[parentInfo.id].selectedUnary,
+  const selectedPreds = useAppSelector((state) =>
+    selectSelectedUnary(state, parentInfo.id),
   );
 
   const vissiblePreds = [...hoveredPreds, ...selectedPreds];

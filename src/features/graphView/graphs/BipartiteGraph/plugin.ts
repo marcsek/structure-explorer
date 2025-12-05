@@ -109,7 +109,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     return graph;
   },
 
-  syncNodes(prev, domain, selectedNodes, tupleType) {
+  syncNodes(prev, domain, tupleType) {
     const nodeById = new Map(
       prev.nodes.map((n) => [
         n.id,
@@ -117,11 +117,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         { ...n, data: { ...n.data, leftover: false } },
       ]),
     );
-
-    const prevDomain = new Set(
-      prev.nodes.map((node) => node.id.slice("d-".length)),
-    );
-    const addedElements = domain.filter((element) => !prevDomain.has(element));
 
     const shouldError = (id: string) =>
       prev.edges.filter((e) => e.source.slice("d-".length) === id).length !==
@@ -155,11 +150,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
 
     const allNodes = computeLayoutBipartite([...newNodes, ...leftoverNodes]);
 
-    const newSelectedNodes = [...selectedNodes, ...addedElements].filter(
-      (node) => domain.includes(node),
-    );
-
-    return [{ ...prev, nodes: allNodes }, [...new Set(newSelectedNodes)]];
+    return { ...prev, nodes: allNodes };
   },
 
   filterNodesToShow(

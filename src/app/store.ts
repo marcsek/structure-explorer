@@ -10,6 +10,7 @@ import variablesReducer from "../features/variables/variablesSlice";
 import teacherModeReducer from "../features/teacherMode/teacherModeslice";
 import graphViewReducer from "../features/graphView/graphs/graphSlice";
 import textViewReducer from "../features/textView/textViewSlice";
+import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 
 // Root reducer object
@@ -21,6 +22,7 @@ const rootReducer = {
   teacherMode: teacherModeReducer,
   graphView: graphViewReducer,
   textView: textViewReducer,
+  editorToolbar: editorToolbarReducer,
 };
 
 export const createStore = () =>

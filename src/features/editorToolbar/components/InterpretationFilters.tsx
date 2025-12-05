@@ -1,14 +1,7 @@
 import "./InterpretationFilters.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import {
-  predicateHovered,
-  unaryPredicateToggled,
-  selectUnaryPreds,
-  unaryFilterDomainHovered,
-  unaryFilterDomainToggled,
-} from "../../graphView/graphs/graphSlice";
-import type { GraphType } from "../../graphView/graphs/plugins";
+import { selectUnaryPreds } from "../../graphView/graphs/graphSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAngleLeft,
@@ -18,27 +11,33 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
-import { getUnaryPredicateColor } from "../unaryPredicateColors";
 import useScrollControls from "./useScrollControls";
 import { useRef } from "react";
 import useDraggingScroll from "./useDragginScroll";
+import {
+  predicateHovered,
+  selectSelectedUnary,
+  selectUnaryFilterDomain,
+  unaryFilterDomainHovered,
+  unaryFilterDomainToggled,
+  unaryPredicateToggled,
+} from "../../editorToolbar/editorToolbarSlice";
+import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 
 export interface InterpretationFiltersProps {
   id: string;
-  type: GraphType;
 }
 
 export default function InterpretationFilters({
   id,
-  type,
 }: InterpretationFiltersProps) {
   const dispatch = useAppDispatch();
-  const unaryFilterDomain = useAppSelector(
-    (state) => state.graphView[id]?.unaryFilterDomain,
+  const unaryFilterDomain = useAppSelector((state) =>
+    selectUnaryFilterDomain(state, id),
   );
 
   const handleDomainHover = (hovered: boolean) => {
-    dispatch(unaryFilterDomainHovered({ id, type, hovered }));
+    dispatch(unaryFilterDomainHovered({ id, hovered }));
   };
 
   return (
@@ -46,7 +45,7 @@ export default function InterpretationFilters({
       <Button
         className={`domain-button editor-toolbar-button legend-button  ${!unaryFilterDomain ? "active" : ""}`}
         title="Select Domain"
-        onClick={() => dispatch(unaryFilterDomainToggled({ id, type }))}
+        onClick={() => dispatch(unaryFilterDomainToggled({ id }))}
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
       >
@@ -55,21 +54,20 @@ export default function InterpretationFilters({
 
       <div className="intr-filters-divider" />
 
-      <UnaryPredicatesFilter id={id} type={type} />
+      <UnaryPredicatesFilter id={id} />
     </div>
   );
 }
 
 interface UnaryPredicatesFilterProps {
   id: string;
-  type: GraphType;
 }
 
-function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
+function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
   const dispatch = useAppDispatch();
   const predicates = useAppSelector(selectUnaryPreds)?.sort();
-  const selectedPredicates = useAppSelector(
-    (state) => state.graphView[id]?.selectedUnary ?? [],
+  const selectedPredicates = useAppSelector((state) =>
+    selectSelectedUnary(state, id),
   );
 
   const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
@@ -87,11 +85,11 @@ function UnaryPredicatesFilter({ id, type }: UnaryPredicatesFilterProps) {
   };
 
   const handlePredicateHover = (hoveredPredicates: string[]) => {
-    dispatch(predicateHovered({ id, type, predicates: hoveredPredicates }));
+    dispatch(predicateHovered({ id, predicates: hoveredPredicates }));
   };
 
   const handlePredicateToggle = (predicate: string | string[]) => {
-    dispatch(unaryPredicateToggled({ id, type, predicate }));
+    dispatch(unaryPredicateToggled({ id, predicate }));
   };
 
   return (
