@@ -7,6 +7,10 @@ import {
   textViewSyncReducers,
   syncReducerTypeToTextType,
   type TextViewType,
+  getDescriptor,
+  isKeyedPayloadByTextType as isKeyedPayload,
+  type StructuredOf,
+  getNamespace,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
 
@@ -16,19 +20,13 @@ export interface TextViewEntry {
   parseError?: SyntaxError;
 }
 
-export type TextViewState = Record<string, TextViewEntry>;
+export type TextViewState = Record<string, Record<string, TextViewEntry>>;
 
-const initialState: TextViewState = {
-  constants: { value: "", type: "constants" },
-  predicates: { value: "", type: "predicates" },
-  functions: { value: "", type: "functions" },
-  domain: { value: "", type: "domain" },
-  variables: { value: "", type: "variables" },
-};
+const initialState: TextViewState = { default: {} };
 
 export const textViewSlice = createSlice({
   name: "textView",
-  initialState,
+  initialState: initialState,
   reducers: {
     textViewChanged(
       state,
@@ -40,36 +38,43 @@ export const textViewSlice = createSlice({
     ) {
       const { key, value, type } = action.payload;
 
-      if (state[key]) state[key].value = value;
-      else state[key] = { value, type };
+      const namespace = getOrCreateNamespaceEntry(state, type);
+
+      if (namespace[key]) namespace[key] = { ...namespace[key], value, type };
+      else namespace[key] = { value, type };
     },
 
     textViewParseErrorChanged(
       state,
       action: PayloadAction<{
         key: string;
+        type: TextViewType;
         parseError: SyntaxError | undefined;
       }>,
     ) {
-      const { key, parseError } = action.payload;
+      const { key, type, parseError } = action.payload;
 
-      if (state[key]) state[key].parseError = parseError;
+      const namespace = getOrCreateNamespaceEntry(state, type);
+
+      if (namespace[key])
+        namespace[key] = { ...namespace[key], type, parseError };
     },
   },
 
   extraReducers(builder) {
     builder.addMatcher(isAnyOf(...textViewSyncReducers), (state, action) => {
       const textType = syncReducerTypeToTextType[action.type];
-      const key = "key" in action.payload ? action.payload.key : textType;
-
-      const payloadValue =
-        "value" in action.payload ? action.payload.value : action.payload;
 
       if (action.meta.source !== "textView") {
-        const textValue = convertStructuredToText(textType, payloadValue);
+        const { key, value } = isKeyedPayload(action.payload, textType)
+          ? action.payload
+          : { key: textType, value: action.payload };
 
-        if (state[key]) state[key].value = textValue;
-        else state[key] = { value: textValue, type: textType };
+        const textValue = convertStructuredToText(textType, value);
+
+        const namespace = getOrCreateNamespaceEntry(state, textType);
+
+        namespace[key] = { value: textValue, type: textType };
       }
     });
   },
@@ -92,11 +97,11 @@ export const updateTextView = ({
     const { parsed, error } = parseByTextType(type, value, getState());
 
     if (error) {
-      dispatch(textViewParseErrorChanged({ key, parseError: error }));
+      dispatch(textViewParseErrorChanged({ key, type, parseError: error }));
       return;
     }
 
-    dispatch(textViewParseErrorChanged({ key, parseError: undefined }));
+    dispatch(textViewParseErrorChanged({ key, type, parseError: undefined }));
     dispatch(updateActionByTextType(type, key, parsed));
   };
 };
@@ -104,10 +109,11 @@ export const updateTextView = ({
 export const selectValidatedTextView = createSelector(
   [
     (_, type: TextViewType) => type,
-    (_, __, key?: string) => key,
-    (state: RootState, type: TextViewType, key?: string) =>
-      selectValidation(state, type, key ?? type),
-    (state: RootState, type, key?: string) => state.textView[key ?? type],
+    (_, type: TextViewType, key: string = type) => key,
+    (state: RootState, type: TextViewType, key: string = type) =>
+      selectValidation(state, type, key),
+    (state: RootState, type: TextViewType, key: string = type) =>
+      state.textView[getNamespace(type)]?.[key],
   ],
   (_, __, validationError, entry) => {
     if (!entry) return { value: "", error: validationError };
@@ -130,7 +136,7 @@ const parseByTextType = <T extends TextViewType>(
   state: RootState,
 ) => {
   try {
-    return { parsed: textViewDescriptors[textType].parse(toParse, state) };
+    return { parsed: getDescriptor(textType).parse(toParse, state) };
   } catch (error) {
     if (error instanceof ParserSyntaxError) {
       return {
@@ -148,17 +154,25 @@ const parseByTextType = <T extends TextViewType>(
 
 export const convertStructuredToText = <T extends TextViewType>(
   type: T,
-  structured: ReturnType<(typeof textViewDescriptors)[T]["parse"]>,
+  structured: StructuredOf<T>,
 ): string => {
-  return textViewDescriptors[type].toText(structured);
+  return getDescriptor(type).toText(structured);
 };
 
 const updateActionByTextType = <T extends TextViewType>(
   textType: T,
   key: string,
-  parsed: ReturnType<(typeof textViewDescriptors)[T]["parse"]>,
+  parsed: StructuredOf<T>,
 ) => {
-  return textViewDescriptors[textType].syncAction(key, parsed);
+  const descriptor = textViewDescriptors[textType];
+
+  if (descriptor.payloadType === "key")
+    return descriptor.syncActionCreator(
+      { key, value: parsed },
+      { source: "textView" },
+    );
+
+  return descriptor.syncActionCreator(parsed, { source: "textView" });
 };
 
 const selectValidation = (
@@ -167,4 +181,15 @@ const selectValidation = (
   key: string,
 ) => {
   return textViewDescriptors[type].validate(state, key);
+};
+
+const getOrCreateNamespaceEntry = (
+  state: TextViewState,
+  type: TextViewType,
+) => {
+  const namespace = getNamespace(type);
+
+  if (!state[namespace]) state[namespace] = {};
+
+  return state[namespace];
 };

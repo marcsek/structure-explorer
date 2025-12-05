@@ -19,13 +19,15 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
+import type { TextViewDescriptors } from "../textView/textViews";
+import { parseDomain, parseTuples } from "@fmfi-uk-1-ain-412/js-fol-parser";
 
-export type DomainInterpretation = string[];
+export type DomainRepresentation = string[];
 export type ConstantInterpretation = string;
 export type TupleInterpretation = string[][];
 
 export interface StructureState {
-  domain: LockableValue<DomainInterpretation>;
+  domain: LockableValue<DomainRepresentation>;
   iC: Record<string, LockableValue<ConstantInterpretation>>;
   iP: Record<string, LockableValue<TupleInterpretation>>;
   iF: Record<string, LockableValue<TupleInterpretation>>;
@@ -171,7 +173,7 @@ export const selectIfLock = (state: RootState, name: string) =>
 export const selectValidatedDomain = createSelector(
   [(state: RootState) => state.structure.domain],
   ({ value: domain }): Validated<string[]> => {
-    const result: Validated<DomainInterpretation> = { parsed: domain };
+    const result: Validated<DomainRepresentation> = { parsed: domain };
 
     if (domain.length === 0)
       result.error = createValidationError("Domain cannot be empty");
@@ -434,4 +436,60 @@ export const {
   lockInterpretationPredicates,
   lockFunctionSymbols,
 } = structureSlice.actions;
+
 export default structureSlice.reducer;
+
+export interface StructureTextViewTypeMap {
+  domain: DomainRepresentation;
+  constant_interpretation: ConstantInterpretation;
+  predicate_interpretation: TupleInterpretation;
+  function_interpretation: TupleInterpretation;
+}
+
+export const structureTextViewDescriptors: TextViewDescriptors<StructureTextViewTypeMap> =
+  {
+    domain: {
+      payloadType: "value",
+      parse: (value) => parseDomain(value),
+      toText: (structured) => structured.join(", "),
+      validate: (state) => selectValidatedDomain(state)?.error,
+      syncActionCreator: updateDomain,
+    },
+
+    constant_interpretation: {
+      payloadType: "key",
+      namespace: "const_intr",
+      parse: (value) => value,
+      toText: (structured) => structured,
+      validate: (state, key) => selectValidatedConstant(state, key!).error,
+      syncActionCreator: updateInterpretationConstants,
+    },
+
+    predicate_interpretation: {
+      payloadType: "key",
+      namespace: "pred_intr",
+      parse: (value) => parseTuples(value),
+      toText: (structured) =>
+        structured
+          .map((tuple) =>
+            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
+          )
+          .join(", "),
+      validate: (state, key) => selectValidatedPredicate(state, key!).error,
+      syncActionCreator: updateInterpretationPredicates,
+    },
+
+    function_interpretation: {
+      payloadType: "key",
+      namespace: "func_intr",
+      parse: (value) => parseTuples(value),
+      toText: (structured) =>
+        structured
+          .map((tuple) =>
+            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
+          )
+          .join(", "),
+      validate: (state, key) => selectValidatedFunction(state, key!).error,
+      syncActionCreator: updateFunctionSymbols,
+    },
+  };

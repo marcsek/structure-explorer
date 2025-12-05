@@ -2,13 +2,19 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import Language from "../../model/Language";
-import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import {
+  parseConstants,
+  parseFunctions,
+  parsePredicates,
+  type SymbolWithArity,
+} from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { createValidationError } from "../../common/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
   type Validated,
 } from "../../common/redux";
+import type { TextViewDescriptors } from "../textView/textViews";
 
 export type ConstantsRepresentation = string[];
 export type AritySymbolsRepresentation = [string, number][];
@@ -204,3 +210,38 @@ export const {
 } = languageSlice.actions;
 
 export default languageSlice.reducer;
+
+export interface LanguageTextViewTypeMap {
+  constants: ConstantsRepresentation;
+  predicates: SymbolWithArity[];
+  functions: SymbolWithArity[];
+}
+
+export const languageTextViewDescriptors: TextViewDescriptors<LanguageTextViewTypeMap> =
+  {
+    constants: {
+      payloadType: "value",
+      parse: (value) => parseConstants(value),
+      toText: (structured) => structured.join(", "),
+      validate: (state) => selectValidatedConstants(state)?.error,
+      syncActionCreator: updateConstants,
+    },
+
+    predicates: {
+      payloadType: "value",
+      parse: (value) => parsePredicates(value),
+      toText: (structured) =>
+        structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
+      validate: (state) => selectValidatedPredicates(state)?.error,
+      syncActionCreator: updatePredicates,
+    },
+
+    functions: {
+      payloadType: "value",
+      parse: (value) => parseFunctions(value),
+      toText: (structured) =>
+        structured.map(({ name, arity }) => `${name}/${arity}`).join(", "),
+      validate: (state) => selectValidatedFunctions(state)?.error,
+      syncActionCreator: updateFunctions,
+    },
+  };
