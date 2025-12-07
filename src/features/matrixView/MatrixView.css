@@ -1,0 +1,35 @@
+.matrix-view-table {
+  margin: -1px;
+  width: calc(100% + 2px);
+  table-layout: fixed;
+
+  --hover-bg: var(--bs-tertiary-bg);
+}
+
+.matrix-view-table thead th {
+  font-weight: 500;
+}
+
+.matrix-view-table tbody td:first-child {
+  font-weight: 500;
+}
+
+.matrix-view-table tr.hovered-row td {
+  background-color: var(--hover-bg);
+}
+
+.matrix-view-table td.hovered-col {
+  background-color: var(--hover-bg);
+}
+
+.matrix-view-table th.hovered-col {
+  background-color: var(--hover-bg);
+}
+
+.matrix-view-table tr.hovered-row td.hovered-col {
+  background-color: var(--hover-bg);
+}
+
+.predicateIndicatorBg {
+  background-color: color-mix(in srgb, currentColor, transparent 100%);
+}

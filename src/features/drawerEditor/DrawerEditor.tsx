@@ -8,6 +8,7 @@ import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
 import type { InterpretationError } from "../../common/errors";
+import MatrixView from "../matrixView/MatrixView";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -90,12 +91,18 @@ function DrawerEditorContent({
             <GraphToolbar id={predicateName} />
           </div>
 
-          {type !== "matrix" && (
-            <Stack>
-              <Card className="border-0" style={{ height: "100%" }}>
-                <Card.Body
-                  className={`drawer-editor-view-container ${error ? "error" : ""}`}
-                >
+          <Stack>
+            <Card className="border-0" style={{ height: "100%" }}>
+              <Card.Body
+                className={`drawer-editor-view-container ${error ? "error" : ""}`}
+              >
+                {type === "matrix" ? (
+                  <MatrixView
+                    predicateName={predicateName}
+                    locked={locked}
+                    expandedView={expandedView}
+                  />
+                ) : (
                   <GraphView
                     predName={predicateName}
                     graphType={type}
@@ -105,17 +112,18 @@ function DrawerEditorContent({
                       setExpandedView(expanded)
                     }
                   />
-                </Card.Body>
-                {expandedView && error?.message && (
-                  <p className="text-danger small m-1">{error?.message}</p>
                 )}
-              </Card>
-            </Stack>
-          )}
+              </Card.Body>
+
+              {expandedView && error?.message && (
+                <p className="text-danger small m-1">{error?.message}</p>
+              )}
+            </Card>
+          </Stack>
         </Stack>
       </Stack>
 
-      {!expandedView && (
+      {!expandedView && error?.message && (
         <p className="text-danger small m-0">{error?.message}</p>
       )}
     </>
