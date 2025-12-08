@@ -173,16 +173,3 @@
   border-color: #0b79d0;
   box-shadow: 0 0 0 0.2rem rgba(11, 121, 208, 0.3);
 }
-
-.domain-selector-item-preds-list {
-  display: flex;
-  height: 100%;
-}
-
-.domain-selector-item-preds-list .domain-selector-item-relevant-pred {
-  height: 18px;
-  width: 18px;
-  border-radius: 100px;
-  outline: 2px solid white;
-  margin-left: -6px;
-}

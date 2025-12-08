@@ -8,3 +8,16 @@ export const unaryPredicatesColors = [
 export function getUnaryPredicateColor(idx: number) {
   return unaryPredicatesColors[idx % unaryPredicatesColors.length];
 }
+
+export function getUnaryPredicateToColorMap(
+  relevantPredicates: string[],
+  allPredicates: [string, number][],
+) {
+  return new Map(
+    allPredicates
+      .map(
+        ([predicate], idx) => [predicate, getUnaryPredicateColor(idx)] as const,
+      )
+      .filter(([predicate]) => relevantPredicates.includes(predicate)),
+  );
+}

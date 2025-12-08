@@ -12,9 +12,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
 import {
   nodeToggled,
-  selectSelectedNodes,
+  selectSelectedDomain,
 } from "../../editorToolbar/editorToolbarSlice";
-import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
+import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
+import { RelevantPredicatesIndicator } from "../../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 
 export interface DomainSelectorProps {
   id: string;
@@ -27,7 +28,7 @@ export default function DomainSelector({ id }: DomainSelectorProps) {
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector((state) =>
-    selectSelectedNodes(state, id),
+    selectSelectedDomain(state, id),
   );
 
   const activeFilters = domain.length !== selectedNodes.length;
@@ -112,10 +113,13 @@ function DomainSelectorItem({
   isSelected: boolean;
   onToggle: () => void;
 }) {
-  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
-  const relevantPreds = useAppSelector((state) =>
-    selectRelevantUnaryPreds(state, element),
-  )?.sort();
+  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort() ?? [];
+  const relevantPreds =
+    useAppSelector((state) =>
+      selectRelevantUnaryPreds(state, element),
+    )?.sort() ?? [];
+
+  const colorMap = getUnaryPredicateToColorMap(relevantPreds, allUnaryPreds);
 
   return (
     <li key={element}>
@@ -126,19 +130,8 @@ function DomainSelectorItem({
         aria-pressed={isSelected}
       >
         {element}
-        <div className="domain-selector-item-preds-list">
-          {relevantPreds.map((pred) => (
-            <span
-              key={pred}
-              style={{
-                backgroundColor: getUnaryPredicateColor(
-                  allUnaryPreds.findIndex((p) => p[0] === pred),
-                ),
-              }}
-              className="domain-selector-item-relevant-pred"
-            />
-          ))}
-        </div>
+
+        <RelevantPredicatesIndicator predicateToColorMap={colorMap} />
       </button>
     </li>
   );

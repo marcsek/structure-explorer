@@ -3,14 +3,17 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { domainChanged } from "../graphView/graphs/graphSlice";
+import {
+  domainChanged,
+  selectRelevantUnaryPreds,
+} from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
 import { selectStructure } from "../structure/structureSlice";
 
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
   selectedUnary: string[];
-  selectedNodes?: string[];
+  selectedDomain?: string[];
   unaryFilterDomain: boolean;
   unaryFilterHovered: boolean;
 };
@@ -49,14 +52,14 @@ export const editorToolbarSlice = createSlice({
 
       state[id] = initializeStateIfNotSet(state[id], domain);
 
-      const selectedNodes = state[id].selectedNodes ?? domain;
+      const selectedNodes = state[id].selectedDomain ?? domain;
 
-      if (toggledNode === "") state[id].selectedNodes = domain;
+      if (toggledNode === "") state[id].selectedDomain = domain;
       else if (selectedNodes.includes(toggledNode))
-        state[id].selectedNodes = selectedNodes.filter(
+        state[id].selectedDomain = selectedNodes.filter(
           (selectedNode) => selectedNode != toggledNode,
         );
-      else state[id].selectedNodes = [...selectedNodes, toggledNode];
+      else state[id].selectedDomain = [...selectedNodes, toggledNode];
     },
 
     predicateHovered(
@@ -93,7 +96,7 @@ export const editorToolbarSlice = createSlice({
   extraReducers(builder) {
     builder.addCase(domainChanged, (state, action) => {
       for (const entry of Object.values(state)) {
-        entry.selectedNodes = action.payload;
+        entry.selectedDomain = action.payload;
       }
     });
   },
@@ -125,13 +128,37 @@ export const selectUnaryFilterDomainHovered = createSelector(
   (unaryFilterHovered) => unaryFilterHovered ?? false,
 );
 
-export const selectSelectedNodes = createSelector(
+export const selectSelectedDomain = createSelector(
   [
     (state: RootState) => state.structure.domain,
-    (state: RootState, id: string) => state.editorToolbar[id]?.selectedNodes,
+    (state: RootState, id: string) => state.editorToolbar[id]?.selectedDomain,
   ],
   (domain, selectedNodes) => {
-    return selectedNodes ? selectedNodes : domain.value;
+    return selectedNodes ? [...selectedNodes] : [...domain.value];
+  },
+);
+
+export const selectPredicatesToDisplay = createSelector(
+  [
+    selectSelectedUnary,
+    selectHoveredUnary,
+    (state: RootState, __: string, domainId: string) =>
+      selectRelevantUnaryPreds(state, domainId),
+  ],
+  (selectedUnary, hoveredUnary, relevantUnary) => {
+    const vissiblePreds = [...hoveredUnary, ...selectedUnary];
+
+    const toDisplay =
+      relevantUnary
+        .filter((relevant) => vissiblePreds.includes(relevant))
+        ?.sort() ?? [];
+
+    const previewed = relevantUnary.filter(
+      (predicate) =>
+        hoveredUnary.includes(predicate) && !selectedUnary.includes(predicate),
+    );
+
+    return [toDisplay, previewed];
   },
 );
 
@@ -173,6 +200,19 @@ export const selectRelevantDomainElements = createSelector(
   },
 );
 
+export const selectFilteredDomain = createSelector(
+  [selectSelectedDomain, selectRelevantDomainElements],
+  (selectedDomain, relevantDomain) => {
+    if (!relevantDomain) return selectedDomain;
+
+    const result = relevantDomain.filter((element) =>
+      selectedDomain.includes(element),
+    );
+
+    return result;
+  },
+);
+
 export const selectHoveredIntr = createSelector(
   [selectStructure, selectHoveredUnary, selectUnaryFilterDomainHovered],
   (struct, hoveredUnary, unaryFilterHovered) => {
@@ -205,7 +245,7 @@ const initializeStateIfNotSet = (
   return {
     hoveredUnary: [],
     selectedUnary: [],
-    selectedNodes: selectedNodes,
+    selectedDomain: selectedNodes,
     unaryFilterDomain: true,
     unaryFilterHovered: false,
   };

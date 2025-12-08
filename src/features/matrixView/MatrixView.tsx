@@ -3,22 +3,17 @@ import "./MatrixView.css";
 import { Form, Table } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
-  selectDomain,
   selectIpName,
   updateInterpretationPredicates,
 } from "../structure/structureSlice";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import {
-  selectRelevantUnaryPreds,
-  selectUnaryPreds,
-} from "../graphView/graphs/graphSlice";
-import {
-  selectHoveredUnary,
-  selectRelevantDomainElements,
-  selectSelectedNodes,
-  selectSelectedUnary,
+  selectFilteredDomain,
+  selectPredicatesToDisplay,
 } from "../editorToolbar/editorToolbarSlice";
-import { getUnaryPredicateColor } from "../drawerEditor/unaryPredicateColors";
+import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
+import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 
 interface MatrixViewProps {
   predicateName: string;
@@ -26,49 +21,37 @@ interface MatrixViewProps {
   expandedView?: boolean;
 }
 
-export default function MatrixView({
-  predicateName,
-  locked,
-  expandedView = false,
-}: MatrixViewProps) {
+export default function MatrixView({ predicateName, locked }: MatrixViewProps) {
   const [hovered, setHovered] = useState({ row: "", col: "" });
 
   const dispatch = useAppDispatch();
 
-  const interpretation =
-    useAppSelector((state) => selectIpName(state, predicateName))?.value ?? [];
-  let domain =
-    useAppSelector((state) =>
-      selectRelevantDomainElements(state, predicateName, true),
-    ) ?? [];
+  const interpretation = useAppSelector((state) =>
+    selectIpName(state, predicateName),
+  )?.value;
 
-  const selectedDomain = useAppSelector((state) =>
-    selectSelectedNodes(state, predicateName),
+  const domain = useAppSelector((state) =>
+    selectFilteredDomain(state, predicateName, true),
+  ).sort();
+
+  const interpretationLookup = useMemo(
+    () => new Set((interpretation ?? []).map(([a, b]) => `${a},${b}`)),
+    [interpretation],
   );
-  const wholeDomain = useAppSelector(selectDomain)?.value ?? [];
 
-  domain = domain.length === 0 ? [...wholeDomain] : [...domain];
-
-  domain = domain.filter((element) => selectedDomain.includes(element));
-
-  domain.sort();
-
-  const isChecked = (rowElement: string, colElement: string) => {
-    return interpretation.some(
-      ([a, b]) => a === rowElement && b === colElement,
-    );
-  };
+  const isChecked = (rowElement: string, colElement: string) =>
+    interpretationLookup.has(`${rowElement},${colElement}`);
 
   const handleCheck = (rowElement: string, colElement: string) => {
     if (locked) return;
 
-    let newInterpretation = [...interpretation];
+    let newInterpretation = [...(interpretation ?? [])];
 
-    if (isChecked(rowElement, colElement)) {
+    if (isChecked(rowElement, colElement))
       newInterpretation = newInterpretation.filter(
         ([a, b]) => a !== rowElement || b !== colElement,
       );
-    } else newInterpretation.push([rowElement, colElement]);
+    else newInterpretation.push([rowElement, colElement]);
 
     dispatch(
       updateInterpretationPredicates({
@@ -81,22 +64,17 @@ export default function MatrixView({
   return (
     <Table className="table-bordered matrix-view-table">
       <thead>
-        <tr key={"head"}>
-          <th key={"col-head"}>Domain</th>
+        <tr>
+          <th key="col-head">Domain</th>
           {domain.map((headElement) => (
             <th
               className={hovered.col === headElement ? "hovered-col" : ""}
               key={headElement}
             >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                {headElement}
-                <UnaryPredicatesIndicator
-                  predicateName={predicateName}
-                  domainId={headElement}
-                />
-              </div>
+              <PredicateIndicatorTableHead
+                predicateName={predicateName}
+                domainId={headElement}
+              />
             </th>
           ))}
         </tr>
@@ -108,16 +86,11 @@ export default function MatrixView({
             key={`r-${rowElement}`}
             className={hovered.row === rowElement ? "hovered-row" : ""}
           >
-            <td key={"row-head"}>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                {rowElement}
-                <UnaryPredicatesIndicator
-                  predicateName={predicateName}
-                  domainId={rowElement}
-                />
-              </div>
+            <td key="row-head">
+              <PredicateIndicatorTableHead
+                predicateName={predicateName}
+                domainId={rowElement}
+              />
             </td>
             {domain.map((colElement) => (
               <td
@@ -144,62 +117,37 @@ export default function MatrixView({
   );
 }
 
-interface UnaryPredicatesIndicatorProps {
+interface PredicateIndicatorTableHeadProps {
   predicateName: string;
   domainId: string;
 }
 
-function UnaryPredicatesIndicator({
+function PredicateIndicatorTableHead({
   predicateName,
   domainId,
-}: UnaryPredicatesIndicatorProps) {
+}: PredicateIndicatorTableHeadProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
 
-  const unaryPreds = useAppSelector((state) =>
-    selectRelevantUnaryPreds(state, domainId),
+  const [predsToDisplay] = useAppSelector((state) =>
+    selectPredicatesToDisplay(state, predicateName, domainId),
   );
 
-  const hoveredPreds = useAppSelector((state) =>
-    selectHoveredUnary(state, predicateName),
+  const colorMap = getUnaryPredicateToColorMap(
+    predsToDisplay ?? [],
+    allUnaryPreds ?? [],
   );
-
-  const selectedPreds = useAppSelector((state) =>
-    selectSelectedUnary(state, predicateName),
-  );
-
-  const vissiblePreds = [...hoveredPreds, ...selectedPreds];
-
-  const predsToDisplay = unaryPreds
-    .filter((relevant) => vissiblePreds.includes(relevant))
-    ?.sort();
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        justifyContent: "flex-start",
-        alignItems: "center",
-        borderRadius: "100px",
-        overflow: "hidden",
-        paddingLeft: "4px",
-      }}
-    >
-      {predsToDisplay.map((pred) => (
-        <div
-          key={pred}
-          style={{
-            backgroundColor: getUnaryPredicateColor(
-              allUnaryPreds.findIndex((p) => p[0] === pred),
-            ),
-            width: "16px",
-            height: "16px",
-            borderRadius: "100px",
-            outline: "2px solid white",
-            marginLeft: "-4px",
-          }}
-        />
-      ))}
+    <div className="matrix-view-table-head">
+      {domainId}
+      <RelevantPredicatesIndicator
+        predicateToColorMap={colorMap}
+        size="sm"
+        style={{
+          overflow: "hidden",
+          paddingLeft: "4px",
+        }}
+      />
     </div>
   );
 }

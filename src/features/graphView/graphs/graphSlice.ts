@@ -41,7 +41,7 @@ import {
 import {
   selectHoveredIntr,
   selectRelevantDomainElements,
-  selectSelectedNodes,
+  selectSelectedDomain,
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
 
@@ -299,7 +299,7 @@ export function makeSelectNodes<T extends GraphType>() {
         includeHovered: boolean = false,
       ) => selectRelevantDomainElements(state, id, includeHovered),
       selectHoveredIntr,
-      selectSelectedNodes,
+      selectSelectedDomain,
       selectUnaryFilterDomain,
     ],
     (
@@ -339,7 +339,7 @@ export const selectEdges = createSelector(
       _: GraphType,
       includeHovered: boolean = false,
     ) => selectRelevantDomainElements(state, id, includeHovered),
-    selectSelectedNodes,
+    selectSelectedDomain,
   ],
   (state, id, type, relevantDomain, selectedNodes) => {
     const plugin = plugins[type];

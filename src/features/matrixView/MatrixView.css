@@ -6,30 +6,20 @@
   --hover-bg: var(--bs-tertiary-bg);
 }
 
-.matrix-view-table thead th {
-  font-weight: 500;
-}
-
+.matrix-view-table thead th,
 .matrix-view-table tbody td:first-child {
   font-weight: 500;
 }
 
-.matrix-view-table tr.hovered-row td {
-  background-color: var(--hover-bg);
-}
-
-.matrix-view-table td.hovered-col {
-  background-color: var(--hover-bg);
-}
-
-.matrix-view-table th.hovered-col {
-  background-color: var(--hover-bg);
-}
-
+.matrix-view-table tr.hovered-row td,
+.matrix-view-table td.hovered-col,
+.matrix-view-table th.hovered-col,
 .matrix-view-table tr.hovered-row td.hovered-col {
   background-color: var(--hover-bg);
 }
 
-.predicateIndicatorBg {
-  background-color: color-mix(in srgb, currentColor, transparent 100%);
+.matrix-view-table .matrix-view-table-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }

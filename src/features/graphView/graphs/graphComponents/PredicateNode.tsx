@@ -12,7 +12,6 @@ import {
   leftoverDeleted,
   onConnected,
   selectRelevantConstants,
-  selectRelevantUnaryPreds,
   selectUnaryPreds,
 } from "../graphSlice";
 import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
@@ -20,10 +19,7 @@ import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { getUnaryPredicateColor } from "../../../drawerEditor/unaryPredicateColors";
-import {
-  selectHoveredUnary,
-  selectSelectedUnary,
-} from "../../../editorToolbar/editorToolbarSlice";
+import { selectPredicatesToDisplay } from "../../../editorToolbar/editorToolbarSlice";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -143,26 +139,9 @@ function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
   const parentInfo = useGraphInfo();
   const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
 
-  const unaryPreds = useAppSelector((state) =>
-    selectRelevantUnaryPreds(state, domainId),
+  const [predsToDisplay, previewedPreds] = useAppSelector((state) =>
+    selectPredicatesToDisplay(state, parentInfo.id, domainId),
   );
-
-  const hoveredPreds = useAppSelector((state) =>
-    selectHoveredUnary(state, parentInfo.id),
-  );
-
-  const selectedPreds = useAppSelector((state) =>
-    selectSelectedUnary(state, parentInfo.id),
-  );
-
-  const vissiblePreds = [...hoveredPreds, ...selectedPreds];
-
-  const predsToDisplay = unaryPreds
-    .filter((relevant) => vissiblePreds.includes(relevant))
-    ?.sort();
-
-  const isPreviewed = (pred: string) =>
-    hoveredPreds.includes(pred) && !selectedPreds.includes(pred);
 
   return (
     <div className="predicate-node-indicator">
@@ -170,7 +149,7 @@ function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
       {predsToDisplay.map((pred) => (
         <div
           key={pred}
-          className={`predicate-node-indicator-item ${isPreviewed(pred) ? "stripy" : ""}`}
+          className={`predicate-node-indicator-item ${previewedPreds.includes(pred) ? "stripy" : ""}`}
           style={{
             color: getUnaryPredicateColor(
               allUnaryPreds.findIndex((p) => p[0] === pred),
