@@ -21,31 +21,22 @@ export type ActionCreatorWithMeta<
   T extends string = string,
 > = ActionCreatorWithPreparedPayload<[P, M], P, T, undefined, M>;
 
-export type PayloadType = "value" | "key";
-
 type KeyedPayload<T> = { key: string; value: T };
 
-interface TextViewDescriptorBase<
-  TStructured,
-  TPayloadType extends PayloadType,
-> {
-  namespace?: string;
+interface TextViewDescriptorBase<TStructured, TPayload> {
   parse: (value: string, state: RootState) => TStructured;
   toText: (structured: TStructured) => string;
   validate: (state: RootState, key?: string) => ValidationError | undefined;
-  syncActionCreator: ActionCreatorWithMeta<
-    TPayloadType extends "value" ? TStructured : KeyedPayload<TStructured>,
-    { source?: string }
-  >;
+  syncActionCreator: ActionCreatorWithMeta<TPayload, { source?: string }>;
 }
 
 export type TextViewDescriptor<TStructured> =
   | ({
       payloadType: "value";
-    } & TextViewDescriptorBase<TStructured, "value">)
+    } & TextViewDescriptorBase<TStructured, TStructured>)
   | ({
       payloadType: "key";
-    } & TextViewDescriptorBase<TStructured, "key">);
+    } & TextViewDescriptorBase<TStructured, KeyedPayload<TStructured>>);
 
 type TypeMap = LanguageTextViewTypeMap &
   StructureTextViewTypeMap &
@@ -69,14 +60,6 @@ export function getDescriptor<T extends TextViewType>(
   return textViewDescriptors[type];
 }
 
-export function getKeyType(type: TextViewType) {
-  return getDescriptor(type).payloadType;
-}
-
-export function getNamespace(type: TextViewType) {
-  return getDescriptor(type).namespace ?? "default";
-}
-
 export type TextViewDescriptors<TMap> = {
   [K in keyof TMap]: TextViewDescriptor<TMap[K]>;
 };
@@ -85,7 +68,7 @@ export function isKeyedPayloadByTextType<T = unknown>(
   payload: unknown,
   type: TextViewType,
 ): payload is KeyedPayload<T> {
-  return getKeyType(type) === "key";
+  return getDescriptor(type).payloadType === "key";
 }
 
 export const textTypeToSyncReducer = Object.fromEntries(

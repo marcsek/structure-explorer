@@ -13,7 +13,7 @@ import { selectStructure } from "../structure/structureSlice";
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
   selectedUnary: string[];
-  selectedDomain?: string[];
+  selectedDomain: string[] | undefined;
   unaryFilterDomain: boolean;
   unaryFilterHovered: boolean;
 };

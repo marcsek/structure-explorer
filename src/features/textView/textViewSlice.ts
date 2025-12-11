@@ -10,7 +10,6 @@ import {
   getDescriptor,
   isKeyedPayloadByTextType as isKeyedPayload,
   type StructuredOf,
-  getNamespace,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
 
@@ -20,9 +19,9 @@ export interface TextViewEntry {
   parseError?: SyntaxError;
 }
 
-export type TextViewState = Record<string, Record<string, TextViewEntry>>;
+export type TextViewState = Record<string, TextViewEntry>;
 
-const initialState: TextViewState = { default: {} };
+const initialState: TextViewState = {};
 
 export const textViewSlice = createSlice({
   name: "textView",
@@ -36,12 +35,12 @@ export const textViewSlice = createSlice({
         value: string;
       }>,
     ) {
-      const { key, value, type } = action.payload;
+      const { key: inKey, value, type } = action.payload;
 
-      const namespace = getOrCreateNamespaceEntry(state, type);
+      const key = getKeyByType(type, inKey);
 
-      if (namespace[key]) namespace[key] = { ...namespace[key], value, type };
-      else namespace[key] = { value, type };
+      if (state[key]) state[key] = { ...state[key], value, type };
+      else state[key] = { value, type };
     },
 
     textViewParseErrorChanged(
@@ -52,12 +51,11 @@ export const textViewSlice = createSlice({
         parseError: SyntaxError | undefined;
       }>,
     ) {
-      const { key, type, parseError } = action.payload;
+      const { key: inKey, type, parseError } = action.payload;
 
-      const namespace = getOrCreateNamespaceEntry(state, type);
+      const key = getKeyByType(type, inKey);
 
-      if (namespace[key])
-        namespace[key] = { ...namespace[key], type, parseError };
+      if (state[key]) state[key] = { ...state[key], type, parseError };
     },
   },
 
@@ -66,15 +64,15 @@ export const textViewSlice = createSlice({
       const textType = syncReducerTypeToTextType[action.type];
 
       if (action.meta.source !== "textView") {
-        const { key, value } = isKeyedPayload(action.payload, textType)
+        const { key: inKey, value } = isKeyedPayload(action.payload, textType)
           ? action.payload
           : { key: textType, value: action.payload };
 
         const textValue = convertStructuredToText(textType, value);
 
-        const namespace = getOrCreateNamespaceEntry(state, textType);
+        const key = getKeyByType(textType, inKey);
 
-        namespace[key] = { value: textValue, type: textType };
+        state[key] = { value: textValue, type: textType };
       }
     });
   },
@@ -113,7 +111,7 @@ export const selectValidatedTextView = createSelector(
     (state: RootState, type: TextViewType, key: string = type) =>
       selectValidation(state, type, key),
     (state: RootState, type: TextViewType, key: string = type) =>
-      state.textView[getNamespace(type)]?.[key],
+      state.textView[getKeyByType(type, key)],
   ],
   (_, __, validationError, entry) => {
     if (!entry) return { value: "", error: validationError };
@@ -183,13 +181,8 @@ const selectValidation = (
   return textViewDescriptors[type].validate(state, key);
 };
 
-const getOrCreateNamespaceEntry = (
-  state: TextViewState,
-  type: TextViewType,
-) => {
-  const namespace = getNamespace(type);
+const getKeyByType = (type: TextViewType, key: string) => {
+  if (getDescriptor(type).payloadType === "key") return `${type}-${key}`;
 
-  if (!state[namespace]) state[namespace] = {};
-
-  return state[namespace];
+  return key;
 };

@@ -458,7 +458,6 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     constant_interpretation: {
       payloadType: "key",
-      namespace: "const_intr",
       parse: (value) => value,
       toText: (structured) => structured,
       validate: (state, key) => selectValidatedConstant(state, key!).error,
@@ -467,7 +466,6 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     predicate_interpretation: {
       payloadType: "key",
-      namespace: "pred_intr",
       parse: (value) => parseTuples(value),
       toText: (structured) =>
         structured
@@ -481,7 +479,6 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     function_interpretation: {
       payloadType: "key",
-      namespace: "func_intr",
       parse: (value) => parseTuples(value),
       toText: (structured) =>
         structured

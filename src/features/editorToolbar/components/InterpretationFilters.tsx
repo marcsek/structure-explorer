@@ -35,6 +35,9 @@ export default function InterpretationFilters({
   const unaryFilterDomain = useAppSelector((state) =>
     selectUnaryFilterDomain(state, id),
   );
+  const selectedPredicates = useAppSelector((state) =>
+    selectSelectedUnary(state, id),
+  );
 
   const handleDomainHover = (hovered: boolean) => {
     dispatch(unaryFilterDomainHovered({ id, hovered }));
@@ -48,6 +51,7 @@ export default function InterpretationFilters({
         onClick={() => dispatch(unaryFilterDomainToggled({ id }))}
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
+        disabled={selectedPredicates.length === 0}
       >
         <InlineMath>{String.raw`\mathcal{D}`}</InlineMath>
       </Button>

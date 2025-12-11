@@ -9,6 +9,7 @@
 .matrix-view-table thead th,
 .matrix-view-table tbody td:first-child {
   font-weight: 500;
+  user-select: none;
 }
 
 .matrix-view-table tr.hovered-row td,
