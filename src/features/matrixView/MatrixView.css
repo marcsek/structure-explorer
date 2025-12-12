@@ -1,7 +1,6 @@
 .matrix-view-table {
   margin: -1px;
   width: calc(100% + 2px);
-  table-layout: fixed;
 
   --hover-bg: var(--bs-tertiary-bg);
 }
@@ -10,6 +9,11 @@
 .matrix-view-table tbody td:first-child {
   font-weight: 500;
   user-select: none;
+}
+
+.matrix-view-table thead th.leftover,
+.matrix-view-table tbody td:first-child.leftover {
+  background-color: red;
 }
 
 .matrix-view-table tr.hovered-row td,

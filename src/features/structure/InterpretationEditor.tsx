@@ -78,6 +78,14 @@ export default function InterpretationEditorProps({
       selectValidatedPredicates(state).parsed?.get(name) === 2 ||
       selectValidatedFunctions(state).parsed?.get(name) === 1,
   );
+
+  const arity =
+    useAppSelector((state) =>
+      type === "predicate"
+        ? selectValidatedPredicates(state).parsed?.get(name)
+        : selectValidatedFunctions(state).parsed?.get(name),
+    ) ?? 0;
+
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
   const escapedName = name.replace(/_/g, "\\_");
@@ -91,6 +99,11 @@ export default function InterpretationEditorProps({
   const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
     { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
   ];
+
+  controlButtons.push({
+    text: <FontAwesomeIcon icon={faTableCellsLarge} />,
+    value: "matrix",
+  });
 
   if (isFunction) {
     controlButtons.push({
@@ -108,10 +121,6 @@ export default function InterpretationEditorProps({
       ],
     });
   } else {
-    controlButtons.push({
-      text: <FontAwesomeIcon icon={faTableCellsLarge} />,
-      value: "matrix",
-    });
     controlButtons.push({
       text: <FontAwesomeIcon icon={faDiagramProject} />,
       value: ["oriented", "hasse", "bipartite"],
@@ -132,6 +141,10 @@ export default function InterpretationEditorProps({
     });
   }
 
+  const controlButtonsToOmit: EditorType[] = [];
+  if (!isTuple) controlButtonsToOmit.push("hasse", "bipartite", "oriented");
+  if (arity > 2) controlButtonsToOmit.push("matrix");
+
   return (
     <Stack gap={0}>
       {/* TODO: Redundant. Keeping it in case something gets added. */}
@@ -147,11 +160,14 @@ export default function InterpretationEditorProps({
             prefix={<InlineMath>{prefixRaw}</InlineMath>}
             suffix={isConstant ? "" : <InlineMath>{suffixRaw}</InlineMath>}
             controlButtons={
-              isTuple &&
+              type !== "constant" &&
               selectedEditor === "text" && (
                 <ControlButtons
                   id={`controls-${id}`}
-                  buttons={controlButtons}
+                  buttons={omitControlButtons(
+                    controlButtons,
+                    controlButtonsToOmit,
+                  )}
                   selected={selectedEditor}
                   onSelected={setSelectedEditor}
                 />
@@ -167,11 +183,13 @@ export default function InterpretationEditorProps({
         )}
       </Stack>
 
-      {selectedEditor !== "text" && (
+      {selectedEditor !== "text" && type !== "constant" && (
         <DrawerEditor
-          predicateName={name}
+          tupleName={name}
+          tupleArity={arity}
           type={selectedEditor}
-          predicateDisplayName={prefixRawNoEnd}
+          tupleType={type}
+          tupleDisplayName={prefixRawNoEnd}
           editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
           locker={locker}
           locked={locked}
@@ -179,7 +197,10 @@ export default function InterpretationEditorProps({
           buildControlButtons={(omit) => (
             <ControlButtons
               id={`controls-${id}`}
-              buttons={omitControlButtons(controlButtons, omit ?? [])}
+              buttons={omitControlButtons(controlButtons, [
+                ...controlButtonsToOmit,
+                ...(omit ?? []),
+              ])}
               selected={selectedEditor}
               onSelected={setSelectedEditor}
               teacherMode={teacherMode}

@@ -12,6 +12,7 @@ import {
   type StructuredOf,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
+import { SyntaxError as WrapperSyntaxError } from "./parserWrapper";
 
 export interface TextViewEntry {
   type: TextViewType;
@@ -136,7 +137,10 @@ const parseByTextType = <T extends TextViewType>(
   try {
     return { parsed: getDescriptor(textType).parse(toParse, state) };
   } catch (error) {
-    if (error instanceof ParserSyntaxError) {
+    if (
+      error instanceof ParserSyntaxError ||
+      error instanceof WrapperSyntaxError
+    ) {
       return {
         error: {
           kind: "syntax",

@@ -13,9 +13,11 @@ import MatrixView from "../matrixView/MatrixView";
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
 interface DrawerEditorProps {
-  predicateName: string;
+  tupleName: string;
   type: DrawerEditorType;
-  predicateDisplayName: string;
+  tupleDisplayName: string;
+  tupleArity: number;
+  tupleType: "predicate" | "function";
   editorDisplayName: string;
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
   locker: () => void;
@@ -55,10 +57,12 @@ interface DrawerEditorContentProps extends DrawerEditorProps {
 function DrawerEditorContent({
   expandedView = false,
   setExpandedView,
-  predicateName,
+  tupleName,
+  tupleArity,
+  tupleType,
   type,
   buildControlButtons,
-  predicateDisplayName,
+  tupleDisplayName,
   editorDisplayName,
   locked = false,
   error,
@@ -70,10 +74,7 @@ function DrawerEditorContent({
       >
         <div className="drawer-editor-header">
           <Stack direction="horizontal">
-            <EditorTitle
-              base={predicateDisplayName}
-              editor={editorDisplayName}
-            />
+            <EditorTitle base={tupleDisplayName} editor={editorDisplayName} />
             <Stack
               direction="horizontal"
               className="drawer-editor-header-control-group"
@@ -88,7 +89,7 @@ function DrawerEditorContent({
 
         <Stack className="drawer-editor-container-body">
           <div className="drawer-editor-toolbar-container">
-            <GraphToolbar id={predicateName} />
+            <GraphToolbar id={tupleName} />
           </div>
 
           <Stack>
@@ -98,13 +99,15 @@ function DrawerEditorContent({
               >
                 {type === "matrix" ? (
                   <MatrixView
-                    predicateName={predicateName}
+                    tupleName={tupleName}
+                    tupleArity={tupleArity}
+                    tupleType={tupleType}
                     locked={locked}
                     expandedView={expandedView}
                   />
                 ) : (
                   <GraphView
-                    predName={predicateName}
+                    predName={tupleName}
                     graphType={type}
                     locked={locked}
                     expandedView={expandedView}

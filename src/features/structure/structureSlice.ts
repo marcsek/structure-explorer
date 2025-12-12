@@ -20,7 +20,8 @@ import {
   type Validated,
 } from "../../common/redux";
 import type { TextViewDescriptors } from "../textView/textViews";
-import { parseDomain, parseTuples } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { parseDomain } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { parseTuplesUnique } from "../textView/parserWrapper";
 
 export type DomainRepresentation = string[];
 export type ConstantInterpretation = string;
@@ -230,19 +231,6 @@ export const selectValidatedPredicate = createSelector(
           break;
         }
       }
-
-      for (const tuple2 of interpretation.value) {
-        if (
-          JSON.stringify(tuple) === JSON.stringify(tuple2) &&
-          tuple != tuple2
-        ) {
-          error = createValidationError(
-            `${size} (${tuple}) is already in predicate.`,
-          );
-
-          break;
-        }
-      }
     }
 
     return { parsed: interpretation.value ?? [], error };
@@ -316,20 +304,6 @@ export const selectValidatedFunction = createSelector(
       });
 
       if (error) return error;
-
-      interpretation.value.forEach((tuple2) => {
-        if (
-          JSON.stringify(tuple.slice(0, -1)) ===
-            JSON.stringify(tuple2.slice(0, -1)) &&
-          tuple != tuple2
-        ) {
-          tuple = tuple.slice(0, -1);
-          const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
-          error = createValidationError(
-            `${actual_size} (${tuple}) has already defined value.`,
-          );
-        }
-      });
 
       if (
         all.filter(
@@ -466,7 +440,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     predicate_interpretation: {
       payloadType: "key",
-      parse: (value) => parseTuples(value),
+      parse: (value) => parseTuplesUnique(value, "predicate"),
       toText: (structured) =>
         structured
           .map((tuple) =>
@@ -479,7 +453,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     function_interpretation: {
       payloadType: "key",
-      parse: (value) => parseTuples(value),
+      parse: (value) => parseTuplesUnique(value, "function"),
       toText: (structured) =>
         structured
           .map((tuple) =>

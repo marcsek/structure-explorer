@@ -9,11 +9,11 @@ interface Props {
 }
 
 interface LocationDisplayProps {
-  location: Location;
   text: string;
+  location: Location;
 }
 
-function LocationDisplay({ location, text }: LocationDisplayProps) {
+function LocationDisplay({ text, location }: LocationDisplayProps) {
   return (
     <div>
       {text.substring(0, location.start.offset)}
@@ -36,9 +36,11 @@ export default function ErrorFeedback({ error, text }: Props) {
       <Form.Control.Feedback type="invalid">
         {error.message}
         {error instanceof SyntaxError ||
-          (!(error instanceof Error) && error.kind === "syntax" && (
-            <LocationDisplay location={error.location} text={text} />
-          ))}
+          (!(error instanceof Error) &&
+            error.kind === "syntax" &&
+            error.location && (
+              <LocationDisplay location={error.location} text={text} />
+            ))}
       </Form.Control.Feedback>
     </>
   );

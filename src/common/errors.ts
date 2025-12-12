@@ -7,7 +7,7 @@ export interface BaseError {
 
 export interface SyntaxError extends BaseError {
   kind: "syntax";
-  location: Location;
+  location?: Location;
 }
 
 export interface ValidationError extends BaseError {
