@@ -22,7 +22,7 @@ import type { RootState } from "../../app/store";
 import type { TextViewType } from "../textView/textViews";
 import { selectValidatedTextView } from "../textView/textViewSlice";
 
-export type EditorType = "text" | "matrix" | GraphType;
+export type EditorType = "text" | "matrix" | "database" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
 
 interface InterpretationEditorProps {
@@ -40,6 +40,7 @@ const editorTypeFullNameLookup: Record<EditorType, string> = {
   hasse: "Hasse Diagram",
   bipartite: "Bipartite Graph",
   matrix: "Matrix Editor",
+  database: "Database Table Editor",
   text: "Text Editor",
 };
 
@@ -102,7 +103,17 @@ export default function InterpretationEditorProps({
 
   controlButtons.push({
     text: <FontAwesomeIcon icon={faTableCellsLarge} />,
-    value: "matrix",
+    value: ["matrix", "database"],
+    dropDown: [
+      {
+        text: "Matrix",
+        value: "matrix",
+      },
+      {
+        text: "Database",
+        value: "database",
+      },
+    ],
   });
 
   if (isFunction) {
@@ -255,7 +266,7 @@ function ControlButtons<T extends string | number>({
           const isActive = childValues.includes(selected);
 
           return (
-            <Dropdown as={ButtonGroup} key={buttonId("dropDown")}>
+            <Dropdown as={ButtonGroup} key={buttonId(button.value.join(","))}>
               <Dropdown.Toggle
                 id={buttonId("dropDown")}
                 className="btn-bd-light-outline"

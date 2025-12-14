@@ -5,21 +5,29 @@
   --hover-bg: var(--bs-tertiary-bg);
 }
 
+.matrix-view-table tr.error td,
+.matrix-view-table td.error,
+.matrix-view-table th.error,
+.matrix-view-table tr.hovered td.error {
+  border: 1px solid var(--bs-danger);
+  background-color: var(--bs-danger-bg-subtle);
+}
+
+.matrix-view-table td:has(+ td.error),
+.matrix-view-table th:has(+ th.error) {
+  border-right: 1px solid var(--bs-danger);
+}
+
 .matrix-view-table thead th,
 .matrix-view-table tbody td:first-child {
   font-weight: 500;
   user-select: none;
 }
 
-.matrix-view-table thead th.leftover,
-.matrix-view-table tbody td:first-child.leftover {
-  background-color: red;
-}
-
-.matrix-view-table tr.hovered-row td,
-.matrix-view-table td.hovered-col,
-.matrix-view-table th.hovered-col,
-.matrix-view-table tr.hovered-row td.hovered-col {
+.matrix-view-table tr.hovered td,
+.matrix-view-table td.hovered,
+.matrix-view-table th.hovered,
+.matrix-view-table tr.hovered td.hovered {
   background-color: var(--hover-bg);
 }
 

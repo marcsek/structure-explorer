@@ -9,6 +9,7 @@ import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
 import type { InterpretationError } from "../../common/errors";
 import MatrixView from "../matrixView/MatrixView";
+import DatabaseView from "../databaseView/DatabaseView";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -104,6 +105,15 @@ function DrawerEditorContent({
                     tupleType={tupleType}
                     locked={locked}
                     expandedView={expandedView}
+                  />
+                ) : type === "database" ? (
+                  <DatabaseView
+                    tupleName={tupleName}
+                    tupleArity={tupleArity}
+                    tupleType={tupleType}
+                    locked={locked}
+                    expandedView={expandedView}
+                    error={error?.message}
                   />
                 ) : (
                   <GraphView

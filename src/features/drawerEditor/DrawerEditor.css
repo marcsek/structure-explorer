@@ -136,7 +136,11 @@
   border-radius: 0;
 }
 
-.editor-controls-buttons-group:has(+ *) > button:last-of-type {
+.editor-controls-buttons-group > button:not(:last-of-type) {
+  border-radius: 0;
+}
+
+.editor-controls-buttons-group:has(+ button) > button:last-of-type {
   border-radius: 0;
 }
 

@@ -67,7 +67,14 @@ export default function MatrixView({
     );
   };
 
-  const domainWithLeftovers = [...domain, ...leftoverDomain];
+  const domainWithLeftovers = [...domain, ...leftoverDomain].sort();
+
+  const getTableClass = (element: string, hovered: string) =>
+    leftoverDomain.includes(element)
+      ? "error"
+      : hovered === element
+        ? "hovered"
+        : "";
 
   return (
     <Table className="table-bordered matrix-view-table">
@@ -76,10 +83,7 @@ export default function MatrixView({
           <th key="col-head">Domain</th>
           {tupleArity > 1 &&
             domainWithLeftovers.map((head) => (
-              <th
-                className={`${hovered.col === head ? "hovered-col" : ""} ${leftoverDomain.includes(head) ? " leftover" : ""}`}
-                key={head}
-              >
+              <th className={getTableClass(head, hovered.col)} key={head}>
                 <PredicateIndicatorTableHead
                   predicateName={tupleName}
                   domainId={head}
@@ -91,14 +95,8 @@ export default function MatrixView({
 
       <tbody>
         {domainWithLeftovers.map((row) => (
-          <tr
-            key={`r-${row}`}
-            className={hovered.row === row ? "hovered-row" : ""}
-          >
-            <td
-              key="row-head"
-              className={`${leftoverDomain.includes(row) ? "leftover" : ""}`}
-            >
+          <tr key={`r-${row}`} className={getTableClass(row, hovered.row)}>
+            <td key="row-head">
               <PredicateIndicatorTableHead
                 predicateName={tupleName}
                 domainId={row}
@@ -114,6 +112,10 @@ export default function MatrixView({
                   onValueChange={() => handleValueChange(row, col)}
                   locked={locked}
                   hovered={hovered.col === col}
+                  columnError={leftoverDomain.includes(col)}
+                  invalid={
+                    leftoverDomain.includes(col) || leftoverDomain.includes(row)
+                  }
                   onHovered={(hovered) =>
                     setHovered(hovered ? { row, col } : { row: "", col: "" })
                   }
@@ -123,6 +125,13 @@ export default function MatrixView({
                   key={col}
                   tupleType={tupleType}
                   value={getValue(row, col) ?? ""}
+                  columnError={leftoverDomain.includes(col)}
+                  invalid={
+                    (!domain.includes(getValue(row, col)) &&
+                      (getValue(row, col) ?? "") !== "") ||
+                    leftoverDomain.includes(col) ||
+                    leftoverDomain.includes(row)
+                  }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
                 />
@@ -142,30 +151,35 @@ type TableDataInputProps =
       locked: boolean;
       onValueChange: () => void;
       onHovered: (hovered: boolean) => void;
+      invalid: boolean;
       hovered: boolean;
+      columnError: boolean;
     }
   | {
       tupleType: "function";
       value: string;
       locked: boolean;
+      invalid: boolean;
       onValueChange: (value: string) => void;
+      columnError: boolean;
     };
 
 function TableDataInput(props: TableDataInputProps) {
-  const { tupleType, locked } = props;
+  const { tupleType, locked, invalid, columnError } = props;
 
   if (tupleType === "predicate") {
     return (
       <td
-        className={props.hovered ? "hovered-col" : ""}
+        className={columnError ? "error" : props.hovered ? "hovered" : ""}
         onMouseEnter={() => props.onHovered(true)}
         onMouseLeave={() => props.onHovered(false)}
-        onClick={props.onValueChange}
+        onClick={() => (!invalid || props.value) && props.onValueChange()}
       >
         <Form.Check
           type="checkbox"
           checked={props.value}
-          disabled={locked}
+          disabled={locked || (invalid && !props.value)}
+          isInvalid={invalid}
           onClick={(e) => e.stopPropagation()}
           onChange={props.onValueChange}
         />
@@ -174,11 +188,13 @@ function TableDataInput(props: TableDataInputProps) {
   }
 
   return (
-    <td>
-      <input
+    <td className={columnError ? "error" : ""}>
+      <Form.Control
+        type="text"
         value={props.value}
+        isInvalid={invalid}
         onChange={(e) => props.onValueChange(e.target.value)}
-        disabled={locked}
+        disabled={locked || (invalid && !props.value)}
       />
     </td>
   );
