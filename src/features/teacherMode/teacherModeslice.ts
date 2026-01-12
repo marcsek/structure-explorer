@@ -14,8 +14,9 @@ export const teacherModeSlice = createSlice({
   name: "teacherMode",
   initialState,
   reducers: {
-    importTeacherMode: (_state, action: PayloadAction<string>) => {
-      return JSON.parse(action.payload);
+    importTeacherMode: (_state, action: PayloadAction<TeacherModeState>) => {
+      if (!action.payload) return;
+      return action.payload;
     },
 
     updateTeacherMode: (state, action: PayloadAction<boolean | undefined>) => {

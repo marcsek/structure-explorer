@@ -1,5 +1,11 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { useAppDispatch } from "./app/hooks";
+import {
+  updateConstants,
+  updateFunctions,
+  updatePredicates,
+} from "./features/language/languageSlice";
 
 export interface Formula {
   name: string;
@@ -28,5 +34,30 @@ export interface CellContext extends LogicContext {
 }
 
 export const LogicContext = React.createContext<CellContext | undefined>(
-  undefined
+  undefined,
 );
+
+export function useLogicContext(): CellContext | undefined {
+  return useContext(LogicContext);
+}
+
+export function useSyncLogicContext() {
+  const context = useLogicContext();
+  const dispatch = useAppDispatch();
+
+  const hasContext = !!context;
+
+  useEffect(() => {
+    if (hasContext) dispatch(updateConstants(context.constants ?? []));
+  }, [context?.constants, dispatch, hasContext]);
+
+  useEffect(() => {
+    if (hasContext) dispatch(updatePredicates(context.predicates ?? []));
+  }, [context?.predicates, dispatch, hasContext]);
+
+  useEffect(() => {
+    if (hasContext) dispatch(updateFunctions(context.functions ?? []));
+  }, [context?.functions, dispatch, hasContext]);
+
+  return { context, hasContext };
+}

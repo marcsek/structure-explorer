@@ -24,8 +24,8 @@ export const variablesSlice = createSlice({
   name: "variables",
   initialState,
   reducers: {
-    importVariablesState(_state, action: PayloadAction<string>) {
-      return JSON.parse(action.payload);
+    importVariablesState(_state, action: PayloadAction<VariablesState>) {
+      return action.payload;
     },
 
     updateVariables: {

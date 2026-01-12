@@ -1,10 +1,10 @@
+import type { XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
 import { edgesToRelation as convertEdgesToRelation } from "../graphSlice";
 import type { Plugin } from "../plugins";
 import {
   expandReducedPoset,
-  isPoset,
   reducePosetRelations,
   type BinaryRelation,
 } from "./posetHelpers";
@@ -18,11 +18,12 @@ export type HasseDiagramState = {
 const createNode = (
   id: string,
   { leftover = false }: { leftover?: boolean } = {},
+  position?: XYPosition,
 ): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
-    position: { x: 0, y: 0 },
+    position: position ?? { x: 0, y: 0 },
     data: { label: id, leftover },
   };
 };
@@ -43,7 +44,7 @@ const createEdge = (
 };
 
 export const hasseDiagramPlugin: Plugin<"hasse"> = {
-  init(domain, predicate, type) {
+  init(domain, predicate, type, positions) {
     const iP = predicate.intr;
 
     const graph: HasseDiagramState = {
@@ -53,12 +54,10 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
 
     if (type === "function") return graph;
 
-    if (!isPoset(iP as [string, string][])) return graph;
-
-    domain.forEach((domElement) => graph.nodes.push(createNode(domElement)));
-
-    iP.forEach(([source, target]) =>
-      graph.edges.push(createEdge(source, target)),
+    domain.forEach((domElement) =>
+      graph.nodes.push(
+        createNode(domElement, undefined, positions?.[domElement]),
+      ),
     );
 
     const presentIds = new Set();

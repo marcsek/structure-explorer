@@ -7,6 +7,7 @@ import {
   selectDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
+  type StructureState,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
 
@@ -44,42 +45,80 @@ export const matrixViewSlice = createSlice({
           values: { [key]: { domainTuple, value } },
         };
     },
+
+    syncMatrixView(
+      state,
+      action: PayloadAction<{ structure: StructureState }>,
+    ) {
+      const { structure } = action.payload;
+
+      for (const [key, { value }] of Object.entries(structure.iP)) {
+        const newValues = Object.fromEntries(
+          value.map((tuple) => [
+            getKeyFromDomainTuple(tuple),
+            { domainTuple: tuple, value: "in" },
+          ]),
+        );
+
+        syncInterpretation(key, "predicate", newValues, state);
+      }
+
+      for (const [key, { value }] of Object.entries(structure.iF)) {
+        const newValues = Object.fromEntries(
+          value.map((tuple) => [
+            getKeyFromDomainTuple(tuple.slice(0, -1)),
+            { domainTuple: tuple.slice(0, -1), value: tuple.at(-1) ?? "" },
+          ]),
+        );
+
+        syncInterpretation(key, "function", newValues, state);
+      }
+    },
   },
 
   extraReducers(builder) {
     builder.addCase(updateInterpretationPredicates, (state, action) => {
-      const entryKey = `predicate-${action.payload.key}`;
-      const entry = state[entryKey];
+      const { key, value } = action.payload;
 
       const newValues = Object.fromEntries(
-        action.payload.value.map((tuple) => [
+        value.map((tuple) => [
           getKeyFromDomainTuple(tuple),
           { domainTuple: tuple, value: "in" },
         ]),
       );
 
-      if (entry) entry.values = newValues;
-      else state[entryKey] = { type: "predicate", values: newValues };
+      syncInterpretation(key, "predicate", newValues, state);
     });
 
     builder.addCase(updateFunctionSymbols, (state, action) => {
-      const entryKey = `function-${action.payload.key}`;
-      const entry = state[entryKey];
+      const { key, value } = action.payload;
 
       const newValues = Object.fromEntries(
-        action.payload.value.map((tuple) => [
+        value.map((tuple) => [
           getKeyFromDomainTuple(tuple.slice(0, -1)),
           { domainTuple: tuple.slice(0, -1), value: tuple.at(-1) ?? "" },
         ]),
       );
 
-      if (entry) entry.values = newValues;
-      else state[entryKey] = { type: "function", values: newValues };
+      syncInterpretation(key, "function", newValues, state);
     });
   },
 });
 
-export const { valueChanged } = matrixViewSlice.actions;
+const syncInterpretation = (
+  key: string,
+  type: MatrixViewEntry["type"],
+  newValues: MatrixViewEntry["values"],
+  state: MatrixViewState,
+) => {
+  const entryKey = `${type}-${key}`;
+  const entry = state[entryKey];
+
+  if (entry) entry.values = newValues;
+  else state[entryKey] = { type, values: newValues };
+};
+
+export const { valueChanged, syncMatrixView } = matrixViewSlice.actions;
 
 export const selectMatrixLeftovers = createSelector(
   [

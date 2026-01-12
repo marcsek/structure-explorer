@@ -1,3 +1,4 @@
+import type { XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
@@ -15,11 +16,12 @@ const createNode = (
     leftover = false,
     error = false,
   }: { leftover?: boolean; error?: boolean } = {},
+  position?: XYPosition,
 ): PredicateNodeType => {
   return {
     id: id,
     type: "predicate",
-    position: { x: 0, y: 0 },
+    position: position ?? { x: 0, y: 0 },
     data: { label: id, leftover, error },
   };
 };
@@ -40,7 +42,7 @@ const createEdge = (
 };
 
 export const orientedGraphPlugin: Plugin<"oriented"> = {
-  init(domain, predicate, type) {
+  init(domain, predicate, type, positions) {
     const iP = predicate.intr;
 
     const graph: OrientedGraphState = {
@@ -53,7 +55,9 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
         type === "function" &&
         iP.filter(([d]) => d === domElement).length !== 1;
 
-      graph.nodes.push(createNode(domElement, { error }));
+      graph.nodes.push(
+        createNode(domElement, { error }, positions?.[domElement]),
+      );
     });
 
     const presentIds = new Set();

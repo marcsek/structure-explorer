@@ -34,6 +34,7 @@ export default function DrawerEditor(props: DrawerEditorProps) {
       <Modal
         show={expandedView}
         onHide={() => setExpandedView(false)}
+        className="structure-explorer"
         dialogClassName="drawer-editor-modal-dialog"
         contentClassName="drawer-editor-modal-content"
         centered

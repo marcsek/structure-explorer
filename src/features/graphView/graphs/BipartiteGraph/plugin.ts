@@ -1,3 +1,4 @@
+import type { XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Plugin } from "../plugins";
@@ -11,18 +12,20 @@ export type BipartiteGraphState = {
 };
 
 const createNode = (
-  id: string,
+  domainId: string,
   origin: BipartiteNodeType["data"]["origin"],
   {
     error = false,
     leftover = false,
   }: { error?: boolean; leftover?: boolean } = {},
+  positions?: Record<string, XYPosition>,
 ): BipartiteNodeType => {
+  const id = `${origin === "domain" ? "d" : "r"}-${domainId}`;
   return {
-    id: `${origin === "domain" ? "d" : "r"}-${id}`,
+    id,
     type: "predicate",
-    position: { x: Infinity, y: Infinity },
-    data: { label: id, origin, error, leftover },
+    position: positions?.[id] ?? { x: Infinity, y: Infinity },
+    data: { label: domainId, origin, error, leftover },
     connectable: origin === "domain" ? undefined : false,
   };
 };
@@ -43,7 +46,7 @@ const createEdge = (
 };
 
 export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
-  init(domain, predicate, type) {
+  init(domain, predicate, type, positions) {
     const iP = predicate.intr;
 
     const graph: BipartiteGraphState = {
@@ -56,8 +59,8 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
         type === "function" &&
         iP.filter(([d]) => d === domElement).length !== 1;
 
-      graph.nodes.push(createNode(domElement, "domain", { error }));
-      graph.nodes.push(createNode(domElement, "range"));
+      graph.nodes.push(createNode(domElement, "domain", { error }, positions));
+      graph.nodes.push(createNode(domElement, "range", undefined, positions));
     });
 
     const leftovers = new Set(

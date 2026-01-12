@@ -41,8 +41,8 @@ export const languageSlice = createSlice({
   name: "language",
   initialState,
   reducers: {
-    importLanguageState(_state, action: PayloadAction<string>) {
-      return JSON.parse(action.payload);
+    importLanguageState(_state, action: PayloadAction<LanguageState>) {
+      return action.payload;
     },
 
     updateConstants: {

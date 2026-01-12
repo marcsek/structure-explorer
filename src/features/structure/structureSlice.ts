@@ -45,8 +45,8 @@ export const structureSlice = createSlice({
   name: "structure",
   initialState,
   reducers: {
-    importStructureState(_state, action: PayloadAction<string>) {
-      return JSON.parse(action.payload);
+    importStructureState(_state, action: PayloadAction<StructureState>) {
+      return action.payload;
     },
 
     updateDomain: {

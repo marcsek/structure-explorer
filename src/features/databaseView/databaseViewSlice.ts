@@ -7,6 +7,7 @@ import {
   selectDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
+  type StructureState,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
 
@@ -38,40 +39,55 @@ export const databaseViewSlice = createSlice({
       if (entry) entry.domainTuple = domainTuple;
       else state[entryKey] = { type, domainTuple };
     },
+
+    syncDatabaseView(
+      state,
+      action: PayloadAction<{ structure: StructureState }>,
+    ) {
+      const { structure } = action.payload;
+
+      const entries = [
+        ["predicate", structure.iP],
+        ["function", structure.iF],
+      ] as const;
+
+      for (const [intrType, intrState] of entries)
+        for (const [key, { value }] of Object.entries(intrState))
+          syncInterpretation(key, intrType, value, state);
+    },
   },
 
   extraReducers(builder) {
     builder.addCase(updateInterpretationPredicates, (state, action) => {
       if (action.meta.source === "databaseView") return;
 
-      const entryKey = `predicate-${action.payload.key}`;
-      const entry = state[entryKey];
-
-      if (entry) entry.domainTuple = action.payload.value;
-      else
-        state[entryKey] = {
-          type: "predicate",
-          domainTuple: action.payload.value,
-        };
+      const { key, value } = action.payload;
+      syncInterpretation(key, "predicate", value, state);
     });
 
     builder.addCase(updateFunctionSymbols, (state, action) => {
       if (action.meta.source === "databaseView") return;
 
-      const entryKey = `function-${action.payload.key}`;
-      const entry = state[entryKey];
-
-      if (entry) entry.domainTuple = action.payload.value;
-      else
-        state[entryKey] = {
-          type: "function",
-          domainTuple: action.payload.value,
-        };
+      const { key, value } = action.payload;
+      syncInterpretation(key, "function", value, state);
     });
   },
 });
 
-export const { valueChanged } = databaseViewSlice.actions;
+const syncInterpretation = (
+  key: string,
+  type: DatabaseViewEntry["type"],
+  newValue: DatabaseViewEntry["domainTuple"],
+  state: DatabaseViewState,
+) => {
+  const entryKey = `${type}-${key}`;
+  const entry = state[entryKey];
+
+  if (entry) entry.domainTuple = newValue;
+  else state[entryKey] = { type, domainTuple: newValue };
+};
+
+export const { valueChanged, syncDatabaseView } = databaseViewSlice.actions;
 
 export const selectDatabaseViewLeftovers = createSelector(
   [
@@ -137,13 +153,13 @@ export const updateDatabaseViewValue = ({
 
     dispatch(valueChanged({ type, tupleName, domainTuple: filteredTuples }));
 
-    if (domainTuple.length === 0) return;
+    let validTuples = domainTuple;
 
-    const arity = domainTuple[0].length;
+    if (domainTuple.length !== 0) {
+      const arity = domainTuple[0].length;
 
-    const validTuples = domainTuple.filter((tuple) =>
-      isValidTuple(tuple, arity),
-    );
+      validTuples = domainTuple.filter((tuple) => isValidTuple(tuple, arity));
+    }
 
     const updater =
       type === "predicate"

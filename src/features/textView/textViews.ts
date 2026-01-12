@@ -65,9 +65,9 @@ export type TextViewDescriptors<TMap> = {
 };
 
 export function isKeyedPayloadByTextType<T = unknown>(
-  payload: unknown,
+  _payload: unknown,
   type: TextViewType,
-): payload is KeyedPayload<T> {
+): _payload is KeyedPayload<T> {
   return getDescriptor(type).payloadType === "key";
 }
 

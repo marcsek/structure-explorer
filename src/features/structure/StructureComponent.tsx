@@ -65,12 +65,12 @@ export default function StructureComponent() {
             <h3 className="h6 fw-normal">Constants interpretation</h3>
 
             <Stack gap={3}>
-              {Array.from(constants.parsed ?? []).map((name, index) => (
+              {Array.from(constants.parsed ?? []).map((name) => (
                 <InterpretationEditor
                   name={name}
-                  id={`constant-${index}`}
+                  id={`constant-${name}`}
                   type="constant"
-                  key={`constant-${index}`}
+                  key={`constant-${name}`}
                   textViewType="constant_interpretation"
                   lockSelector={selectIcLock}
                   onChange={(e) => {
@@ -96,12 +96,12 @@ export default function StructureComponent() {
             <h3 className="h6 fw-normal">Predicates interpretation</h3>
 
             <Stack gap={3}>
-              {Array.from(predicates.parsed ?? []).map(([name], index) => (
+              {Array.from(predicates.parsed ?? []).map(([name, arity]) => (
                 <InterpretationEditor
                   type="predicate"
                   name={name}
-                  id={`predicate-${index}`}
-                  key={`predicate-${index}`}
+                  id={`predicate-${name}-${arity}`}
+                  key={`predicate-${name}-${arity}`}
                   textViewType="predicate_interpretation"
                   lockSelector={selectIpLock}
                   locker={() =>
@@ -127,12 +127,12 @@ export default function StructureComponent() {
             <h3 className="h6 fw-normal">Functions interpretation</h3>
 
             <Stack gap={3}>
-              {Array.from(functions.parsed ?? []).map(([name], index) => (
+              {Array.from(functions.parsed ?? []).map(([name, arity]) => (
                 <InterpretationEditor
                   name={name}
                   type="function"
-                  id={`function-${index}`}
-                  key={`function-${index}`}
+                  id={`function-${name}-${arity}`}
+                  key={`function-${name}-${arity}`}
                   textViewType="function_interpretation"
                   lockSelector={selectIfLock}
                   onChange={(e) => {

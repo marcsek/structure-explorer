@@ -1,4 +1,3 @@
-import "bootstrap/dist/css/bootstrap.min.css";
 import StructureComponent from "./features/structure/StructureComponent";
 import VariablesComponent from "./features/variables/VariablesComponent";
 import { Col, Container, Row } from "react-bootstrap";
@@ -12,7 +11,7 @@ function App() {
   usePreset();
 
   return (
-    <Container fluid className="mt-2 mb-2 px-3">
+    <Container fluid className="structure-explorer mt-2 mb-2 px-3">
       <Row className="g-3">
         <Header />
       </Row>

@@ -11,11 +11,13 @@ import {
   selectTeacherMode,
   updateTeacherMode,
 } from "../teacherMode/teacherModeslice";
+import { useLogicContext } from "../../logicContext";
 
 export default function GearButton() {
   const dispatch = useAppDispatch();
   const teacherMode = useAppSelector(selectTeacherMode);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logicContext = useLogicContext();
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -29,9 +31,10 @@ export default function GearButton() {
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result?.toString()!);
-        dispatch(importAppState(json));
+        dispatch(importAppState(json, !!logicContext));
       } catch (err) {
         alert("Invalid JSON file.");
+        console.error(err);
       }
     };
     reader.readAsText(file);

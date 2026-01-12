@@ -28,6 +28,10 @@ export const textViewSlice = createSlice({
   name: "textView",
   initialState: initialState,
   reducers: {
+    importTextViewState(_state, action: PayloadAction<TextViewState>) {
+      return action.payload;
+    },
+
     textViewChanged(
       state,
       action: PayloadAction<{
@@ -124,8 +128,11 @@ export const selectValidatedTextView = createSelector(
   },
 );
 
-export const { textViewChanged, textViewParseErrorChanged } =
-  textViewSlice.actions;
+export const {
+  importTextViewState,
+  textViewChanged,
+  textViewParseErrorChanged,
+} = textViewSlice.actions;
 
 export default textViewSlice.reducer;
 

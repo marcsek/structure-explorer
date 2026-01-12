@@ -61,7 +61,7 @@ export const computeLayoutOriented = async <
     (node) => ({
       id: node.id,
       type: "position",
-      position: { x: node.x ?? 0, y: node.y ?? 0 },
+      position: { x: Math.trunc(node.x ?? 0), y: Math.trunc(node.y ?? 0) },
     }),
   );
 

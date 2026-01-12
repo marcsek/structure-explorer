@@ -148,7 +148,10 @@
   border-bottom-right-radius: 0;
 }
 
-.drawer-editor-container.expanded .editor-controls-buttons-group button {
+.drawer-editor-container.expanded
+  .editor-controls-buttons-group
+  > :last-child
+  button {
   border-bottom-right-radius: var(--bs-border-radius);
   border-top-right-radius: var(--bs-border-radius);
 }

@@ -66,8 +66,8 @@ export const formulasSlice = createSlice({
   name: "formulas",
   initialState,
   reducers: {
-    importFormulasState: (_state, action: PayloadAction<string>) => {
-      return JSON.parse(action.payload);
+    importFormulasState: (_state, action: PayloadAction<FormulasState>) => {
+      return action.payload;
     },
 
     addFormula: (state) => {
@@ -174,7 +174,6 @@ export const formulasSlice = createSlice({
       state.allFormulas[id].gameChoices = [];
     },
   },
-  extraReducers: (_builder) => {},
 });
 
 export const {

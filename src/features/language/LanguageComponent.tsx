@@ -16,6 +16,7 @@ import {
   selectValidatedTextView,
   updateTextView,
 } from "../textView/textViewSlice.ts";
+import { useSyncLogicContext } from "../../logicContext.ts";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -35,6 +36,7 @@ export default function LanguageComponent() {
   const functionsLock = useAppSelector(selectFunctionsLock);
 
   const symbolsClash = useAppSelector(selectSymbolsClash);
+  const { hasContext } = useSyncLogicContext();
 
   return (
     <ComponentCard
@@ -61,6 +63,7 @@ export default function LanguageComponent() {
           error={constantsTextView.error}
           lockChecker={constantsLock}
           locker={() => dispatch(lockConstants())}
+          disabledOverride={hasContext}
         />
 
         <InputGroupTitle
@@ -80,6 +83,7 @@ export default function LanguageComponent() {
           error={predicatesTextView.error}
           lockChecker={predicatesLock}
           locker={() => dispatch(lockPredicates())}
+          disabledOverride={hasContext}
         />
 
         <InputGroupTitle
@@ -99,6 +103,7 @@ export default function LanguageComponent() {
           error={functionsTextView.error}
           lockChecker={functionsLock}
           locker={() => dispatch(lockFunctions())}
+          disabledOverride={hasContext}
         />
 
         {symbolsClash && <div className="text-danger">{symbolsClash}</div>}

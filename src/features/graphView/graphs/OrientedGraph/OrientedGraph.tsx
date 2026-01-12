@@ -82,7 +82,7 @@ export default function OrientedGraph({
     (state) => state.graphView[id]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.graphView[id].tupleType === "function",
+    (state) => state.graphView[id]?.tupleType === "function",
   );
   const warning = useAppSelector(
     (state) => state.graphView[id]?.state[type]?.warning,

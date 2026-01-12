@@ -1,3 +1,4 @@
+import type { XYPosition } from "@xyflow/react";
 import {
   bipartiteGraphPlugin,
   type BipartiteGraphState,
@@ -27,6 +28,7 @@ export interface Plugin<K extends GraphType> {
     domain: string[],
     predicate: { name: string; intr: BinaryRelation<string> },
     tupleType: TupleType,
+    positions?: Record<string, XYPosition>,
   ): GraphState[K];
   syncNodes(
     prev: GraphState[K],

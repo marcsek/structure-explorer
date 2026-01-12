@@ -13,6 +13,7 @@ interface Props {
   suffix: ReactNode;
   controlButtons?: ReactNode;
   placeholder: string;
+  disabledOverride?: boolean;
   text: string;
   onChange(event: ChangeEvent<HTMLInputElement>): void;
   locker: () => void;
@@ -27,6 +28,7 @@ export default function InputGroupTitle({
   suffix,
   controlButtons = null,
   placeholder,
+  disabledOverride,
   text,
   onChange,
   locker,
@@ -53,7 +55,7 @@ export default function InputGroupTitle({
           onChange={onChange}
           id={`${id}-${label.toLowerCase()}`}
           isInvalid={!!error}
-          disabled={lockChecker === true}
+          disabled={disabledOverride === true || lockChecker === true}
         />
 
         {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}

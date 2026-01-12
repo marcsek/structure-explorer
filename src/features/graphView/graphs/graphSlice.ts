@@ -14,6 +14,7 @@ import {
   type Edge,
   type EdgeChange,
   type NodeChange,
+  type XYPosition,
 } from "@xyflow/react";
 import { isPoset, type BinaryRelation } from "./HasseDiagram/posetHelpers";
 import {
@@ -32,11 +33,13 @@ import {
 import {
   selectValidatedFunctions,
   selectValidatedPredicates,
+  type LanguageState,
 } from "../../language/languageSlice.ts";
 import {
   selectStructure,
   updateFunctionSymbols,
   updateInterpretationPredicates,
+  type StructureState,
 } from "../../structure/structureSlice.ts";
 import {
   selectHoveredIntr,
@@ -61,14 +64,6 @@ export const graphManagerSlice = createSlice({
   name: "graphManager",
   initialState: {} as GraphManagerState,
   reducers: {
-    //setStructure(
-    //  _,
-    //  action: PayloadAction<{ struct: Structure; lang: Language }>,
-    //) {
-    //  const { struct, lang } = action.payload;
-    //  return initGraphManagerFromStruct(struct, lang);
-    //},
-
     setNodes(
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
@@ -104,6 +99,70 @@ export const graphManagerSlice = createSlice({
         changes,
         state[id].state[type].nodes,
       );
+    },
+
+    syncGraphView(
+      _,
+      action: PayloadAction<{
+        structure: StructureState;
+        language: LanguageState;
+        positions?: Record<
+          string,
+          Record<GraphType, Record<string, XYPosition>>
+        >;
+      }>,
+    ) {
+      const { structure, language, positions } = action.payload;
+      const newState: GraphManagerState = {};
+
+      const domain = structure.domain.value;
+      const preds = language.predicates.value;
+      const funcs = language.functions.value;
+      const tupleIntr = { ...structure.iP, ...structure.iF };
+
+      const tuples = [
+        ...preds.map((pred) => [...pred, "predicate"] as const),
+        ...funcs.map((func) => [...func, "function"] as const),
+      ];
+
+      tuples.forEach(([name, artity, type]) => {
+        if (artity !== 2 && (type !== "function" || artity !== 1)) return;
+
+        const tuple = {
+          name,
+          intr: [...(tupleIntr[name]?.value ?? [])] as BinaryRelation<string>,
+        };
+
+        const graphPositions = positions?.[name];
+
+        newState[name] = {
+          tupleType: type,
+          state: {
+            oriented: plugins.oriented.init(
+              domain,
+              tuple,
+              type,
+              graphPositions?.["oriented"],
+            ),
+            hasse: plugins.hasse.init(
+              domain,
+              tuple,
+              type,
+              graphPositions?.["hasse"],
+            ),
+            bipartite: plugins.bipartite.init(
+              domain,
+              tuple,
+              type,
+              graphPositions?.["bipartite"],
+            ),
+          },
+        };
+      });
+
+      console.log(newState);
+
+      return newState;
     },
 
     tuplesChanged(
@@ -480,6 +539,20 @@ export const leftoverDeleted = ({
   };
 };
 
+export const getGraphViewStateToExport = (state: RootState) => {
+  return Object.fromEntries(
+    Object.entries(state.graphView).map(([key, { state }]) => [
+      key,
+      Object.fromEntries(
+        Object.entries(state).map(([graph, { nodes }]) => [
+          graph,
+          Object.fromEntries(nodes.map(({ id, position }) => [id, position])),
+        ]),
+      ),
+    ]),
+  );
+};
+
 export const binaryRelationToString = (relation: BinaryRelation<string>) =>
   relation.map((pair) => `(${pair.join(",")})`).join(", ");
 
@@ -496,6 +569,7 @@ export const {
   domainChanged,
   editorLocked,
   warningChanged,
+  syncGraphView,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;
