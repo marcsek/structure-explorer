@@ -73,7 +73,7 @@ graphSliceListener.startListening({
     const parsedFuncs = selectValidatedFunctions(state);
     const structure = selectStructure(state);
 
-    if (parsedPredicates.parsed && parsedFuncs.parsed) {
+    if (!parsedPredicates.error && !parsedFuncs.error) {
       // probably only temporary until state management is refactored
       const funcIntr = [...structure.iF.entries()].map(
         ([key, map]) =>

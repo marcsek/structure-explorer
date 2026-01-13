@@ -60,7 +60,7 @@ export default function StructureComponent() {
           error={domainTextView.error}
         />
 
-        {constants.parsed && constants.parsed.size > 0 && (
+        {!constants.error && constants.parsed.size > 0 && (
           <div>
             <h3 className="h6 fw-normal">Constants interpretation</h3>
 
@@ -91,7 +91,7 @@ export default function StructureComponent() {
           </div>
         )}
 
-        {predicates.parsed && predicates.parsed.size > 0 && (
+        {!predicates.error && predicates.parsed.size > 0 && (
           <div>
             <h3 className="h6 fw-normal">Predicates interpretation</h3>
 
@@ -122,7 +122,7 @@ export default function StructureComponent() {
           </div>
         )}
 
-        {functions.parsed && functions.parsed.size > 0 && (
+        {!functions.error && functions.parsed.size > 0 && (
           <div>
             <h3 className="h6 fw-normal">Functions interpretation</h3>
 

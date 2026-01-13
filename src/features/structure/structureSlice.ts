@@ -22,6 +22,7 @@ import {
 import type { TextViewDescriptors } from "../textView/textViews";
 import { parseDomain } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { parseTuplesUnique } from "../textView/parserWrapper";
+import type { RelevantSymbols } from "../import/importThunk";
 
 export type DomainRepresentation = string[];
 export type ConstantInterpretation = string;
@@ -398,6 +399,38 @@ export const selectStructure = createSelector(
     return new Structure(language, new Set(domain.parsed ?? []), iC, iP, iF);
   },
 );
+
+export const getStructureStateToExport = (
+  state: RootState,
+  relevantSymbols: RelevantSymbols,
+): StructureState => {
+  const structure = state.structure;
+
+  const relevantConstants = Object.fromEntries(
+    Object.entries(structure.iC).filter(
+      ([key]) => relevantSymbols[key]?.type === "constant",
+    ),
+  );
+
+  const relevantPredicateInterpretations = Object.fromEntries(
+    Object.entries(structure.iP).filter(
+      ([key]) => relevantSymbols[key]?.type === "predicate",
+    ),
+  );
+
+  const relevantFunctionInterpretation = Object.fromEntries(
+    Object.entries(structure.iF).filter(
+      ([key]) => relevantSymbols[key]?.type === "function",
+    ),
+  );
+
+  return {
+    ...structure,
+    iC: relevantConstants,
+    iP: relevantPredicateInterpretations,
+    iF: relevantFunctionInterpretation,
+  };
+};
 
 export const {
   updateDomain,

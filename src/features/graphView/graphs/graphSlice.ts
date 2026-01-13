@@ -47,6 +47,7 @@ import {
   selectSelectedDomain,
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
+import type { RelevantSymbols } from "../../import/importThunk.ts";
 
 export type TupleType = "function" | "predicate";
 
@@ -539,9 +540,18 @@ export const leftoverDeleted = ({
   };
 };
 
-export const getGraphViewStateToExport = (state: RootState) => {
+export const getGraphViewStateToExport = (
+  state: RootState,
+  relevantSymbols: RelevantSymbols,
+) => {
+  const relevantEntries = Object.entries(state.graphView).filter(
+    ([key, { tupleType }]) =>
+      relevantSymbols[key]?.type === tupleType &&
+      relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),
+  );
+
   return Object.fromEntries(
-    Object.entries(state.graphView).map(([key, { state }]) => [
+    relevantEntries.map(([key, { state }]) => [
       key,
       Object.fromEntries(
         Object.entries(state).map(([graph, { nodes }]) => [

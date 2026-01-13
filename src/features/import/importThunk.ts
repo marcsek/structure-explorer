@@ -5,6 +5,7 @@ import { importFormulasState } from "../formulas/formulasSlice";
 import {
   getGraphViewStateToExport,
   syncGraphView,
+  type TupleType,
 } from "../graphView/graphs/graphSlice";
 import type { GraphType } from "../graphView/graphs/plugins";
 import {
@@ -14,9 +15,15 @@ import {
   updatePredicates,
 } from "../language/languageSlice";
 import { syncMatrixView } from "../matrixView/matrixViewSlice";
-import { importStructureState } from "../structure/structureSlice";
+import {
+  getStructureStateToExport,
+  importStructureState,
+} from "../structure/structureSlice";
 import { importTeacherMode } from "../teacherMode/teacherModeslice";
-import { importTextViewState } from "../textView/textViewSlice";
+import {
+  getTextViewStateToExport,
+  importTextViewState,
+} from "../textView/textViewSlice";
 import { importVariablesState } from "../variables/variablesSlice";
 
 export interface ImportedAppState
@@ -89,16 +96,41 @@ export const exportAppState =
     URL.revokeObjectURL(url);
   };
 
+export type RelevantSymbols = Record<
+  string,
+  { type: TupleType; arity: number } | { type: "constant" }
+>;
+
 export const getAppStateToExportJSON = (state: RootState) => {
+  const language = state.language;
+
+  const relevantSymbols: RelevantSymbols = {
+    ...Object.fromEntries(
+      language.constants.value.map((cnst) => [cnst, { type: "constant" }]),
+    ),
+    ...Object.fromEntries(
+      language.predicates.value.map(([key, arity]) => [
+        key,
+        { type: "predicate", arity },
+      ]),
+    ),
+    ...Object.fromEntries(
+      language.functions.value.map(([key, arity]) => [
+        key,
+        { type: "function", arity },
+      ]),
+    ),
+  };
+
   return JSON.stringify(
     {
       formulas: state.formulas,
       language: state.language,
-      structure: state.structure,
+      structure: getStructureStateToExport(state, relevantSymbols),
       variables: state.variables,
       teacherMode: state.teacherMode,
-      textView: state.textView,
-      graphView: getGraphViewStateToExport(state),
+      textView: getTextViewStateToExport(state, relevantSymbols),
+      graphView: getGraphViewStateToExport(state, relevantSymbols),
     },
     null,
     2,
