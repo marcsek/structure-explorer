@@ -161,8 +161,6 @@ export const graphManagerSlice = createSlice({
         };
       });
 
-      console.log(newState);
-
       return newState;
     },
 

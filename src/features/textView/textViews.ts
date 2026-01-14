@@ -64,6 +64,12 @@ export type TextViewDescriptors<TMap> = {
   [K in keyof TMap]: TextViewDescriptor<TMap[K]>;
 };
 
+export interface TextViewSyncEntry {
+  textViewType: TextViewType;
+  key?: string;
+  value: string;
+}
+
 export function isKeyedPayloadByTextType<T = unknown>(
   _payload: unknown,
   type: TextViewType,

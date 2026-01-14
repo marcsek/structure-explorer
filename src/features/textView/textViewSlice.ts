@@ -10,6 +10,7 @@ import {
   getDescriptor,
   isKeyedPayloadByTextType as isKeyedPayload,
   type StructuredOf,
+  type TextViewSyncEntry,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
 import { SyntaxError as WrapperSyntaxError } from "./parserWrapper";
@@ -29,10 +30,6 @@ export const textViewSlice = createSlice({
   name: "textView",
   initialState: initialState,
   reducers: {
-    importTextViewState(_state, action: PayloadAction<TextViewState>) {
-      return action.payload;
-    },
-
     textViewChanged(
       state,
       action: PayloadAction<{
@@ -62,6 +59,21 @@ export const textViewSlice = createSlice({
       const key = getKeyByType(type, inKey);
 
       if (state[key]) state[key] = { ...state[key], type, parseError };
+    },
+
+    syncTextView(_, action: PayloadAction<TextViewSyncEntry[]>) {
+      const syncEntries = action.payload;
+
+      const newState: TextViewState = {};
+
+      for (const { value, textViewType, key } of syncEntries) {
+        const actualKey = key ?? textViewType;
+
+        const textViewKey = getKeyByType(textViewType, actualKey);
+        newState[textViewKey] = { value, type: textViewType };
+      }
+
+      return newState;
     },
   },
 
@@ -130,11 +142,9 @@ export const selectValidatedTextView = createSelector(
 );
 
 export const getTextViewStateToExport = (
-  state: RootState,
+  textView: TextViewState,
   relevantSymbols: RelevantSymbols,
 ): TextViewState => {
-  const textView = state.textView;
-
   const entries = Object.entries(textView).filter(([key, { type }]) => {
     const keyWithoutType = getKeyWithoutType(type, key);
 
@@ -153,11 +163,8 @@ export const getTextViewStateToExport = (
   return Object.fromEntries(entries);
 };
 
-export const {
-  importTextViewState,
-  textViewChanged,
-  textViewParseErrorChanged,
-} = textViewSlice.actions;
+export const { textViewChanged, textViewParseErrorChanged, syncTextView } =
+  textViewSlice.actions;
 
 export default textViewSlice.reducer;
 

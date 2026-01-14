@@ -14,7 +14,10 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import type { TextViewDescriptors } from "../textView/textViews";
+import type {
+  TextViewDescriptors,
+  TextViewSyncEntry,
+} from "../textView/textViews";
 
 export type ConstantsRepresentation = string[];
 export type AritySymbolsRepresentation = [string, number][];
@@ -245,3 +248,33 @@ export const languageTextViewDescriptors: TextViewDescriptors<LanguageTextViewTy
       syncActionCreator: updateFunctions,
     },
   };
+
+export const getLanguageTextViewSyncEntries = (language: LanguageState) => {
+  const result: TextViewSyncEntry[] = [];
+
+  const mapArityTuples = (items: [string, number][]) =>
+    items.map(([name, arity]) => ({ name, arity }));
+
+  result.push({
+    textViewType: "constants",
+    value: languageTextViewDescriptors.constants.toText(
+      language.constants.value,
+    ),
+  });
+
+  result.push({
+    textViewType: "predicates",
+    value: languageTextViewDescriptors.predicates.toText(
+      mapArityTuples(language.predicates.value),
+    ),
+  });
+
+  result.push({
+    textViewType: "functions",
+    value: languageTextViewDescriptors.functions.toText(
+      mapArityTuples(language.functions.value),
+    ),
+  });
+
+  return result;
+};

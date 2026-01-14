@@ -9,27 +9,28 @@ import {
 } from "../graphView/graphs/graphSlice";
 import type { GraphType } from "../graphView/graphs/plugins";
 import {
+  getLanguageTextViewSyncEntries,
   importLanguageState,
-  updateConstants,
-  updateFunctions,
-  updatePredicates,
+  type LanguageState,
 } from "../language/languageSlice";
 import { syncMatrixView } from "../matrixView/matrixViewSlice";
 import {
   getStructureStateToExport,
+  getStructureTextViewSyncEntries,
   importStructureState,
 } from "../structure/structureSlice";
 import { importTeacherMode } from "../teacherMode/teacherModeslice";
+import { syncTextView } from "../textView/textViewSlice";
 import {
-  getTextViewStateToExport,
-  importTextViewState,
-} from "../textView/textViewSlice";
-import { importVariablesState } from "../variables/variablesSlice";
+  getVariablesTextViewSyncEntries,
+  importVariablesState,
+} from "../variables/variablesSlice";
+import type { TextViewSyncEntry } from "../textView/textViews";
 
 export interface ImportedAppState
   extends Omit<
     RootState,
-    "graphView" | "matrixView" | "databaseView" | "editorToolbar"
+    "graphView" | "matrixView" | "databaseView" | "editorToolbar" | "textView"
   > {
   graphView: Record<string, Record<GraphType, Record<string, XYPosition>>>;
 }
@@ -37,39 +38,28 @@ export interface ImportedAppState
 export const importAppState =
   (importedState: ImportedAppState, excludeLanguage = false): AppThunk =>
   (dispatch, getState) => {
-    if (!excludeLanguage) {
-      dispatch(importLanguageState(importedState.language));
-      dispatch(importTextViewState(importedState.textView));
-    } else {
-      // TODO: Just a HACK. Need to rethink how updating of textView is handled
-      //       or disable importing while inside language context altogether.
-      dispatch(importTextViewState(importedState.textView));
-      dispatch(updateConstants(getState().language.constants.value));
-      dispatch(
-        updatePredicates(
-          getState().language.predicates.value.map(([name, arity]) => ({
-            name,
-            arity,
-          })),
-        ),
-      );
-      dispatch(
-        updateFunctions(
-          getState().language.functions.value.map(([name, arity]) => ({
-            name,
-            arity,
-          })),
-        ),
-      );
-    }
+    if (!excludeLanguage) dispatch(importLanguageState(importedState.language));
 
+    const relevantSymbols = getRelevantSymbols(getState().language);
+
+    dispatch(
+      importStructureState(
+        getStructureStateToExport(importedState.structure, relevantSymbols),
+      ),
+    );
     dispatch(importFormulasState(importedState.formulas));
-    dispatch(importStructureState(importedState.structure));
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
 
-    const { structure, language } = getState();
+    const { language, structure, variables } = getState();
 
+    const textViewSyncEntries: TextViewSyncEntry[] = [
+      ...getLanguageTextViewSyncEntries(language),
+      ...getStructureTextViewSyncEntries(structure),
+      ...getVariablesTextViewSyncEntries(variables),
+    ];
+
+    dispatch(syncTextView(textViewSyncEntries));
     dispatch(syncMatrixView({ structure }));
     dispatch(syncDatabaseView({ structure }));
     dispatch(
@@ -101,10 +91,8 @@ export type RelevantSymbols = Record<
   { type: TupleType; arity: number } | { type: "constant" }
 >;
 
-export const getAppStateToExportJSON = (state: RootState) => {
-  const language = state.language;
-
-  const relevantSymbols: RelevantSymbols = {
+const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
+  return {
     ...Object.fromEntries(
       language.constants.value.map((cnst) => [cnst, { type: "constant" }]),
     ),
@@ -121,15 +109,18 @@ export const getAppStateToExportJSON = (state: RootState) => {
       ]),
     ),
   };
+};
+
+export const getAppStateToExportJSON = (state: RootState) => {
+  const relevantSymbols = getRelevantSymbols(state.language);
 
   return JSON.stringify(
     {
       formulas: state.formulas,
       language: state.language,
-      structure: getStructureStateToExport(state, relevantSymbols),
       variables: state.variables,
       teacherMode: state.teacherMode,
-      textView: getTextViewStateToExport(state, relevantSymbols),
+      structure: getStructureStateToExport(state.structure, relevantSymbols),
       graphView: getGraphViewStateToExport(state, relevantSymbols),
     },
     null,

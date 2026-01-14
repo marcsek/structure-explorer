@@ -12,7 +12,10 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import { type TextViewDescriptors } from "../textView/textViews";
+import {
+  type TextViewDescriptors,
+  type TextViewSyncEntry,
+} from "../textView/textViews";
 import { parseValuation } from "@fmfi-uk-1-ain-412/js-fol-parser";
 
 export type VariableRepresentation = { from: string; to: string };
@@ -93,3 +96,16 @@ export const variablesTextViewDescriptors: TextViewDescriptors<VariablesTextView
       syncActionCreator: updateVariables,
     },
   };
+
+export const getVariablesTextViewSyncEntries = (variables: VariablesState) => {
+  const result: TextViewSyncEntry[] = [];
+
+  result.push({
+    textViewType: "variables",
+    value: variablesTextViewDescriptors.variables.toText(
+      variables.value.map(({ from, to }) => [from, to]),
+    ),
+  });
+
+  return result;
+};

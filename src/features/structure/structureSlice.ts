@@ -19,7 +19,10 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import type { TextViewDescriptors } from "../textView/textViews";
+import type {
+  TextViewDescriptors,
+  TextViewSyncEntry,
+} from "../textView/textViews";
 import { parseDomain } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { parseTuplesUnique } from "../textView/parserWrapper";
 import type { RelevantSymbols } from "../import/importThunk";
@@ -401,11 +404,9 @@ export const selectStructure = createSelector(
 );
 
 export const getStructureStateToExport = (
-  state: RootState,
+  structure: StructureState,
   relevantSymbols: RelevantSymbols,
 ): StructureState => {
-  const structure = state.structure;
-
   const relevantConstants = Object.fromEntries(
     Object.entries(structure.iC).filter(
       ([key]) => relevantSymbols[key]?.type === "constant",
@@ -497,3 +498,33 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
       syncActionCreator: updateFunctionSymbols,
     },
   };
+
+export const getStructureTextViewSyncEntries = (structure: StructureState) => {
+  const { domain, iC, iP, iF } = structure;
+  const descriptors = structureTextViewDescriptors;
+
+  const result: TextViewSyncEntry[] = [
+    {
+      textViewType: "domain",
+      value: descriptors.domain.toText(domain.value),
+    },
+  ];
+
+  const interpretationConfigs = [
+    { entries: iC, type: "constant_interpretation" },
+    { entries: iP, type: "predicate_interpretation" },
+    { entries: iF, type: "function_interpretation" },
+  ] as const;
+
+  for (const { entries, type } of interpretationConfigs) {
+    for (const [name, { value }] of Object.entries(entries)) {
+      result.push({
+        textViewType: type,
+        key: name,
+        value: descriptors[type].toText(value),
+      });
+    }
+  }
+
+  return result;
+};
