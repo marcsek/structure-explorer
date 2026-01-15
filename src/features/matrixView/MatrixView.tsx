@@ -12,8 +12,7 @@ import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColor
 import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import {
   getKeyFromDomainTuple,
-  selectMatrixLeftovers,
-  selectMatrixValues,
+  selectMatrixValuesWithLeftovers,
   updateMatrixValue,
 } from "./matrixViewSlice";
 
@@ -35,17 +34,13 @@ export default function MatrixView({
 
   const dispatch = useAppDispatch();
 
+  const { values, leftovers } = useAppSelector((state) =>
+    selectMatrixValuesWithLeftovers(state, tupleName, tupleType),
+  );
+
   const domain = useAppSelector((state) =>
     selectFilteredDomain(state, tupleName, true),
   ).sort();
-
-  const leftoverDomain = useAppSelector((state) =>
-    selectMatrixLeftovers(state, tupleName, tupleType),
-  );
-
-  const values = useAppSelector((state) =>
-    selectMatrixValues(state, tupleName, tupleType),
-  );
 
   const getValue = (row: string, col: string) =>
     values[getKeyFromDomainTuple(tupleArity > 1 ? [row, col] : [row])]?.value;
@@ -53,7 +48,7 @@ export default function MatrixView({
   const handleValueChange = (
     rowElement: string,
     colElement: string,
-    value?: string,
+    value: string = "",
   ) => {
     if (locked) return;
 
@@ -67,10 +62,10 @@ export default function MatrixView({
     );
   };
 
-  const domainWithLeftovers = [...domain, ...leftoverDomain].sort();
+  const domainWithLeftovers = [...domain, ...leftovers].sort();
 
   const getTableClass = (element: string, hovered: string) =>
-    leftoverDomain.includes(element)
+    leftovers.includes(element)
       ? "error"
       : hovered === element
         ? "hovered"
@@ -112,10 +107,8 @@ export default function MatrixView({
                   onValueChange={() => handleValueChange(row, col)}
                   locked={locked}
                   hovered={hovered.col === col}
-                  columnError={leftoverDomain.includes(col)}
-                  invalid={
-                    leftoverDomain.includes(col) || leftoverDomain.includes(row)
-                  }
+                  columnError={leftovers.includes(col)}
+                  invalid={leftovers.includes(col) || leftovers.includes(row)}
                   onHovered={(hovered) =>
                     setHovered(hovered ? { row, col } : { row: "", col: "" })
                   }
@@ -125,12 +118,12 @@ export default function MatrixView({
                   key={col}
                   tupleType={tupleType}
                   value={getValue(row, col) ?? ""}
-                  columnError={leftoverDomain.includes(col)}
+                  columnError={leftovers.includes(col)}
                   invalid={
                     (!domain.includes(getValue(row, col)) &&
                       (getValue(row, col) ?? "") !== "") ||
-                    leftoverDomain.includes(col) ||
-                    leftoverDomain.includes(row)
+                    leftovers.includes(col) ||
+                    leftovers.includes(row)
                   }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}

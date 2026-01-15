@@ -21,12 +21,12 @@
   position: absolute;
   z-index: 1000;
   background-color: white;
-  min-width: 320px;
+  width: 320px;
   max-height: 400px;
   overflow-y: auto;
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
   border-radius: var(--bs-border-radius);
-  right: -12px;
+  right: 0rem;
   top: calc(40px + 0.5rem);
 
   box-shadow: var(--bs-box-shadow-sm);
@@ -119,9 +119,11 @@
   position: relative;
   align-items: center;
   justify-content: space-between;
+  overflow: hidden;
 
   color: var(--bs-dark);
   font-size: 1.15rem;
+  gap: 12px;
   width: 100%;
   text-align: left;
   background-color: white;
@@ -149,6 +151,14 @@
 
 .domain-selector-item * {
   z-index: 1;
+}
+
+.domain-selector-item > span {
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .domain-selector-item.active {

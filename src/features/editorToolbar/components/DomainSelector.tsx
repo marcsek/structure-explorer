@@ -129,7 +129,7 @@ function DomainSelectorItem({
         tabIndex={0}
         aria-pressed={isSelected}
       >
-        {element}
+        <span>{element}</span>
 
         <RelevantPredicatesIndicator predicateToColorMap={colorMap} />
       </button>
