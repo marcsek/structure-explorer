@@ -49,8 +49,27 @@ export const structureSlice = createSlice({
   name: "structure",
   initialState,
   reducers: {
-    importStructureState(_state, action: PayloadAction<StructureState>) {
-      return action.payload;
+    importStructureState(
+      state,
+      action: PayloadAction<{ state: StructureState; merge?: boolean }>,
+    ) {
+      const { state: newState, merge = false } = action.payload;
+
+      if (!merge) return newState;
+
+      for (const [name, value] of Object.entries(newState.iC)) {
+        state.iC[name] = value;
+      }
+
+      for (const [name, value] of Object.entries(newState.iP)) {
+        state.iP[name] = value;
+      }
+
+      for (const [name, value] of Object.entries(newState.iF)) {
+        state.iF[name] = value;
+      }
+
+      state.domain = newState.domain;
     },
 
     updateDomain: {
@@ -403,7 +422,7 @@ export const selectStructure = createSelector(
   },
 );
 
-export const getStructureStateToExport = (
+export const getRelevantStructureState = (
   structure: StructureState,
   relevantSymbols: RelevantSymbols,
 ): StructureState => {

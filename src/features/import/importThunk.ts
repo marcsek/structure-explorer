@@ -15,7 +15,7 @@ import {
 } from "../language/languageSlice";
 import { syncMatrixView } from "../matrixView/matrixViewSlice";
 import {
-  getStructureStateToExport,
+  getRelevantStructureState,
   getStructureTextViewSyncEntries,
   importStructureState,
 } from "../structure/structureSlice";
@@ -38,15 +38,21 @@ export interface ImportedAppState
 export const importAppState =
   (importedState: ImportedAppState, excludeLanguage = false): AppThunk =>
   (dispatch, getState) => {
-    if (!excludeLanguage) dispatch(importLanguageState(importedState.language));
+    if (excludeLanguage) {
+      const relevantSymbols = getRelevantSymbols(getState().language);
+      const relevantInputStructure = getRelevantStructureState(
+        importedState.structure,
+        relevantSymbols,
+      );
 
-    const relevantSymbols = getRelevantSymbols(getState().language);
+      dispatch(
+        importStructureState({ state: relevantInputStructure, merge: true }),
+      );
+    } else {
+      dispatch(importLanguageState(importedState.language));
+      dispatch(importStructureState({ state: importedState.structure }));
+    }
 
-    dispatch(
-      importStructureState(
-        getStructureStateToExport(importedState.structure, relevantSymbols),
-      ),
-    );
     dispatch(importFormulasState(importedState.formulas));
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
@@ -120,7 +126,7 @@ export const getAppStateToExportJSON = (state: RootState) => {
       language: state.language,
       variables: state.variables,
       teacherMode: state.teacherMode,
-      structure: getStructureStateToExport(state.structure, relevantSymbols),
+      structure: getRelevantStructureState(state.structure, relevantSymbols),
       graphView: getGraphViewStateToExport(state, relevantSymbols),
     },
     null,

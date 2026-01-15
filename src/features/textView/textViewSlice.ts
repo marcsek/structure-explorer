@@ -14,7 +14,6 @@ import {
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
 import { SyntaxError as WrapperSyntaxError } from "./parserWrapper";
-import type { RelevantSymbols } from "../import/importThunk";
 
 export interface TextViewEntry {
   type: TextViewType;
@@ -141,28 +140,6 @@ export const selectValidatedTextView = createSelector(
   },
 );
 
-export const getTextViewStateToExport = (
-  textView: TextViewState,
-  relevantSymbols: RelevantSymbols,
-): TextViewState => {
-  const entries = Object.entries(textView).filter(([key, { type }]) => {
-    const keyWithoutType = getKeyWithoutType(type, key);
-
-    if (type === "constant_interpretation")
-      return relevantSymbols[keyWithoutType]?.type === "constant";
-
-    if (type === "predicate_interpretation")
-      return relevantSymbols[keyWithoutType]?.type === "predicate";
-
-    if (type === "function_interpretation")
-      return relevantSymbols[keyWithoutType]?.type === "function";
-
-    return true;
-  });
-
-  return Object.fromEntries(entries);
-};
-
 export const { textViewChanged, textViewParseErrorChanged, syncTextView } =
   textViewSlice.actions;
 
@@ -228,10 +205,4 @@ const getKeyByType = (type: TextViewType, key: string) => {
   if (getDescriptor(type).payloadType === "key") return `${type}-${key}`;
 
   return key;
-};
-
-const getKeyWithoutType = (type: TextViewType, key: string) => {
-  if (getDescriptor(type).payloadType === "value") return key;
-
-  return key.slice(type.length + 1);
 };
