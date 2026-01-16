@@ -21,10 +21,12 @@ import LockButton from "../../components_helper/LockButton";
 import type { RootState } from "../../app/store";
 import type { TextViewType } from "../textView/textViews";
 import { selectValidatedTextView } from "../textView/textViewSlice";
-import { selectHasWrongArityError } from "./structureSlice";
+import {
+  selectHasWrongArityError,
+  type InterpretationType,
+} from "./structureSlice";
 
 export type EditorType = "text" | "matrix" | "database" | GraphType;
-export type InterpretationType = "predicate" | "function" | "constant";
 
 interface InterpretationEditorProps {
   id: string;

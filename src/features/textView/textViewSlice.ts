@@ -13,7 +13,6 @@ import {
   type TextViewSyncEntry,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
-import { SyntaxError as WrapperSyntaxError } from "./parserWrapper";
 
 export interface TextViewEntry {
   type: TextViewType;
@@ -123,14 +122,12 @@ export const updateTextView = ({
 
 export const selectValidatedTextView = createSelector(
   [
-    (_, type: TextViewType) => type,
-    (_, type: TextViewType, key: string = type) => key,
     (state: RootState, type: TextViewType, key: string = type) =>
       selectValidation(state, type, key),
     (state: RootState, type: TextViewType, key: string = type) =>
       state.textView[getKeyByType(type, key)],
   ],
-  (_, __, validationError, entry) => {
+  (validationError, entry) => {
     if (!entry) return { value: "", error: validationError };
 
     const { value, parseError } = entry;
@@ -153,10 +150,7 @@ const parseByTextType = <T extends TextViewType>(
   try {
     return { parsed: getDescriptor(textType).parse(toParse, state) };
   } catch (error) {
-    if (
-      error instanceof ParserSyntaxError ||
-      error instanceof WrapperSyntaxError
-    ) {
+    if (error instanceof ParserSyntaxError) {
       return {
         error: {
           kind: "syntax",

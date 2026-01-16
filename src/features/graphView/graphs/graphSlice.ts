@@ -40,6 +40,7 @@ import {
   updateFunctionSymbols,
   updateInterpretationPredicates,
   type StructureState,
+  type TupleType,
 } from "../../structure/structureSlice.ts";
 import {
   selectHoveredIntr,
@@ -48,8 +49,6 @@ import {
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
 import type { RelevantSymbols } from "../../import/importThunk.ts";
-
-export type TupleType = "function" | "predicate";
 
 export type GraphManagerState = Record<
   string,

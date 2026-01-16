@@ -18,11 +18,7 @@ export default function LockButton({
       className={`btn-bd-light-outline ${locked ? "text-danger" : ""} ${props.className}`}
       {...props}
     >
-      {locked ? (
-        <FontAwesomeIcon icon={faLock} />
-      ) : (
-        <FontAwesomeIcon icon={faUnlock} />
-      )}
+      <FontAwesomeIcon icon={locked ? faLock : faUnlock} />
     </Button>
   );
 }

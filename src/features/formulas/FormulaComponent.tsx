@@ -176,7 +176,6 @@ export default function FormulaComponent({ id, text, guess }: Props) {
             </Button>
           </Col>
         </Row>
-        {console.log(isPlayable)}
         {begin &&
           guess !== null &&
           formula &&

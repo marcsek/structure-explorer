@@ -15,11 +15,12 @@ import {
   selectMatrixValuesWithInvalid,
   updateMatrixValue,
 } from "./matrixViewSlice";
+import type { TupleType } from "../structure/structureSlice";
 
 interface MatrixViewProps {
   tupleName: string;
   tupleArity: number;
-  tupleType: "predicate" | "function";
+  tupleType: TupleType;
   locked: boolean;
   expandedView?: boolean;
 }
@@ -42,12 +43,13 @@ export default function MatrixView({
     selectFilteredDomain(state, tupleName, true),
   ).sort();
 
+  const isUnary = tupleArity === 1;
+
   const getValue = (row: string, col: string) =>
-    values[getKeyFromDomainTuple(tupleArity > 1 ? [row, col] : [row])]?.value;
+    values[getKeyFromDomainTuple(isUnary ? [row] : [row, col])]?.value;
 
   const isDuplicate = (row: string, col: string) =>
-    values[getKeyFromDomainTuple(tupleArity > 1 ? [row, col] : [row])]
-      ?.duplicate;
+    values[getKeyFromDomainTuple(isUnary ? [row] : [row, col])]?.duplicate;
 
   const handleValueChange = (
     rowElement: string,
@@ -58,7 +60,7 @@ export default function MatrixView({
 
     dispatch(
       updateMatrixValue({
-        domainTuple: tupleArity > 1 ? [rowElement, colElement] : [rowElement],
+        domainTuple: isUnary ? [rowElement] : [rowElement, colElement],
         tupleName,
         type: tupleType,
         value,
@@ -80,7 +82,7 @@ export default function MatrixView({
       <thead>
         <tr>
           <th key="col-head">Domain</th>
-          {tupleArity > 1 &&
+          {!isUnary &&
             domainWithLeftovers.map((head) => (
               <th className={getTableClass(head, hovered.col)} key={head}>
                 <PredicateIndicatorTableHead
@@ -102,7 +104,7 @@ export default function MatrixView({
               />
             </td>
 
-            {(tupleArity > 1 ? domainWithLeftovers : [row]).map((col) =>
+            {(isUnary ? [row] : domainWithLeftovers).map((col) =>
               tupleType === "predicate" ? (
                 <TableDataInput
                   key={col}

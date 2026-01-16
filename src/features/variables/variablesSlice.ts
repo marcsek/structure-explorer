@@ -1,10 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import {
-  selectLanguage,
-  type PayloadActionSource,
-} from "../language/languageSlice";
+import { type PayloadActionSource } from "../language/languageSlice";
 import { selectValidatedDomain } from "../structure/structureSlice";
 import { createValidationError } from "../../common/errors";
 import {
@@ -12,11 +9,6 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import {
-  type TextViewDescriptors,
-  type TextViewSyncEntry,
-} from "../textView/textViews";
-import { parseValuation } from "@fmfi-uk-1-ain-412/js-fol-parser";
 
 export type VariableRepresentation = { from: string; to: string };
 export type VariablesState = LockableValue<VariableRepresentation[]>;
@@ -79,33 +71,3 @@ export const { updateVariables, importVariablesState, lockVariables } =
   variablesSlice.actions;
 
 export default variablesSlice.reducer;
-
-export interface VariablesTextViewTypeMap {
-  variables: [string, string][];
-}
-
-export const variablesTextViewDescriptors: TextViewDescriptors<VariablesTextViewTypeMap> =
-  {
-    variables: {
-      payloadType: "value",
-      parse: (value, state) =>
-        parseValuation(value, selectLanguage(state).getParserLanguage()),
-      toText: (structured) =>
-        structured.map(([from, to]) => `${from}->${to}`).join(", "),
-      validate: (state) => selectValidatedVariables(state).error,
-      syncActionCreator: updateVariables,
-    },
-  };
-
-export const getVariablesTextViewSyncEntries = (variables: VariablesState) => {
-  const result: TextViewSyncEntry[] = [];
-
-  result.push({
-    textViewType: "variables",
-    value: variablesTextViewDescriptors.variables.toText(
-      variables.value.map(({ from, to }) => [from, to]),
-    ),
-  });
-
-  return result;
-};

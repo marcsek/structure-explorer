@@ -20,12 +20,10 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import type {
-  TextViewDescriptors,
-  TextViewSyncEntry,
-} from "../textView/textViews";
-import { parseDomain, parseTuples } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { RelevantSymbols } from "../import/importThunk";
+
+export type InterpretationType = "predicate" | "function" | "constant";
+export type TupleType = "function" | "predicate";
 
 export type DomainRepresentation = string[];
 export type ConstantInterpretation = string;
@@ -64,16 +62,16 @@ export const structureSlice = createSlice({
 
       if (!merge) return newState;
 
-      for (const [name, value] of Object.entries(newState.iC)) {
-        state.iC[name] = value;
-      }
+      const newStateMap = interpretationTypeToStateEntryMap(newState);
+      const stateMap = interpretationTypeToStateEntryMap(state);
 
-      for (const [name, value] of Object.entries(newState.iP)) {
-        state.iP[name] = value;
-      }
+      for (const intrType in newStateMap) {
+        const newState = newStateMap[intrType as keyof InterpretationMap];
+        const structure = stateMap[intrType as keyof InterpretationMap];
 
-      for (const [name, value] of Object.entries(newState.iF)) {
-        state.iF[name] = value;
+        for (const [name, value] of Object.entries(newState)) {
+          structure[name] = value;
+        }
       }
 
       state.domain = newState.domain;
@@ -179,26 +177,29 @@ export const structureSlice = createSlice({
   },
 });
 
-function getInterpretationByType<T extends keyof InterpretationMap>(
+const interpretationTypeToStateEntryMap = (
+  state: StructureState,
+): InterpretationMap => ({
+  constant: state.iC,
+  predicate: state.iP,
+  function: state.iF,
+});
+
+const getInterpretationByType = <T extends keyof InterpretationMap>(
   state: StructureState,
   name: string,
   type: T,
-): InterpretationMap[T][string] {
-  const map = {
-    constant: state.iC,
-    predicate: state.iP,
-    function: state.iF,
-  };
-
-  return map[type][name] as InterpretationMap[T][string];
-}
+): InterpretationMap[T][string] => {
+  const stateMap = interpretationTypeToStateEntryMap(state);
+  return stateMap[type][name] as InterpretationMap[T][string];
+};
 
 export const removeInvalidEntries = ({
   key,
   type,
 }: {
   key: string;
-  type: "predicate" | "function";
+  type: TupleType;
 }): AppThunk => {
   return (dispatch, getState) => {
     const state = getState().structure;
@@ -219,12 +220,7 @@ export const removeInvalidEntries = ({
       return true;
     });
 
-    const updater =
-      type === "predicate"
-        ? updateInterpretationPredicates
-        : updateFunctionSymbols;
-
-    dispatch(updater({ key, value: filtered }));
+    dispatch(interpretationToUpdateActionMap[type]({ key, value: filtered }));
   };
 };
 
@@ -253,7 +249,7 @@ export const selectIfLock = (state: RootState, name: string) =>
 export const selectInterpretationByType = (
   state: RootState,
   name: string,
-  type: "predicate" | "function" | "constant",
+  type: InterpretationType,
 ) => getInterpretationByType(state.structure, name, type);
 
 export const selectValidatedDomain = createSelector(
@@ -331,7 +327,6 @@ export const selectValidatedPredicate = createSelector(
       }
     }
 
-    console.log("error", error, interpretation.value);
     return { parsed: interpretation.value ?? [], error };
   },
 );
@@ -479,16 +474,11 @@ export const selectStructureErrors = createSelector(
 export const selectHasWrongArityError = createSelector(
   [
     selectInterpretationByType,
-    (state: RootState, _: string, type: "predicate" | "function") =>
-      type === "predicate"
-        ? selectValidatedPredicates(state)
-        : selectValidatedFunctions(state),
-    (_: RootState, name: string) => name,
-    (_: RootState, __: string, type: "predicate" | "function") => type,
+    (state: RootState, name: string, type: TupleType) =>
+      interpretationToSelectorMap[type](state).parsed.get(name),
+    (_: RootState, __: string, type: TupleType) => type,
   ],
-  (interpretation, { parsed: predicates }, name, type) => {
-    const arity = predicates.get(name);
-
+  (interpretation, arity, type) => {
     if (arity === undefined || !interpretation) return false;
 
     return (interpretation.value as TupleInterpretation).some(
@@ -578,84 +568,14 @@ export const {
 
 export default structureSlice.reducer;
 
-export interface StructureTextViewTypeMap {
-  domain: DomainRepresentation;
-  constant_interpretation: ConstantInterpretation;
-  predicate_interpretation: TupleInterpretation;
-  function_interpretation: TupleInterpretation;
-}
+const interpretationToUpdateActionMap = {
+  constants: updateInterpretationConstants,
+  predicate: updateInterpretationPredicates,
+  function: updateFunctionSymbols,
+} as const;
 
-export const structureTextViewDescriptors: TextViewDescriptors<StructureTextViewTypeMap> =
-  {
-    domain: {
-      payloadType: "value",
-      parse: (value) => parseDomain(value),
-      toText: (structured) => structured.join(", "),
-      validate: (state) => selectValidatedDomain(state)?.error,
-      syncActionCreator: updateDomain,
-    },
-
-    constant_interpretation: {
-      payloadType: "key",
-      parse: (value) => value,
-      toText: (structured) => structured,
-      validate: (state, key) => selectValidatedConstant(state, key!).error,
-      syncActionCreator: updateInterpretationConstants,
-    },
-
-    predicate_interpretation: {
-      payloadType: "key",
-      parse: (value) => parseTuples(value),
-      toText: (structured) =>
-        structured
-          .map((tuple) =>
-            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
-          )
-          .join(", "),
-      validate: (state, key) => selectValidatedPredicate(state, key!).error,
-      syncActionCreator: updateInterpretationPredicates,
-    },
-
-    function_interpretation: {
-      payloadType: "key",
-      parse: (value) => parseTuples(value),
-      toText: (structured) =>
-        structured
-          .map((tuple) =>
-            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
-          )
-          .join(", "),
-      validate: (state, key) => selectValidatedFunction(state, key!).error,
-      syncActionCreator: updateFunctionSymbols,
-    },
-  };
-
-export const getStructureTextViewSyncEntries = (structure: StructureState) => {
-  const { domain, iC, iP, iF } = structure;
-  const descriptors = structureTextViewDescriptors;
-
-  const result: TextViewSyncEntry[] = [
-    {
-      textViewType: "domain",
-      value: descriptors.domain.toText(domain.value),
-    },
-  ];
-
-  const interpretationConfigs = [
-    { entries: iC, type: "constant_interpretation" },
-    { entries: iP, type: "predicate_interpretation" },
-    { entries: iF, type: "function_interpretation" },
-  ] as const;
-
-  for (const { entries, type } of interpretationConfigs) {
-    for (const [name, { value }] of Object.entries(entries)) {
-      result.push({
-        textViewType: type,
-        key: name,
-        value: descriptors[type].toText(value),
-      });
-    }
-  }
-
-  return result;
-};
+const interpretationToSelectorMap = {
+  constants: selectValidatedConstants,
+  predicate: selectValidatedPredicates,
+  function: selectValidatedFunctions,
+} as const;

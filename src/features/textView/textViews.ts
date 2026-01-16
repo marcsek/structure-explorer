@@ -3,18 +3,17 @@ import type { RootState } from "../../app/store";
 import type { SemanticError, ValidationError } from "../../common/errors";
 
 import {
-  languageTextViewDescriptors,
   type LanguageTextViewTypeMap,
-} from "../language/languageSlice";
+  languageTextViewDescriptors,
+} from "../language/textViewDescriptors";
 import {
   structureTextViewDescriptors,
   type StructureTextViewTypeMap,
-} from "../structure/structureSlice";
+} from "../structure/textViewDescriptors";
 import {
-  variablesTextViewDescriptors,
   type VariablesTextViewTypeMap,
-} from "../variables/variablesSlice";
-
+  variablesTextViewDescriptors,
+} from "../variables/textViewDescriptors";
 export type ActionCreatorWithMeta<
   P,
   M,

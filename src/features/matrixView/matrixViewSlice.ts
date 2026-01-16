@@ -9,11 +9,12 @@ import {
   updateInterpretationPredicates,
   type StructureState,
   type TupleInterpretation,
+  type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
 
 export interface MatrixViewEntry {
-  type: "function" | "predicate";
+  type: TupleType;
   values: Record<
     string,
     { domainTuple: string[]; value: string; duplicate?: boolean }
@@ -26,7 +27,7 @@ const initialState: MatrixViewState = {};
 
 type ValueChangedPayload = {
   tupleName: string;
-  type: "function" | "predicate";
+  type: TupleType;
   value: string;
   domainTuple: string[];
 };
@@ -78,7 +79,7 @@ export const matrixViewSlice = createSlice({
 });
 
 const handleUpdateInterpretation = (
-  tupleType: MatrixViewEntry["type"],
+  tupleType: TupleType,
   state: MatrixViewState,
   payload: { key: string; value: TupleInterpretation },
 ) => {
@@ -108,7 +109,7 @@ const handleUpdateInterpretation = (
 
 const syncInterpretation = (
   key: string,
-  tupleType: MatrixViewEntry["type"],
+  tupleType: TupleType,
   newValues: MatrixViewEntry["values"],
   state: MatrixViewState,
 ) => {
@@ -124,7 +125,7 @@ export const { valueChanged, syncMatrixView } = matrixViewSlice.actions;
 export const selectMatrixValuesWithInvalid = createSelector(
   [
     selectDomain,
-    (state: RootState, key: string, type: MatrixViewEntry["type"]) =>
+    (state: RootState, key: string, type: TupleType) =>
       state.matrixView[getKeyByTupleType(type, key)],
   ],
   (domain, entry) => {
@@ -151,7 +152,7 @@ export const updateMatrixValue = ({
   value: newValue,
 }: {
   domainTuple: string[];
-  type: MatrixViewEntry["type"];
+  type: TupleType;
   tupleName: string;
   value: string;
 }): AppThunk => {
@@ -182,7 +183,7 @@ const getKeyByTupleType = (type: MatrixViewEntry["type"], key: string) =>
   `${type}-${key}`;
 
 const createTupleValueEntry = (
-  type: MatrixViewEntry["type"],
+  type: TupleType,
   tuple: string[],
   isDuplicate: boolean = false,
 ) => {
@@ -196,7 +197,7 @@ const createTupleValueEntry = (
 };
 
 const generateTupleInterpretation = (
-  type: MatrixViewEntry["type"],
+  type: TupleType,
   values: MatrixViewEntry["values"],
 ) => {
   const interpretation: string[][] = [];

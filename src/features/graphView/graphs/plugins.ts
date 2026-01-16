@@ -3,7 +3,6 @@ import {
   bipartiteGraphPlugin,
   type BipartiteGraphState,
 } from "./BipartiteGraph/plugin";
-import type { TupleType } from "./graphSlice";
 import {
   hasseDiagramPlugin,
   type HasseDiagramState,
@@ -13,6 +12,7 @@ import {
   orientedGraphPlugin,
   type OrientedGraphState,
 } from "./OrientedGraph/plugin";
+import type { TupleType } from "../../structure/structureSlice";
 
 export type GraphState = {
   oriented: OrientedGraphState;

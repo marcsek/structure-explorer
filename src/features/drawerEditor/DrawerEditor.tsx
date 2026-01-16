@@ -13,7 +13,10 @@ import DatabaseView from "../databaseView/DatabaseView";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch } from "../../app/hooks";
-import { removeInvalidEntries } from "../structure/structureSlice";
+import {
+  removeInvalidEntries,
+  type TupleType,
+} from "../structure/structureSlice";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -22,7 +25,7 @@ interface DrawerEditorProps {
   type: DrawerEditorType;
   tupleDisplayName: string;
   tupleArity: number;
-  tupleType: "predicate" | "function";
+  tupleType: TupleType;
   editorDisplayName: string;
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
   locker: () => void;
@@ -75,7 +78,6 @@ function DrawerEditorContent({
 }: DrawerEditorContentProps) {
   const dispatch = useAppDispatch();
 
-  console.log(error?.kind);
   return (
     <>
       <Stack
@@ -161,18 +163,10 @@ function DrawerEditorContent({
                   />
                 )}
               </Card.Body>
-
-              {/* {expandedView && error?.message && ( */}
-              {/*   <p className="text-danger small m-1">{error?.message}</p> */}
-              {/* )} */}
             </Card>
           </Stack>
         </Stack>
       </Stack>
-
-      {/* {!expandedView && error?.message && ( */}
-      {/*   <p className="text-danger small m-0">{error?.message}</p> */}
-      {/* )} */}
     </>
   );
 }

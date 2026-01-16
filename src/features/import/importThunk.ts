@@ -5,27 +5,25 @@ import { importFormulasState } from "../formulas/formulasSlice";
 import {
   getGraphViewStateToExport,
   syncGraphView,
-  type TupleType,
 } from "../graphView/graphs/graphSlice";
 import type { GraphType } from "../graphView/graphs/plugins";
 import {
-  getLanguageTextViewSyncEntries,
   importLanguageState,
   type LanguageState,
 } from "../language/languageSlice";
 import { syncMatrixView } from "../matrixView/matrixViewSlice";
 import {
   getRelevantStructureState,
-  getStructureTextViewSyncEntries,
   importStructureState,
+  type TupleType,
 } from "../structure/structureSlice";
 import { importTeacherMode } from "../teacherMode/teacherModeslice";
 import { syncTextView } from "../textView/textViewSlice";
-import {
-  getVariablesTextViewSyncEntries,
-  importVariablesState,
-} from "../variables/variablesSlice";
+import { importVariablesState } from "../variables/variablesSlice";
 import type { TextViewSyncEntry } from "../textView/textViews";
+import { getStructureTextViewSyncEntries } from "../structure/textViewDescriptors";
+import { getLanguageTextViewSyncEntries } from "../language/textViewDescriptors";
+import { getVariablesTextViewSyncEntries } from "../variables/textViewDescriptors";
 
 export interface ImportedAppState
   extends Omit<
