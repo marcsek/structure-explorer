@@ -12,7 +12,7 @@ import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColor
 import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import {
   getKeyFromDomainTuple,
-  selectMatrixValuesWithLeftovers,
+  selectMatrixValuesWithInvalid,
   updateMatrixValue,
 } from "./matrixViewSlice";
 
@@ -35,7 +35,7 @@ export default function MatrixView({
   const dispatch = useAppDispatch();
 
   const { values, leftovers } = useAppSelector((state) =>
-    selectMatrixValuesWithLeftovers(state, tupleName, tupleType),
+    selectMatrixValuesWithInvalid(state, tupleName, tupleType),
   );
 
   const domain = useAppSelector((state) =>
@@ -44,6 +44,10 @@ export default function MatrixView({
 
   const getValue = (row: string, col: string) =>
     values[getKeyFromDomainTuple(tupleArity > 1 ? [row, col] : [row])]?.value;
+
+  const isDuplicate = (row: string, col: string) =>
+    values[getKeyFromDomainTuple(tupleArity > 1 ? [row, col] : [row])]
+      ?.duplicate;
 
   const handleValueChange = (
     rowElement: string,
@@ -108,7 +112,11 @@ export default function MatrixView({
                   locked={locked}
                   hovered={hovered.col === col}
                   columnError={leftovers.includes(col)}
-                  invalid={leftovers.includes(col) || leftovers.includes(row)}
+                  invalid={
+                    leftovers.includes(col) ||
+                    leftovers.includes(row) ||
+                    !!isDuplicate(row, col)
+                  }
                   onHovered={(hovered) =>
                     setHovered(hovered ? { row, col } : { row: "", col: "" })
                   }
@@ -123,7 +131,8 @@ export default function MatrixView({
                     (!domain.includes(getValue(row, col)) &&
                       (getValue(row, col) ?? "") !== "") ||
                     leftovers.includes(col) ||
-                    leftovers.includes(row)
+                    leftovers.includes(row) ||
+                    !!isDuplicate(row, col)
                   }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
@@ -163,7 +172,9 @@ function TableDataInput(props: TableDataInputProps) {
   if (tupleType === "predicate") {
     return (
       <td
-        className={columnError ? "error" : props.hovered ? "hovered" : ""}
+        className={
+          columnError || invalid ? "error" : props.hovered ? "hovered" : ""
+        }
         onMouseEnter={() => props.onHovered(true)}
         onMouseLeave={() => props.onHovered(false)}
         onClick={() => (!invalid || props.value) && props.onValueChange()}

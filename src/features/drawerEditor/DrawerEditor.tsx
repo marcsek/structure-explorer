@@ -1,6 +1,6 @@
 import "./DrawerEditor.css";
 
-import { Card, CloseButton, Modal, Stack } from "react-bootstrap";
+import { Button, Card, CloseButton, Modal, Stack } from "react-bootstrap";
 import { GraphToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import { type EditorType } from "../structure/InterpretationEditor";
@@ -10,6 +10,10 @@ import { ForwardSlashIcon } from "../../components_helper/CustomIcons";
 import type { InterpretationError } from "../../common/errors";
 import MatrixView from "../matrixView/MatrixView";
 import DatabaseView from "../databaseView/DatabaseView";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
+import { useAppDispatch } from "../../app/hooks";
+import { removeInvalidEntries } from "../structure/structureSlice";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -69,6 +73,9 @@ function DrawerEditorContent({
   locked = false,
   error,
 }: DrawerEditorContentProps) {
+  const dispatch = useAppDispatch();
+
+  console.log(error?.kind);
   return (
     <>
       <Stack
@@ -90,9 +97,35 @@ function DrawerEditorContent({
         </div>
 
         <Stack className="drawer-editor-container-body">
-          <div className="drawer-editor-toolbar-container">
-            <GraphToolbar id={tupleName} />
-          </div>
+          {type !== "database" && (
+            <div className="drawer-editor-toolbar-container">
+              <GraphToolbar id={tupleName} />
+            </div>
+          )}
+
+          {error?.message && (
+            <div className="drawer-editor-error-container">
+              <div className="drawer-editor-error-message">
+                <FontAwesomeIcon icon={faWarning} />
+                <p className="small m-0">{error?.message}</p>
+              </div>
+              {error.kind !== "semantic" && (
+                <Button
+                  className=""
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={() =>
+                    dispatch(
+                      removeInvalidEntries({ key: tupleName, type: tupleType }),
+                    )
+                  }
+                >
+                  <FontAwesomeIcon icon={faTrash} size="sm" />
+                  Remove invalid
+                </Button>
+              )}
+            </div>
+          )}
 
           <Stack>
             <Card className="border-0" style={{ height: "100%" }}>
@@ -129,17 +162,17 @@ function DrawerEditorContent({
                 )}
               </Card.Body>
 
-              {expandedView && error?.message && (
-                <p className="text-danger small m-1">{error?.message}</p>
-              )}
+              {/* {expandedView && error?.message && ( */}
+              {/*   <p className="text-danger small m-1">{error?.message}</p> */}
+              {/* )} */}
             </Card>
           </Stack>
         </Stack>
       </Stack>
 
-      {!expandedView && error?.message && (
-        <p className="text-danger small m-0">{error?.message}</p>
-      )}
+      {/* {!expandedView && error?.message && ( */}
+      {/*   <p className="text-danger small m-0">{error?.message}</p> */}
+      {/* )} */}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import type { ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import type { ValidationError } from "../../common/errors";
+import type { SemanticError, ValidationError } from "../../common/errors";
 
 import {
   languageTextViewDescriptors,
@@ -26,7 +26,10 @@ type KeyedPayload<T> = { key: string; value: T };
 interface TextViewDescriptorBase<TStructured, TPayload> {
   parse: (value: string, state: RootState) => TStructured;
   toText: (structured: TStructured) => string;
-  validate: (state: RootState, key?: string) => ValidationError | undefined;
+  validate: (
+    state: RootState,
+    key?: string,
+  ) => ValidationError | SemanticError | undefined;
   syncActionCreator: ActionCreatorWithMeta<TPayload, { source?: string }>;
 }
 

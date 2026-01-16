@@ -14,7 +14,10 @@ import type { AppThunk, RootState } from "../../app/store";
 
 export interface MatrixViewEntry {
   type: "function" | "predicate";
-  values: Record<string, { domainTuple: string[]; value: string }>;
+  values: Record<
+    string,
+    { domainTuple: string[]; value: string; duplicate?: boolean }
+  >;
 }
 
 export type MatrixViewState = Record<string, MatrixViewEntry>;
@@ -57,11 +60,7 @@ export const matrixViewSlice = createSlice({
 
       for (const { entries, kind } of sources) {
         for (const [key, { value }] of Object.entries(entries)) {
-          const newValues = Object.fromEntries(
-            value.map((tuple) => createTupleValueEntry(kind, tuple)),
-          );
-
-          syncInterpretation(key, kind, newValues, state);
+          handleUpdateInterpretation(kind, state, { key, value });
         }
       }
     },
@@ -69,31 +68,43 @@ export const matrixViewSlice = createSlice({
 
   extraReducers(builder) {
     builder.addCase(updateInterpretationPredicates, (state, action) =>
-      handleUpdateInterpretation("predicate")(state, action.payload),
+      handleUpdateInterpretation("predicate", state, action.payload),
     );
 
     builder.addCase(updateFunctionSymbols, (state, action) =>
-      handleUpdateInterpretation("function")(state, action.payload),
+      handleUpdateInterpretation("function", state, action.payload),
     );
   },
 });
 
-type InterpretationPayload = {
-  key: string;
-  value: TupleInterpretation;
+const handleUpdateInterpretation = (
+  tupleType: MatrixViewEntry["type"],
+  state: MatrixViewState,
+  payload: { key: string; value: TupleInterpretation },
+) => {
+  const { key, value } = payload;
+
+  const seenTuples = new Set<string>();
+  const newValues = Object.fromEntries(
+    value.flatMap((tuple) => {
+      let entry = createTupleValueEntry(tupleType, tuple);
+
+      const [entryKey] = entry;
+
+      const wasSeen = seenTuples.has(entryKey);
+      seenTuples.add(entryKey);
+
+      if (!wasSeen) return [entry];
+
+      const duplicateEntry = createTupleValueEntry(tupleType, tuple, true);
+      entry = [entry[0], { ...entry[1], duplicate: true }];
+
+      return [entry, duplicateEntry];
+    }),
+  );
+
+  syncInterpretation(key, tupleType, newValues, state);
 };
-
-const handleUpdateInterpretation =
-  (tupleType: MatrixViewEntry["type"]) =>
-  (state: MatrixViewState, payload: InterpretationPayload) => {
-    const { key, value } = payload;
-
-    const newValues = Object.fromEntries(
-      value.map((tuple) => createTupleValueEntry(tupleType, tuple)),
-    );
-
-    syncInterpretation(key, tupleType, newValues, state);
-  };
 
 const syncInterpretation = (
   key: string,
@@ -110,7 +121,7 @@ const syncInterpretation = (
 
 export const { valueChanged, syncMatrixView } = matrixViewSlice.actions;
 
-export const selectMatrixValuesWithLeftovers = createSelector(
+export const selectMatrixValuesWithInvalid = createSelector(
   [
     selectDomain,
     (state: RootState, key: string, type: MatrixViewEntry["type"]) =>
@@ -173,11 +184,15 @@ const getKeyByTupleType = (type: MatrixViewEntry["type"], key: string) =>
 const createTupleValueEntry = (
   type: MatrixViewEntry["type"],
   tuple: string[],
+  isDuplicate: boolean = false,
 ) => {
-  const domainTuple = type === "function" ? tuple.slice(0, -1) : tuple;
+  const domainTuple = [...(type === "function" ? tuple.slice(0, -1) : tuple)];
   const value = type === "function" ? (tuple.at(-1) ?? "") : "in";
 
-  return [getKeyFromDomainTuple(domainTuple), { domainTuple, value }];
+  let key = getKeyFromDomainTuple(domainTuple);
+  if (isDuplicate) key = `${key}-d`;
+
+  return [key, { domainTuple, value, duplicate: isDuplicate }] as const;
 };
 
 const generateTupleInterpretation = (

@@ -39,6 +39,8 @@ export default function InterpretationFilters({
     selectSelectedUnary(state, id),
   );
 
+  const unaryPredicatesCount = useAppSelector(selectUnaryPreds)?.length ?? 0;
+
   const handleDomainHover = (hovered: boolean) => {
     dispatch(unaryFilterDomainHovered({ id, hovered }));
   };
@@ -58,7 +60,13 @@ export default function InterpretationFilters({
 
       <div className="intr-filters-divider" />
 
-      <UnaryPredicatesFilter id={id} />
+      {unaryPredicatesCount !== 0 ? (
+        <UnaryPredicatesFilter id={id} />
+      ) : (
+        <span className="intr-filter-no-elements-info">
+          No unary predicates to filter
+        </span>
+      )}
     </div>
   );
 }

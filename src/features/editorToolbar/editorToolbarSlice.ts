@@ -203,7 +203,7 @@ export const selectRelevantDomainElements = createSelector(
 export const selectFilteredDomain = createSelector(
   [selectSelectedDomain, selectRelevantDomainElements],
   (selectedDomain, relevantDomain) => {
-    if (!relevantDomain) return selectedDomain;
+    if (!relevantDomain || relevantDomain.length === 0) return selectedDomain;
 
     const result = relevantDomain.filter((element) =>
       selectedDomain.includes(element),

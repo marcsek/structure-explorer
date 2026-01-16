@@ -14,8 +14,16 @@ export interface ValidationError extends BaseError {
   kind: "validation";
 }
 
+export interface SemanticError extends BaseError {
+  kind: "semantic";
+}
+
 export const createValidationError = (message: string): ValidationError => {
   return { kind: "validation", message };
 };
 
-export type InterpretationError = SyntaxError | ValidationError;
+export const createSemanticError = (message: string): SemanticError => {
+  return { kind: "semantic", message };
+};
+
+export type InterpretationError = SyntaxError | ValidationError | SemanticError;

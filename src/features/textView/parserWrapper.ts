@@ -4,6 +4,7 @@ import {
   type Location,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 
+// TODO: Unused
 export const parseTuplesUnique = (
   input: string,
   tupleType: "predicate" | "function",

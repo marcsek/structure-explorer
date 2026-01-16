@@ -21,6 +21,7 @@ import LockButton from "../../components_helper/LockButton";
 import type { RootState } from "../../app/store";
 import type { TextViewType } from "../textView/textViews";
 import { selectValidatedTextView } from "../textView/textViewSlice";
+import { selectHasWrongArityError } from "./structureSlice";
 
 export type EditorType = "text" | "matrix" | "database" | GraphType;
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -86,6 +87,10 @@ export default function InterpretationEditorProps({
         ? selectValidatedPredicates(state).parsed?.get(name)
         : selectValidatedFunctions(state).parsed?.get(name),
     ) ?? 0;
+
+  const wrongArityError = useAppSelector((state) =>
+    type !== "constant" ? selectHasWrongArityError(state, name, type) : false,
+  );
 
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
@@ -181,6 +186,7 @@ export default function InterpretationEditorProps({
                   )}
                   selected={selectedEditor}
                   onSelected={setSelectedEditor}
+                  disabled={wrongArityError}
                 />
               )
             }

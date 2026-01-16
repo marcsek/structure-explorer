@@ -1,6 +1,5 @@
 .intr-filters-container {
   display: flex;
-  align-items: center;
   flex-wrap: nowrap;
   align-items: flex-start;
 
@@ -158,4 +157,9 @@
   height: 38px;
   background-color: var(--bs-light-border-subtle);
   margin-top: 0.25rem;
+}
+
+.intr-filter-no-elements-info {
+  align-self: center;
+  color: var(--bs-secondary-color);
 }

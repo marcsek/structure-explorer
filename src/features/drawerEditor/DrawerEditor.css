@@ -27,6 +27,7 @@
 
 .drawer-editor-container-body {
   height: 100%;
+  z-index: 10;
 }
 
 .modal.fade .drawer-editor-modal-dialog {
@@ -66,6 +67,7 @@
   border: 1px solid var(--bs-border-color);
   border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
   overflow: hidden;
+  margin-top: -1px;
 }
 
 .drawer-editor-view-container.error {
@@ -99,6 +101,40 @@
   border-top-right-radius: var(--bs-border-radius);
 
   font-size: 1rem;
+}
+
+.drawer-editor-error-container {
+  padding-inline: 12px;
+  padding-block: 12px;
+  min-height: 1.5rem;
+  box-sizing: content-box;
+  border: 1px solid var(--bs-border-color);
+  border-bottom: 0;
+  border-color: var(--bs-danger);
+
+  color: var(--bs-danger);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drawer-editor-error-message {
+  display: flex;
+  gap: 0.5rem;
+  line-height: 1;
+  align-items: center;
+}
+
+.drawer-editor-error-container button {
+  font-size: 14px;
+  line-height: 1;
+
+  min-width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .drawer-editor-toolbar-container {

@@ -82,11 +82,15 @@ export default function DomainSelector({ id }: DomainSelectorProps) {
           </div>
 
           <div className="domain-selector-body-divider" />
+
           <div className="domain-selector-list-container">
             <div className="domain-selector-list-header">
               <span>Element</span>
               <span>Unary Predicates</span>
             </div>
+
+            {domain.length === 0 && <span>No domain elements to display</span>}
+
             <ul className="domain-selector-list">
               {domain.map((item) => (
                 <DomainSelectorItem

@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "../../app/store";
+import type { AppThunk, RootState } from "../../app/store";
 import {
   selectLanguage,
   selectValidatedConstants,
@@ -11,6 +11,7 @@ import {
 import Structure, { type DomainElement } from "../../model/Structure";
 import type { Symbol } from "../../model/Language";
 import {
+  createSemanticError,
   createValidationError,
   type ValidationError,
 } from "../../common/errors";
@@ -23,8 +24,7 @@ import type {
   TextViewDescriptors,
   TextViewSyncEntry,
 } from "../textView/textViews";
-import { parseDomain } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { parseTuplesUnique } from "../textView/parserWrapper";
+import { parseDomain, parseTuples } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { RelevantSymbols } from "../import/importThunk";
 
 export type DomainRepresentation = string[];
@@ -37,6 +37,13 @@ export interface StructureState {
   iP: Record<string, LockableValue<TupleInterpretation>>;
   iF: Record<string, LockableValue<TupleInterpretation>>;
 }
+
+// Helper type
+type InterpretationMap = {
+  constant: StructureState["iC"];
+  predicate: StructureState["iP"];
+  function: StructureState["iF"];
+};
 
 const initialState: StructureState = {
   domain: { value: [], locked: false },
@@ -172,6 +179,55 @@ export const structureSlice = createSlice({
   },
 });
 
+function getInterpretationByType<T extends keyof InterpretationMap>(
+  state: StructureState,
+  name: string,
+  type: T,
+): InterpretationMap[T][string] {
+  const map = {
+    constant: state.iC,
+    predicate: state.iP,
+    function: state.iF,
+  };
+
+  return map[type][name] as InterpretationMap[T][string];
+}
+
+export const removeInvalidEntries = ({
+  key,
+  type,
+}: {
+  key: string;
+  type: "predicate" | "function";
+}): AppThunk => {
+  return (dispatch, getState) => {
+    const state = getState().structure;
+
+    const entry = getInterpretationByType(state, key, type);
+    const domain = state.domain;
+
+    const seen = new Set<string>();
+    const filtered = entry.value.filter((tuple) => {
+      const key = tuple.join(",");
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      if (!tuple.every((element) => domain.value.includes(element)))
+        return false;
+
+      return true;
+    });
+
+    const updater =
+      type === "predicate"
+        ? updateInterpretationPredicates
+        : updateFunctionSymbols;
+
+    dispatch(updater({ key, value: filtered }));
+  };
+};
+
 export const selectDomain = (state: RootState) => state.structure.domain;
 export const selectDomainLock = (state: RootState) =>
   state.structure.domain.locked;
@@ -193,6 +249,12 @@ export const selectIfName = (state: RootState, name: string) =>
   state.structure.iF[name];
 export const selectIfLock = (state: RootState, name: string) =>
   state.structure.iF[name]?.locked ?? false;
+
+export const selectInterpretationByType = (
+  state: RootState,
+  name: string,
+  type: "predicate" | "function" | "constant",
+) => getInterpretationByType(state.structure, name, type);
 
 export const selectValidatedDomain = createSelector(
   [(state: RootState) => state.structure.domain],
@@ -254,8 +316,22 @@ export const selectValidatedPredicate = createSelector(
           break;
         }
       }
+
+      for (const tuple2 of interpretation.value) {
+        if (
+          JSON.stringify(tuple) === JSON.stringify(tuple2) &&
+          tuple != tuple2
+        ) {
+          error = createValidationError(
+            `${size} (${tuple}) is already in predicate.`,
+          );
+
+          break;
+        }
+      }
     }
 
+    console.log("error", error, interpretation.value);
     return { parsed: interpretation.value ?? [], error };
   },
 );
@@ -300,7 +376,7 @@ export const selectValidatedFunction = createSelector(
       const actualSize = all[0].length === 1 ? "elements" : `${arity}-tuples`;
 
       return {
-        error: createValidationError(
+        error: createSemanticError(
           `Function is not fully defined, for example these ${actualSize} do not have assigned value: ${examplePrints}`,
         ),
       };
@@ -328,6 +404,20 @@ export const selectValidatedFunction = createSelector(
 
       if (error) return error;
 
+      interpretation.value.forEach((tuple2) => {
+        if (
+          JSON.stringify(tuple.slice(0, -1)) ===
+            JSON.stringify(tuple2.slice(0, -1)) &&
+          tuple != tuple2
+        ) {
+          tuple = tuple.slice(0, -1);
+          const actual_size = tuple.length === 1 ? "element" : `${arity}-tuple`;
+          error = createValidationError(
+            `${actual_size} (${tuple}) has already defined value.`,
+          );
+        }
+      });
+
       if (
         all.filter(
           (i) => JSON.stringify(i) === JSON.stringify(tuple.slice(0, -1)),
@@ -343,9 +433,10 @@ export const selectValidatedFunction = createSelector(
     if (!error && all.length !== 0) {
       const examplePrints = all.length <= 3 ? `${examples}` : `${examples}...`;
       const actual_size = all[0].length === 1 ? "elements" : `${arity}-tuples`;
-      error = createValidationError(
+      const semanticError = createSemanticError(
         `Function is not fully defined, for example these ${actual_size} do not have assigned value: ${examplePrints}`,
       );
+      return { parsed: interpretation?.value ?? [], error: semanticError };
     }
 
     return { parsed: interpretation?.value ?? [], error };
@@ -382,6 +473,27 @@ export const selectStructureErrors = createSelector(
     }
 
     return true;
+  },
+);
+
+export const selectHasWrongArityError = createSelector(
+  [
+    selectInterpretationByType,
+    (state: RootState, _: string, type: "predicate" | "function") =>
+      type === "predicate"
+        ? selectValidatedPredicates(state)
+        : selectValidatedFunctions(state),
+    (_: RootState, name: string) => name,
+    (_: RootState, __: string, type: "predicate" | "function") => type,
+  ],
+  (interpretation, { parsed: predicates }, name, type) => {
+    const arity = predicates.get(name);
+
+    if (arity === undefined || !interpretation) return false;
+
+    return (interpretation.value as TupleInterpretation).some(
+      (tuple) => tuple.length !== (type === "function" ? arity + 1 : arity),
+    );
   },
 );
 
@@ -493,7 +605,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     predicate_interpretation: {
       payloadType: "key",
-      parse: (value) => parseTuplesUnique(value, "predicate"),
+      parse: (value) => parseTuples(value),
       toText: (structured) =>
         structured
           .map((tuple) =>
@@ -506,7 +618,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
 
     function_interpretation: {
       payloadType: "key",
-      parse: (value) => parseTuplesUnique(value, "function"),
+      parse: (value) => parseTuples(value),
       toText: (structured) =>
         structured
           .map((tuple) =>
