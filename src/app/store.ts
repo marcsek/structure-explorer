@@ -11,7 +11,6 @@ import teacherModeReducer from "../features/teacherMode/teacherModeslice";
 import graphViewReducer from "../features/graphView/graphs/graphSlice";
 import textViewReducer from "../features/textView/textViewSlice";
 import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
-import matrixViewReducer from "../features/matrixView/matrixViewSlice.ts";
 import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 
@@ -24,7 +23,6 @@ const rootReducer = {
   teacherMode: teacherModeReducer,
   graphView: graphViewReducer,
   textView: textViewReducer,
-  matrixView: matrixViewReducer,
   databaseView: databaseViewReducer,
   editorToolbar: editorToolbarReducer,
 };

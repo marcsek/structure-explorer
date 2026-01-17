@@ -246,11 +246,14 @@ export const selectIfName = (state: RootState, name: string) =>
 export const selectIfLock = (state: RootState, name: string) =>
   state.structure.iF[name]?.locked ?? false;
 
-export const selectInterpretationByType = (
+export const selectInterpretationByType = <T extends keyof InterpretationMap>(
   state: RootState,
   name: string,
-  type: InterpretationType,
-) => getInterpretationByType(state.structure, name, type);
+  type: T,
+): InterpretationMap[T][string] => {
+  const stateMap = interpretationTypeToStateEntryMap(state.structure);
+  return stateMap[type][name] as InterpretationMap[T][string];
+};
 
 export const selectValidatedDomain = createSelector(
   [(state: RootState) => state.structure.domain],

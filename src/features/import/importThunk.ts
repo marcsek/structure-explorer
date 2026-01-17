@@ -11,7 +11,6 @@ import {
   importLanguageState,
   type LanguageState,
 } from "../language/languageSlice";
-import { syncMatrixView } from "../matrixView/matrixViewSlice";
 import {
   getRelevantStructureState,
   importStructureState,
@@ -64,7 +63,6 @@ export const importAppState =
     ];
 
     dispatch(syncTextView(textViewSyncEntries));
-    dispatch(syncMatrixView({ structure }));
     dispatch(syncDatabaseView({ structure }));
     dispatch(
       syncGraphView({

@@ -13,7 +13,10 @@ export default defineConfig({
   css: {
     postcss: {
       plugins: [
-        prefixWrap(".structure-explorer", { blacklist: ["bootstrap.min.css"] }),
+        prefixWrap(".structure-explorer", {
+          blacklist: ["bootstrap.min.css"],
+          ignoredSelectors: [/\.structure-explorer.modal/],
+        }),
       ],
     },
   },
@@ -28,6 +31,7 @@ export default defineConfig({
 
     rollupOptions: {
       external: ["react", "react-dom"],
+
       output: {
         globals: {
           react: "React",

@@ -1,6 +1,6 @@
-import "./MatrixView.css";
+import "./TableView.css";
 
-import { Form, Table } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { useState } from "react";
 import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
@@ -11,18 +11,19 @@ import {
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import {
+  generateTupleInterpretation,
   getKeyFromDomainTuple,
   selectMatrixValuesWithInvalid,
-  updateMatrixValue,
-} from "./matrixViewSlice";
+  updaters,
+} from "./matrixViewSelectors";
 import type { TupleType } from "../structure/structureSlice";
+import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 
 interface MatrixViewProps {
   tupleName: string;
   tupleArity: number;
   tupleType: TupleType;
   locked: boolean;
-  expandedView?: boolean;
 }
 
 export default function MatrixView({
@@ -41,44 +42,52 @@ export default function MatrixView({
 
   const domain = useAppSelector((state) =>
     selectFilteredDomain(state, tupleName, true),
-  ).sort();
+  );
 
   const isUnary = tupleArity === 1;
+  const getDomainTuple = (row: string, col: string) =>
+    isUnary ? [row] : [row, col];
 
-  const getValue = (row: string, col: string) =>
-    values[getKeyFromDomainTuple(isUnary ? [row] : [row, col])]?.value;
+  const getEntry = (row: string, col: string) =>
+    values[getKeyFromDomainTuple(getDomainTuple(row, col))];
+
+  const getValue = (row: string, col: string) => getEntry(row, col)?.value;
 
   const isDuplicate = (row: string, col: string) =>
-    values[getKeyFromDomainTuple(isUnary ? [row] : [row, col])]?.duplicate;
+    getEntry(row, col)?.duplicate;
 
-  const handleValueChange = (
-    rowElement: string,
-    colElement: string,
-    value: string = "",
-  ) => {
+  const isInvalid = (row: string, col: string) =>
+    leftovers.includes(col) ||
+    leftovers.includes(row) ||
+    !!isDuplicate(row, col);
+
+  const handleValueChange = (row: string, col: string, value: string) => {
     if (locked) return;
 
-    dispatch(
-      updateMatrixValue({
-        domainTuple: isUnary ? [rowElement] : [rowElement, colElement],
-        tupleName,
-        type: tupleType,
-        value,
-      }),
-    );
+    const domainTuple = getDomainTuple(row, col);
+    const key = getKeyFromDomainTuple(domainTuple);
+    const newValues = { ...values };
+
+    newValues[key] = {
+      ...(newValues[key] ?? { duplicate: false, domainTuple }),
+      value,
+    };
+
+    const newInterpretation = generateTupleInterpretation(tupleType, newValues);
+
+    dispatch(updaters[tupleType]({ value: newInterpretation, key: tupleName }));
   };
 
   const domainWithLeftovers = [...domain, ...leftovers].sort();
 
-  const getTableClass = (element: string, hovered: string) =>
-    leftovers.includes(element)
-      ? "error"
-      : hovered === element
-        ? "hovered"
-        : "";
+  const getTableClass = (element: string, hovered: string) => {
+    if (leftovers.includes(element)) return "error";
+    if (hovered === element) return "hovered";
+    return "";
+  };
 
   return (
-    <Table className="table-bordered matrix-view-table">
+    <Table responsive className="table-bordered table-view">
       <thead>
         <tr>
           <th key="col-head">Domain</th>
@@ -106,35 +115,29 @@ export default function MatrixView({
 
             {(isUnary ? [row] : domainWithLeftovers).map((col) =>
               tupleType === "predicate" ? (
-                <TableDataInput
+                <PredicateTableCell
                   key={col}
-                  tupleType={tupleType}
                   value={!!getValue(row, col)}
-                  onValueChange={() => handleValueChange(row, col)}
+                  onValueChange={() =>
+                    handleValueChange(row, col, getValue(row, col) ? "" : "in")
+                  }
                   locked={locked}
                   hovered={hovered.col === col}
                   columnError={leftovers.includes(col)}
-                  invalid={
-                    leftovers.includes(col) ||
-                    leftovers.includes(row) ||
-                    !!isDuplicate(row, col)
-                  }
+                  invalid={isInvalid(row, col)}
                   onHovered={(hovered) =>
                     setHovered(hovered ? { row, col } : { row: "", col: "" })
                   }
                 />
               ) : (
-                <TableDataInput
+                <FunctionTableCell
                   key={col}
-                  tupleType={tupleType}
                   value={getValue(row, col) ?? ""}
                   columnError={leftovers.includes(col)}
                   invalid={
-                    (!domain.includes(getValue(row, col)) &&
-                      (getValue(row, col) ?? "") !== "") ||
-                    leftovers.includes(col) ||
-                    leftovers.includes(row) ||
-                    !!isDuplicate(row, col)
+                    (getValue(row, col) &&
+                      !domain.includes(getValue(row, col))) ||
+                    isInvalid(row, col)
                   }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
@@ -145,64 +148,6 @@ export default function MatrixView({
         ))}
       </tbody>
     </Table>
-  );
-}
-
-type TableDataInputProps =
-  | {
-      tupleType: "predicate";
-      value: boolean;
-      locked: boolean;
-      onValueChange: () => void;
-      onHovered: (hovered: boolean) => void;
-      invalid: boolean;
-      hovered: boolean;
-      columnError: boolean;
-    }
-  | {
-      tupleType: "function";
-      value: string;
-      locked: boolean;
-      invalid: boolean;
-      onValueChange: (value: string) => void;
-      columnError: boolean;
-    };
-
-function TableDataInput(props: TableDataInputProps) {
-  const { tupleType, locked, invalid, columnError } = props;
-
-  if (tupleType === "predicate") {
-    return (
-      <td
-        className={
-          columnError || invalid ? "error" : props.hovered ? "hovered" : ""
-        }
-        onMouseEnter={() => props.onHovered(true)}
-        onMouseLeave={() => props.onHovered(false)}
-        onClick={() => (!invalid || props.value) && props.onValueChange()}
-      >
-        <Form.Check
-          type="checkbox"
-          checked={props.value}
-          disabled={locked || (invalid && !props.value)}
-          isInvalid={invalid}
-          onClick={(e) => e.stopPropagation()}
-          onChange={props.onValueChange}
-        />
-      </td>
-    );
-  }
-
-  return (
-    <td className={columnError ? "error" : ""}>
-      <Form.Control
-        type="text"
-        value={props.value}
-        isInvalid={invalid}
-        onChange={(e) => props.onValueChange(e.target.value)}
-        disabled={locked || (invalid && !props.value)}
-      />
-    </td>
   );
 }
 
@@ -227,7 +172,7 @@ function PredicateIndicatorTableHead({
   );
 
   return (
-    <div className="matrix-view-table-head">
+    <div className="table-view-head">
       {domainId}
       <RelevantPredicatesIndicator predicateToColorMap={colorMap} size="sm" />
     </div>

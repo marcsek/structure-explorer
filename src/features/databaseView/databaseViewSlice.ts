@@ -8,11 +8,12 @@ import {
   updateFunctionSymbols,
   updateInterpretationPredicates,
   type StructureState,
+  type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
 
 export interface DatabaseViewEntry {
-  type: "function" | "predicate";
+  type: TupleType;
   domainTuple: string[][];
 }
 
@@ -22,7 +23,7 @@ const initialState: DatabaseViewState = {};
 
 type ValueChangedPayload = {
   tupleName: string;
-  type: "function" | "predicate";
+  type: TupleType;
   domainTuple: string[][];
 };
 
@@ -33,11 +34,7 @@ export const databaseViewSlice = createSlice({
     valueChanged(state, action: PayloadAction<ValueChangedPayload>) {
       const { tupleName, type, domainTuple } = action.payload;
 
-      const entryKey = `${type}-${tupleName}`;
-      const entry = state[entryKey];
-
-      if (entry) entry.domainTuple = domainTuple;
-      else state[entryKey] = { type, domainTuple };
+      syncInterpretation(tupleName, type, domainTuple, state);
     },
 
     syncDatabaseView(
@@ -76,11 +73,11 @@ export const databaseViewSlice = createSlice({
 
 const syncInterpretation = (
   key: string,
-  type: DatabaseViewEntry["type"],
+  type: TupleType,
   newValue: DatabaseViewEntry["domainTuple"],
   state: DatabaseViewState,
 ) => {
-  const entryKey = `${type}-${key}`;
+  const entryKey = getKeyByTupleType(type, key);
   const entry = state[entryKey];
 
   if (entry) entry.domainTuple = newValue;
@@ -89,51 +86,35 @@ const syncInterpretation = (
 
 export const { valueChanged, syncDatabaseView } = databaseViewSlice.actions;
 
-export const selectDatabaseViewLeftovers = createSelector(
-  [
-    selectDomain,
-    (state: RootState, key: string, type: "function" | "predicate") =>
-      state.databaseView[`${type}-${key}`],
-  ],
-  (domain, entry) => {
-    const matrixEntryDomain = new Set(entry?.domainTuple.flat() ?? []);
-
-    const leftover = [...matrixEntryDomain].filter(
-      (x) => !domain.value.includes(x) && x !== "",
-    );
-
-    return leftover;
-  },
-);
-
 export const selectDatabaseViewValues = createSelector(
   [
     selectDomain,
-    (_: RootState, __: string, type: DatabaseViewEntry["type"]) => type,
-    (state: RootState, key: string, type: DatabaseViewEntry["type"]) =>
-      state.databaseView[`${type}-${key}`],
-    (_: RootState, __: string, ___: DatabaseViewEntry["type"], arity: number) =>
-      arity,
+    (state: RootState, key: string, type: TupleType) =>
+      state.databaseView[getKeyByTupleType(type, key)],
+    (_: RootState, __: string, type: TupleType) => type,
+    (_: RootState, __: string, ___: TupleType, arity: number) => arity,
   ],
-  (domain, type, entry: DatabaseViewEntry | undefined, arity) => {
-    const domainTuple = entry?.domainTuple ?? [];
+  (domain, entry, type, arity) => {
+    const values = entry?.domainTuple ?? [];
+    const databaseValuesDomain = new Set(values.flat());
 
-    if (type === "predicate") return domainTuple;
-
-    if (domainTuple.length === Math.pow(domain.value.length, arity))
-      return domainTuple;
-
-    const presentTuples = new Map(
-      domainTuple.map((tuple) => [tuple.slice(0, -1).join(","), tuple]),
+    const leftovers = [...databaseValuesDomain].filter(
+      (element) => !domain.value.includes(element) && element !== "",
     );
 
-    const filledInTuples = fillInMissingTuples(
+    if (type === "predicate") return { values, leftovers };
+
+    const presentTuples = new Map(
+      values.map((tuple) => [tuple.slice(0, -1).join(","), tuple]),
+    );
+
+    const filledInValues = fillInMissingTuples(
       domain.value,
       arity,
       presentTuples,
     );
 
-    return filledInTuples;
+    return { values: filledInValues, leftovers };
   },
 );
 
@@ -141,10 +122,12 @@ export const updateDatabaseViewValue = ({
   domainTuple,
   type,
   tupleName,
+  arity,
 }: {
   domainTuple: string[][];
-  type: "predicate" | "function";
+  type: TupleType;
   tupleName: string;
+  arity: number;
 }): AppThunk => {
   return (dispatch) => {
     const filteredTuples = domainTuple.filter((tuple) =>
@@ -153,26 +136,23 @@ export const updateDatabaseViewValue = ({
 
     dispatch(valueChanged({ type, tupleName, domainTuple: filteredTuples }));
 
-    let validTuples = domainTuple;
+    const validTuples = domainTuple.filter((tuple) =>
+      isValidTuple(tuple, arity),
+    );
 
-    if (domainTuple.length !== 0) {
-      const arity = domainTuple[0].length;
-
-      validTuples = domainTuple.filter((tuple) => isValidTuple(tuple, arity));
-    }
-
-    const updater =
-      type === "predicate"
-        ? updateInterpretationPredicates
-        : updateFunctionSymbols;
     dispatch(
-      updater(
+      updaters[type](
         { value: validTuples, key: tupleName },
         { source: "databaseView" },
       ),
     );
   };
 };
+
+const updaters = {
+  predicate: updateInterpretationPredicates,
+  function: updateFunctionSymbols,
+} as const;
 
 export const isValidTuple = (tuple: string[], arity: number) =>
   tuple.length === arity && tuple.every((element) => element !== "");
@@ -203,5 +183,7 @@ function fillInMissingTuples(
   backtrack([]);
   return result;
 }
+
+const getKeyByTupleType = (type: TupleType, key: string) => `${type}-${key}`;
 
 export default databaseViewSlice.reducer;

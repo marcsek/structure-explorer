@@ -30,7 +30,7 @@
   z-index: 10;
 }
 
-.modal.fade .drawer-editor-modal-dialog {
+.structure-explorer.modal.fade .drawer-editor-modal-dialog {
   transform: none;
   transform: scale(0.95);
 
@@ -38,7 +38,7 @@
   opacity: 0;
 }
 
-.modal.show .drawer-editor-modal-dialog {
+.structure-explorer.modal.show .drawer-editor-modal-dialog {
   transform: scale(1);
   opacity: 1;
 }
