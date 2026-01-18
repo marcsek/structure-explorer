@@ -140,7 +140,6 @@ function DrawerEditorContent({
                     tupleArity={tupleArity}
                     tupleType={tupleType}
                     locked={locked}
-                    expandedView={expandedView}
                   />
                 ) : type === "database" ? (
                   <DatabaseView
@@ -148,8 +147,6 @@ function DrawerEditorContent({
                     tupleArity={tupleArity}
                     tupleType={tupleType}
                     locked={locked}
-                    expandedView={expandedView}
-                    error={error?.message}
                   />
                 ) : (
                   <GraphView

@@ -6,9 +6,12 @@
 
 .table-view tr.error td,
 .table-view td.error,
-.table-view th.error,
-.table-view tr.hovered td.error {
+.table-view th.error {
   border: 1px solid var(--bs-danger);
+  background-color: var(--bs-danger-bg-subtle);
+}
+
+.table-view tr.hovered td.error {
   background-color: var(--bs-danger-bg-subtle);
 }
 

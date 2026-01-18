@@ -11,9 +11,9 @@
     "dev": "vite",
     "build": "tsc -b ./tsconfig.lib.json && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "vite preview --config vite.demo.config.ts",
     "build:demo": "vite build --config vite.demo.config.ts",
-    "build:watch": "mkdir -p ../selib && vite build --mode development --watch --outDir ../selib/dist --emptyOutDir --sourcemap inline && cp ./package.json ../selib/",
+    "build:dev": "vite build --config vite.dev-build.config.ts --watch",
     "deploy": "npm run build:demo && gh-pages -d dist"
   },
   "peerDependencies": {
