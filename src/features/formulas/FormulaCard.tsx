@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import { UndoActions } from "../undoHistory/undoHistory.ts";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
@@ -34,7 +35,13 @@ export default function FormulaCard() {
         />
       ))}
 
-      <Button variant="success" onClick={() => dispatch(addFormula())}>
+      <Button
+        variant="success"
+        onClick={() => {
+          dispatch(addFormula());
+          dispatch(UndoActions.checkpoint());
+        }}
+      >
         <FontAwesomeIcon icon={faPlus} /> Add
       </Button>
     </ComponentCard>

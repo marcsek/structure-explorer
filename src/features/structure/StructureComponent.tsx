@@ -29,7 +29,9 @@ export default function StructureComponent() {
   const domainTextView = useAppSelector((state) =>
     selectValidatedTextView(state, "domain"),
   );
-  const domainLocked = useAppSelector((state) => state.structure.domain.locked);
+  const domainLocked = useAppSelector(
+    (state) => state.present.structure.domain.locked,
+  );
 
   const constants = useAppSelector(selectValidatedConstants);
   const predicates = useAppSelector(selectValidatedPredicates);

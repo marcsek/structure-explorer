@@ -36,10 +36,11 @@ export const variablesSlice = createSlice({
   },
 });
 
-export const selectVariablesLock = (state: RootState) => state.variables.locked;
+export const selectVariablesLock = (state: RootState) =>
+  state.present.variables.locked;
 
 export const selectValidatedVariables = createSelector(
-  [selectValidatedDomain, (state: RootState) => state.variables],
+  [selectValidatedDomain, (state: RootState) => state.present.variables],
   (domain, { value: variables }) => {
     const result: Validated<VariableRepresentation[]> = { parsed: variables };
 

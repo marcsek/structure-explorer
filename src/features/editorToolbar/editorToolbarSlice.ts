@@ -103,19 +103,25 @@ export const editorToolbarSlice = createSlice({
 });
 
 export const selectSelectedUnary = createSelector(
-  [(state: RootState, id: string) => state.editorToolbar[id]?.selectedUnary],
+  [
+    (state: RootState, id: string) =>
+      state.present.editorToolbar[id]?.selectedUnary,
+  ],
   (selectedUnary) => selectedUnary ?? [],
 );
 
 export const selectHoveredUnary = createSelector(
-  [(state: RootState, id: string) => state.editorToolbar[id]?.hoveredUnary],
+  [
+    (state: RootState, id: string) =>
+      state.present.editorToolbar[id]?.hoveredUnary,
+  ],
   (hoveredUnary) => hoveredUnary ?? [],
 );
 
 export const selectUnaryFilterDomain = createSelector(
   [
     (state: RootState, id: string) =>
-      state.editorToolbar[id]?.unaryFilterDomain,
+      state.present.editorToolbar[id]?.unaryFilterDomain,
   ],
   (unaryFilterDomain) => unaryFilterDomain ?? true,
 );
@@ -123,15 +129,16 @@ export const selectUnaryFilterDomain = createSelector(
 export const selectUnaryFilterDomainHovered = createSelector(
   [
     (state: RootState, id: string) =>
-      state.editorToolbar[id]?.unaryFilterHovered,
+      state.present.editorToolbar[id]?.unaryFilterHovered,
   ],
   (unaryFilterHovered) => unaryFilterHovered ?? false,
 );
 
 export const selectSelectedDomain = createSelector(
   [
-    (state: RootState) => state.structure.domain,
-    (state: RootState, id: string) => state.editorToolbar[id]?.selectedDomain,
+    (state: RootState) => state.present.structure.domain,
+    (state: RootState, id: string) =>
+      state.present.editorToolbar[id]?.selectedDomain,
   ],
   (domain, selectedNodes) => {
     return selectedNodes ? [...selectedNodes] : [...domain.value];

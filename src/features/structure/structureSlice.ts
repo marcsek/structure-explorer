@@ -202,7 +202,7 @@ export const removeInvalidEntries = ({
   type: TupleType;
 }): AppThunk => {
   return (dispatch, getState) => {
-    const state = getState().structure;
+    const state = getState().present.structure;
 
     const entry = getInterpretationByType(state, key, type);
     const domain = state.domain;
@@ -224,39 +224,40 @@ export const removeInvalidEntries = ({
   };
 };
 
-export const selectDomain = (state: RootState) => state.structure.domain;
+export const selectDomain = (state: RootState) =>
+  state.present.structure.domain;
 export const selectDomainLock = (state: RootState) =>
-  state.structure.domain.locked;
+  state.present.structure.domain.locked;
 
-export const selectIc = (state: RootState) => state.structure.iC;
+export const selectIc = (state: RootState) => state.present.structure.iC;
 export const selectIcName = (state: RootState, name: string) =>
-  state.structure.iC[name];
+  state.present.structure.iC[name];
 export const selectIcLock = (state: RootState, name: string) =>
-  state.structure.iC[name]?.locked ?? false;
+  state.present.structure.iC[name]?.locked ?? false;
 
-export const selectIp = (state: RootState) => state.structure.iP;
+export const selectIp = (state: RootState) => state.present.structure.iP;
 export const selectIpName = (state: RootState, name: string) =>
-  state.structure.iP[name];
+  state.present.structure.iP[name];
 export const selectIpLock = (state: RootState, name: string) =>
-  state.structure.iP[name]?.locked ?? false;
+  state.present.structure.iP[name]?.locked ?? false;
 
-export const selectIf = (state: RootState) => state.structure.iF;
+export const selectIf = (state: RootState) => state.present.structure.iF;
 export const selectIfName = (state: RootState, name: string) =>
-  state.structure.iF[name];
+  state.present.structure.iF[name];
 export const selectIfLock = (state: RootState, name: string) =>
-  state.structure.iF[name]?.locked ?? false;
+  state.present.structure.iF[name]?.locked ?? false;
 
 export const selectInterpretationByType = <T extends keyof InterpretationMap>(
   state: RootState,
   name: string,
   type: T,
 ): InterpretationMap[T][string] => {
-  const stateMap = interpretationTypeToStateEntryMap(state.structure);
+  const stateMap = interpretationTypeToStateEntryMap(state.present.structure);
   return stateMap[type][name] as InterpretationMap[T][string];
 };
 
 export const selectValidatedDomain = createSelector(
-  [(state: RootState) => state.structure.domain],
+  [(state: RootState) => state.present.structure.domain],
   ({ value: domain }): Validated<string[]> => {
     const result: Validated<DomainRepresentation> = { parsed: domain };
 

@@ -125,7 +125,7 @@ export const selectValidatedTextView = createSelector(
     (state: RootState, type: TextViewType, key: string = type) =>
       selectValidation(state, type, key),
     (state: RootState, type: TextViewType, key: string = type) =>
-      state.textView[getKeyByType(type, key)],
+      state.present.textView[getKeyByType(type, key)],
   ],
   (validationError, entry) => {
     if (!entry) return { value: "", error: validationError };

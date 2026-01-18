@@ -197,9 +197,10 @@ export const selectFormulaGuess = (state: RootState, id: number) =>
 export const selectFormulaChoices = (state: RootState, id: number) =>
   selectFormula(state, id).gameChoices;
 
-export const selectFormulas = (state: RootState) => state.formulas.allFormulas;
+export const selectFormulas = (state: RootState) =>
+  state.present.formulas.allFormulas;
 export const selectFormula = (state: RootState, id: number) =>
-  state.formulas.allFormulas[id];
+  state.present.formulas.allFormulas[id];
 
 export const selectFormulaLock = (state: RootState, id: number) =>
   selectFormula(state, id).locked;

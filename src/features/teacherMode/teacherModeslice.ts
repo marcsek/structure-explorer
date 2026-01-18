@@ -29,6 +29,6 @@ export const { updateTeacherMode, importTeacherMode } =
   teacherModeSlice.actions;
 
 export const selectTeacherMode = (state: RootState) =>
-  state.teacherMode.teacherMode;
+  state.present.teacherMode.teacherMode;
 
 export default teacherModeSlice.reducer;

@@ -51,6 +51,7 @@ graphSliceListener.startListening({
     }
 
     api.dispatch(tupleInterpretationChanged({ name: key, intr: tupleIntr }));
+    // api.dispatch({ type: "REPLACE_PRESENT" });
   },
 });
 
@@ -60,8 +61,10 @@ graphSliceListener.startListening({
     const state = api.getState();
     const parsedDomain = selectValidatedDomain(state);
 
-    if (!parsedDomain.error && parsedDomain.parsed)
+    if (!parsedDomain.error && parsedDomain.parsed) {
       api.dispatch(domainChanged(parsedDomain.parsed));
+      // api.dispatch({ type: "REPLACE_PRESENT" });
+    }
   },
 });
 
@@ -98,6 +101,7 @@ graphSliceListener.startListening({
           tupleIntr: Object.fromEntries(new Map([...predIntr, ...funcIntr])),
         }),
       );
+      // api.dispatch({ type: "REPLACE_PRESENT" });
     }
   },
 });

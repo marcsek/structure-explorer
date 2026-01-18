@@ -84,7 +84,7 @@ export default function HasseDiagram({
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector((state) => selectEdges(state, id, type, true));
   const warning = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[id]?.state[type]?.warning,
   );
 
   const { fitView } = useReactFlow();

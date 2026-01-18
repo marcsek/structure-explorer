@@ -163,13 +163,13 @@ export default function BipartiteGraph({
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.edges,
+    (state) => state.present.graphView[id]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.graphView[id]?.tupleType === "function",
+    (state) => state.present.graphView[id]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[id]?.state[type]?.warning,
   );
   const nodesInitialized = useNodesInitialized();
 

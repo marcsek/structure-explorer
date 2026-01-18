@@ -5,6 +5,7 @@ import {
   updateDomain,
   updateInterpretationPredicates,
 } from "./features/structure/structureSlice";
+import { UndoActions } from "./features/undoHistory/undoHistory";
 
 export default function usePreset() {
   const dispatch = useAppDispatch();
@@ -48,5 +49,7 @@ export default function usePreset() {
         }),
       );
     }
+
+    dispatch(UndoActions.clearHistory());
   }, [dispatch]);
 }

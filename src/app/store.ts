@@ -1,4 +1,5 @@
 import {
+  combineReducers,
   configureStore,
   type Action,
   type ThunkAction,
@@ -13,6 +14,7 @@ import textViewReducer from "../features/textView/textViewSlice";
 import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
 import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
+import { undoable } from "../features/undoHistory/undoHistory.ts";
 
 // Root reducer object
 const rootReducer = {
@@ -27,9 +29,11 @@ const rootReducer = {
   editorToolbar: editorToolbarReducer,
 };
 
+const undoReducer = undoable(combineReducers(rootReducer));
+
 export const createStore = () =>
   configureStore({
-    reducer: rootReducer,
+    reducer: undoReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware().prepend(graphSliceListener.middleware),
   });
@@ -44,6 +48,4 @@ export type AppThunk<ThunkReturnType = void> = ThunkAction<
 >;
 
 // Exporting RootState this way in order to avoid circular dependency.
-export type RootState = {
-  [K in keyof typeof rootReducer]: ReturnType<(typeof rootReducer)[K]>;
-};
+export type RootState = ReturnType<typeof undoReducer>;

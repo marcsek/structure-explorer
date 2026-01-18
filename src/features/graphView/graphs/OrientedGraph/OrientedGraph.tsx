@@ -35,6 +35,7 @@ import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
+import { UndoActions } from "../../../undoHistory/undoHistory.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -79,13 +80,13 @@ export default function OrientedGraph({
   const dispatch = useAppDispatch();
   const nodes = useAppSelector((state) => nodeSelector(state, id, type));
   const edges = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.edges,
+    (state) => state.present.graphView[id]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.graphView[id]?.tupleType === "function",
+    (state) => state.present.graphView[id]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[id]?.state[type]?.warning,
   );
 
   const [didLayout, setDidLayout] = useState(false);
@@ -205,6 +206,7 @@ export default function OrientedGraph({
           edgesFocusable={false}
           edgesReconnectable={false}
           connectOnClick={false}
+          onNodeDragStop={() => dispatch(UndoActions.checkpoint())}
         >
           <Background
             id={`bg-oriented-${id}-${expandedView ? "expanded" : ""}`}

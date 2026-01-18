@@ -155,10 +155,26 @@
   border-right: 0;
   border-top-left-radius: var(--bs-border-radius);
 
-  flex-shrink: 0;
+  flex-shrink: 1;
   flex-grow: 1;
+  min-width: 0;
 
   padding-inline: 12px;
+}
+
+.drawer-editor-title-primary {
+  flex-shrink: 0;
+}
+
+.drawer-editor-title-divider {
+  flex-shrink: 0;
+}
+
+.drawer-editor-title-secondary {
+  flex-shrink: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .drawer-editor-container.expanded .drawer-editor-title {

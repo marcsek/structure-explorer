@@ -18,6 +18,7 @@ import {
 } from "./matrixViewSelectors";
 import type { TupleType } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 interface MatrixViewProps {
   tupleName: string;
@@ -118,9 +119,10 @@ export default function MatrixView({
                 <PredicateTableCell
                   key={col}
                   value={!!getValue(row, col)}
-                  onValueChange={() =>
-                    handleValueChange(row, col, getValue(row, col) ? "" : "in")
-                  }
+                  onValueChange={() => {
+                    handleValueChange(row, col, getValue(row, col) ? "" : "in");
+                    dispatch(UndoActions.checkpoint());
+                  }}
                   locked={locked}
                   hovered={hovered.col === col}
                   columnError={leftovers.includes(col)}
@@ -141,6 +143,7 @@ export default function MatrixView({
                   }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
+                  onBlur={() => dispatch(UndoActions.checkpoint())}
                 />
               ),
             )}

@@ -31,6 +31,7 @@ import {
 import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 interface Props {
   id: number;
@@ -61,7 +62,7 @@ export default function FormulaComponent({ id, text, guess }: Props) {
 
   useEffect(() => {
     dispatch(gameGoBack({ id, index: backIndex }));
-  });
+  }, [backIndex, dispatch, id]);
 
   return (
     <>
@@ -81,13 +82,17 @@ export default function FormulaComponent({ id, text, guess }: Props) {
                 dispatch(updateText({ id: id, text: e.target.value }));
               }}
               isInvalid={!!error}
+              onBlur={() => dispatch(UndoActions.checkpoint())}
             />
 
             <Button
               variant="outline-danger"
               id="button-addon2"
               disabled={locked === true}
-              onClick={() => dispatch(removeFormula(id))}
+              onClick={() => {
+                dispatch(removeFormula(id));
+                dispatch(UndoActions.checkpoint());
+              }}
             >
               <FontAwesomeIcon icon={faTrash} />
             </Button>
@@ -126,6 +131,8 @@ export default function FormulaComponent({ id, text, guess }: Props) {
                             : null,
                     }),
                   );
+
+                  dispatch(UndoActions.checkpoint());
                 }}
                 disabled={lockedGuess === true}
                 isValid={isVerified && guess !== null}

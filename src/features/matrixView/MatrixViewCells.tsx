@@ -47,6 +47,7 @@ type FunctionInputProps = {
   invalid: boolean;
   columnError: boolean;
   onValueChange: (value: string) => void;
+  onBlur: () => void;
 };
 
 export function FunctionTableCell({
@@ -55,6 +56,7 @@ export function FunctionTableCell({
   invalid,
   columnError,
   onValueChange,
+  onBlur,
 }: FunctionInputProps) {
   return (
     <td className={columnError ? "error" : ""}>
@@ -64,6 +66,7 @@ export function FunctionTableCell({
         isInvalid={invalid}
         disabled={locked || (invalid && !value)}
         onChange={(e) => onValueChange(e.target.value)}
+        onBlur={onBlur}
       />
     </td>
   );

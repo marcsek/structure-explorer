@@ -23,10 +23,11 @@ import type { TextViewSyncEntry } from "../textView/textViews";
 import { getStructureTextViewSyncEntries } from "../structure/textViewDescriptors";
 import { getLanguageTextViewSyncEntries } from "../language/textViewDescriptors";
 import { getVariablesTextViewSyncEntries } from "../variables/textViewDescriptors";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export interface ImportedAppState
   extends Omit<
-    RootState,
+    RootState["present"],
     "graphView" | "matrixView" | "databaseView" | "editorToolbar" | "textView"
   > {
   graphView: Record<string, Record<GraphType, Record<string, XYPosition>>>;
@@ -36,7 +37,7 @@ export const importAppState =
   (importedState: ImportedAppState, excludeLanguage = false): AppThunk =>
   (dispatch, getState) => {
     if (excludeLanguage) {
-      const relevantSymbols = getRelevantSymbols(getState().language);
+      const relevantSymbols = getRelevantSymbols(getState().present.language);
       const relevantInputStructure = getRelevantStructureState(
         importedState.structure,
         relevantSymbols,
@@ -54,7 +55,7 @@ export const importAppState =
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
 
-    const { language, structure, variables } = getState();
+    const { language, structure, variables } = getState().present;
 
     const textViewSyncEntries: TextViewSyncEntry[] = [
       ...getLanguageTextViewSyncEntries(language),
@@ -71,6 +72,8 @@ export const importAppState =
         positions: importedState.graphView,
       }),
     );
+
+    dispatch(UndoActions.clearHistory());
   };
 
 export const exportAppState =
@@ -114,15 +117,18 @@ const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
 };
 
 export const getAppStateToExportJSON = (state: RootState) => {
-  const relevantSymbols = getRelevantSymbols(state.language);
+  const relevantSymbols = getRelevantSymbols(state.present.language);
 
   return JSON.stringify(
     {
-      formulas: state.formulas,
-      language: state.language,
-      variables: state.variables,
-      teacherMode: state.teacherMode,
-      structure: getRelevantStructureState(state.structure, relevantSymbols),
+      formulas: state.present.formulas,
+      language: state.present.language,
+      variables: state.present.variables,
+      teacherMode: state.present.teacherMode,
+      structure: getRelevantStructureState(
+        state.present.structure,
+        relevantSymbols,
+      ),
       graphView: getGraphViewStateToExport(state, relevantSymbols),
     },
     null,

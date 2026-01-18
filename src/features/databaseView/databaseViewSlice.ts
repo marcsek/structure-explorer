@@ -90,7 +90,7 @@ export const selectDatabaseViewValues = createSelector(
   [
     selectDomain,
     (state: RootState, key: string, type: TupleType) =>
-      state.databaseView[getKeyByTupleType(type, key)],
+      state.present.databaseView[getKeyByTupleType(type, key)],
     (_: RootState, __: string, type: TupleType) => type,
     (_: RootState, __: string, ___: TupleType, arity: number) => arity,
   ],

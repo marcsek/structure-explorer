@@ -49,6 +49,7 @@ import {
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
 import type { RelevantSymbols } from "../../import/importThunk.ts";
+import { UndoActions } from "../../undoHistory/undoHistory.ts";
 
 export type GraphManagerState = Record<
   string,
@@ -273,7 +274,10 @@ export const graphManagerSlice = createSlice({
 });
 
 export const selectTupleType = createSelector(
-  [(state: RootState) => state.graphView, (_: RootState, id: string) => id],
+  [
+    (state: RootState) => state.present.graphView,
+    (_: RootState, id: string) => id,
+  ],
   (graphView, id) => graphView[id].tupleType,
 );
 
@@ -327,7 +331,7 @@ export const selectRelevantUnaryPreds = createSelector(
 export const selectPosetValidity = createSelector(
   [(state: RootState) => state, (_: RootState, id: string) => id],
   (state, id) => {
-    const graphState = state.graphView[id]?.state.hasse;
+    const graphState = state.present.graphView[id]?.state.hasse;
 
     const nodes = graphState.nodes.map((node) => node.id);
 
@@ -369,7 +373,7 @@ export function makeSelectNodes<T extends GraphType>() {
       unaryFilterDomain,
     ): GraphState[T]["nodes"] => {
       const plugin = plugins[type] as Plugin<T>;
-      const graphState = state.graphView[id]?.state[type];
+      const graphState = state.present.graphView[id]?.state[type];
 
       if (!graphState) return [] as GraphState[T]["nodes"];
 
@@ -400,7 +404,7 @@ export const selectEdges = createSelector(
   ],
   (state, id, type, relevantDomain, selectedNodes) => {
     const plugin = plugins[type];
-    const graphState = state.graphView[id]?.state[type];
+    const graphState = state.present.graphView[id]?.state[type];
 
     if (!graphState) return [] as GraphState[typeof type]["edges"];
 
@@ -423,13 +427,17 @@ export const onEdgesChanged = ({
   changes: EdgeChange<DirectEdgeType>[];
 }): AppThunk => {
   return (dispatch, getState) => {
-    const managerState = getState().graphView;
+    const managerState = getState().present.graphView;
     const tupleType = managerState[id].tupleType;
     const selectedEdges = selectEdges(getState(), id, type);
 
     const newEdges = applyEdgeChanges(
       changes,
       managerState[id].state[type].edges,
+    );
+
+    const containedRemoveChange = changes.some(
+      (change) => change.type === "remove",
     );
 
     const relevantEdges = edgesToRelation(selectedEdges);
@@ -453,6 +461,7 @@ export const onEdgesChanged = ({
 
     dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
     dispatch(creator({ key: id, value: relation }));
+    if (containedRemoveChange) dispatch(UndoActions.checkpoint());
   };
 };
 
@@ -468,7 +477,7 @@ export const onConnected = ({
   breakPrevious?: boolean;
 }): AppThunk => {
   return (dispatch, getState) => {
-    const managerState = getState().graphView;
+    const managerState = getState().present.graphView;
     const tupleType = managerState[id].tupleType;
     const selectedEdges = selectEdges(getState(), id, type);
     let newEdges = [...managerState[id].state[type].edges];
@@ -500,6 +509,7 @@ export const onConnected = ({
         : updateFunctionSymbols;
 
     dispatch(creator({ key: id, value: relation }));
+    dispatch(UndoActions.checkpoint());
   };
 };
 
@@ -513,7 +523,7 @@ export const leftoverDeleted = ({
   deletedNode: string;
 }): AppThunk => {
   return (dispatch, getState) => {
-    const managerState = getState().graphView;
+    const managerState = getState().present.graphView;
     const tupleType = managerState[id].tupleType;
 
     const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
@@ -534,6 +544,7 @@ export const leftoverDeleted = ({
 
     dispatch(setNodes({ id, type, nodes: newNodes }));
     dispatch(creator({ key: id, value: relation }));
+    dispatch(UndoActions.checkpoint());
   };
 };
 
@@ -541,7 +552,7 @@ export const getGraphViewStateToExport = (
   state: RootState,
   relevantSymbols: RelevantSymbols,
 ) => {
-  const relevantEntries = Object.entries(state.graphView).filter(
+  const relevantEntries = Object.entries(state.present.graphView).filter(
     ([key, { tupleType }]) =>
       relevantSymbols[key]?.type === tupleType &&
       relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),

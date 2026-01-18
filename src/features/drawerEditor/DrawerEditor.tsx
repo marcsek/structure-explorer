@@ -17,6 +17,7 @@ import {
   removeInvalidEntries,
   type TupleType,
 } from "../structure/structureSlice";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -116,11 +117,12 @@ function DrawerEditorContent({
                   className=""
                   variant="outline-danger"
                   size="sm"
-                  onClick={() =>
+                  onClick={() => {
                     dispatch(
                       removeInvalidEntries({ key: tupleName, type: tupleType }),
-                    )
-                  }
+                    );
+                    dispatch(UndoActions.checkpoint());
+                  }}
                 >
                   <FontAwesomeIcon icon={faTrash} size="sm" />
                   Remove invalid
@@ -176,12 +178,15 @@ export interface EditorTitleProps {
 function EditorTitle({ base, editor }: EditorTitleProps) {
   return (
     <Stack className="drawer-editor-title">
-      <span className="fw-light">
+      <span className="drawer-editor-title-primary fw-light">
         <InlineMath>{base}</InlineMath>
       </span>
 
-      <ForwardSlashIcon className="text-body-secondary" size="1rem" />
-      <span className="text-body-secondary text-capitalize fw-medium">
+      <ForwardSlashIcon
+        className="drawer-editor-title-divider text-body-secondary"
+        size="1rem"
+      />
+      <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
         {editor}
       </span>
     </Stack>

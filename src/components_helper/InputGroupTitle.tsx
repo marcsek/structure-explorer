@@ -5,6 +5,8 @@ import { useAppSelector } from "../app/hooks";
 import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
 import LockButton from "./LockButton";
 import type { InterpretationError } from "../common/errors";
+import { useDispatch } from "react-redux";
+import { UndoActions } from "../features/undoHistory/undoHistory";
 
 interface Props {
   label: string;
@@ -19,6 +21,7 @@ interface Props {
   locker: () => void;
   lockChecker: boolean | undefined;
   error?: InterpretationError;
+  createHistoryOnBlur?: boolean;
 }
 
 export default function InputGroupTitle({
@@ -34,8 +37,10 @@ export default function InputGroupTitle({
   locker,
   lockChecker = false,
   error,
+  createHistoryOnBlur = true,
 }: Props) {
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+  const dispatch = useDispatch();
 
   return (
     <Form.Group className="flex-grow-1">
@@ -56,6 +61,9 @@ export default function InputGroupTitle({
           id={`${id}-${label.toLowerCase()}`}
           isInvalid={!!error}
           disabled={disabledOverride === true || lockChecker === true}
+          onBlur={() =>
+            createHistoryOnBlur && dispatch(UndoActions.checkpoint())
+          }
         />
 
         {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}

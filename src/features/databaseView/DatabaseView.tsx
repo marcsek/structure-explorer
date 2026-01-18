@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import type { TupleType } from "../structure/structureSlice";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 interface DatabaseViewProps {
   tupleName: string;
@@ -62,7 +63,7 @@ export default function DatabaseView({
         type: tupleType,
         tupleName,
         domainTuple: newDomainTuple,
-        arity: tupleArity,
+        arity: correctedArity,
       }),
     );
   };
@@ -73,9 +74,10 @@ export default function DatabaseView({
         type: tupleType,
         tupleName,
         domainTuple: values.filter((_, idx) => idx !== tupleIdx),
-        arity: tupleArity,
+        arity: correctedArity,
       }),
     );
+    dispatch(UndoActions.checkpoint());
   };
 
   const displayTuples = lastTupleIsValid ? [...values, lastTuple] : values;
@@ -120,6 +122,7 @@ export default function DatabaseView({
                         onChange={(e) =>
                           handleTupleChange(tupleIdx, idx, e.target.value)
                         }
+                        onBlur={() => dispatch(UndoActions.checkpoint())}
                       />
                     )}
                   </td>
