@@ -125,6 +125,8 @@ const generateNodeChangesWithLayout = (
 const addGroupNodes = (nodes: BipartiteNodeType[]) => {
   const { bounds, offset } = computeGroupContainerBounds(nodes);
 
+  if (nodes.length === 0) return [];
+
   const domainGroup = createGroupNode("domain", bounds, {
     ...offset,
     x: -offset.x,
@@ -290,6 +292,8 @@ export default function BipartiteGraph({
           edgesFocusable={false}
           edgesReconnectable={false}
           connectOnClick={false}
+          panOnDrag={nodes.length !== 0}
+          zoomOnScroll={nodes.length !== 0}
         >
           <Background
             id={`bg-bipartite-${id}-${expandedView ? "expanded" : ""}`}
@@ -305,6 +309,14 @@ export default function BipartiteGraph({
         </ReactFlow>
         {warning && (
           <MessageDialog type="error" position="corner" body={warning} />
+        )}
+        {nodes.length === 0 && (
+          <MessageDialog
+            type="warning"
+            position="center"
+            title="No nodes to display"
+            body={"The domain you have selected is empty."}
+          />
         )}
       </div>
     </>

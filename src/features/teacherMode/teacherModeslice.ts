@@ -15,7 +15,6 @@ export const teacherModeSlice = createSlice({
   initialState,
   reducers: {
     importTeacherMode: (_state, action: PayloadAction<TeacherModeState>) => {
-      if (!action.payload) return;
       return action.payload;
     },
 

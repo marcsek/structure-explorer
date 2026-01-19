@@ -59,7 +59,7 @@ export function FunctionTableCell({
   onBlur,
 }: FunctionInputProps) {
   return (
-    <td className={columnError ? "error" : ""}>
+    <td className={columnError || invalid ? "error" : ""}>
       <Form.Control
         type="text"
         value={value}

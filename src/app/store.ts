@@ -29,7 +29,21 @@ const rootReducer = {
   editorToolbar: editorToolbarReducer,
 };
 
-const undoReducer = undoable(combineReducers(rootReducer));
+const historyEqualityExcludedReducers: RootStateReducerName[] = [
+  "teacherMode",
+  "editorToolbar",
+];
+
+const comparator = (
+  prev: RootStateWithoutHistory,
+  next: RootStateWithoutHistory,
+) => {
+  return (Object.keys(rootReducer) as RootStateReducerName[])
+    .filter((key) => !historyEqualityExcludedReducers.includes(key))
+    .every((key) => prev[key] === next[key]);
+};
+
+const undoReducer = undoable(combineReducers(rootReducer), comparator);
 
 export const createStore = () =>
   configureStore({
@@ -47,5 +61,9 @@ export type AppThunk<ThunkReturnType = void> = ThunkAction<
   Action
 >;
 
-// Exporting RootState this way in order to avoid circular dependency.
 export type RootState = ReturnType<typeof undoReducer>;
+// Exporting RootStateWithoutHistory this way in order to avoid circular dependency.
+export type RootStateWithoutHistory = {
+  [K in keyof typeof rootReducer]: ReturnType<(typeof rootReducer)[K]>;
+};
+export type RootStateReducerName = keyof RootStateWithoutHistory;

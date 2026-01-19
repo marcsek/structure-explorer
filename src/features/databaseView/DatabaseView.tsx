@@ -7,11 +7,12 @@ import {
   selectDatabaseViewValues,
   updateDatabaseViewValue,
 } from "./databaseViewSlice";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import type { TupleType } from "../structure/structureSlice";
+import { selectDomain, type TupleType } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
+import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
 
 interface DatabaseViewProps {
   tupleName: string;
@@ -27,12 +28,15 @@ export default function DatabaseView({
   locked,
 }: DatabaseViewProps) {
   const dispatch = useAppDispatch();
+  const checkpointOnBlurOverride = useRef<boolean | null>(null);
 
   const { values, leftovers } = useAppSelector((state) =>
     selectDatabaseViewValues(state, tupleName, tupleType, tupleArity),
   );
 
   const duplicateTuples = useMemo(() => findDuplicateTuples(values), [values]);
+
+  const { value: domain } = useAppSelector(selectDomain);
 
   const lastTupleIsValid =
     tupleType !== "function" &&
@@ -53,6 +57,11 @@ export default function DatabaseView({
     } else {
       const newTuple = [...values[tupleIdx]];
       newTuple[elementIdx] = value;
+
+      if (countEmpty(newTuple) === 1 && countEmpty(values[tupleIdx]) === 0)
+        checkpointOnBlurOverride.current = true;
+      else if (newTuple.every((e) => e === ""))
+        checkpointOnBlurOverride.current = false;
 
       newDomainTuple = [...values];
       newDomainTuple[tupleIdx] = newTuple;
@@ -77,11 +86,36 @@ export default function DatabaseView({
         arity: correctedArity,
       }),
     );
-    dispatch(UndoActions.checkpoint());
+
+    if (values[tupleIdx].every((e) => e !== ""))
+      dispatch(UndoActions.checkpoint());
+  };
+
+  const handleCheckpointOnBlur = (tupleIdx: number) => {
+    if (tupleType === "function") {
+      dispatch(UndoActions.checkpoint());
+      return;
+    }
+
+    if (checkpointOnBlurOverride.current !== null) {
+      if (checkpointOnBlurOverride.current) dispatch(UndoActions.checkpoint());
+
+      checkpointOnBlurOverride.current = null;
+      return;
+    }
+
+    if (isValidTuple(displayTuples[tupleIdx], tupleArity))
+      dispatch(UndoActions.checkpoint());
   };
 
   const displayTuples = lastTupleIsValid ? [...values, lastTuple] : values;
   const correctedArity = tupleType === "function" ? tupleArity + 1 : tupleArity;
+
+  if (domain.length === 0 && values.length === 0) {
+    return (
+      <EmptyPlaceholder message={"No content to display (domain is empty)"} />
+    );
+  }
 
   return (
     <Table responsive className="table-bordered table-view">
@@ -122,7 +156,7 @@ export default function DatabaseView({
                         onChange={(e) =>
                           handleTupleChange(tupleIdx, idx, e.target.value)
                         }
-                        onBlur={() => dispatch(UndoActions.checkpoint())}
+                        onBlur={() => handleCheckpointOnBlur(tupleIdx)}
                       />
                     )}
                   </td>
@@ -159,6 +193,8 @@ const findDuplicateTuples = (tuples: string[][]) => {
 
   return duplicates;
 };
+
+const countEmpty = (tuple: string[]) => tuple.filter((t) => t === "").length;
 
 interface DeleteTupleTableEntryProps {
   isDuplicate: boolean;

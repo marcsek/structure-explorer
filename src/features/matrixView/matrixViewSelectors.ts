@@ -88,5 +88,7 @@ export const generateTupleInterpretation = (
   return interpretation;
 };
 
-export const getKeyFromDomainTuple = (domainTuple: string[]) =>
-  domainTuple.join("");
+export const getKeyFromDomainTuple = (
+  domainTuple: string[],
+  duplicate: boolean = false,
+) => `${domainTuple.join("")}${duplicate ? "-d" : ""}`;

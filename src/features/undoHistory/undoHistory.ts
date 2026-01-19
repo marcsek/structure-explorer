@@ -9,6 +9,7 @@ import reduxUndo, {
   ActionCreators as ReduxUndoCreators,
   type UndoableOptions,
   includeAction,
+  type StateWithHistory,
 } from "redux-undo";
 
 export const UndoActionTypes = {
@@ -26,25 +27,29 @@ const reduxUndoOptions: UndoableOptions = {
   filter: includeAction(UndoActionTypes.CHECKPOINT),
 };
 
+export type StateComparator<State> = (
+  previous: State,
+  present: State,
+) => boolean;
+
 export const undoable = <State, A extends Action = UnknownAction>(
   reducer: Reducer<State, A>,
-) => reduxUndo(reducer, reduxUndoOptions);
+  comparator: StateComparator<State>,
+) => withStateComparator(reduxUndo(reducer, reduxUndoOptions), comparator);
 
-// TODO: Figure out if needed
-//
-// const withCustomLogic =
-//   (reducer: Reducer<RootState>): Reducer<RootState> =>
-//   (state, action) => {
-//     if (!state) return reducer(state, action);
-//
-//     switch (action.type) {
-//       case "REPLACE_PRESENT":
-//         return {
-//           ...state,
-//           _latestUnfiltered: state.present,
-//         };
-//
-//       default:
-//         return reducer(state, action);
-//     }
-//   };
+const withStateComparator =
+  <State, A extends Action = UnknownAction>(
+    reducer: Reducer<StateWithHistory<State>, A>,
+    comparator: StateComparator<State>,
+  ): Reducer<StateWithHistory<State>, A> =>
+  (state, action) => {
+    if (
+      !state ||
+      !state._latestUnfiltered ||
+      action.type !== UndoActionTypes.CHECKPOINT ||
+      !comparator(state._latestUnfiltered, state.present)
+    )
+      return reducer(state, action);
+
+    return state;
+  };

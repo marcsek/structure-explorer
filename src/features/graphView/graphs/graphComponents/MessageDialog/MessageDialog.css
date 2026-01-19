@@ -1,4 +1,4 @@
-.error-dialog-container {
+.message-dialog-container {
   position: absolute;
   max-height: 160px;
   background-color: transparent;
@@ -10,20 +10,20 @@
   user-select: none;
 }
 
-.error-dialog-container.center {
+.message-dialog-container.center {
   top: 50%;
   left: 0;
   right: 0;
   transform: translateX(0%) translateY(-50%);
 }
 
-.error-dialog-container.corner {
+.message-dialog-container.corner {
   bottom: 1rem;
   left: 1rem;
   padding-inline: 0;
 }
 
-.error-dialog {
+.message-dialog {
   max-width: 480px;
   background-color: white;
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
@@ -37,39 +37,39 @@
   box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.05);
 }
 
-.error-dialog-container.corner .error-dialog {
+.message-dialog-container.corner .message-dialog {
   padding: 0.5rem;
   max-width: 300px;
   align-items: center;
   gap: 0.5rem;
 }
 
-.error-dialog-body {
+.message-dialog-body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.error-dialog-container.corner .error-dialog-body {
+.message-dialog-container.corner .message-dialog-body {
   line-height: 1;
 }
 
-.error-dialog-title {
+.message-dialog-title {
   margin: 0;
   line-height: 1;
 }
 
-.error-dialog-container.corner .error-dialog-title {
+.message-dialog-container.corner .message-dialog-title {
   font-size: 14px;
 }
 
-.error-dialog-description {
+.message-dialog-description {
   margin: 0;
   color: var(--bs-secondary-text-emphasis);
   font-size: 14px;
 }
 
-.error-dialog-icon {
+.message-dialog-icon {
   display: flex;
   height: fit-content;
   padding: 0.5rem;
@@ -85,22 +85,27 @@
   );
 }
 
-.error-dialog-container.corner.error .error-dialog-icon,
-.error-dialog-container.corner.warning .error-dialog-icon {
+.message-dialog-container.corner.error .message-dialog-icon,
+.message-dialog-container.corner.warning .message-dialog-icon {
   padding: 0.5rem;
 }
 
-.error-dialog-container.error .error-dialog-icon {
+.message-dialog-container.error .message-dialog-icon {
   border-color: var(--bs-danger-border-subtle);
   color: var(--bs-danger);
 }
 
-.error-dialog-container.warning .error-dialog-icon {
+.message-dialog-container.warning .message-dialog-icon {
   border-color: var(--bs-warning-border-subtle);
   color: var(--bs-warning);
 }
 
-.error-dialog-container.corner.warning .error-dialog-icon {
+.message-dialog-container.info .message-dialog-icon {
+  border-color: var(--bs-info-border-subtle);
+  color: var(--bs-info);
+}
+
+.message-dialog-container.corner.warning .message-dialog-icon {
   background: none;
   background-color: color-mix(
     in srgb,
@@ -109,7 +114,7 @@
   );
 }
 
-.error-dialog-container.corner.info .error-dialog-icon {
+.message-dialog-container.corner.info .message-dialog-icon {
   background: none;
   background-color: color-mix(
     in srgb,

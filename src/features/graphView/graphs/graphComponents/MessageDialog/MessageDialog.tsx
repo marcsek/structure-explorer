@@ -1,6 +1,6 @@
 import "./MessageDialog.css";
 
-import { faWarning } from "@fortawesome/free-solid-svg-icons";
+import { faInfoCircle, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ReactNode } from "react";
 
@@ -16,14 +16,14 @@ export default function MessageDialog({
   body: ReactNode;
 }) {
   return (
-    <div className={`error-dialog-container ${type} ${position}`}>
-      <div className="error-dialog shadow-sm">
-        <span className="error-dialog-icon">
-          <FontAwesomeIcon icon={faWarning} />
+    <div className={`message-dialog-container ${type} ${position}`}>
+      <div className="message-dialog shadow-sm">
+        <span className="message-dialog-icon">
+          <FontAwesomeIcon icon={type === "info" ? faInfoCircle : faWarning} />
         </span>
-        <div className="error-dialog-body">
-          {title && <h6 className="error-dialog-title">{title}</h6>}
-          <span className="error-dialog-description">{body}</span>
+        <div className="message-dialog-body">
+          {title && <h6 className="message-dialog-title">{title}</h6>}
+          <span className="message-dialog-description">{body}</span>
         </div>
       </div>
     </div>

@@ -216,8 +216,8 @@ export default function HasseDiagram({
         edgesFocusable={false}
         edgesReconnectable={false}
         connectOnClick={false}
-        panOnDrag={isPoset}
-        zoomOnScroll={isPoset}
+        panOnDrag={isPoset && nodes.length !== 0}
+        zoomOnScroll={isPoset && nodes.length !== 0}
       >
         <Background id={`bg-hasse-${id}-${expandedView ? "expanded" : ""}`} />
         <Controls
@@ -230,6 +230,14 @@ export default function HasseDiagram({
         />
       </ReactFlow>
       {messageDialog}
+      {isPoset && nodes.length === 0 && (
+        <MessageDialog
+          type="warning"
+          position="center"
+          title="No nodes to display"
+          body={"The domain you have selected is empty."}
+        />
+      )}
     </div>
   );
 }

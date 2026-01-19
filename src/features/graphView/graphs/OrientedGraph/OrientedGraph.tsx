@@ -207,6 +207,8 @@ export default function OrientedGraph({
           edgesReconnectable={false}
           connectOnClick={false}
           onNodeDragStop={() => dispatch(UndoActions.checkpoint())}
+          panOnDrag={nodes.length !== 0}
+          zoomOnScroll={nodes.length !== 0}
         >
           <Background
             id={`bg-oriented-${id}-${expandedView ? "expanded" : ""}`}
@@ -222,6 +224,14 @@ export default function OrientedGraph({
         </ReactFlow>
         {warning && (
           <MessageDialog type="error" position="corner" body={warning} />
+        )}
+        {nodes.length === 0 && (
+          <MessageDialog
+            type="warning"
+            position="center"
+            title="No nodes to display"
+            body={"The domain you have selected is empty."}
+          />
         )}
       </div>
     </>

@@ -19,6 +19,7 @@ import {
 import type { TupleType } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 import { UndoActions } from "../undoHistory/undoHistory";
+import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
 
 interface MatrixViewProps {
   tupleName: string;
@@ -69,14 +70,27 @@ export default function MatrixView({
     const key = getKeyFromDomainTuple(domainTuple);
     const newValues = { ...values };
 
+    const hasDuplicate = newValues[key]?.duplicate;
     newValues[key] = {
       ...(newValues[key] ?? { duplicate: false, domainTuple }),
       value,
     };
 
+    if (hasDuplicate) {
+      const duplicateKey = getKeyFromDomainTuple(domainTuple, true);
+      newValues[duplicateKey] = { ...newValues[duplicateKey], value };
+    }
+
     const newInterpretation = generateTupleInterpretation(tupleType, newValues);
 
     dispatch(updaters[tupleType]({ value: newInterpretation, key: tupleName }));
+
+    const isInsideLeftover = domainTuple.some((d) => leftovers.includes(d));
+    const willBeResolvedInvalid =
+      (isInsideLeftover || isDuplicate(row, col)) && value === "";
+
+    if (tupleType === "function" && willBeResolvedInvalid)
+      dispatch(UndoActions.checkpoint());
   };
 
   const domainWithLeftovers = [...domain, ...leftovers].sort();
@@ -86,6 +100,14 @@ export default function MatrixView({
     if (hovered === element) return "hovered";
     return "";
   };
+
+  if (domainWithLeftovers.length === 0) {
+    return (
+      <EmptyPlaceholder
+        message={"No content to display (selected domain is empty)"}
+      />
+    );
+  }
 
   return (
     <Table responsive className="table-bordered table-view">
