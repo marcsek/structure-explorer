@@ -6,6 +6,7 @@ import {
   updateFunctions,
   updatePredicates,
 } from "./features/language/languageSlice";
+import { UndoActions } from "./features/undoHistory/undoHistory";
 
 export interface Formula {
   name: string;
@@ -47,17 +48,19 @@ export function useSyncLogicContext() {
 
   const hasContext = !!context;
 
-  useEffect(() => {
-    if (hasContext) dispatch(updateConstants(context.constants ?? []));
-  }, [context?.constants, dispatch, hasContext]);
+  const constants = context?.constants;
+  const predicates = context?.predicates;
+  const functions = context?.functions;
 
   useEffect(() => {
-    if (hasContext) dispatch(updatePredicates(context.predicates ?? []));
-  }, [context?.predicates, dispatch, hasContext]);
+    if (!hasContext) return;
 
-  useEffect(() => {
-    if (hasContext) dispatch(updateFunctions(context.functions ?? []));
-  }, [context?.functions, dispatch, hasContext]);
+    dispatch(updateConstants(constants ?? []));
+    dispatch(updatePredicates(predicates ?? []));
+    dispatch(updateFunctions(functions ?? []));
+
+    dispatch(UndoActions.clearHistory());
+  }, [constants, predicates, functions, dispatch, hasContext]);
 
   return { context, hasContext };
 }

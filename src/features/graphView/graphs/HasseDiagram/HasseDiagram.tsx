@@ -232,7 +232,7 @@ export default function HasseDiagram({
       {messageDialog}
       {isPoset && nodes.length === 0 && (
         <MessageDialog
-          type="warning"
+          type="info"
           position="center"
           title="No nodes to display"
           body={"The domain you have selected is empty."}

@@ -108,13 +108,21 @@ export const selectDatabaseViewValues = createSelector(
       values.map((tuple) => [tuple.slice(0, -1).join(","), tuple]),
     );
 
+    const containingLeftoverTuples = values.filter(
+      (tuple) =>
+        tuple.slice(0, -1).some((element) => leftovers.includes(element)) &&
+        tuple.at(-1) !== "",
+    );
+
     const filledInValues = fillInMissingTuples(
       domain.value,
       arity,
       presentTuples,
     );
 
-    return { values: filledInValues, leftovers };
+    const allTuples = [...containingLeftoverTuples, ...filledInValues];
+
+    return { values: allTuples, leftovers };
   },
 );
 

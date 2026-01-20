@@ -16,7 +16,6 @@ import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
 
-// Root reducer object
 const rootReducer = {
   formulas: formulasReducer,
   language: languageReducer,
@@ -29,7 +28,7 @@ const rootReducer = {
   editorToolbar: editorToolbarReducer,
 };
 
-const historyEqualityExcludedReducers: RootStateReducerName[] = [
+const historyEqualityExcludedReducers: RootReducerEntryName[] = [
   "teacherMode",
   "editorToolbar",
 ];
@@ -38,7 +37,7 @@ const comparator = (
   prev: RootStateWithoutHistory,
   next: RootStateWithoutHistory,
 ) => {
-  return (Object.keys(rootReducer) as RootStateReducerName[])
+  return (Object.keys(rootReducer) as RootReducerEntryName[])
     .filter((key) => !historyEqualityExcludedReducers.includes(key))
     .every((key) => prev[key] === next[key]);
 };
@@ -66,4 +65,4 @@ export type RootState = ReturnType<typeof undoReducer>;
 export type RootStateWithoutHistory = {
   [K in keyof typeof rootReducer]: ReturnType<(typeof rootReducer)[K]>;
 };
-export type RootStateReducerName = keyof RootStateWithoutHistory;
+export type RootReducerEntryName = keyof RootStateWithoutHistory;

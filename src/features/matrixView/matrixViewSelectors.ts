@@ -50,6 +50,8 @@ export const selectMatrixValuesWithInvalid = createSelector(
       (element) => !domain.value.includes(element),
     );
 
+    console.log(values);
+
     return { values, leftovers };
   },
 );
@@ -91,4 +93,4 @@ export const generateTupleInterpretation = (
 export const getKeyFromDomainTuple = (
   domainTuple: string[],
   duplicate: boolean = false,
-) => `${domainTuple.join("")}${duplicate ? "-d" : ""}`;
+) => `${domainTuple.join(",")}${duplicate ? "-d" : ""}`;

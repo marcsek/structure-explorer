@@ -162,4 +162,5 @@
 .intr-filter-no-elements-info {
   align-self: center;
   color: var(--bs-secondary-color);
+  user-select: none;
 }

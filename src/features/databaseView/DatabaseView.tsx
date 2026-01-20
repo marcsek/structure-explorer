@@ -113,7 +113,7 @@ export default function DatabaseView({
 
   if (domain.length === 0 && values.length === 0) {
     return (
-      <EmptyPlaceholder message={"No content to display (domain is empty)"} />
+      <EmptyPlaceholder message={"Nothing to display (domain is empty)"} />
     );
   }
 

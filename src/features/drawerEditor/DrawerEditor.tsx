@@ -1,6 +1,6 @@
 import "./DrawerEditor.css";
 
-import { Button, Card, CloseButton, Modal, Stack } from "react-bootstrap";
+import { Button, CloseButton, Modal, Stack } from "react-bootstrap";
 import { GraphToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import { type EditorType } from "../structure/InterpretationEditor";
@@ -106,67 +106,75 @@ function DrawerEditorContent({
             </div>
           )}
 
-          {error?.message && (
-            <div className="drawer-editor-error-container">
-              <div className="drawer-editor-error-message">
-                <FontAwesomeIcon icon={faWarning} />
-                <p className="small m-0">{error?.message}</p>
-              </div>
-              {error.kind !== "semantic" && (
-                <Button
-                  className=""
-                  variant="outline-danger"
-                  size="sm"
-                  onClick={() => {
-                    dispatch(
-                      removeInvalidEntries({ key: tupleName, type: tupleType }),
-                    );
-                    dispatch(UndoActions.checkpoint());
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrash} size="sm" />
-                  Remove invalid
-                </Button>
-              )}
-            </div>
+          {error && (
+            <EditorError
+              error={error}
+              onRemoveInvalidClick={() => {
+                dispatch(
+                  removeInvalidEntries({ key: tupleName, type: tupleType }),
+                );
+                dispatch(UndoActions.checkpoint());
+              }}
+            />
           )}
 
-          <Stack>
-            <Card className="border-0" style={{ height: "100%" }}>
-              <Card.Body
-                className={`drawer-editor-view-container ${error ? "error" : ""}`}
-              >
-                {type === "matrix" ? (
-                  <MatrixView
-                    tupleName={tupleName}
-                    tupleArity={tupleArity}
-                    tupleType={tupleType}
-                    locked={locked}
-                  />
-                ) : type === "database" ? (
-                  <DatabaseView
-                    tupleName={tupleName}
-                    tupleArity={tupleArity}
-                    tupleType={tupleType}
-                    locked={locked}
-                  />
-                ) : (
-                  <GraphView
-                    predName={tupleName}
-                    graphType={type}
-                    locked={locked}
-                    expandedView={expandedView}
-                    onExpandedViewChange={(expanded) =>
-                      setExpandedView(expanded)
-                    }
-                  />
-                )}
-              </Card.Body>
-            </Card>
-          </Stack>
+          <div
+            className={`drawer-editor-view-container ${error ? "error" : ""}`}
+          >
+            {type === "matrix" ? (
+              <MatrixView
+                tupleName={tupleName}
+                tupleArity={tupleArity}
+                tupleType={tupleType}
+                locked={locked}
+              />
+            ) : type === "database" ? (
+              <DatabaseView
+                tupleName={tupleName}
+                tupleArity={tupleArity}
+                tupleType={tupleType}
+                locked={locked}
+              />
+            ) : (
+              <GraphView
+                predName={tupleName}
+                graphType={type}
+                locked={locked}
+                expandedView={expandedView}
+                onExpandedViewChange={(expanded) => setExpandedView(expanded)}
+              />
+            )}
+          </div>
         </Stack>
       </Stack>
     </>
+  );
+}
+
+interface EditorErrorProps {
+  error: InterpretationError;
+  onRemoveInvalidClick: () => void;
+}
+
+function EditorError({ error, onRemoveInvalidClick }: EditorErrorProps) {
+  return (
+    <div className="drawer-editor-error-container">
+      <div className="drawer-editor-error-message">
+        <FontAwesomeIcon icon={faWarning} />
+        <p>{error.message}</p>
+      </div>
+      {error.kind !== "semantic" && (
+        <Button
+          className=""
+          size="sm"
+          variant="outline-danger"
+          onClick={onRemoveInvalidClick}
+        >
+          <FontAwesomeIcon icon={faTrash} size="sm" />
+          Remove invalid
+        </Button>
+      )}
+    </div>
   );
 }
 

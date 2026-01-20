@@ -89,7 +89,11 @@ export default function DomainSelector({ id }: DomainSelectorProps) {
               <span>Unary Predicates</span>
             </div>
 
-            {domain.length === 0 && <span>No domain elements to display</span>}
+            {domain.length === 0 && (
+              <span className="domain-selector-list-empty-text">
+                No domain elements to display
+              </span>
+            )}
 
             <ul className="domain-selector-list">
               {domain.map((item) => (

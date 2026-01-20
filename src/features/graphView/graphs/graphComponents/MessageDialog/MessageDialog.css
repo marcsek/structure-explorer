@@ -8,6 +8,9 @@
   justify-content: center;
   pointer-events: none;
   user-select: none;
+
+  --se-info: #2b7fff;
+  --se-info-border-color: #51a2ff;
 }
 
 .message-dialog-container.center {
@@ -101,8 +104,8 @@
 }
 
 .message-dialog-container.info .message-dialog-icon {
-  border-color: var(--bs-info-border-subtle);
-  color: var(--bs-info);
+  border-color: var(--se-info-border-color);
+  color: var(--se-info);
 }
 
 .message-dialog-container.corner.warning .message-dialog-icon {

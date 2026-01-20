@@ -43,13 +43,15 @@ const withStateComparator =
     comparator: StateComparator<State>,
   ): Reducer<StateWithHistory<State>, A> =>
   (state, action) => {
-    if (
-      !state ||
-      !state._latestUnfiltered ||
-      action.type !== UndoActionTypes.CHECKPOINT ||
-      !comparator(state._latestUnfiltered, state.present)
-    )
+    if (state === undefined || state._latestUnfiltered === undefined)
       return reducer(state, action);
 
-    return state;
+    if (action.type !== UndoActionTypes.CHECKPOINT)
+      return reducer(state, action);
+
+    const { present, _latestUnfiltered } = state;
+
+    if (comparator(_latestUnfiltered, present)) return state;
+
+    return reducer(state, action);
   };

@@ -1,0 +1,15 @@
+.empty_placeholder_container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+
+  color: var(--bs-secondary-color);
+}
+
+.empty_placeholder_container_text {
+  margin: 0;
+  font-weight: 500;
+  user-select: none;
+}

@@ -75,13 +75,19 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.75rem;
-  color: #454545;
+  color: var(--bs-secondary-color);
+  user-select: none;
 }
 
 .domain-selector-list-container {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.domain-selector-list-empty-text {
+  user-select: none;
+  color: var(--bs-secondary-color);
 }
 
 .domain-selector-header {

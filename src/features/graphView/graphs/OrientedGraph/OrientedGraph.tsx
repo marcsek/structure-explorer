@@ -88,6 +88,7 @@ export default function OrientedGraph({
   const warning = useAppSelector(
     (state) => state.present.graphView[id]?.state[type]?.warning,
   );
+  const historyIdx = useAppSelector((state) => state.index);
 
   const [didLayout, setDidLayout] = useState(false);
 
@@ -105,7 +106,7 @@ export default function OrientedGraph({
   useEffect(() => {
     onLayout(true, true, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [historyIdx]);
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
@@ -227,7 +228,7 @@ export default function OrientedGraph({
         )}
         {nodes.length === 0 && (
           <MessageDialog
-            type="warning"
+            type="info"
             position="center"
             title="No nodes to display"
             body={"The domain you have selected is empty."}

@@ -104,7 +104,7 @@ export default function MatrixView({
   if (domainWithLeftovers.length === 0) {
     return (
       <EmptyPlaceholder
-        message={"No content to display (selected domain is empty)"}
+        message={"Nothing to display (selected domain is empty)"}
       />
     );
   }
