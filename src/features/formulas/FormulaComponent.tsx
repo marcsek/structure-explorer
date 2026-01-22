@@ -64,13 +64,11 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
   const contextFormulasNames = new Set(
     contextFormulas.map((formula) => formula.name),
   );
+  const isMissingInContext = isFromContext && !contextFormulasNames.has(name);
 
-  const contextError =
-    name && !contextFormulasNames.has(name)
-      ? new Error(
-          `Formula is missing in context. ${formulaError?.message ?? ""}`,
-        )
-      : undefined;
+  const contextError = isMissingInContext
+    ? new Error(`Formula is missing in context. ${formulaError?.message ?? ""}`)
+    : undefined;
 
   const isPlayable = structureErrors && variablesErrors.error === undefined;
 
@@ -78,7 +76,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
     dispatch(gameGoBack({ id, index: backIndex }));
   }, [backIndex, dispatch, id]);
 
-  const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`} =`;
+  const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`}`;
   const error = contextError || formulaError;
 
   return (
@@ -87,7 +85,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
         <Row>
           <InputGroup className="mb-3" hasValidation={!!error}>
             <InputGroup.Text>
-              <InlineMath>{displayName}</InlineMath>
+              <InlineMath>{`${displayName} =`}</InlineMath>
             </InputGroup.Text>
             <Form.Control
               placeholder="Formula"
@@ -161,8 +159,9 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
               </Form.Select>
 
               <InputGroup.Text>
-                <InlineMath>{String.raw`\varphi_{${real_id}}[e]`}</InlineMath>
+                <InlineMath>{`${displayName}[e]`}</InlineMath>
               </InputGroup.Text>
+
               {teacherMode === true && (
                 <LockButton
                   locked={lockedGuess}
@@ -170,12 +169,17 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
                 />
               )}
 
-              <Form.Control.Feedback type="valid">
-                Verified!
-              </Form.Control.Feedback>
-              <Form.Control.Feedback type="invalid">
-                Not verified!
-              </Form.Control.Feedback>
+              {isVerified && (
+                <Form.Control.Feedback type="valid">
+                  Verified!
+                </Form.Control.Feedback>
+              )}
+
+              {!isVerified && (
+                <Form.Control.Feedback type="invalid">
+                  Not verified!
+                </Form.Control.Feedback>
+              )}
             </InputGroup>
           </Col>
 

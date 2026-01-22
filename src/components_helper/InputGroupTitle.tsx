@@ -50,7 +50,9 @@ export default function InputGroupTitle({
         </Form.Label>
       )}
       <InputGroup hasValidation={!!error}>
-        <InputGroup.Text>{prefix}</InputGroup.Text>
+        <InputGroup.Text className="input-group-fix-height">
+          {prefix}
+        </InputGroup.Text>
         <Form.Control
           placeholder={placeholder}
           aria-label={placeholder}
@@ -66,7 +68,11 @@ export default function InputGroupTitle({
           }
         />
 
-        {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}
+        {suffix && (
+          <InputGroup.Text className="input-group-fix-height">
+            {suffix}
+          </InputGroup.Text>
+        )}
 
         {controlButtons}
 

@@ -5,6 +5,8 @@ import {
 } from "../../features/formulas/formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagicWandSparkles } from "@fortawesome/free-solid-svg-icons";
 
 export default function PrettifyButton() {
   const allFormulas = useAppSelector(selectFormulas);
@@ -22,7 +24,8 @@ export default function PrettifyButton() {
   };
 
   return (
-    <Button onClick={prettifyAll} variant="success" className="mb-2">
+    <Button onClick={prettifyAll} variant="outline-success">
+      <FontAwesomeIcon size="sm" icon={faMagicWandSparkles} className="me-1" />
       Prettify formulas
     </Button>
   );

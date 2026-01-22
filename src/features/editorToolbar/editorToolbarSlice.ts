@@ -1,6 +1,7 @@
 import {
   createSelector,
   createSlice,
+  isAnyOf,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import {
@@ -9,6 +10,7 @@ import {
 } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
 import { selectStructure } from "../structure/structureSlice";
+import { updateFunctions, updatePredicates } from "../language/languageSlice";
 
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
@@ -99,6 +101,28 @@ export const editorToolbarSlice = createSlice({
         entry.selectedDomain = action.payload;
       }
     });
+
+    builder.addMatcher(
+      isAnyOf(updatePredicates, updateFunctions),
+      (state, action) => {
+        const unaryPredicates = action.payload
+          .filter(({ arity }) => arity === 1)
+          .map(({ name }) => name);
+
+        for (const [predName, value] of Object.entries(state)) {
+          const newSelectedUnary = value.selectedUnary.filter((selectedPred) =>
+            unaryPredicates.includes(selectedPred),
+          );
+
+          const newHoveredUnary = value.hoveredUnary.filter((hoveredPred) =>
+            unaryPredicates.includes(hoveredPred),
+          );
+
+          state[predName].selectedUnary = newSelectedUnary;
+          state[predName].hoveredUnary = newHoveredUnary;
+        }
+      },
+    );
   },
 });
 

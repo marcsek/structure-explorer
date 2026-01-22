@@ -179,6 +179,7 @@
 }
 
 .drawer-editor-title-primary {
+  max-height: 1.5rem;
   flex-shrink: 0;
 }
 

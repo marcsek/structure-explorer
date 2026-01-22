@@ -77,10 +77,13 @@ interface UnaryPredicatesFilterProps {
 
 function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
   const dispatch = useAppDispatch();
-  const predicates = useAppSelector(selectUnaryPreds)?.sort();
+  const predicates = useAppSelector(selectUnaryPreds)
+    ?.sort()
+    .map(([name]) => name);
   const selectedPredicates = useAppSelector((state) =>
     selectSelectedUnary(state, id),
   );
+  const predicatesExcludingSelf = predicates.filter((name) => name !== id);
 
   const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
 
@@ -91,7 +94,7 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
     const allSelected = selectedPredicates.length === predicates.length;
     const newSelectedPredicates = allSelected
       ? []
-      : predicates.map(([pred]) => pred);
+      : predicates.map((pred) => pred);
 
     handlePredicateToggle(newSelectedPredicates);
   };
@@ -128,11 +131,13 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
           <FontAwesomeIcon icon={faCheckDouble} />
         </Button>
 
-        {predicates.map(([predicate], idx) => (
+        {predicatesExcludingSelf.map((predicate) => (
           <label
             key={predicate}
             className="unary-preds-filters-checkbox"
-            style={{ color: getUnaryPredicateColor(idx) }}
+            style={{
+              color: getUnaryPredicateColor(predicates.indexOf(predicate)),
+            }}
             onMouseEnter={() => handlePredicateHover([predicate])}
             onMouseLeave={() => handlePredicateHover([])}
           >
@@ -144,7 +149,9 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
             />
             <span
               className="unary-preds-filters-checkbox-indicator"
-              style={{ color: getUnaryPredicateColor(idx) }}
+              style={{
+                color: getUnaryPredicateColor(predicates.indexOf(predicate)),
+              }}
             >
               {selectedPredicates.includes(predicate) && (
                 <FontAwesomeIcon icon={faCheck} />
@@ -153,7 +160,7 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
             <p
               style={{
                 color: selectedPredicates.includes(predicate)
-                  ? getUnaryPredicateColor(idx)
+                  ? getUnaryPredicateColor(predicates.indexOf(predicate))
                   : "",
               }}
             >

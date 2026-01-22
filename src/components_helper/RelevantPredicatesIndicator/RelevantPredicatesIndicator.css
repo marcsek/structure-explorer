@@ -6,6 +6,12 @@
 .relevant-pred-indicator .relevant-pred-indicator-pred {
   border-radius: 100px;
   outline: 2px solid white;
+  background-color: currentColor;
+}
+
+.relevant-pred-indicator .relevant-pred-indicator-pred.previewed {
+  background-color: color-mix(in srgb, currentColor 20%, white);
+  border: 2px solid currentColor;
 }
 
 .relevant-pred-indicator.size-md .relevant-pred-indicator-pred {

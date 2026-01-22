@@ -16,7 +16,7 @@ import {
   selectMatrixValuesWithInvalid,
   updaters,
 } from "./matrixViewSelectors";
-import type { TupleType } from "../structure/structureSlice";
+import { selectDomain, type TupleType } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
@@ -42,7 +42,9 @@ export default function MatrixView({
     selectMatrixValuesWithInvalid(state, tupleName, tupleType),
   );
 
-  const domain = useAppSelector((state) =>
+  const domain = useAppSelector(selectDomain).value;
+
+  const selectedDomain = useAppSelector((state) =>
     selectFilteredDomain(state, tupleName, true),
   );
 
@@ -93,7 +95,7 @@ export default function MatrixView({
       dispatch(UndoActions.checkpoint());
   };
 
-  const domainWithLeftovers = [...domain, ...leftovers].sort();
+  const domainWithLeftovers = [...selectedDomain, ...leftovers].sort();
 
   const getTableClass = (element: string, hovered: string) => {
     if (leftovers.includes(element)) return "error";
@@ -187,7 +189,7 @@ function PredicateIndicatorTableHead({
 }: PredicateIndicatorTableHeadProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
 
-  const [predsToDisplay] = useAppSelector((state) =>
+  const [predsToDisplay, previewed] = useAppSelector((state) =>
     selectPredicatesToDisplay(state, predicateName, domainId),
   );
 
@@ -199,7 +201,11 @@ function PredicateIndicatorTableHead({
   return (
     <div className="table-view-head">
       {domainId}
-      <RelevantPredicatesIndicator predicateToColorMap={colorMap} size="sm" />
+      <RelevantPredicatesIndicator
+        predicateToColorMap={colorMap}
+        previewed={previewed}
+        size="sm"
+      />
     </div>
   );
 }

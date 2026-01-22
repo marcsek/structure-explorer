@@ -50,8 +50,6 @@ export const selectMatrixValuesWithInvalid = createSelector(
       (element) => !domain.value.includes(element),
     );
 
-    console.log(values);
-
     return { values, leftovers };
   },
 );

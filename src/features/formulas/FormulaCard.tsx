@@ -18,6 +18,7 @@ import {
   type FormulaType,
 } from "../../logicContext.ts";
 import { useState } from "react";
+import React from "react";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
@@ -36,7 +37,7 @@ export default function FormulaCard() {
       }
       help={help}
     >
-      <Stack gap={2} direction="horizontal" className="mb-2">
+      <Stack gap={2} direction="horizontal" className="mb-2 flex-wrap">
         <Button
           variant="success"
           onClick={() => {
@@ -51,7 +52,7 @@ export default function FormulaCard() {
           presentContextFormulas={presentContextFormulas}
         />
 
-        <div className="ms-auto">
+        <div className="ms-sm-auto">
           {allFormulas.length > 0 && <PrettifyButton />}
         </div>
       </Stack>
@@ -117,7 +118,7 @@ function ContextFormulasDropdown({
         <FontAwesomeIcon icon={faCheckDouble} size="sm" /> Add all
       </Dropdown.Item>
       {formulasByType.map(([formulaType, formulaWithType]) => (
-        <>
+        <React.Fragment key={formulaType}>
           <Dropdown.Divider />
           <Dropdown.ItemText
             className="text-secondary b-0"
@@ -132,6 +133,7 @@ function ContextFormulasDropdown({
 
           {formulaWithType.map(({ name, formula }) => (
             <Dropdown.Item
+              key={name}
               as="button"
               disabled={presentContextFormulas.has(name)}
               onClick={() => {
@@ -142,7 +144,7 @@ function ContextFormulasDropdown({
               {name}
             </Dropdown.Item>
           ))}
-        </>
+        </React.Fragment>
       ))}
     </DropdownButton>
   );

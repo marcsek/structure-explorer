@@ -53,11 +53,30 @@ const omitControlButtons = (
 ) => {
   if (omit.length === 0) return controlButtons;
 
-  return controlButtons.filter(({ value }) =>
-    Array.isArray(value)
-      ? value.every((v) => !omit.includes(v))
-      : !omit.includes(value),
-  );
+  const filteredButtons = controlButtons
+    .map((button) => {
+      if (!("dropDown" in button))
+        return omit.includes(button.value) ? null : button;
+
+      const filteredValues = button.value.filter((v) => !omit.includes(v));
+      const filteredDropdown = button.dropDown.filter(
+        ({ value }) => !omit.includes(value),
+      );
+
+      if (filteredValues.length === 0) return null;
+
+      return {
+        ...button,
+        value: filteredValues,
+        dropDown: filteredDropdown,
+      };
+    })
+    .filter((button) => button !== null);
+
+  if (filteredButtons.length === 1 && filteredButtons[0].value === "text")
+    return [];
+
+  return filteredButtons;
 };
 
 export default function InterpretationEditorProps({
@@ -162,6 +181,7 @@ export default function InterpretationEditorProps({
   const controlButtonsToOmit: EditorType[] = [];
   if (!isTuple) controlButtonsToOmit.push("hasse", "bipartite", "oriented");
   if (arity > 2) controlButtonsToOmit.push("matrix");
+  if (arity > 2 && type === "function") controlButtonsToOmit.push("database");
 
   return (
     <Stack gap={0}>
@@ -265,6 +285,8 @@ function ControlButtons<T extends string | number>({
   disabled = false,
 }: ControlButtonsProps<T>) {
   const buttonId = (value: string | number) => `${id}-${value}`;
+
+  if (buttons.length === 0) return null;
 
   return (
     <ButtonGroup id={id} className="editor-controls-buttons-group">

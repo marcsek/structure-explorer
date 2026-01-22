@@ -3,12 +3,14 @@ import "./RelevantPredicatesIndicator.css";
 interface RelevantPredicatesIndicatorProps
   extends React.HTMLAttributes<HTMLDivElement> {
   predicateToColorMap: Map<string, string>;
+  previewed?: string[];
   size?: "md" | "sm";
 }
 
 export function RelevantPredicatesIndicator({
   predicateToColorMap,
   size = "md",
+  previewed = [],
   ...props
 }: RelevantPredicatesIndicatorProps) {
   return (
@@ -19,8 +21,8 @@ export function RelevantPredicatesIndicator({
       {[...predicateToColorMap.entries()].map(([pred, color]) => (
         <span
           key={pred}
-          style={{ backgroundColor: color }}
-          className={`relevant-pred-indicator-pred`}
+          style={{ color }}
+          className={`relevant-pred-indicator-pred ${previewed.includes(pred) ? "previewed" : ""}`}
         />
       ))}
     </div>

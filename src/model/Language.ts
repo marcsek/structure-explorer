@@ -28,7 +28,6 @@ export class Language {
       ...this.functions.keys(),
       ...this.predicates.keys(),
     ]);
-    console.log(nonLogicalSymbols);
 
     return {
       isConstant: (symbol: string): boolean => this.constants.has(symbol),
