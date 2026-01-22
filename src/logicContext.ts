@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useMemo } from "react";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { useAppDispatch } from "./app/hooks";
 import {
@@ -7,8 +7,9 @@ import {
   updatePredicates,
 } from "./features/language/languageSlice";
 import { UndoActions } from "./features/undoHistory/undoHistory";
+import { syncContextFormulas } from "./features/formulas/formulasSlice";
 
-export interface Formula {
+export interface ContextFormula {
   name: string;
   formula: string;
 }
@@ -18,9 +19,9 @@ export interface LogicContext {
   predicates: Array<SymbolWithArity>;
   functions: Array<SymbolWithArity>;
 
-  formulas: Array<Formula>;
-  axioms: Array<Formula>;
-  theorems: Array<Formula>;
+  formulas: Array<ContextFormula>;
+  axioms: Array<ContextFormula>;
+  theorems: Array<ContextFormula>;
 
   getFormula: (name: string) => { type: string; formula: string } | undefined;
 }
@@ -42,7 +43,7 @@ export function useLogicContext(): CellContext | undefined {
   return useContext(LogicContext);
 }
 
-export function useSyncLogicContext() {
+export function useSyncLanguageContext() {
   const context = useLogicContext();
   const dispatch = useAppDispatch();
 
@@ -63,4 +64,54 @@ export function useSyncLogicContext() {
   }, [constants, predicates, functions, dispatch, hasContext]);
 
   return { context, hasContext };
+}
+
+export type FormulaType = "formula" | "axiom" | "theorem";
+export interface Formula extends ContextFormula {
+  type: FormulaType;
+}
+
+export function useFormulasContext() {
+  const context = useLogicContext();
+
+  const hasContext = !!context;
+
+  const namedFormulas = context?.formulas;
+  const axioms = context?.axioms;
+
+  const formulasByType = useMemo<[FormulaType, ContextFormula[]][]>(
+    () => [
+      ["formula", namedFormulas ?? []],
+      ["axiom", axioms ?? []],
+    ],
+    [namedFormulas, axioms],
+  );
+
+  const formulas = useMemo<Formula[]>(
+    () =>
+      formulasByType.flatMap(([type, formulas]) =>
+        formulas.map(({ name, formula }) => ({ name, formula, type })),
+      ),
+    [formulasByType],
+  );
+
+  return { context, hasContext, formulas, formulasByType };
+}
+
+export function useSyncFormulasContext() {
+  const dispatch = useAppDispatch();
+  const { hasContext, formulas, ...rest } = useFormulasContext();
+
+  useEffect(() => {
+    if (!hasContext) return;
+
+    const formulasToText = Object.fromEntries(
+      formulas.map(({ name, formula }) => [name, formula]),
+    );
+
+    dispatch(syncContextFormulas(formulasToText));
+    dispatch(UndoActions.clearHistory());
+  }, [hasContext, dispatch, formulas]);
+
+  return { hasContext, formulas, ...rest };
 }

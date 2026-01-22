@@ -16,7 +16,7 @@ import {
   selectValidatedTextView,
   updateTextView,
 } from "../textView/textViewSlice.ts";
-import { useSyncLogicContext } from "../../logicContext.ts";
+import { useSyncLanguageContext } from "../../logicContext.ts";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -36,7 +36,7 @@ export default function LanguageComponent() {
   const functionsLock = useAppSelector(selectFunctionsLock);
 
   const symbolsClash = useAppSelector(selectSymbolsClash);
-  const { hasContext } = useSyncLogicContext();
+  const { hasContext } = useSyncLanguageContext();
 
   return (
     <ComponentCard

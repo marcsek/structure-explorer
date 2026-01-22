@@ -33,6 +33,7 @@ import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import type { ReactNode } from "react";
 
 export interface FormulaState {
+  name?: string;
   text: string;
   guess: boolean | null;
   locked: boolean;
@@ -52,9 +53,15 @@ const initialState: FormulasState = {
   allFormulas: [],
 };
 
-function newFormulaState() {
+type NewFormulaOptions = {
+  name?: string;
+  text?: string;
+};
+
+function newFormulaState(options: NewFormulaOptions = {}): FormulaState {
   return {
-    text: "",
+    name: options.name,
+    text: options.text ?? "",
     locked: false,
     lockedGuess: false,
     guess: null,
@@ -70,8 +77,24 @@ export const formulasSlice = createSlice({
       return action.payload;
     },
 
-    addFormula: (state) => {
-      state.allFormulas.push(newFormulaState());
+    addFormulas: (
+      state,
+      action: PayloadAction<NewFormulaOptions[] | undefined>,
+    ) => {
+      if (!action.payload) {
+        state.allFormulas.push(newFormulaState());
+      } else {
+        action.payload.forEach((options) =>
+          state.allFormulas.push(newFormulaState(options)),
+        );
+      }
+    },
+
+    syncContextFormulas(state, action: PayloadAction<Record<string, string>>) {
+      state.allFormulas.forEach(({ name }, idx) => {
+        if (!name || !(name in action.payload)) return;
+        state.allFormulas[idx].text = action.payload[name];
+      });
     },
 
     lockFormula: (state, action: PayloadAction<number>) => {
@@ -177,7 +200,7 @@ export const formulasSlice = createSlice({
 });
 
 export const {
-  addFormula,
+  addFormulas,
   removeFormula,
   gameGoBack,
   addAlpha,
@@ -185,6 +208,7 @@ export const {
   addGamma,
   addDelta,
   updateText,
+  syncContextFormulas,
   updateGuess,
   importFormulasState,
   lockFormula,

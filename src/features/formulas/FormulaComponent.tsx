@@ -32,17 +32,20 @@ import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
+import { useFormulasContext } from "../../logicContext";
 
 interface Props {
   id: number;
+  name?: string;
   text: string;
   guess: boolean | null;
 }
 
-export default function FormulaComponent({ id, text, guess }: Props) {
+export default function FormulaComponent({ id, text, guess, name }: Props) {
+  const isFromContext = !!name;
   const real_id = id + 1;
   const dispatch = useAppDispatch();
-  const { error, formula } = useAppSelector((state) =>
+  const { error: formulaError, formula } = useAppSelector((state) =>
     selectEvaluatedFormula(state, id),
   );
   const [begin, setBegin] = useState(false);
@@ -57,6 +60,17 @@ export default function FormulaComponent({ id, text, guess }: Props) {
   const lockedGuess = useAppSelector((state) =>
     selectFormulaGuessLock(state, id),
   );
+  const { formulas: contextFormulas } = useFormulasContext();
+  const contextFormulasNames = new Set(
+    contextFormulas.map((formula) => formula.name),
+  );
+
+  const contextError =
+    name && !contextFormulasNames.has(name)
+      ? new Error(
+          `Formula is missing in context. ${formulaError?.message ?? ""}`,
+        )
+      : undefined;
 
   const isPlayable = structureErrors && variablesErrors.error === undefined;
 
@@ -64,19 +78,22 @@ export default function FormulaComponent({ id, text, guess }: Props) {
     dispatch(gameGoBack({ id, index: backIndex }));
   }, [backIndex, dispatch, id]);
 
+  const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`} =`;
+  const error = contextError || formulaError;
+
   return (
     <>
       <Form>
         <Row>
           <InputGroup className="mb-3" hasValidation={!!error}>
             <InputGroup.Text>
-              <InlineMath>{String.raw`\varphi_{${real_id}} =`}</InlineMath>
+              <InlineMath>{displayName}</InlineMath>
             </InputGroup.Text>
             <Form.Control
               placeholder="Formula"
               aria-label="Formula"
               aria-describedby="basic-addon2"
-              disabled={locked === true}
+              disabled={isFromContext || locked === true}
               value={text}
               onChange={(e) => {
                 dispatch(updateText({ id: id, text: e.target.value }));

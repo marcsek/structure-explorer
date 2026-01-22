@@ -1,18 +1,30 @@
-import { Table } from "react-bootstrap";
+import { Dropdown, DropdownButton, Stack, Table } from "react-bootstrap";
 import FormulaComponent from "./FormulaComponent";
 import Button from "react-bootstrap/Button";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { selectFormulas, type FormulaState, addFormula } from "./formulasSlice";
+import {
+  selectFormulas,
+  type FormulaState,
+  addFormulas,
+} from "./formulasSlice";
 import { InlineMath } from "react-katex";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCheckDouble, faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 import { UndoActions } from "../undoHistory/undoHistory.ts";
+import {
+  useSyncFormulasContext,
+  type FormulaType,
+} from "../../logicContext.ts";
+import { useState } from "react";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
   const allFormulas = useAppSelector(selectFormulas);
+  const presentContextFormulas = new Set(
+    allFormulas.flatMap(({ name }) => (name ? [name] : [])),
+  );
 
   return (
     <ComponentCard
@@ -24,27 +36,115 @@ export default function FormulaCard() {
       }
       help={help}
     >
-      {allFormulas.length > 0 && <PrettifyButton />}
+      <Stack gap={2} direction="horizontal" className="mb-2">
+        <Button
+          variant="success"
+          onClick={() => {
+            dispatch(addFormulas());
+            dispatch(UndoActions.checkpoint());
+          }}
+        >
+          <FontAwesomeIcon icon={faPlus} /> Add
+        </Button>
+
+        <ContextFormulasDropdown
+          presentContextFormulas={presentContextFormulas}
+        />
+
+        <div className="ms-auto">
+          {allFormulas.length > 0 && <PrettifyButton />}
+        </div>
+      </Stack>
 
       {allFormulas.map((formula: FormulaState, index: number) => (
         <FormulaComponent
           id={index}
+          name={formula.name}
           key={index}
           text={formula.text}
           guess={formula.guess}
         />
       ))}
-
-      <Button
-        variant="success"
-        onClick={() => {
-          dispatch(addFormula());
-          dispatch(UndoActions.checkpoint());
-        }}
-      >
-        <FontAwesomeIcon icon={faPlus} /> Add
-      </Button>
     </ComponentCard>
+  );
+}
+
+const formulaTypeDisplayNames: Record<FormulaType, string> = {
+  formula: "Named Formulas",
+  axiom: "Axioms",
+  theorem: "Theorems",
+};
+
+interface FormulaDropdownProps {
+  presentContextFormulas: Set<string>;
+}
+
+function ContextFormulasDropdown({
+  presentContextFormulas,
+}: FormulaDropdownProps) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const { formulas, formulasByType } = useSyncFormulasContext();
+  const notYetAdded = formulas
+    .filter(({ name }) => !presentContextFormulas.has(name))
+    .map(({ name, formula }) => ({ name, text: formula }));
+
+  function handleAddAllFormulas() {
+    dispatch(addFormulas(notYetAdded));
+    dispatch(UndoActions.checkpoint());
+    setShowDropdown(false);
+  }
+
+  return (
+    <DropdownButton
+      title={
+        <>
+          <FontAwesomeIcon icon={faPlus} /> Add from context
+        </>
+      }
+      onToggle={(isOpen) => setShowDropdown(isOpen)}
+      disabled={formulas.length === 0}
+      variant="success"
+      autoClose="outside"
+      show={showDropdown}
+    >
+      <Dropdown.Item
+        as="button"
+        onClick={handleAddAllFormulas}
+        disabled={notYetAdded.length === 0}
+      >
+        <FontAwesomeIcon icon={faCheckDouble} size="sm" /> Add all
+      </Dropdown.Item>
+      {formulasByType.map(([formulaType, formulaWithType]) => (
+        <>
+          <Dropdown.Divider />
+          <Dropdown.ItemText
+            className="text-secondary b-0"
+            style={{
+              minWidth: "fitContent",
+              fontSize: "14px",
+              paddingBlock: "0px",
+            }}
+          >
+            {formulaTypeDisplayNames[formulaType]}
+          </Dropdown.ItemText>
+
+          {formulaWithType.map(({ name, formula }) => (
+            <Dropdown.Item
+              as="button"
+              disabled={presentContextFormulas.has(name)}
+              onClick={() => {
+                dispatch(addFormulas([{ name, text: formula }]));
+                dispatch(UndoActions.checkpoint());
+              }}
+            >
+              {name}
+            </Dropdown.Item>
+          ))}
+        </>
+      ))}
+    </DropdownButton>
   );
 }
 
