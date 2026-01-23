@@ -34,7 +34,8 @@
     "elkjs": "^0.11.0",
     "react-katex": "^3.0.1",
     "react-redux": "^7.2.6",
-    "redux-undo": "^1.1.0"
+    "redux-undo": "^1.1.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

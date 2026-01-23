@@ -31,6 +31,7 @@ import UniversalQuant from "../../model/formula/Formula.UniversalQuant";
 import { selectValuation } from "../variables/variablesSlice";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import type { ReactNode } from "react";
+import type { SerializedFormulasState } from "./validationSchema";
 
 export interface FormulaState {
   name?: string;
@@ -73,7 +74,10 @@ export const formulasSlice = createSlice({
   name: "formulas",
   initialState,
   reducers: {
-    importFormulasState: (_state, action: PayloadAction<FormulasState>) => {
+    importFormulasState: (
+      _state,
+      action: PayloadAction<SerializedFormulasState>,
+    ) => {
       return action.payload;
     },
 

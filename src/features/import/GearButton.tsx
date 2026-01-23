@@ -12,6 +12,7 @@ import {
   updateTeacherMode,
 } from "../teacherMode/teacherModeslice";
 import { useLogicContext } from "../../logicContext";
+import { serializedAppStateSchema } from "./validationSchema";
 
 export default function GearButton() {
   const dispatch = useAppDispatch();
@@ -30,8 +31,9 @@ export default function GearButton() {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const json = JSON.parse(e.target?.result?.toString()!);
-        dispatch(importAppState(json, !!logicContext));
+        const json = JSON.parse(e.target?.result?.toString() ?? "");
+        const result = serializedAppStateSchema.parse(json);
+        dispatch(importAppState(result, !!logicContext));
       } catch (err) {
         alert("Invalid JSON file.");
         console.error(err);

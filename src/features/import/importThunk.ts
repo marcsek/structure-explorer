@@ -23,6 +23,10 @@ import { getStructureTextViewSyncEntries } from "../structure/textViewDescriptor
 import { getLanguageTextViewSyncEntries } from "../language/textViewDescriptors";
 import { getVariablesTextViewSyncEntries } from "../variables/textViewDescriptors";
 import { UndoActions } from "../undoHistory/undoHistory";
+import {
+  SERIALIZED_STATE_VERSION,
+  type SerializedAppState,
+} from "./validationSchema";
 
 export interface ImportedAppState
   extends Omit<
@@ -36,7 +40,7 @@ export interface ImportedAppState
 }
 
 export const importAppState =
-  (importedState: ImportedAppState, excludeLanguage = false): AppThunk =>
+  (importedState: SerializedAppState, excludeLanguage = false): AppThunk =>
   (dispatch, getState) => {
     if (excludeLanguage) {
       const relevantSymbols = getRelevantSymbols(getState().present.language);
@@ -118,10 +122,11 @@ const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
   };
 };
 
-export const getAppStateToExport = (state: RootState): ImportedAppState => {
+export const getAppStateToExport = (state: RootState): SerializedAppState => {
   const relevantSymbols = getRelevantSymbols(state.present.language);
 
   return {
+    version: SERIALIZED_STATE_VERSION,
     formulas: state.present.formulas,
     language: state.present.language,
     variables: state.present.variables,

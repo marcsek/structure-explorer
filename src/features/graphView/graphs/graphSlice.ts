@@ -49,6 +49,7 @@ import {
 } from "../../editorToolbar/editorToolbarSlice.ts";
 import type { RelevantSymbols } from "../../import/importThunk.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
+import type { SerializedGraphViewState } from "../validationSchema.ts";
 
 export type GraphManagerState = Record<
   string,
@@ -106,10 +107,7 @@ export const graphManagerSlice = createSlice({
       action: PayloadAction<{
         structure: StructureState;
         language: LanguageState;
-        positions?: Record<
-          string,
-          Record<GraphType, Record<string, [number, number]>>
-        >;
+        positions?: SerializedGraphViewState;
       }>,
     ) {
       const { structure, language, positions } = action.payload;
@@ -550,7 +548,7 @@ export const leftoverDeleted = ({
 export const getGraphViewStateToExport = (
   state: RootState,
   relevantSymbols: RelevantSymbols,
-) => {
+): SerializedGraphViewState => {
   const relevantEntries = Object.entries(state.present.graphView).filter(
     ([key, { tupleType }]) =>
       relevantSymbols[key]?.type === tupleType &&
@@ -561,10 +559,8 @@ export const getGraphViewStateToExport = (
     nodes: PredicateNodeType[],
     graphType: GraphType,
   ) => {
-    const changedNodes =
-      graphType === "bipartite"
-        ? nodes
-        : nodes.filter(({ position: { x, y } }) => x !== 0 || y !== 0);
+    const didMove = nodes.some(({ position: { x, y } }) => x !== 0 || y !== 0);
+    const changedNodes = graphType === "bipartite" || didMove ? nodes : [];
 
     return changedNodes.map(
       ({ id, position: { x, y } }) => [id, [x, y].map(Math.trunc)] as const,
@@ -579,7 +575,7 @@ export const getGraphViewStateToExport = (
           graph,
           Object.fromEntries(getNodesToExport(nodes, graph as GraphType)),
         ]),
-      ) as Record<GraphType, Record<string, [number, number]>>,
+      ) as SerializedGraphViewState[string],
     ]),
   );
 };

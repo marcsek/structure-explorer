@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
+import type { SerializedTeacherModeState } from "./validationSchema";
 
 export interface TeacherModeState {
   teacherMode: boolean | undefined;
@@ -14,7 +15,10 @@ export const teacherModeSlice = createSlice({
   name: "teacherMode",
   initialState,
   reducers: {
-    importTeacherMode: (_state, action: PayloadAction<TeacherModeState>) => {
+    importTeacherMode: (
+      _state,
+      action: PayloadAction<SerializedTeacherModeState>,
+    ) => {
       return action.payload;
     },
 

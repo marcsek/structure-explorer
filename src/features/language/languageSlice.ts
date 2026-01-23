@@ -9,6 +9,7 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
+import type { SerializedLanguageState } from "./validationSchema";
 
 export type ConstantsRepresentation = string[];
 export type AritySymbolsRepresentation = [string, number][];
@@ -35,7 +36,10 @@ export const languageSlice = createSlice({
   name: "language",
   initialState,
   reducers: {
-    importLanguageState(_state, action: PayloadAction<LanguageState>) {
+    importLanguageState(
+      _state,
+      action: PayloadAction<SerializedLanguageState>,
+    ) {
       return action.payload;
     },
 

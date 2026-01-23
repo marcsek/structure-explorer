@@ -9,6 +9,7 @@ import {
 } from "./features/import/importThunk";
 import { type CellContext, LogicContext } from "./logicContext";
 import { useEffect } from "react";
+import { serializedAppStateSchema } from "./features/import/validationSchema";
 
 interface PrepareResult {
   instance: any;
@@ -27,8 +28,10 @@ export function prepare(initialState?: any): PrepareResult {
   if (initialState !== null) {
     console.log("Importing app state");
 
-    const parsedInitialState = initialState;
-    instance.store.dispatch(importAppState(parsedInitialState));
+    const result = serializedAppStateSchema.safeParse(initialState);
+
+    if (!result.success) console.log(result.error.message);
+    else instance.store.dispatch(importAppState(result.data));
   }
 
   return { instance, getState };

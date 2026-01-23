@@ -9,6 +9,7 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
+import type { SerializedVariablesState } from "./validationSchema";
 
 export type VariableRepresentation = { from: string; to: string };
 export type VariablesState = LockableValue<VariableRepresentation[]>;
@@ -19,7 +20,10 @@ export const variablesSlice = createSlice({
   name: "variables",
   initialState,
   reducers: {
-    importVariablesState(_state, action: PayloadAction<VariablesState>) {
+    importVariablesState(
+      _state,
+      action: PayloadAction<SerializedVariablesState>,
+    ) {
       return action.payload;
     },
 

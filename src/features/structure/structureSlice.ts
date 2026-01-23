@@ -21,6 +21,7 @@ import {
   type Validated,
 } from "../../common/redux";
 import type { RelevantSymbols } from "../import/importThunk";
+import type { SerializedStructureState } from "./validationSchema";
 
 export type InterpretationType = "predicate" | "function" | "constant";
 export type TupleType = "function" | "predicate";
@@ -56,7 +57,10 @@ export const structureSlice = createSlice({
   reducers: {
     importStructureState(
       state,
-      action: PayloadAction<{ state: StructureState; merge?: boolean }>,
+      action: PayloadAction<{
+        state: SerializedStructureState;
+        merge?: boolean;
+      }>,
     ) {
       const { state: newState, merge = false } = action.payload;
 
