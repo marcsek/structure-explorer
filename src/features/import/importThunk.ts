@@ -1,4 +1,3 @@
-import type { XYPosition } from "@xyflow/react";
 import type { AppDispatch, AppThunk, RootState } from "../../app/store";
 import { syncDatabaseView } from "../databaseView/databaseViewSlice";
 import { importFormulasState } from "../formulas/formulasSlice";
@@ -30,7 +29,10 @@ export interface ImportedAppState
     RootState["present"],
     "graphView" | "matrixView" | "databaseView" | "editorToolbar" | "textView"
   > {
-  graphView: Record<string, Record<GraphType, Record<string, XYPosition>>>;
+  graphView: Record<
+    string,
+    Record<GraphType, Record<string, [number, number]>>
+  >;
 }
 
 export const importAppState =
@@ -78,7 +80,7 @@ export const importAppState =
 
 export const exportAppState =
   () => (_: AppDispatch, getState: () => RootState) => {
-    const json = getAppStateToExportJSON(getState());
+    const json = JSON.stringify(getAppStateToExport(getState()), null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
 
@@ -116,22 +118,18 @@ const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
   };
 };
 
-export const getAppStateToExportJSON = (state: RootState) => {
+export const getAppStateToExport = (state: RootState): ImportedAppState => {
   const relevantSymbols = getRelevantSymbols(state.present.language);
 
-  return JSON.stringify(
-    {
-      formulas: state.present.formulas,
-      language: state.present.language,
-      variables: state.present.variables,
-      teacherMode: state.present.teacherMode,
-      structure: getRelevantStructureState(
-        state.present.structure,
-        relevantSymbols,
-      ),
-      graphView: getGraphViewStateToExport(state, relevantSymbols),
-    },
-    null,
-    2,
-  );
+  return {
+    formulas: state.present.formulas,
+    language: state.present.language,
+    variables: state.present.variables,
+    teacherMode: state.present.teacherMode,
+    structure: getRelevantStructureState(
+      state.present.structure,
+      relevantSymbols,
+    ),
+    graphView: getGraphViewStateToExport(state, relevantSymbols),
+  };
 };

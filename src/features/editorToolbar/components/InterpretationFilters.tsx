@@ -91,10 +91,11 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
   const scrollControls = useScrollControls(filtersGroupRef, { edgeMargin: 40 });
 
   const handleSelectAll = () => {
-    const allSelected = selectedPredicates.length === predicates.length;
+    const allSelected =
+      selectedPredicates.length === predicatesExcludingSelf.length;
     const newSelectedPredicates = allSelected
       ? []
-      : predicates.map((pred) => pred);
+      : predicatesExcludingSelf.map((pred) => pred);
 
     handlePredicateToggle(newSelectedPredicates);
   };
@@ -125,7 +126,7 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
           className="legend-select-all editor-toolbar-button legend-button"
           title="Select all"
           onClick={handleSelectAll}
-          onMouseEnter={() => handlePredicateHover(predicates.map((p) => p[0]))}
+          onMouseEnter={() => handlePredicateHover(predicatesExcludingSelf)}
           onMouseLeave={() => handlePredicateHover([])}
         >
           <FontAwesomeIcon icon={faCheckDouble} />

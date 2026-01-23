@@ -73,7 +73,6 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
     type: MarkerType.ArrowClosed,
     color: "#b1b1b7",
   },
-  zIndex: 1,
 };
 
 const groupNodeOptions = {

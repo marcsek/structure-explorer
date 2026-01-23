@@ -83,7 +83,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
     <>
       <Form>
         <Row>
-          <InputGroup className="mb-3" hasValidation={!!error}>
+          <InputGroup className="mb-2" hasValidation={!!error}>
             <InputGroup.Text>
               <InlineMath>{`${displayName} =`}</InlineMath>
             </InputGroup.Text>

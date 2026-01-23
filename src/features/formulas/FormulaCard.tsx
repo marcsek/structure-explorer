@@ -37,7 +37,7 @@ export default function FormulaCard() {
       }
       help={help}
     >
-      <Stack gap={2} direction="horizontal" className="mb-2 flex-wrap">
+      <Stack gap={2} direction="horizontal" className="mb-3 flex-wrap">
         <Button
           variant="success"
           onClick={() => {
@@ -86,7 +86,7 @@ function ContextFormulasDropdown({
   const [showDropdown, setShowDropdown] = useState(false);
   const dispatch = useAppDispatch();
 
-  const { formulas, formulasByType } = useSyncFormulasContext();
+  const { formulas, formulasByType, hasContext } = useSyncFormulasContext();
   const notYetAdded = formulas
     .filter(({ name }) => !presentContextFormulas.has(name))
     .map(({ name, formula }) => ({ name, text: formula }));
@@ -96,6 +96,8 @@ function ContextFormulasDropdown({
     dispatch(UndoActions.checkpoint());
     setShowDropdown(false);
   }
+
+  if (!hasContext) return null;
 
   return (
     <DropdownButton

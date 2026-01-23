@@ -14,7 +14,6 @@ import {
   type Edge,
   type EdgeChange,
   type NodeChange,
-  type XYPosition,
 } from "@xyflow/react";
 import { isPoset, type BinaryRelation } from "./HasseDiagram/posetHelpers";
 import {
@@ -109,7 +108,7 @@ export const graphManagerSlice = createSlice({
         language: LanguageState;
         positions?: Record<
           string,
-          Record<GraphType, Record<string, XYPosition>>
+          Record<GraphType, Record<string, [number, number]>>
         >;
       }>,
     ) {
@@ -558,15 +557,29 @@ export const getGraphViewStateToExport = (
       relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),
   );
 
+  const getNodesToExport = (
+    nodes: PredicateNodeType[],
+    graphType: GraphType,
+  ) => {
+    const changedNodes =
+      graphType === "bipartite"
+        ? nodes
+        : nodes.filter(({ position: { x, y } }) => x !== 0 || y !== 0);
+
+    return changedNodes.map(
+      ({ id, position: { x, y } }) => [id, [x, y].map(Math.trunc)] as const,
+    );
+  };
+
   return Object.fromEntries(
     relevantEntries.map(([key, { state }]) => [
       key,
       Object.fromEntries(
         Object.entries(state).map(([graph, { nodes }]) => [
           graph,
-          Object.fromEntries(nodes.map(({ id, position }) => [id, position])),
+          Object.fromEntries(getNodesToExport(nodes, graph as GraphType)),
         ]),
-      ),
+      ) as Record<GraphType, Record<string, [number, number]>>,
     ]),
   );
 };

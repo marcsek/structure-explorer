@@ -4,7 +4,7 @@ import App from "./App";
 import { createStore } from "./app/store";
 import { Provider } from "react-redux";
 import {
-  getAppStateToExportJSON,
+  getAppStateToExport,
   importAppState,
 } from "./features/import/importThunk";
 import { type CellContext, LogicContext } from "./logicContext";
@@ -21,13 +21,13 @@ export function prepare(initialState?: any): PrepareResult {
 
   const getState = (instance: any) => {
     const storeState = instance.store.getState();
-    return getAppStateToExportJSON(storeState);
+    return getAppStateToExport(storeState);
   };
 
   if (initialState !== null) {
     console.log("Importing app state");
 
-    const parsedInitialState = JSON.parse(initialState);
+    const parsedInitialState = initialState;
     instance.store.dispatch(importAppState(parsedInitialState));
   }
 

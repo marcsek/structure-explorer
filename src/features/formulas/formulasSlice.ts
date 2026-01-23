@@ -512,6 +512,9 @@ export const selectHistoryData = createSelector(
     for (const { formula: formulaIndex, element, type } of choices) {
       if (type === "alpha" || type === "beta") {
         currentFormula = f.getSignedSubFormulas(s)[formulaIndex!];
+
+        if (!currentFormula) break;
+
         f = currentFormula.formula;
         s = currentFormula.sign;
       } else if (
@@ -520,8 +523,10 @@ export const selectHistoryData = createSelector(
       ) {
         const varName = f.getVariableName();
         currentValuation.set(varName, element!);
-
         currentFormula = f.getSignedSubFormulas(s)[0];
+
+        if (!currentFormula) break;
+
         f = currentFormula.formula;
         s = currentFormula.sign;
       }

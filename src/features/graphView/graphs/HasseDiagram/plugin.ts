@@ -8,6 +8,7 @@ import {
   reducePosetRelations,
   type BinaryRelation,
 } from "./posetHelpers";
+import { numberTupleToXYPosition } from "../OrientedGraph/plugin";
 
 export type HasseDiagramState = {
   nodes: PredicateNodeType[];
@@ -54,11 +55,12 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
 
     if (type === "function") return graph;
 
-    domain.forEach((domElement) =>
-      graph.nodes.push(
-        createNode(domElement, undefined, positions?.[domElement]),
-      ),
-    );
+    domain.forEach((domElement) => {
+      const position = positions?.[domElement];
+      const convertedPosition = position && numberTupleToXYPosition(position);
+
+      graph.nodes.push(createNode(domElement, undefined, convertedPosition));
+    });
 
     const presentIds = new Set();
     iP.forEach(([from, to]) => {

@@ -1,9 +1,9 @@
-import type { XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Plugin } from "../plugins";
 import type { BipartiteNodeType } from "./BipartiteGraph";
 import { computeLayoutBipartite } from "./layout";
+import { numberTupleToXYPosition } from "../OrientedGraph/plugin";
 
 export type BipartiteGraphState = {
   nodes: BipartiteNodeType[];
@@ -18,13 +18,15 @@ const createNode = (
     error = false,
     leftover = false,
   }: { error?: boolean; leftover?: boolean } = {},
-  positions?: Record<string, XYPosition>,
+  positions?: Record<string, [number, number]>,
 ): BipartiteNodeType => {
   const id = `${origin === "domain" ? "d" : "r"}-${domainId}`;
+  const position = positions?.[id];
+  const convertedPosition = position && numberTupleToXYPosition(position);
   return {
     id,
     type: "predicate",
-    position: positions?.[id] ?? { x: Infinity, y: Infinity },
+    position: convertedPosition ?? { x: Infinity, y: Infinity },
     data: { label: domainId, origin, error, leftover },
     connectable: origin === "domain" ? undefined : false,
   };

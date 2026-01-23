@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagicWandSparkles } from "@fortawesome/free-solid-svg-icons";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export default function PrettifyButton() {
   const allFormulas = useAppSelector(selectFormulas);
@@ -16,11 +17,19 @@ export default function PrettifyButton() {
   );
 
   const prettifyAll = () => {
+    let someNeededUpdate = false;
+
     evaluatedFormulas.forEach((evaluated, id) => {
       if (evaluated?.formula) {
-        dispatch(updateText({ id, text: evaluated.formula.toString() }));
+        const evalutedText = evaluated.formula.toString();
+        dispatch(updateText({ id, text: evalutedText }));
+
+        someNeededUpdate ||=
+          allFormulas[id].text !== evaluated.formula.toString();
       }
     });
+
+    if (someNeededUpdate) dispatch(UndoActions.checkpoint());
   };
 
   return (

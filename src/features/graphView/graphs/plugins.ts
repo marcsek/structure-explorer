@@ -1,4 +1,3 @@
-import type { XYPosition } from "@xyflow/react";
 import {
   bipartiteGraphPlugin,
   type BipartiteGraphState,
@@ -14,21 +13,21 @@ import {
 } from "./OrientedGraph/plugin";
 import type { TupleType } from "../../structure/structureSlice";
 
+export const graphTypes = ["oriented", "hasse", "bipartite"] as const;
+export type GraphType = (typeof graphTypes)[number];
+
 export type GraphState = {
   oriented: OrientedGraphState;
   bipartite: BipartiteGraphState;
   hasse: HasseDiagramState;
 };
 
-export const graphTypes = ["oriented", "hasse", "bipartite"] as const;
-export type GraphType = (typeof graphTypes)[number];
-
 export interface Plugin<K extends GraphType> {
   init(
     domain: string[],
     predicate: { name: string; intr: BinaryRelation<string> },
     tupleType: TupleType,
-    positions?: Record<string, XYPosition>,
+    positions?: Record<string, [number, number]>,
   ): GraphState[K];
   syncNodes(
     prev: GraphState[K],

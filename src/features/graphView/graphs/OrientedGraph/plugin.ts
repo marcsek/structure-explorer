@@ -41,6 +41,11 @@ const createEdge = (
   };
 };
 
+export const numberTupleToXYPosition = ([x, y]: [
+  number,
+  number,
+]): XYPosition => ({ x, y });
+
 export const orientedGraphPlugin: Plugin<"oriented"> = {
   init(domain, predicate, type, positions) {
     const iP = predicate.intr;
@@ -55,9 +60,10 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
         type === "function" &&
         iP.filter(([d]) => d === domElement).length !== 1;
 
-      graph.nodes.push(
-        createNode(domElement, { error }, positions?.[domElement]),
-      );
+      const position = positions?.[domElement];
+      const convertedPosition = position && numberTupleToXYPosition(position);
+
+      graph.nodes.push(createNode(domElement, { error }, convertedPosition));
     });
 
     const presentIds = new Set();
