@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <Stack
-      className="mb-2"
+      className="mb-2 header-container"
       direction="horizontal"
       style={{ justifyContent: "space-between" }}
     >

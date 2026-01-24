@@ -40,10 +40,11 @@ export default function StructureComponent() {
   return (
     <ComponentCard
       heading={
-        <span>
+        <>
           Structure <InlineMath>{String.raw`\mathcal{M} = (D, i)`}</InlineMath>
-        </span>
+        </>
       }
+      className="structure-component-card"
       help={help}
     >
       <Stack gap={3}>
@@ -63,8 +64,8 @@ export default function StructureComponent() {
         />
 
         {!constants.error && constants.parsed.size > 0 && (
-          <div>
-            <h3 className="h6 fw-normal">Constants interpretation</h3>
+          <div className="structure-component-section">
+            <h6 className="fw-normal">Constants interpretation</h6>
 
             <Stack gap={3}>
               {Array.from(constants.parsed ?? []).map((name) => (
@@ -94,8 +95,8 @@ export default function StructureComponent() {
         )}
 
         {!predicates.error && predicates.parsed.size > 0 && (
-          <div>
-            <h3 className="h6 fw-normal">Predicates interpretation</h3>
+          <div className="structure-component-section">
+            <h6 className="fw-normal">Predicates interpretation</h6>
 
             <Stack gap={3}>
               {Array.from(predicates.parsed ?? []).map(([name, arity]) => (
@@ -125,7 +126,7 @@ export default function StructureComponent() {
         )}
 
         {!functions.error && functions.parsed.size > 0 && (
-          <div>
+          <div className="structure-component-section">
             <h3 className="h6 fw-normal">Functions interpretation</h3>
 
             <Stack gap={3}>

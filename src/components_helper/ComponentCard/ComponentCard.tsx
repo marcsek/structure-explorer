@@ -7,15 +7,17 @@ interface ComponentCardProps {
   heading: React.ReactNode;
   help?: React.ReactNode;
   children?: React.ReactNode;
+  className?: string;
 }
 
 export default function ComponentCard({
   heading,
   help,
   children,
+  className,
 }: ComponentCardProps) {
   return (
-    <Card className="component-card">
+    <Card className={`component-card ${className ?? ""}`}>
       <Card.Header
         className="component-card-header"
         as={Stack}

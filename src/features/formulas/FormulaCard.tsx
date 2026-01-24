@@ -30,14 +30,19 @@ export default function FormulaCard() {
   return (
     <ComponentCard
       heading={
-        <span>
+        <>
           Truth of formulas in{" "}
           <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
-        </span>
+        </>
       }
+      className="formula-card"
       help={help}
     >
-      <Stack gap={2} direction="horizontal" className="mb-3 flex-wrap">
+      <Stack
+        gap={2}
+        direction="horizontal"
+        className="mb-3 flex-wrap formula-card-header"
+      >
         <Button
           variant="success"
           onClick={() => {

@@ -17,7 +17,7 @@ export default function VariablesComponent() {
   const lock = useAppSelector(selectVariablesLock);
 
   return (
-    <ComponentCard heading={<span>Variable assignment</span>} help={help}>
+    <ComponentCard heading="Variable assignment" help={help}>
       <InputGroupTitle
         label={"Variable assignment of individual variables"}
         id="variables"

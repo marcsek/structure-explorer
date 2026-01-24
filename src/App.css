@@ -34,23 +34,6 @@
   --bs-btn-bg: var(--bs-white);
 }
 
-.dashed-hr {
-  height: 1px;
-  width: 100%;
-  min-width: 0;
-  border: none;
-  background-color: transparent;
-
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--bs-light-border-subtle) 0 16px,
-    transparent 16px 32px
-  );
-
-  flex-shrink: 1;
-  display: block;
-}
-
 .col-divider {
   border-right: 1px solid var(--bs-border-color);
 }
@@ -63,4 +46,100 @@
   .col-divider {
     border-right: none;
   }
+}
+
+.view-mode .btn,
+.view-mode .header-container > *,
+.view-mode .help-tooltip-button {
+  display: none !important;
+}
+
+.view-mode .input-group > .form-control,
+.view-mode .input-group > .form-select,
+.view-mode .input-group > .input-group-text {
+  border: none;
+  background: initial;
+}
+
+.view-mode .input-group > .form-control,
+.view-mode .input-group > .input-group-text,
+.view-mode .input-group > .invalid-feedback,
+.view-mode .input-group > .valid-feedback {
+  margin-top: 0;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+
+.view-mode .input-group > .form-control::placeholder {
+  color: transparent;
+}
+
+.view-mode .form-label,
+.view-mode .card-header h5,
+.view-mode .structure-component-card h6 {
+  margin-bottom: 0rem;
+  line-height: unset;
+  color: var(--bs-secondary-color);
+}
+
+.view-mode .formula-card .component-card-body {
+  padding-top: 0;
+}
+
+.view-mode .formula-card .input-group,
+.view-mode .formula-card .formula-card-header {
+  margin: 0 !important;
+}
+
+.view-mode .component-card-body > .vstack,
+.view-mode .component-card-body .structure-component-section .vstack {
+  gap: 0.25rem !important;
+}
+
+.view-mode .formula-card .formula-select-input-group > * {
+  padding-block: 0 !important;
+}
+
+.view-mode .formula-card .formula-select-container {
+  margin-bottom: 0.5rem !important;
+}
+
+.view-mode .formula-card .form-select {
+  padding-inline: 0.75rem;
+}
+
+.view-mode .drawer-editor-container {
+  padding-left: 0.5rem;
+}
+
+.view-mode .drawer-editor-toolbar-container,
+.view-mode .react-flow .react-flow__controls,
+.view-mode .game-container {
+  display: none;
+}
+
+.view-mode .drawer-editor-title {
+  padding-inline: 0;
+  padding-block: 0.5rem;
+  background: none;
+  border: none;
+}
+
+.view-mode .drawer-editor-view-container.error {
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.view-mode .drawer-editor-view-container {
+  border-radius: var(--bs-border-radius);
+}
+
+.view-mode .drawer-editor-view-container:first-child {
+  border-radius: var(--bs-border-radius);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.view-mode .drawer-editor-error-container {
+  padding-block: 0.5rem;
+  border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
 }

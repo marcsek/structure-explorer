@@ -122,9 +122,9 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
           </InputGroup>
         </Row>
 
-        <Row className="align-items-start mb-3">
+        <Row className="align-items-start mb-3 formula-select-container">
           <Col xs="auto">
-            <InputGroup hasValidation>
+            <InputGroup hasValidation className="formula-select-input-group">
               <InputGroup.Text>
                 <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
               </InputGroup.Text>

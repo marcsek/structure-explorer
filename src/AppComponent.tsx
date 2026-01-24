@@ -66,7 +66,7 @@ export function AppComponent({
   return (
     <Provider store={appstore}>
       <LogicContext.Provider value={context}>
-        <App />
+        <App viewMode={!isEdited} />
       </LogicContext.Provider>
     </Provider>
   );

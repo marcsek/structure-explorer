@@ -41,9 +41,9 @@ export default function LanguageComponent() {
   return (
     <ComponentCard
       heading={
-        <span>
+        <>
           Language <InlineMath>{String.raw`\mathcal{L}`}</InlineMath>
-        </span>
+        </>
       }
       help={help}
     >

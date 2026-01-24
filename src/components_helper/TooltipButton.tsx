@@ -29,9 +29,8 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
       onToggle={() => setShow(!show)}
     >
       <Button
-        className="rounded-circle p-1 btn-bd-info-outline"
+        className="rounded-circle d-flex p-1 btn-bd-info-outline help-tooltip-button"
         variant="outline-dark"
-        style={{ display: "flex" }}
         title="Help"
         onClick={(e) => {
           e.stopPropagation();

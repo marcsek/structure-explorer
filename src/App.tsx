@@ -7,25 +7,34 @@ import "./App.css";
 import usePreset from "./usePreset";
 import Header from "./components_helper/Header";
 
-function App() {
+interface AppProps {
+  viewMode: boolean;
+}
+
+function App({ viewMode }: AppProps) {
   usePreset();
 
   return (
-    <Container fluid className="structure-explorer mt-2 mb-2 px-3">
-      <Row className="g-3">
-        <Header />
-      </Row>
-      <Row className="gx-4">
-        <Col xs={12} xl={6} className="border-end-xl border-1 col-divider">
-          <LanguageComponent />
-          <StructureComponent />
-          <VariablesComponent />
-        </Col>
-        <Col xs={12} xl={6}>
-          <FormulaCard />
-        </Col>
-      </Row>
-    </Container>
+    <div className="structure-explorer">
+      <Container
+        fluid
+        className={`mt-2 mb-2 px-3 ${viewMode ? "view-mode" : ""}`}
+      >
+        <Row className="g-3">
+          <Header />
+        </Row>
+        <Row className="gx-4">
+          <Col xs={12} xl={6} className="border-end-xl border-1 col-divider">
+            <LanguageComponent />
+            <StructureComponent />
+            <VariablesComponent />
+          </Col>
+          <Col xs={12} xl={6}>
+            <FormulaCard />
+          </Col>
+        </Row>
+      </Container>
+    </div>
   );
 }
 
