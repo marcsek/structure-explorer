@@ -36,6 +36,7 @@ import {
 } from "../../language/languageSlice.ts";
 import {
   selectStructure,
+  updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
   type StructureState,
@@ -267,6 +268,27 @@ export const graphManagerSlice = createSlice({
 
       if (state[id]) state[id].state[type].warning = warning;
     },
+  },
+
+  extraReducers(builder) {
+    builder.addCase(updateDomain, (state, action) => {
+      for (const [, graphs] of Object.entries(state)) {
+        for (const graphType of graphTypes) {
+          const graphState = graphs.state[graphType];
+          const plugin = plugins[graphType];
+          const domain = action.payload;
+
+          const newState = processSyncNodes(
+            plugin,
+            graphState,
+            domain,
+            graphs.tupleType,
+          );
+
+          (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
+        }
+      }
+    });
   },
 });
 

@@ -308,7 +308,7 @@ function ControlButtons<T extends string | number>({
               </Dropdown.Toggle>
 
               <Dropdown.Menu>
-                {button.dropDown!.map((item) => (
+                {button.dropDown.map((item) => (
                   <Dropdown.Item
                     key={String(item.value)}
                     active={item.value === selected}
@@ -328,7 +328,7 @@ function ControlButtons<T extends string | number>({
             key={buttonId(button.value)}
             className="btn-bd-light-outline"
             value={button.value}
-            type="radio"
+            type="checkbox"
             name={id}
             title={`${button.value} editor`}
             disabled={disabled}

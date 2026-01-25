@@ -379,13 +379,9 @@ export const selectGameButtons = createSelector(
     selectCurrentAssignment,
   ],
   ({ sign, formula }, { parsed: domain }, structure, e) => {
-    console.log(`${sign === true ? "T" : "F"} ${formula.toString()}`);
-
     if (formula.getSignedSubFormulas(sign).length === 0) {
       return;
     }
-
-    console.log(formula.getSignedType(sign));
 
     if (
       formula.getSignedType(sign) === SignedFormulaType.DELTA &&
@@ -617,17 +613,17 @@ export const selectGameResetIndex = createSelector(
             )[0]
           : undefined;
 
-      const prevWinningElementValues =
-        (prev.type === "gamma" || prev.type === "delta") &&
-        prev.sf.formula instanceof QuantifiedFormula
-          ? prev.sf.formula.winningElements(
-              prev.sf.sign,
-              structure,
-              prev.valuation,
-            )
-          : undefined;
-
-      console.log(prevWinningElementValues);
+      // const prevWinningElementValues =
+      //   (prev.type === "gamma" || prev.type === "delta") &&
+      //   prev.sf.formula instanceof QuantifiedFormula
+      //     ? prev.sf.formula.winningElements(
+      //         prev.sf.sign,
+      //         structure,
+      //         prev.valuation,
+      //       )
+      //     : undefined;
+      //
+      // console.log(prevWinningElementValues);
 
       const prevVariableName =
         prev.sf.formula instanceof QuantifiedFormula
@@ -659,8 +655,6 @@ export const selectGameResetIndex = createSelector(
       }
       index++;
     }
-
-    console.log(data);
 
     return index;
   },

@@ -1,19 +1,13 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import {
-  selectValidatedDomain,
   selectValidatedFunction,
   selectValidatedPredicate,
   selectStructure,
-  updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
 } from "../../structure/structureSlice";
 import type { RootState } from "../../../app/store";
-import {
-  domainChanged,
-  tupleInterpretationChanged,
-  tuplesChanged,
-} from "./graphSlice";
+import { tupleInterpretationChanged, tuplesChanged } from "./graphSlice";
 import {
   selectValidatedFunctions,
   selectValidatedPredicates,
@@ -52,19 +46,6 @@ graphSliceListener.startListening({
 
     api.dispatch(tupleInterpretationChanged({ name: key, intr: tupleIntr }));
     // api.dispatch({ type: "REPLACE_PRESENT" });
-  },
-});
-
-graphSliceListener.startListening({
-  actionCreator: updateDomain,
-  effect(_, api) {
-    const state = api.getState();
-    const parsedDomain = selectValidatedDomain(state);
-
-    if (!parsedDomain.error && parsedDomain.parsed) {
-      api.dispatch(domainChanged(parsedDomain.parsed));
-      // api.dispatch({ type: "REPLACE_PRESENT" });
-    }
   },
 });
 

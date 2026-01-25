@@ -23,13 +23,13 @@ function App({ viewMode }: AppProps) {
         <Row className="g-3">
           <Header />
         </Row>
-        <Row className="gx-4">
-          <Col xs={12} xl={6} className="border-end-xl border-1 col-divider">
+        <Row className="gx-4 split-pane">
+          <Col xs={12} xl={6} className="vh-pane-left col-divider">
             <LanguageComponent />
             <StructureComponent />
             <VariablesComponent />
           </Col>
-          <Col xs={12} xl={6}>
+          <Col className="vh-pane-right" xs={12} xl={6}>
             <FormulaCard />
           </Col>
         </Row>

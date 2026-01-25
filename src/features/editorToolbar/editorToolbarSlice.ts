@@ -221,13 +221,13 @@ export const selectRelevantDomainElements = createSelector(
 
     if (selectedPreds.length === 0 || !unaryFilterDomain) return undefined;
 
-    return [
-      ...new Set(
-        selectedPreds.flatMap((pred) =>
-          [...(struct.iP.get(pred)?.values() ?? [])].flat(),
-        ),
+    const selectedDomain = new Set(
+      selectedPreds.flatMap((pred) =>
+        [...(struct.iP.get(pred)?.values() ?? [])].flat(),
       ),
-    ];
+    );
+
+    return [...struct.domain].filter((element) => selectedDomain.has(element));
   },
 );
 

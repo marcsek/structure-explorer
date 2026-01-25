@@ -95,7 +95,7 @@ export default function MatrixView({
       dispatch(UndoActions.checkpoint());
   };
 
-  const domainWithLeftovers = [...selectedDomain, ...leftovers].sort();
+  const domainWithLeftovers = [...selectedDomain, ...leftovers];
 
   const getTableClass = (element: string, hovered: string) => {
     if (leftovers.includes(element)) return "error";

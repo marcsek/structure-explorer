@@ -496,8 +496,14 @@ export const selectHasWrongArityError = createSelector(
 );
 
 export const selectStructure = createSelector(
-  [(state: RootState) => state, selectLanguage, selectValidatedDomain],
-  (state, language, domain) => {
+  [
+    (state: RootState) => state.present.structure.iC,
+    (state: RootState) => state.present.structure.iP,
+    (state: RootState) => state.present.structure.iF,
+    selectLanguage,
+    selectValidatedDomain,
+  ],
+  (constants, predicates, functions, language, domain) => {
     const usedConstants = language.constants;
     const usedPredicates = language.predicates;
     const usedFunctions = language.functions;
@@ -507,28 +513,31 @@ export const selectStructure = createSelector(
     const iF = new Map<Symbol, Map<DomainElement[], DomainElement>>();
 
     usedConstants.forEach((name) => {
-      const value = selectValidatedConstant(state, name).parsed ?? "";
+      const value = constants[name]?.value ?? "";
       iC.set(name, value);
     });
 
     usedPredicates.forEach((_, name) => {
-      const value = selectValidatedPredicate(state, name)?.parsed ?? [[]];
+      const value = predicates[name]?.value ?? [[]];
       iP.set(name, new Set(value));
     });
 
     usedFunctions.forEach((_, name) => {
-      const valuation = selectValidatedFunction(state, name).parsed ?? [[]];
-
+      const valuation = functions[name]?.value ?? [[]];
       const map = new Map<DomainElement[], DomainElement>();
-
       valuation.forEach((value) => {
         map.set(value.slice(0, -1), value.slice(-1)[0]);
       });
-
       iF.set(name, map);
     });
 
-    return new Structure(language, new Set(domain.parsed ?? []), iC, iP, iF);
+    return new Structure(
+      language,
+      new Set(domain.error ? [] : domain.parsed),
+      iC,
+      iP,
+      iF,
+    );
   },
 );
 

@@ -20,12 +20,12 @@ interface Props {
 
 export function getDiffAndNew(
   a: Map<string, string>,
-  b: Map<string, string>
+  b: Map<string, string>,
 ): Map<string, string> {
   return new Map(
     Array.from(b.entries()).filter(
-      ([key, value]) => !a.has(key) || a.get(key) !== value
-    )
+      ([key, value]) => !a.has(key) || a.get(key) !== value,
+    ),
   );
 }
 
@@ -170,7 +170,7 @@ export default function GameHistory({ id }: Props) {
             </>
           ),
           sender: "game",
-        })
+        }),
       );
 
       if (back < choices.length) {
