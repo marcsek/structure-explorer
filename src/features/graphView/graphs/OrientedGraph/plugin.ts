@@ -7,6 +7,7 @@ import type { Plugin } from "../plugins";
 export type OrientedGraphState = {
   nodes: PredicateNodeType[];
   edges: DirectEdgeType[];
+  didLayout?: boolean;
   warning?: string;
 };
 
@@ -53,6 +54,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     const graph: OrientedGraphState = {
       nodes: [],
       edges: [],
+      didLayout: !!positions,
     };
 
     domain.forEach((domElement) => {

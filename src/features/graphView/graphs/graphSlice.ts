@@ -35,6 +35,8 @@ import {
   type LanguageState,
 } from "../../language/languageSlice.ts";
 import {
+  lockFunctionSymbols,
+  lockInterpretationPredicates,
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
@@ -90,10 +92,21 @@ export const graphManagerSlice = createSlice({
       state[id].state[type].edges = [...state[id].state[type].edges, edge];
     },
 
+    graphDidInitialLayout(
+      state,
+      action: PayloadAction<WithGraphId<{ didLayout: boolean }>>,
+    ) {
+      const { id, type, didLayout } = action.payload;
+      state[id].state[type].didLayout = didLayout;
+    },
+
     onNodesChanged(
       state,
       action: PayloadAction<
-        WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
+        WithGraphId<{
+          changes: NodeChange<PredicateNodeType>[];
+          userChange?: boolean;
+        }>
       >,
     ) {
       const { id, type, changes } = action.payload;
@@ -208,16 +221,22 @@ export const graphManagerSlice = createSlice({
 
     editorLocked(
       state,
-      action: PayloadAction<WithGraphId<{ locked: boolean }>>,
+      action: PayloadAction<{ id: string; locked: boolean }>,
     ) {
-      const { id, type, locked } = action.payload;
+      const { id, locked } = action.payload;
+      const graphState = state[id];
 
-      if (state[id])
-        state[id].state[type].edges = state[id].state[type].edges.map((e) => ({
+      if (!graphState) return;
+
+      for (const graphType of graphTypes) {
+        graphState.state[graphType].edges = graphState.state[
+          graphType
+        ].edges.map((e) => ({
           ...e,
-          selectable: !locked,
+          selectable: locked,
           selected: false,
         }));
+      }
     },
 
     warningChanged(
@@ -249,6 +268,25 @@ export const graphManagerSlice = createSlice({
         }
       }
     });
+
+    builder.addMatcher(
+      isAnyOf(lockInterpretationPredicates, lockFunctionSymbols),
+      (state, action) => {
+        const graphState = state[action.payload.key];
+
+        if (!graphState) return;
+
+        for (const graphType of graphTypes) {
+          graphState.state[graphType].edges = graphState.state[
+            graphType
+          ].edges.map((e) => ({
+            ...e,
+            selectable: !e.selectable,
+            selected: false,
+          }));
+        }
+      },
+    );
 
     builder.addMatcher(
       isAnyOf(updateInterpretationPredicates, updateFunctionSymbols),
@@ -529,15 +567,12 @@ export const getGraphViewStateToExport = (
       relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),
   );
 
-  const getNodesToExport = (
-    nodes: PredicateNodeType[],
-    graphType: GraphType,
-  ) => {
-    const didMove = nodes.some(({ position: { x, y } }) => x !== 0 || y !== 0);
-    const changedNodes = graphType === "bipartite" || didMove ? nodes : [];
+  const getNodesToExport = (nodes: PredicateNodeType[], didLayout: boolean) => {
+    const changedNodes = didLayout ? nodes : [];
 
     return changedNodes.map(
-      ({ id, position: { x, y } }) => [id, [x, y].map(Math.trunc)] as const,
+      ({ id, position: { x, y } }) =>
+        [id, [x ?? 0, y ?? 0].map(Math.trunc)] as const,
     );
   };
 
@@ -545,9 +580,9 @@ export const getGraphViewStateToExport = (
     relevantEntries.map(([key, { state }]) => [
       key,
       Object.fromEntries(
-        Object.entries(state).map(([graph, { nodes }]) => [
+        Object.entries(state).map(([graph, { nodes, didLayout }]) => [
           graph,
-          Object.fromEntries(getNodesToExport(nodes, graph as GraphType)),
+          Object.fromEntries(getNodesToExport(nodes, !!didLayout)),
         ]),
       ) as SerializedGraphViewState[string],
     ]),
@@ -566,6 +601,7 @@ export const {
   editorLocked,
   warningChanged,
   syncGraphView,
+  graphDidInitialLayout,
 } = graphManagerSlice.actions;
 
 export default graphManagerSlice.reducer;

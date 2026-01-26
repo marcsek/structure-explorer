@@ -9,6 +9,7 @@ export type BipartiteGraphState = {
   nodes: BipartiteNodeType[];
   edges: DirectEdgeType[];
   warning?: string;
+  didLayout?: boolean;
 };
 
 const createNode = (
@@ -27,7 +28,12 @@ const createNode = (
     id,
     type: "predicate",
     position: convertedPosition ?? { x: Infinity, y: Infinity },
-    data: { label: domainId, origin, error, leftover },
+    data: {
+      label: domainId,
+      origin,
+      error,
+      leftover,
+    },
     connectable: origin === "domain" ? undefined : false,
   };
 };
@@ -54,6 +60,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     const graph: BipartiteGraphState = {
       nodes: [],
       edges: [],
+      didLayout: !!positions,
     };
 
     domain.forEach((domElement) => {

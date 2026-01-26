@@ -14,6 +14,7 @@ export type HasseDiagramState = {
   nodes: PredicateNodeType[];
   edges: DirectEdgeType[];
   warning?: string;
+  didLayout?: boolean;
 };
 
 const createNode = (
@@ -51,6 +52,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     const graph: HasseDiagramState = {
       nodes: [],
       edges: [],
+      didLayout: !!positions,
     };
 
     if (type === "function") return graph;

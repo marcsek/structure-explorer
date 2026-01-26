@@ -25,7 +25,7 @@ import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
-  editorLocked,
+  graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
@@ -185,8 +185,8 @@ export default function BipartiteGraph({
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
-    dispatch(editorLocked({ id: name, type, locked }));
-  }, [name, dispatch, locked]);
+    graphDidInitialLayout({ id: name, type, didLayout: true });
+  }, [name]);
 
   useEffect(() => {
     if (nodesInitialized) {
@@ -306,9 +306,6 @@ export default function BipartiteGraph({
             expandedView={expandedView}
             fitViewOptions={{ ...fitViewOptions, maxZoom: 1, duration: 300 }}
             onExpandedViewChange={onExpandedViewChange}
-            onInteractiveChange={(ch) => {
-              dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
-            }}
           />
         </ReactFlow>
         {warning && (

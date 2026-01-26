@@ -13,14 +13,14 @@ import {
   type FitViewOptions,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
-  editorLocked,
+  graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
@@ -91,17 +91,16 @@ export default function OrientedGraph({
   const warning = useAppSelector(
     (state) => state.present.graphView[name]?.state[type]?.warning,
   );
-  const historyIdx = useAppSelector((state) => state.index);
 
-  const [didLayout, setDidLayout] = useState(false);
+  const didLayout = useAppSelector(
+    (state) => state.present.graphView[name]?.state[type]?.didLayout,
+  );
+
+  const historyIdx = useAppSelector((state) => state.index);
 
   const { fitView } = useReactFlow();
   //TODO: memoize
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
-
-  useEffect(() => {
-    dispatch(editorLocked({ id: name, type, locked }));
-  }, [name, dispatch, locked]);
 
   useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
@@ -157,9 +156,11 @@ export default function OrientedGraph({
 
           if (fitAfter)
             fitView({ ...fitViewOptions, duration: instant ? 0 : 300 });
-          setDidLayout(true);
+
+          dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
         });
-      } else setDidLayout(true);
+      } else
+        dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
     },
     [nodes, edges, dispatch, name, fitView],
   );
@@ -223,9 +224,6 @@ export default function OrientedGraph({
           <Controls
             expandedView={expandedView}
             onExpandedViewChange={onExpandedViewChange}
-            onInteractiveChange={(ch) => {
-              dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
-            }}
             onLayout={onLayout}
           />
         </ReactFlow>

@@ -20,7 +20,7 @@ import PredicateNodeComponent, {
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
-  editorLocked,
+  graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
@@ -99,17 +99,13 @@ export default function HasseDiagram({
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
   }, [[nodes, (a, b) => a.id === b.id]]);
 
-  // TODO: Can't GraphView manage this?
-  useEffect(() => {
-    dispatch(editorLocked({ id: name, type, locked }));
-  }, [name, dispatch, locked]);
-
   useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
   }, [expandedView, fitView]);
 
   useEffect(() => {
     onLayout(true, true, true);
+    dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -226,9 +222,6 @@ export default function HasseDiagram({
         <Controls
           expandedView={expandedView}
           onExpandedViewChange={onExpandedViewChange}
-          onInteractiveChange={(ch) => {
-            dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
-          }}
           onLayout={onLayout}
         />
       </ReactFlow>

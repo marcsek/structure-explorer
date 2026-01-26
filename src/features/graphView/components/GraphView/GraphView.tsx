@@ -9,6 +9,9 @@ import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
 import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
 import { useInstanceId } from "../../../../instanceIdContext.ts";
+import { useAppDispatch } from "../../../../app/hooks.ts";
+import { useEffect } from "react";
+import { editorLocked } from "../../graphs/graphSlice.ts";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
@@ -42,7 +45,12 @@ export default function GraphView({
   expandedView?: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }) {
+  const dispatch = useAppDispatch();
   const instanceId = useInstanceId();
+
+  useEffect(() => {
+    dispatch(editorLocked({ id: predName, locked }));
+  }, [dispatch, locked, predName]);
 
   const GraphComponent = graphComponents[graphType];
 

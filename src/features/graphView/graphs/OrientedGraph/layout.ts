@@ -3,13 +3,12 @@ import ELK, {
   type ElkExtendedEdge,
   type ElkNode,
 } from "elkjs/lib/elk.bundled.js";
-import { computeLayoutHasse } from "../HasseDiagram/layout";
 
 const elkOptions = {
   "elk.algorithm": "force",
   "elk.force.model": "EADES",
   "elk.direction": "RIGHT",
-  "elk.spacing.nodeNode": "30",
+  "elk.spacing.nodeNode": "70",
   "elk.edgeRouting": "STRAIGHT",
 };
 
@@ -20,7 +19,6 @@ export const computeLayoutOriented = async <
   inputNodes: TNode[],
   inputEdges: TEdge[],
 ): Promise<NodeChange<TNode>[]> => {
-  return computeLayoutHasse(inputNodes, inputEdges).nodeChanges;
   const elk = new ELK();
 
   const nodeIds = inputNodes.map((n) => n.id);
