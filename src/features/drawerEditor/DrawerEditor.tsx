@@ -1,7 +1,7 @@
 import "./DrawerEditor.css";
 
 import { Button, CloseButton, Modal, Stack } from "react-bootstrap";
-import { GraphToolbar } from "../../features/editorToolbar/components/EditorToolbar";
+import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import { type EditorType } from "../structure/InterpretationEditor";
 import { useState, type ReactNode } from "react";
@@ -102,7 +102,7 @@ function DrawerEditorContent({
         <Stack className="drawer-editor-container-body">
           {type !== "database" && (
             <div className="drawer-editor-toolbar-container">
-              <GraphToolbar id={tupleName} />
+              <EditorToolbar id={tupleName} />
             </div>
           )}
 

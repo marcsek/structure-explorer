@@ -8,10 +8,26 @@ import BipartiteGraph from "../../graphs/BipartiteGraph/BipartiteGraph.tsx";
 import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
 import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
+import { useInstanceId } from "../../../../instanceIdContext.ts";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
 type SelectedType = "oriented" | "hasse" | "bipartite";
+
+const graphComponents: Record<
+  SelectedType,
+  React.ComponentType<{
+    id: string;
+    name: string;
+    locked: boolean;
+    expandedView?: boolean;
+    onExpandedViewChange?: OnExpandedViewChange;
+  }>
+> = {
+  oriented: OrientedGraph,
+  hasse: HasseDiagram,
+  bipartite: BipartiteGraph,
+};
 
 export default function GraphView({
   predName,
@@ -26,19 +42,7 @@ export default function GraphView({
   expandedView?: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }) {
-  const graphComponents: Record<
-    SelectedType,
-    React.ComponentType<{
-      id: string;
-      locked: boolean;
-      expandedView?: boolean;
-      onExpandedViewChange?: OnExpandedViewChange;
-    }>
-  > = {
-    oriented: OrientedGraph,
-    hasse: HasseDiagram,
-    bipartite: BipartiteGraph,
-  };
+  const instanceId = useInstanceId();
 
   const GraphComponent = graphComponents[graphType];
 
@@ -56,7 +60,8 @@ export default function GraphView({
           <GraphInfoContext.Provider value={{ id: predName, type: graphType }}>
             <ReactFlowProvider>
               <GraphComponent
-                id={predName}
+                id={`${graphType}-${predName}-${instanceId}`}
+                name={predName}
                 locked={locked}
                 expandedView={expandedView}
                 onExpandedViewChange={onExpandedViewChange}

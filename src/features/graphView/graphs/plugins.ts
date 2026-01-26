@@ -40,7 +40,7 @@ export interface Plugin<K extends GraphType> {
   //   relevantNodes: string[] | null,
   // ): GraphState[K];
   filterNodesToShow(
-    state: GraphState[K],
+    nodes: GraphState[K]["nodes"],
     unaryFilterDomain: boolean,
     selectedNodes: string[],
     relevantNodes?: string[],
@@ -108,14 +108,14 @@ export function processToggleNodes<K extends GraphType>(
 
 export function processFilterNodesToShow<K extends GraphType>(
   plugin: Plugin<K>,
-  state: GraphState[K],
+  nodes: GraphState[K]["nodes"],
   unaryFilterDomain: boolean,
   selectedNodes: string[],
   relevantNodes?: string[],
   hoveredPredicateIntr?: string[][],
 ): GraphState[K]["nodes"] {
   return plugin.filterNodesToShow(
-    state,
+    nodes,
     unaryFilterDomain,
     selectedNodes,
     relevantNodes,

@@ -4,6 +4,13 @@ import type { GraphType } from "../../graphs/plugins";
 export const GraphInfoContext = createContext<{
   id: string;
   type: GraphType;
-}>({ id: "", type: "oriented" });
+} | null>(null);
 
-export const useGraphInfo = () => useContext(GraphInfoContext);
+export const useGraphInfo = () => {
+  const context = useContext(GraphInfoContext);
+
+  if (!context)
+    console.error("Parent of graph component didn't provide graphInfoContext.");
+
+  return useContext(GraphInfoContext) ?? { id: "", type: "oriented" };
+};

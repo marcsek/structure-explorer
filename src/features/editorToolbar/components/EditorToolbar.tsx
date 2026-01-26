@@ -7,7 +7,7 @@ export interface GraphToolbarProps {
   id: string;
 }
 
-export function GraphToolbar({ id }: GraphToolbarProps) {
+export function EditorToolbar({ id }: GraphToolbarProps) {
   return (
     <div className="editor-toolbar">
       <InterpretationFilters id={id} />

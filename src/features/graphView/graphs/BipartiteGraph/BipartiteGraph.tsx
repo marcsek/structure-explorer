@@ -146,31 +146,34 @@ const addGroupNodes = (nodes: BipartiteNodeType[]) => {
   return [domainGroup, ...childrenDomain, rangeGroup, ...childrenRange];
 };
 
+const nodeSelector = makeSelectNodes<"bipartite">();
+
 export default function BipartiteGraph({
   id,
+  name,
   locked,
   expandedView = false,
   onExpandedViewChange,
 }: {
   id: string;
+  name: string;
   locked: boolean;
   expandedView?: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }) {
   const type = "bipartite";
-  const nodeSelector = makeSelectNodes<typeof type>();
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
+  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
   const edges = useAppSelector(
-    (state) => state.present.graphView[id]?.state[type]?.edges,
+    (state) => state.present.graphView[name]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.present.graphView[id]?.tupleType === "function",
+    (state) => state.present.graphView[name]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.present.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[name]?.state[type]?.warning,
   );
   const nodesInitialized = useNodesInitialized();
 
@@ -182,8 +185,8 @@ export default function BipartiteGraph({
   }, [[nodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
-    dispatch(editorLocked({ id, type, locked }));
-  }, [id, dispatch, locked]);
+    dispatch(editorLocked({ id: name, type, locked }));
+  }, [name, dispatch, locked]);
 
   useEffect(() => {
     if (nodesInitialized) {
@@ -209,28 +212,28 @@ export default function BipartiteGraph({
         ...generateNodeChangesWithLayout(bipartiteNodeChanges, nodes),
       ];
 
-      dispatch(onNodesChanged({ id, type, changes: allChanges }));
+      dispatch(onNodesChanged({ id: name, type, changes: allChanges }));
     },
-    [nodes, id, dispatch, getNode],
+    [nodes, name, dispatch, getNode],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id, type, changes })),
-    [id, dispatch],
+      dispatch(onEdgesChanged({ id: name, type, changes })),
+    [name, dispatch],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          id,
+          id: name,
           type,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [id, dispatch, representsFunction],
+    [name, dispatch, representsFunction],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -245,11 +248,13 @@ export default function BipartiteGraph({
         getNode(newEdge.target)?.data.origin;
 
       if (duplicateEdge)
-        dispatch(warningChanged({ id, type, warning: "Edge already exists." }));
+        dispatch(
+          warningChanged({ id: name, type, warning: "Edge already exists." }),
+        );
       else if (identicalOrigin) {
         dispatch(
           warningChanged({
-            id,
+            id: name,
             type,
             warning: "Only edges from domain to range nodes are valid.",
           }),
@@ -258,12 +263,12 @@ export default function BipartiteGraph({
 
       return !duplicateEdge && !identicalOrigin;
     },
-    [dispatch, edges, getNode, id],
+    [dispatch, edges, getNode, name],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id, type, warning: undefined }));
-  }, [dispatch, id]);
+    dispatch(warningChanged({ id: name, type, warning: undefined }));
+  }, [dispatch, name]);
 
   return (
     <>
@@ -272,7 +277,7 @@ export default function BipartiteGraph({
         ref={flowWrapper}
       >
         <ReactFlow
-          id={id}
+          id={name}
           nodes={groupedNodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -302,7 +307,7 @@ export default function BipartiteGraph({
             fitViewOptions={{ ...fitViewOptions, maxZoom: 1, duration: 300 }}
             onExpandedViewChange={onExpandedViewChange}
             onInteractiveChange={(ch) => {
-              dispatch(editorLocked({ id, type, locked: locked || !ch }));
+              dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
             }}
           />
         </ReactFlow>

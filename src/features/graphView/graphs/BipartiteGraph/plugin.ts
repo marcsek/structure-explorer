@@ -159,7 +159,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
   },
 
   filterNodesToShow(
-    state,
+    nodes,
     unaryFilterDomain,
     selectedNodes,
     relevantNodes,
@@ -170,7 +170,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
-    const filteredNodes = state.nodes.filter(
+    const filteredNodes = nodes.filter(
       (node) =>
         node.data.leftover ||
         (selectedNodes.includes(node.id.slice("d-".length)) &&
@@ -185,7 +185,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       !(relevantNodes?.includes(node.id.slice("d-".length)) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id.slice("d-".length));
 
-    const dragging = state.nodes
+    const dragging = nodes
       .filter((node) => node.dragging)
       .map((node) => node.id);
 

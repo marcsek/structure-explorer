@@ -34,12 +34,9 @@ export default function SelfConnectingEdge(props: EdgeProps<DirectEdgeType>) {
         {shouldError && (
           <DeleteElementButton
             style={{
-              position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.6)`,
-              pointerEvents: "all",
-              zIndex: 100,
             }}
-            className="nodrag nopan"
+            className="nodrag nopan predicate-edge-delete-button"
             onClick={() => deleteElements({ edges: [{ id: props.id }] })}
           >
             delete

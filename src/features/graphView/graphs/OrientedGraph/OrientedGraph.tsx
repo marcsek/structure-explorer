@@ -62,42 +62,46 @@ const fitViewOptions: FitViewOptions = {
   maxZoom: 1,
 };
 
+const nodeSelector = makeSelectNodes<"oriented">();
+
 export default function OrientedGraph({
   id,
+  name,
   locked,
   expandedView = false,
   onExpandedViewChange,
 }: {
   id: string;
+  name: string;
   locked: boolean;
   expandedView?: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }) {
   const type = "oriented";
-  const nodeSelector = makeSelectNodes<typeof type>();
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
+  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
   const edges = useAppSelector(
-    (state) => state.present.graphView[id]?.state[type]?.edges,
+    (state) => state.present.graphView[name]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.present.graphView[id]?.tupleType === "function",
+    (state) => state.present.graphView[name]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.present.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[name]?.state[type]?.warning,
   );
   const historyIdx = useAppSelector((state) => state.index);
 
   const [didLayout, setDidLayout] = useState(false);
 
   const { fitView } = useReactFlow();
+  //TODO: memoize
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   useEffect(() => {
-    dispatch(editorLocked({ id, type, locked }));
-  }, [id, dispatch, locked]);
+    dispatch(editorLocked({ id: name, type, locked }));
+  }, [name, dispatch, locked]);
 
   useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
@@ -114,27 +118,27 @@ export default function OrientedGraph({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>
-      dispatch(onNodesChanged({ id, type, changes })),
-    [id, dispatch],
+      dispatch(onNodesChanged({ id: name, type, changes })),
+    [name, dispatch],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id, type, changes })),
-    [id, dispatch],
+      dispatch(onEdgesChanged({ id: name, type, changes })),
+    [name, dispatch],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          id,
+          id: name,
           type,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [id, dispatch, representsFunction],
+    [name, dispatch, representsFunction],
   );
 
   const onLayout = useCallback(
@@ -149,7 +153,7 @@ export default function OrientedGraph({
 
       if (!onlyIfNotMoved || !nodesMoved) {
         computeLayoutOriented(nodes, edges).then((nodeChanges) => {
-          dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+          dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
 
           if (fitAfter)
             fitView({ ...fitViewOptions, duration: instant ? 0 : 300 });
@@ -157,7 +161,7 @@ export default function OrientedGraph({
         });
       } else setDidLayout(true);
     },
-    [nodes, edges, dispatch, id, fitView],
+    [nodes, edges, dispatch, name, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -168,16 +172,18 @@ export default function OrientedGraph({
       );
 
       if (duplicateEdges)
-        dispatch(warningChanged({ id, type, warning: "Edge already exists." }));
+        dispatch(
+          warningChanged({ id: name, type, warning: "Edge already exists." }),
+        );
 
       return !duplicateEdges;
     },
-    [dispatch, edges, id],
+    [dispatch, edges, name],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id, type, warning: undefined }));
-  }, [dispatch, id]);
+    dispatch(warningChanged({ id: name, type, warning: undefined }));
+  }, [dispatch, name]);
 
   return (
     <>
@@ -218,7 +224,7 @@ export default function OrientedGraph({
             expandedView={expandedView}
             onExpandedViewChange={onExpandedViewChange}
             onInteractiveChange={(ch) => {
-              dispatch(editorLocked({ id, type, locked: locked || !ch }));
+              dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
             }}
             onLayout={onLayout}
           />

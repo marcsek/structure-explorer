@@ -65,32 +65,35 @@ const fitViewOptions: FitViewOptions = {
   maxZoom: 1,
 };
 
+const nodeSelector = makeSelectNodes<"hasse">();
+
 export default function HasseDiagram({
   id,
+  name,
   locked,
   expandedView = false,
   onExpandedViewChange,
 }: {
   id: string;
+  name: string;
   locked: boolean;
   expandedView?: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }) {
   const type = "hasse";
-  const nodeSelector = makeSelectNodes<typeof type>();
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, id, type));
-  const edges = useAppSelector((state) => selectEdges(state, id, type, true));
+  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const edges = useAppSelector((state) => selectEdges(state, name, type, true));
   const warning = useAppSelector(
-    (state) => state.present.graphView[id]?.state[type]?.warning,
+    (state) => state.present.graphView[name]?.state[type]?.warning,
   );
 
   const { fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
-  const isPoset = useAppSelector((state) => selectPosetValidity(state, id));
+  const isPoset = useAppSelector((state) => selectPosetValidity(state, name));
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
@@ -98,8 +101,8 @@ export default function HasseDiagram({
 
   // TODO: Can't GraphView manage this?
   useEffect(() => {
-    dispatch(editorLocked({ id, type, locked }));
-  }, [id, dispatch, locked]);
+    dispatch(editorLocked({ id: name, type, locked }));
+  }, [name, dispatch, locked]);
 
   useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
@@ -112,19 +115,19 @@ export default function HasseDiagram({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<PredicateNodeType>[]) =>
-      dispatch(onNodesChanged({ id, type, changes })),
-    [id, dispatch],
+      dispatch(onNodesChanged({ id: name, type, changes })),
+    [name, dispatch],
   );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id, type, changes })),
-    [id, dispatch],
+      dispatch(onEdgesChanged({ id: name, type, changes })),
+    [name, dispatch],
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) => dispatch(onConnected({ id, type, connection })),
-    [id, dispatch],
+    (connection) => dispatch(onConnected({ id: name, type, connection })),
+    [name, dispatch],
   );
 
   const onLayout = useCallback(
@@ -139,7 +142,7 @@ export default function HasseDiagram({
 
       if (!onlyIfNotMoved || !nodesMoved) {
         const { nodeChanges } = computeLayoutHasse(nodes, edges);
-        dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+        dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
       }
 
       if (fitAfter)
@@ -148,7 +151,7 @@ export default function HasseDiagram({
           fitView({ ...fitViewOptions, duration: instant ? 0 : 300 }),
         );
     },
-    [nodes, edges, dispatch, id, fitView],
+    [nodes, edges, dispatch, name, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -162,16 +165,16 @@ export default function HasseDiagram({
         newEdge.target,
       ]);
 
-      if (!ok) dispatch(warningChanged({ id, type, warning: error }));
+      if (!ok) dispatch(warningChanged({ id: name, type, warning: error }));
 
       return ok;
     },
-    [dispatch, edges, id],
+    [dispatch, edges, name],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id, type, warning: undefined }));
-  }, [dispatch, id]);
+    dispatch(warningChanged({ id: name, type, warning: undefined }));
+  }, [dispatch, name]);
 
   let messageDialog;
 
@@ -196,7 +199,7 @@ export default function HasseDiagram({
       ref={flowWrapper}
     >
       <ReactFlow
-        id={`hasse-${id}`}
+        id={id}
         nodes={isPoset ? nodes : []}
         edges={isPoset ? edges : []}
         onNodesChange={onNodesChange}
@@ -224,7 +227,7 @@ export default function HasseDiagram({
           expandedView={expandedView}
           onExpandedViewChange={onExpandedViewChange}
           onInteractiveChange={(ch) => {
-            dispatch(editorLocked({ id, type, locked: locked || !ch }));
+            dispatch(editorLocked({ id: name, type, locked: locked || !ch }));
           }}
           onLayout={onLayout}
         />

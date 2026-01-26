@@ -48,12 +48,9 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
     labelContent = (
       <DeleteElementButton
         style={{
-          position: "absolute",
           transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.6)`,
-          pointerEvents: "all",
-          zIndex: 100,
         }}
-        className="nodrag nopan"
+        className="nodrag nopan predicate-edge-delete-button"
         onClick={() => deleteElements({ edges: [{ id }] })}
       >
         delete

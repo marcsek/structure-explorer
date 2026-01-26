@@ -3,11 +3,6 @@ export type BinaryRelation<T> = [T, T][];
 export function isPoset<T>(relation: BinaryRelation<T>) {
   const succMap = buildSuccessorMap(relation);
 
-  // Ref.
-  //for (const x of elements) {
-  //  if (!succMap.get(x)?.has(x)) return false;
-  //}
-
   // Antisym.
   for (const [a, b] of relation) {
     if (a !== b && succMap.get(b)?.has(a)) return false;
@@ -54,8 +49,6 @@ export function expandReducedPoset<T>(
   for (const from of elements) {
     const visited = new Set<T>();
     const stack: T[] = [from];
-
-    //expanded.push([from, from]);
 
     while (stack.length > 0) {
       const element = stack.pop()!;

@@ -144,7 +144,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
   },
 
   filterNodesToShow(
-    state,
+    nodes,
     unaryFilterDomain,
     selectedNodes,
     relevantNodes,
@@ -155,7 +155,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
-    const filteredNodes = state.nodes.filter(
+    const filteredNodes = nodes.filter(
       (node) =>
         node.data.leftover ||
         (selectedNodes.includes(node.id) &&

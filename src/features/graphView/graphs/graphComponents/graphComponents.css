@@ -130,6 +130,12 @@
   right: -15px;
 }
 
+.predicate-edge-delete-button {
+  position: absolute;
+  pointer-events: all;
+  z-index: 100;
+}
+
 .set-group-node.origin-domain {
   --set-group-bg: color-mix(in srgb, #ffab00, transparent 95%);
   --set-group-border-color: color-mix(in srgb, #ffab00, transparent 50%);

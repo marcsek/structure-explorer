@@ -4,13 +4,11 @@ import {
   isAnyOf,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import {
-  domainChanged,
-  selectRelevantUnaryPreds,
-} from "../graphView/graphs/graphSlice";
+import { selectRelevantUnaryPreds } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
-import { selectStructure } from "../structure/structureSlice";
 import { updateFunctions, updatePredicates } from "../language/languageSlice";
+import { fallbackToEmptyArray } from "../../common/redux";
+import { updateDomain } from "../structure/structureSlice";
 
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
@@ -96,7 +94,7 @@ export const editorToolbarSlice = createSlice({
   },
 
   extraReducers(builder) {
-    builder.addCase(domainChanged, (state, action) => {
+    builder.addCase(updateDomain, (state, action) => {
       for (const entry of Object.values(state)) {
         entry.selectedDomain = action.payload;
       }
@@ -126,37 +124,17 @@ export const editorToolbarSlice = createSlice({
   },
 });
 
-export const selectSelectedUnary = createSelector(
-  [
-    (state: RootState, id: string) =>
-      state.present.editorToolbar[id]?.selectedUnary,
-  ],
-  (selectedUnary) => selectedUnary ?? [],
-);
+export const selectSelectedUnary = (state: RootState, id: string) =>
+  fallbackToEmptyArray(state.present.editorToolbar[id]?.selectedUnary);
 
-export const selectHoveredUnary = createSelector(
-  [
-    (state: RootState, id: string) =>
-      state.present.editorToolbar[id]?.hoveredUnary,
-  ],
-  (hoveredUnary) => hoveredUnary ?? [],
-);
+export const selectHoveredUnary = (state: RootState, id: string) =>
+  fallbackToEmptyArray(state.present.editorToolbar[id]?.hoveredUnary);
 
-export const selectUnaryFilterDomain = createSelector(
-  [
-    (state: RootState, id: string) =>
-      state.present.editorToolbar[id]?.unaryFilterDomain,
-  ],
-  (unaryFilterDomain) => unaryFilterDomain ?? true,
-);
+export const selectUnaryFilterDomain = (state: RootState, id: string) =>
+  state.present.editorToolbar[id]?.unaryFilterDomain ?? true;
 
-export const selectUnaryFilterDomainHovered = createSelector(
-  [
-    (state: RootState, id: string) =>
-      state.present.editorToolbar[id]?.unaryFilterHovered,
-  ],
-  (unaryFilterHovered) => unaryFilterHovered ?? false,
-);
+export const selectUnaryFilterDomainHovered = (state: RootState, id: string) =>
+  state.present.editorToolbar[id]?.unaryFilterHovered ?? false;
 
 export const selectSelectedDomain = createSelector(
   [
@@ -164,11 +142,11 @@ export const selectSelectedDomain = createSelector(
     (state: RootState, id: string) =>
       state.present.editorToolbar[id]?.selectedDomain,
   ],
-  (domain, selectedNodes) => {
-    return selectedNodes ? [...selectedNodes] : [...domain.value];
-  },
+  (domain, selectedNodes) =>
+    selectedNodes ? [...selectedNodes] : [...domain.value],
 );
 
+// TODO: too specific
 export const selectPredicatesToDisplay = createSelector(
   [
     selectSelectedUnary,
@@ -193,9 +171,11 @@ export const selectPredicatesToDisplay = createSelector(
   },
 );
 
+// TODO: ???
 export const selectRelevantDomainElements = createSelector(
   [
-    selectStructure,
+    (state: RootState) => state.present.structure.iP,
+    (state: RootState) => state.present.structure.domain,
     selectSelectedUnary,
     selectUnaryFilterDomainHovered,
     selectUnaryFilterDomain,
@@ -204,7 +184,8 @@ export const selectRelevantDomainElements = createSelector(
       includeHovered,
   ],
   (
-    struct,
+    iP,
+    domain,
     selectedUnary,
     unaryFilterHovered,
     unaryFilterDomain,
@@ -214,7 +195,7 @@ export const selectRelevantDomainElements = createSelector(
     const selectedPreds = [...selectedUnary];
 
     if (includeHovered) {
-      if (unaryFilterHovered) return [...struct.domain];
+      if (unaryFilterHovered) return [...domain.value];
 
       selectedPreds.push(...hoveredUnary);
     }
@@ -222,12 +203,10 @@ export const selectRelevantDomainElements = createSelector(
     if (selectedPreds.length === 0 || !unaryFilterDomain) return undefined;
 
     const selectedDomain = new Set(
-      selectedPreds.flatMap((pred) =>
-        [...(struct.iP.get(pred)?.values() ?? [])].flat(),
-      ),
+      selectedPreds.flatMap((pred) => [...(iP[pred]?.value ?? [])].flat()),
     );
 
-    return [...struct.domain].filter((element) => selectedDomain.has(element));
+    return domain.value.filter((element) => selectedDomain.has(element));
   },
 );
 
@@ -245,14 +224,19 @@ export const selectFilteredDomain = createSelector(
 );
 
 export const selectHoveredIntr = createSelector(
-  [selectStructure, selectHoveredUnary, selectUnaryFilterDomainHovered],
-  (struct, hoveredUnary, unaryFilterHovered) => {
-    if (unaryFilterHovered) return [[...struct.domain]];
+  [
+    (state: RootState) => state.present.structure.iP,
+    (state: RootState) => state.present.structure.domain,
+    selectHoveredUnary,
+    selectUnaryFilterDomainHovered,
+  ],
+  (iP, domain, hoveredUnary, unaryFilterHovered) => {
+    if (unaryFilterHovered) return [[...domain.value]];
 
     if (hoveredUnary.length === 0) return undefined;
 
     return hoveredUnary.map((hoveredPredicate) =>
-      [...(struct.iP.get(hoveredPredicate)?.values() ?? [])].flat(),
+      [...(iP[hoveredPredicate]?.value ?? [])].flat(),
     );
   },
 );

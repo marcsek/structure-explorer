@@ -25,6 +25,7 @@ import {
   selectHasWrongArityError,
   type InterpretationType,
 } from "./structureSlice";
+import { useInstanceId } from "../../instanceIdContext";
 
 export type EditorType = "text" | "matrix" | "database" | GraphType;
 
@@ -285,6 +286,7 @@ function ControlButtons<T extends string | number>({
   disabled = false,
 }: ControlButtonsProps<T>) {
   const buttonId = (value: string | number) => `${id}-${value}`;
+  const instanceId = useInstanceId();
 
   if (buttons.length === 0) return null;
 
@@ -324,7 +326,7 @@ function ControlButtons<T extends string | number>({
 
         return (
           <ToggleButton
-            id={buttonId(button.value)}
+            id={buttonId(button.value) + instanceId}
             key={buttonId(button.value)}
             className="btn-bd-light-outline"
             value={button.value}

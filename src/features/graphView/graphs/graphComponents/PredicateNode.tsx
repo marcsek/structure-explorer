@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { getUnaryPredicateColor } from "../../../drawerEditor/unaryPredicateColors";
 import { selectPredicatesToDisplay } from "../../../editorToolbar/editorToolbarSlice";
+import { memo } from "react";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -34,7 +35,7 @@ export type PredicateNodeType<
   NodeData extends Record<string, unknown> = Record<string, unknown>,
 > = Omit<Node<PredicateNodeData & NodeData>, "domAttributes">;
 
-export default function PredicateNode({
+function PredicateNode({
   id,
   data,
   isConnectable,
@@ -56,7 +57,7 @@ export default function PredicateNode({
   };
 
   const createSelfEdge = () => {
-    if (parentInfo.type === "bipartite") return;
+    if (parentInfo.type === "bipartite" || data.leftover || data.ghost) return;
 
     dispatch(
       onConnected({
@@ -130,6 +131,8 @@ export default function PredicateNode({
     </>
   );
 }
+
+export default memo(PredicateNode);
 
 interface UnaryPredicatesIndicatorProps {
   domainId: string;

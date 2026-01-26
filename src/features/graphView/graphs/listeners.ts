@@ -1,13 +1,7 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
-import {
-  selectValidatedFunction,
-  selectValidatedPredicate,
-  selectStructure,
-  updateFunctionSymbols,
-  updateInterpretationPredicates,
-} from "../../structure/structureSlice";
+import { selectStructure } from "../../structure/structureSlice";
 import type { RootState } from "../../../app/store";
-import { tupleInterpretationChanged, tuplesChanged } from "./graphSlice";
+import { tuplesChanged } from "./graphSlice";
 import {
   selectValidatedFunctions,
   selectValidatedPredicates,
@@ -16,38 +10,6 @@ import {
 } from "../../language/languageSlice";
 
 export const graphSliceListener = createListenerMiddleware<RootState>();
-
-graphSliceListener.startListening({
-  matcher: isAnyOf(updateInterpretationPredicates, updateFunctionSymbols),
-  effect(action, api) {
-    const state = api.getState();
-
-    let key: string = "";
-    let tupleIntr: string[][] = [];
-
-    if (updateInterpretationPredicates.match(action)) {
-      const parsedPredicate = selectValidatedPredicate(
-        state,
-        action.payload.key,
-      );
-
-      if (!parsedPredicate.parsed) return;
-
-      key = action.payload.key;
-      tupleIntr = parsedPredicate.parsed;
-    } else if (updateFunctionSymbols.match(action)) {
-      const parsedFunction = selectValidatedFunction(state, action.payload.key);
-
-      if (!parsedFunction.parsed) return;
-
-      key = action.payload.key;
-      tupleIntr = parsedFunction.parsed;
-    }
-
-    api.dispatch(tupleInterpretationChanged({ name: key, intr: tupleIntr }));
-    // api.dispatch({ type: "REPLACE_PRESENT" });
-  },
-});
 
 graphSliceListener.startListening({
   matcher: isAnyOf(updatePredicates, updateFunctions),

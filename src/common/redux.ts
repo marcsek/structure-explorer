@@ -17,3 +17,8 @@ export const prepareWithSourceMeta = <P>(
   payload,
   meta,
 });
+
+const EMPTY_ARRAY: [] = [];
+
+export const fallbackToEmptyArray = <T>(array: T[] | undefined) =>
+  array === undefined || array.length === 0 ? EMPTY_ARRAY : array;

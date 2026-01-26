@@ -8,8 +8,9 @@ import {
   importAppState,
 } from "./features/import/importThunk";
 import { type CellContext, LogicContext } from "./logicContext";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { serializedAppStateSchema } from "./features/import/validationSchema";
+import { generateInstanceId, InstanceIdContext } from "./instanceIdContext";
 
 interface PrepareResult {
   instance: any;
@@ -52,8 +53,10 @@ export function AppComponent({
 }: AppComponentProps): JSX.Element {
   const appstore = instance.store;
 
-  console.log("isEdited:", isEdited);
-  console.log("store v appcomponente: ", appstore.getState());
+  // Since some components need to have a unique id across the whole document
+  // we need a way do disntiguish between identical instances.
+  // (e.g copied instances inside workbook)
+  const instanceIdRef = useRef<string>(generateInstanceId());
 
   useEffect(() => {
     const unsubscribe = appstore.subscribe(() => {
@@ -65,9 +68,11 @@ export function AppComponent({
 
   return (
     <Provider store={appstore}>
-      <LogicContext.Provider value={context}>
-        <App viewMode={!isEdited} />
-      </LogicContext.Provider>
+      <InstanceIdContext.Provider value={instanceIdRef.current}>
+        <LogicContext.Provider value={context}>
+          <App viewMode={!isEdited} />
+        </LogicContext.Provider>
+      </InstanceIdContext.Provider>
     </Provider>
   );
 }

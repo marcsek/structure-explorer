@@ -3,6 +3,7 @@ import type { DirectEdgeType } from "./graphComponents/DirectEdge";
 import {
   createSelector,
   createSlice,
+  isAnyOf,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { AppThunk, RootState } from "../../../app/store.ts";
@@ -30,12 +31,10 @@ import {
   type Plugin,
 } from "./plugins.ts";
 import {
-  selectValidatedFunctions,
   selectValidatedPredicates,
   type LanguageState,
 } from "../../language/languageSlice.ts";
 import {
-  selectStructure,
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
@@ -70,6 +69,7 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
+      console.log("NODES UPDATED");
       const { id, type, nodes } = action.payload;
       state[id].state[type].nodes = nodes;
     },
@@ -97,8 +97,12 @@ export const graphManagerSlice = createSlice({
       >,
     ) {
       const { id, type, changes } = action.payload;
+      const changesWithoutRemove = changes.filter(
+        ({ type }) => type !== "remove",
+      );
+
       state[id].state[type].nodes = applyNodeChanges(
-        changes,
+        changesWithoutRemove,
         state[id].state[type].nodes,
       );
     },
@@ -178,12 +182,10 @@ export const graphManagerSlice = createSlice({
         ...funcs.map((func) => [...func, "function"] as const),
       ];
 
-      tuples.forEach(([name, artity, type]) => {
-        if (
-          (artity !== 2 && (type !== "function" || artity !== 1)) ||
-          name in state
-        )
-          return;
+      tuples.forEach(([name, arity, type]) => {
+        const correctedArity = type === "function" ? arity + 1 : arity;
+
+        if (correctedArity !== 2 || name in state) return;
 
         const tuple = {
           name,
@@ -202,48 +204,6 @@ export const graphManagerSlice = createSlice({
 
       const tupleNames = [...preds, ...funcs].map((tuple) => tuple[0]);
       for (const key in state) if (!tupleNames.includes(key)) delete state[key];
-    },
-
-    tupleInterpretationChanged(
-      state,
-      action: PayloadAction<{ name: string; intr: string[][] }>,
-    ) {
-      const { name, intr } = action.payload;
-
-      if (!(name in state)) return;
-
-      const graphs = state[name];
-      for (const graphType of graphTypes) {
-        const graphState = graphs.state[graphType];
-        const plugin = plugins[graphType];
-
-        (graphs.state[graphType] as GraphState[typeof graphType]) =
-          processSyncPredIntr(
-            plugin,
-            graphState,
-            intr as BinaryRelation<string>,
-            graphs.tupleType,
-          );
-      }
-    },
-
-    domainChanged(state, action: PayloadAction<string[]>) {
-      for (const [, graphs] of Object.entries(state)) {
-        for (const graphType of graphTypes) {
-          const graphState = graphs.state[graphType];
-          const plugin = plugins[graphType];
-          const domain = action.payload;
-
-          const newState = processSyncNodes(
-            plugin,
-            graphState,
-            domain,
-            graphs.tupleType,
-          );
-
-          (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
-        }
-      }
     },
 
     editorLocked(
@@ -289,42 +249,40 @@ export const graphManagerSlice = createSlice({
         }
       }
     });
+
+    builder.addMatcher(
+      isAnyOf(updateInterpretationPredicates, updateFunctionSymbols),
+      (state, action) => {
+        const { value, key } = action.payload;
+
+        if (!(key in state)) return;
+
+        const graphs = state[key];
+        for (const graphType of graphTypes) {
+          const graphState = graphs.state[graphType];
+          const plugin = plugins[graphType];
+
+          (graphs.state[graphType] as GraphState[typeof graphType]) =
+            processSyncPredIntr(
+              plugin,
+              graphState,
+              value as BinaryRelation<string>,
+              graphs.tupleType,
+            );
+        }
+      },
+    );
   },
 });
 
-export const selectTupleType = createSelector(
-  [
-    (state: RootState) => state.present.graphView,
-    (_: RootState, id: string) => id,
-  ],
-  (graphView, id) => graphView[id].tupleType,
-);
-
-export const selectBinaryPreds = createSelector(
-  [selectValidatedPredicates],
-  (preds) => {
-    if (preds.error) return [];
-    return [...(preds.parsed.entries() ?? [])].filter(
-      ([, arity]) => arity === 2,
-    );
-  },
-);
-
-export const selectBinaryFunctions = createSelector(
-  [selectValidatedFunctions],
-  (funcs) => {
-    if (funcs.error) return [];
-    return [...(funcs.parsed.entries() ?? [])].filter(
-      ([, arity]) => arity === 1,
-    );
-  },
-);
-
-// TODO: This selector can be better
 export const selectRelevantConstants = createSelector(
-  [selectStructure, (_: RootState, predName: string) => predName],
-  (struct, predName) =>
-    [...struct.iC.keys()].filter((c) => struct.iC.get(c) === predName),
+  [
+    (state: RootState) => state.present.language.constants.value,
+    (state: RootState) => state.present.structure.iC,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (constants, iC, domainElement) =>
+    constants.filter((c) => iC[c]?.value === domainElement),
 );
 
 export const selectUnaryPreds = createSelector(
@@ -338,20 +296,21 @@ export const selectUnaryPreds = createSelector(
 );
 
 export const selectRelevantUnaryPreds = createSelector(
-  [selectStructure, (_: RootState, predName: string) => predName],
-  (struct, predName) =>
-    [...struct.iP.keys()].filter((p) =>
-      [...(struct.iP.get(p) ?? [])].some(
-        (t) => t.length === 1 && t[0] === predName,
+  [
+    (state: RootState) => state.present.structure.iP,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (predicates, domainElements) =>
+    Object.keys(predicates).filter((p) =>
+      (predicates[p] ?? []).value.some(
+        (t) => t.length === 1 && t[0] === domainElements,
       ),
     ),
 );
 
 export const selectPosetValidity = createSelector(
-  [(state: RootState) => state, (_: RootState, id: string) => id],
-  (state, id) => {
-    const graphState = state.present.graphView[id]?.state.hasse;
-
+  [(state: RootState, id: string) => state.present.graphView[id]?.state.hasse],
+  (graphState) => {
     const nodes = graphState.nodes.map((node) => node.id);
 
     const vissibleRelation = edgesToRelation(
@@ -365,54 +324,50 @@ export const selectPosetValidity = createSelector(
   },
 );
 
-// TODO: try to do better narrowing
 export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
     [
-      (state: RootState) => state,
       (_: RootState, id: string) => id,
       (_: RootState, __: string, type: T) => type,
-      (
-        state: RootState,
-        id: string,
-        _: GraphType,
-        includeHovered: boolean = false,
-      ) => selectRelevantDomainElements(state, id, includeHovered),
+      (state: RootState, id: string, type: T) =>
+        state.present.graphView[id]?.state[type]?.nodes,
+      (state: RootState, id: string) =>
+        selectRelevantDomainElements(state, id, false),
       selectHoveredIntr,
       selectSelectedDomain,
       selectUnaryFilterDomain,
     ],
     (
-      state: RootState,
-      id: string,
-      type: T,
-      relevantDomain: ReturnType<typeof selectRelevantDomainElements>,
-      hoveredPredicateIntr: ReturnType<typeof selectHoveredIntr>,
+      id,
+      type,
+      nodes,
+      relevantDomain,
+      hoveredPredicateIntr,
       selectedNodes,
       unaryFilterDomain,
     ): GraphState[T]["nodes"] => {
       const plugin = plugins[type] as Plugin<T>;
-      const graphState = state.present.graphView[id]?.state[type];
+      console.log("SELECTING NODES of ", type, id);
 
-      if (!graphState) return [] as GraphState[T]["nodes"];
+      if (!nodes) return [];
 
       return processFilterNodesToShow(
         plugin,
-        graphState,
+        nodes,
         unaryFilterDomain,
         selectedNodes,
         relevantDomain,
         hoveredPredicateIntr,
-      ) as GraphState[T]["nodes"];
+      );
     },
   );
 }
 
 export const selectEdges = createSelector(
   [
-    (state: RootState) => state,
-    (_: RootState, id: string) => id,
     (_: RootState, __: string, type: GraphType) => type,
+    (state: RootState, id: string, type: GraphType) =>
+      state.present.graphView[id]?.state[type],
     (
       state: RootState,
       id: string,
@@ -421,9 +376,8 @@ export const selectEdges = createSelector(
     ) => selectRelevantDomainElements(state, id, includeHovered),
     selectSelectedDomain,
   ],
-  (state, id, type, relevantDomain, selectedNodes) => {
+  (type, graphState, relevantDomain, selectedNodes) => {
     const plugin = plugins[type];
-    const graphState = state.present.graphView[id]?.state[type];
 
     if (!graphState) return [] as GraphState[typeof type]["edges"];
 
@@ -522,12 +476,9 @@ export const onConnected = ({
 
     console.log("On Connected");
 
-    const creator =
-      tupleType === "predicate"
-        ? updateInterpretationPredicates
-        : updateFunctionSymbols;
+    const updater = interpretationUpdaters[tupleType];
 
-    dispatch(creator({ key: id, value: relation }));
+    dispatch(updater({ key: id, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
 };
@@ -545,7 +496,7 @@ export const leftoverDeleted = ({
     const managerState = getState().present.graphView;
     const tupleType = managerState[id].tupleType;
 
-    const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
+    const { edges: newEdges } = processDeleteLeftover(
       plugins[type],
       managerState[id].state[type],
       deletedNode,
@@ -556,16 +507,17 @@ export const leftoverDeleted = ({
       edges: newEdges,
     });
 
-    const creator =
-      tupleType === "predicate"
-        ? updateInterpretationPredicates
-        : updateFunctionSymbols;
+    const updater = interpretationUpdaters[tupleType];
 
-    dispatch(setNodes({ id, type, nodes: newNodes }));
-    dispatch(creator({ key: id, value: relation }));
+    dispatch(updater({ key: id, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
 };
+
+const interpretationUpdaters = {
+  predicate: updateInterpretationPredicates,
+  function: updateFunctionSymbols,
+} as const;
 
 export const getGraphViewStateToExport = (
   state: RootState,
@@ -602,9 +554,6 @@ export const getGraphViewStateToExport = (
   );
 };
 
-export const binaryRelationToString = (relation: BinaryRelation<string>) =>
-  relation.map((pair) => `(${pair.join(",")})`).join(", ");
-
 export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
   edges.map(({ source, target }) => [source, target]);
 
@@ -614,8 +563,6 @@ export const {
   edgeAdded,
   onNodesChanged,
   tuplesChanged,
-  tupleInterpretationChanged,
-  domainChanged,
   editorLocked,
   warningChanged,
   syncGraphView,
