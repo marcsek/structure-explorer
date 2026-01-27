@@ -15,6 +15,7 @@ graphSliceListener.startListening({
   matcher: isAnyOf(updatePredicates, updateFunctions),
   effect(_, api) {
     const state = api.getState();
+
     const parsedPredicates = selectValidatedPredicates(state);
     const parsedFuncs = selectValidatedFunctions(state);
     const structure = selectStructure(state);
@@ -36,6 +37,7 @@ graphSliceListener.startListening({
           [key, [...set].filter((arr) => arr.length > 0)] as const,
       );
 
+      console.time("Graph initialization duration");
       api.dispatch(
         tuplesChanged({
           domain: [...structure.domain],
@@ -44,6 +46,8 @@ graphSliceListener.startListening({
           tupleIntr: Object.fromEntries(new Map([...predIntr, ...funcIntr])),
         }),
       );
+      console.timeEnd("Graph initialization duration");
+
       // api.dispatch({ type: "REPLACE_PRESENT" });
     }
   },

@@ -54,6 +54,7 @@ export const databaseViewSlice = createSlice({
     },
   },
 
+  // This is done even for tuples with arities that aren't supported (and that's fine).
   extraReducers(builder) {
     builder.addCase(updateInterpretationPredicates, (state, action) => {
       if (action.meta.source === "databaseView") return;
@@ -148,12 +149,14 @@ export const updateDatabaseViewValue = ({
       isValidTuple(tuple, arity),
     );
 
+    console.time("Database parent state dispatch duration");
     dispatch(
       updaters[type](
         { value: validTuples, key: tupleName },
         { source: "databaseView" },
       ),
     );
+    console.timeEnd("Database parent state dispatch duration");
   };
 };
 

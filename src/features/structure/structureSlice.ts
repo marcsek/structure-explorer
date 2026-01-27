@@ -504,6 +504,7 @@ export const selectStructure = createSelector(
     selectValidatedDomain,
   ],
   (constants, predicates, functions, language, domain) => {
+    console.time("selectStructure duration");
     const usedConstants = language.constants;
     const usedPredicates = language.predicates;
     const usedFunctions = language.functions;
@@ -531,6 +532,7 @@ export const selectStructure = createSelector(
       iF.set(name, map);
     });
 
+    console.timeEnd("selectStructure duration");
     return new Structure(
       language,
       new Set(domain.error ? [] : domain.parsed),

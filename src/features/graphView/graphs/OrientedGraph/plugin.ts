@@ -57,6 +57,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       didLayout: !!positions,
     };
 
+    console.time("Oriented init");
     domain.forEach((domElement) => {
       const error =
         type === "function" &&
@@ -100,6 +101,8 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     extraElements.forEach((element) =>
       graph.nodes.push(createNode(element, { leftover: true, error: false })),
     );
+
+    console.timeEnd("Oriented init");
 
     return graph;
   },

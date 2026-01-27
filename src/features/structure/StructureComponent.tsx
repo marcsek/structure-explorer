@@ -107,6 +107,7 @@ export default function StructureComponent() {
                   key={`predicate-${name}-${arity}`}
                   textViewType="predicate_interpretation"
                   lockSelector={selectIpLock}
+                  arity={arity}
                   locker={() =>
                     dispatch(lockInterpretationPredicates({ key: name }))
                   }
@@ -138,6 +139,7 @@ export default function StructureComponent() {
                   key={`function-${name}-${arity}`}
                   textViewType="function_interpretation"
                   lockSelector={selectIfLock}
+                  arity={arity}
                   onChange={(e) => {
                     dispatch(
                       updateTextView({

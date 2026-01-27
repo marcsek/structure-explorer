@@ -1,9 +1,5 @@
-import React, { useState, type ChangeEvent } from "react";
+import React, { memo, useState, type ChangeEvent } from "react";
 import { useAppSelector } from "../../app/hooks";
-import {
-  selectValidatedFunctions,
-  selectValidatedPredicates,
-} from "../language/languageSlice";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
 import { ButtonGroup, Stack, ToggleButton, Dropdown } from "react-bootstrap";
@@ -33,6 +29,7 @@ interface InterpretationEditorProps {
   id: string;
   name: string;
   type: InterpretationType;
+  arity?: number;
   textViewType: TextViewType;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
@@ -80,7 +77,7 @@ const omitControlButtons = (
   return filteredButtons;
 };
 
-export default function InterpretationEditorProps({
+function InterpretationEditor({
   name,
   id,
   type,
@@ -88,41 +85,28 @@ export default function InterpretationEditorProps({
   onChange,
   locker,
   lockSelector,
+  arity = 0,
 }: InterpretationEditorProps) {
   const [selectedEditor, setSelectedEditor] = useState<EditorType>("text");
-
   const textView = useAppSelector((state) =>
     selectValidatedTextView(state, textViewType, name),
   );
-
   const locked = useAppSelector((state) => lockSelector(state, name));
-
-  const isTuple = useAppSelector(
-    (state) =>
-      selectValidatedPredicates(state).parsed?.get(name) === 2 ||
-      selectValidatedFunctions(state).parsed?.get(name) === 1,
-  );
-
-  const arity =
-    useAppSelector((state) =>
-      type === "predicate"
-        ? selectValidatedPredicates(state).parsed?.get(name)
-        : selectValidatedFunctions(state).parsed?.get(name),
-    ) ?? 0;
-
   const wrongArityError = useAppSelector((state) =>
     type !== "constant" ? selectHasWrongArityError(state, name, type) : false,
   );
-
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
-
-  const escapedName = name.replace(/_/g, "\\_");
 
   const isFunction = type === "function";
   const isConstant = type === "constant";
+
+  const escapedName = name.replace(/_/g, "\\_");
   const prefixRawNoEnd = String.raw`i(\text{\textsf{${escapedName}}})`;
   const prefixRaw = String.raw`${prefixRawNoEnd} = ${isConstant ? "" : "\\{"}`;
   const suffixRaw = String.raw`\}`;
+
+  const correctedArity = isFunction ? arity + 1 : arity;
+  const isTuple = correctedArity === 2;
 
   const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
     { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
@@ -182,7 +166,7 @@ export default function InterpretationEditorProps({
   const controlButtonsToOmit: EditorType[] = [];
   if (!isTuple) controlButtonsToOmit.push("hasse", "bipartite", "oriented");
   if (arity > 2) controlButtonsToOmit.push("matrix");
-  if (arity > 2 && type === "function") controlButtonsToOmit.push("database");
+  if (arity > 2 && isFunction) controlButtonsToOmit.push("database");
 
   return (
     <Stack gap={0}>
@@ -253,6 +237,16 @@ export default function InterpretationEditorProps({
     </Stack>
   );
 }
+
+export default memo(
+  InterpretationEditor,
+  (prev, next) =>
+    prev.name === next.name &&
+    prev.id === next.id &&
+    prev.type === next.type &&
+    prev.textViewType === next.textViewType &&
+    prev.arity === next.arity,
+);
 
 interface ControlButtonsProps<T> {
   id: string;

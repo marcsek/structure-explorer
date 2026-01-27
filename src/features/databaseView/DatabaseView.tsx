@@ -112,9 +112,7 @@ export default function DatabaseView({
   const correctedArity = tupleType === "function" ? tupleArity + 1 : tupleArity;
 
   if (domain.length === 0 && values.length === 0) {
-    return (
-      <EmptyPlaceholder message={"Nothing to display (domain is empty)"} />
-    );
+    return <EmptyPlaceholder message="Nothing to display (domain is empty)" />;
   }
 
   return (

@@ -1,5 +1,5 @@
 import {
-  selectEvaluatedFormula,
+  selectEvaluatedFormulas,
   selectFormulas,
   updateText,
 } from "../../features/formulas/formulasSlice";
@@ -12,9 +12,7 @@ import { UndoActions } from "../undoHistory/undoHistory";
 export default function PrettifyButton() {
   const allFormulas = useAppSelector(selectFormulas);
   const dispatch = useAppDispatch();
-  const evaluatedFormulas = useAppSelector((state) =>
-    allFormulas.map((_, id) => selectEvaluatedFormula(state, id)),
-  );
+  const evaluatedFormulas = useAppSelector(selectEvaluatedFormulas);
 
   const prettifyAll = () => {
     let someNeededUpdate = false;

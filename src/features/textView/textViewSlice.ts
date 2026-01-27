@@ -34,29 +34,15 @@ export const textViewSlice = createSlice({
         key: string;
         type: TextViewType;
         value: string;
-      }>,
-    ) {
-      const { key: inKey, value, type } = action.payload;
-
-      const key = getKeyByType(type, inKey);
-
-      if (state[key]) state[key] = { ...state[key], value, type };
-      else state[key] = { value, type };
-    },
-
-    textViewParseErrorChanged(
-      state,
-      action: PayloadAction<{
-        key: string;
-        type: TextViewType;
         parseError: SyntaxError | undefined;
       }>,
     ) {
-      const { key: inKey, type, parseError } = action.payload;
+      const { key: inKey, value, type, parseError } = action.payload;
 
       const key = getKeyByType(type, inKey);
 
-      if (state[key]) state[key] = { ...state[key], type, parseError };
+      if (state[key]) state[key] = { ...state[key], value, type, parseError };
+      else state[key] = { value, type, parseError };
     },
 
     syncTextView(_, action: PayloadAction<TextViewSyncEntry[]>) {
@@ -105,18 +91,24 @@ export const updateTextView = ({
 }): AppThunk => {
   return (dispatch, getState) => {
     const key = keyIn ?? type;
-
-    dispatch(textViewChanged({ key, type, value }));
+    console.time(`Duration of ${key} text view update`);
 
     const { parsed, error } = parseByTextType(type, value, getState());
 
     if (error) {
-      dispatch(textViewParseErrorChanged({ key, type, parseError: error }));
+      dispatch(textViewChanged({ key, type, value, parseError: error }));
+      console.timeEnd(`Duration of ${key} text view update`);
       return;
     }
+    console.timeEnd(`Duration of ${key} text view update`);
 
-    dispatch(textViewParseErrorChanged({ key, type, parseError: undefined }));
+    console.time(`Duration of ${key} text dispatch update`);
+    dispatch(textViewChanged({ key, type, value, parseError: undefined }));
+    console.timeEnd(`Duration of ${key} text dispatch update`);
+
+    console.time(`Duration of ${key} text parent state update`);
     dispatch(updateActionByTextType(type, key, parsed));
+    console.timeEnd(`Duration of ${key} text parent state update`);
   };
 };
 
@@ -137,8 +129,7 @@ export const selectValidatedTextView = createSelector(
   },
 );
 
-export const { textViewChanged, textViewParseErrorChanged, syncTextView } =
-  textViewSlice.actions;
+export const { textViewChanged, syncTextView } = textViewSlice.actions;
 
 export default textViewSlice.reducer;
 

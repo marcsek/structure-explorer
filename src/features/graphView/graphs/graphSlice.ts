@@ -35,8 +35,6 @@ import {
   type LanguageState,
 } from "../../language/languageSlice.ts";
 import {
-  lockFunctionSymbols,
-  lockInterpretationPredicates,
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
@@ -189,6 +187,7 @@ export const graphManagerSlice = createSlice({
       }>,
     ) {
       const { domain, preds, funcs, tupleIntr } = action.payload;
+      console.time(`Graph of plugins initialization duration`);
 
       const tuples = [
         ...preds.map((pred) => [...pred, "predicate"] as const),
@@ -217,6 +216,7 @@ export const graphManagerSlice = createSlice({
 
       const tupleNames = [...preds, ...funcs].map((tuple) => tuple[0]);
       for (const key in state) if (!tupleNames.includes(key)) delete state[key];
+      console.timeEnd(`Graph of plugins initialization duration`);
     },
 
     editorLocked(
@@ -251,6 +251,7 @@ export const graphManagerSlice = createSlice({
 
   extraReducers(builder) {
     builder.addCase(updateDomain, (state, action) => {
+      console.time("Graph domain update duration");
       for (const [, graphs] of Object.entries(state)) {
         for (const graphType of graphTypes) {
           const graphState = graphs.state[graphType];
@@ -267,26 +268,8 @@ export const graphManagerSlice = createSlice({
           (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
         }
       }
+      console.timeEnd("Graph domain update duration");
     });
-
-    builder.addMatcher(
-      isAnyOf(lockInterpretationPredicates, lockFunctionSymbols),
-      (state, action) => {
-        const graphState = state[action.payload.key];
-
-        if (!graphState) return;
-
-        for (const graphType of graphTypes) {
-          graphState.state[graphType].edges = graphState.state[
-            graphType
-          ].edges.map((e) => ({
-            ...e,
-            selectable: !e.selectable,
-            selected: false,
-          }));
-        }
-      },
-    );
 
     builder.addMatcher(
       isAnyOf(updateInterpretationPredicates, updateFunctionSymbols),
@@ -295,6 +278,7 @@ export const graphManagerSlice = createSlice({
 
         if (!(key in state)) return;
 
+        console.time("Graph interpretation update duration");
         const graphs = state[key];
         for (const graphType of graphTypes) {
           const graphState = graphs.state[graphType];
@@ -308,6 +292,8 @@ export const graphManagerSlice = createSlice({
               graphs.tupleType,
             );
         }
+
+        console.timeEnd("Graph interpretation update duration");
       },
     );
   },

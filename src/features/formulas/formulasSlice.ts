@@ -32,6 +32,8 @@ import { selectValuation } from "../variables/variablesSlice";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import type { ReactNode } from "react";
 import type { SerializedFormulasState } from "./validationSchema";
+import type Language from "../../model/Language";
+import type Structure from "../../model/Structure";
 
 export interface FormulaState {
   name?: string;
@@ -236,66 +238,82 @@ export const selectFormulaLock = (state: RootState, id: number) =>
 export const selectFormulaGuessLock = (state: RootState, id: number) =>
   selectFormula(state, id).lockedGuess;
 
-export const selectEvaluatedFormula = createSelector(
-  [selectLanguage, selectStructure, selectFormula, selectValuation],
-  (language, structure, form, valuation) => {
-    const factories = {
-      variable: (symbol: string, _ee: ErrorExpected) => new Variable(symbol),
-      constant: (symbol: string, _ee: ErrorExpected) => new Constant(symbol),
-      functionApplication: (
-        symbol: string,
-        args: Array<Term>,
-        ee: ErrorExpected,
-      ) => {
-        language.checkFunctionArity(symbol, args, ee);
-        return new FunctionTerm(symbol, args);
-      },
-      predicateAtom: (symbol: string, args: Array<Term>, ee: ErrorExpected) => {
-        language.checkPredicateArity(symbol, args, ee);
-        return new PredicateAtom(symbol, args);
-      },
-      equalityAtom: (lhs: Term, rhs: Term, _ee: ErrorExpected) =>
-        new EqualityAtom(lhs, rhs),
-      negation: (subf: Formula, _ee: ErrorExpected) => new Negation(subf),
-      conjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-        new Conjunction(lhs, rhs),
-      disjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-        new Disjunction(lhs, rhs),
-      implication: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-        new Implication(lhs, rhs),
-      equivalence: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-        new Equivalence(lhs, rhs),
-      existentialQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
-        new ExistentialQuant(variable, subf),
-      universalQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
-        new UniversalQuant(variable, subf),
-    };
+const evaluateFormula = (
+  language: Language,
+  structure: Structure,
+  form: FormulaState,
+  valuation: Map<string, string>,
+) => {
+  console.time("selectEvaluatedFormula duration");
+  const factories = {
+    variable: (symbol: string, _ee: ErrorExpected) => new Variable(symbol),
+    constant: (symbol: string, _ee: ErrorExpected) => new Constant(symbol),
+    functionApplication: (
+      symbol: string,
+      args: Array<Term>,
+      ee: ErrorExpected,
+    ) => {
+      language.checkFunctionArity(symbol, args, ee);
+      return new FunctionTerm(symbol, args);
+    },
+    predicateAtom: (symbol: string, args: Array<Term>, ee: ErrorExpected) => {
+      language.checkPredicateArity(symbol, args, ee);
+      return new PredicateAtom(symbol, args);
+    },
+    equalityAtom: (lhs: Term, rhs: Term, _ee: ErrorExpected) =>
+      new EqualityAtom(lhs, rhs),
+    negation: (subf: Formula, _ee: ErrorExpected) => new Negation(subf),
+    conjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
+      new Conjunction(lhs, rhs),
+    disjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
+      new Disjunction(lhs, rhs),
+    implication: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
+      new Implication(lhs, rhs),
+    equivalence: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
+      new Equivalence(lhs, rhs),
+    existentialQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
+      new ExistentialQuant(variable, subf),
+    universalQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
+      new UniversalQuant(variable, subf),
+  };
 
-    //console.log(language);
-    //console.log(structure);
+  try {
+    const formula = parseFormulaWithPrecedence(
+      form.text,
+      language.getParserLanguage(),
+      factories,
+    );
 
-    try {
-      const formula = parseFormulaWithPrecedence(
-        form.text,
-        language.getParserLanguage(),
-        factories,
-      );
-      //error = formula.toString();
-
-      const value = formula.eval(structure, valuation);
-      return { evaluated: value, formula: formula };
-    } catch (error) {
-      if (error instanceof Error) {
-        return { error: error };
-      }
-
-      if (error instanceof SyntaxError) {
-        return { error: error };
-      }
+    const value = formula.eval(structure, valuation);
+    console.timeEnd("selectEvaluatedFormula duration");
+    return { evaluated: value, formula: formula };
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: error };
     }
 
-    return {};
-  },
+    if (error instanceof SyntaxError) {
+      console.timeEnd("selectEvaluatedFormula duration");
+      return { error: error };
+    }
+  }
+
+  console.timeEnd("selectEvaluatedFormula duration");
+  return {};
+};
+
+export const selectEvaluatedFormula = createSelector(
+  [selectLanguage, selectStructure, selectFormula, selectValuation],
+  (language, structure, form, valuation) =>
+    evaluateFormula(language, structure, form, valuation),
+);
+
+export const selectEvaluatedFormulas = createSelector(
+  [selectLanguage, selectStructure, selectFormulas, selectValuation],
+  (language, structure, allFormulas, valuation) =>
+    allFormulas.map((form) =>
+      evaluateFormula(language, structure, form, valuation),
+    ),
 );
 
 export const selectCurrentGameFormula = createSelector(
@@ -338,6 +356,7 @@ export const selectCurrentAssignment = createSelector(
   (choices, { formula }, e, userGuess, { parsed: domain }) => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
 
+    console.time("selectCurrentAssignment duration");
     let current = new Map(e);
 
     if (domain === undefined) {
@@ -367,6 +386,7 @@ export const selectCurrentAssignment = createSelector(
         }
       }
     }
+    console.timeEnd("selectCurrentAssignment duration");
     return current;
   },
 );
@@ -379,7 +399,10 @@ export const selectGameButtons = createSelector(
     selectCurrentAssignment,
   ],
   ({ sign, formula }, { parsed: domain }, structure, e) => {
+    console.time("selectGameButtons duration");
+
     if (formula.getSignedSubFormulas(sign).length === 0) {
+      console.timeEnd("selectGameButtons duration");
       return;
     }
 
@@ -387,6 +410,7 @@ export const selectGameButtons = createSelector(
       formula.getSignedType(sign) === SignedFormulaType.DELTA &&
       formula instanceof QuantifiedFormula
     ) {
+      console.timeEnd("selectGameButtons duration");
       return {
         values: domain ?? [],
         elements: domain ?? [],
@@ -396,6 +420,7 @@ export const selectGameButtons = createSelector(
     }
 
     if (formula.getSignedType(sign) === SignedFormulaType.BETA) {
+      console.timeEnd("selectGameButtons duration");
       return {
         values: formula
           .getSignedSubFormulas(sign)
@@ -415,6 +440,7 @@ export const selectGameButtons = createSelector(
         winners = formula.getSignedSubFormulas(sign);
       }
 
+      console.timeEnd("selectGameButtons duration");
       return {
         values: ["Continue"],
         subformulas: winners,
@@ -434,6 +460,7 @@ export const selectGameButtons = createSelector(
         winners = domain ?? ["domain error"];
       }
 
+      console.timeEnd("selectGameButtons duration");
       return {
         values: ["Continue"],
         elements: winners,
@@ -469,6 +496,8 @@ export const selectHistoryData = createSelector(
     }[] = [];
 
     if (!formula) return [];
+
+    console.time("selectHistoryData duration");
 
     let currentValuation = new Map(valuation);
     let currentFormula: SignedFormula = {
@@ -536,6 +565,7 @@ export const selectHistoryData = createSelector(
       } catch (error) {}
     }
 
+    console.timeEnd("selectHistoryData duration");
     return history;
   },
 );
@@ -548,13 +578,17 @@ export const selectIsVerifiedGame = createSelector(
     const last = data.at(-1);
 
     if (last === undefined) return false;
+
+    console.time("selectIsVerifiedGame duration");
     try {
+      console.timeEnd("selectIsVerifiedGame duration");
       return (
         (last.sf.formula instanceof PredicateAtom ||
           last.sf.formula instanceof EqualityAtom) &&
         last.sf.formula.eval(structure, last.valuation) === last.sf.sign
       );
     } catch (error) {
+      console.timeEnd("selectIsVerifiedGame duration");
       return false;
     }
   },
@@ -570,6 +604,7 @@ export const selectGameResetIndex = createSelector(
   (data, structure, choices, domain) => {
     if (data.length === 0) return 0;
 
+    console.time("selectGameResetIndex duration");
     let index = 0;
 
     for (const { sf, valuation } of data) {
@@ -587,6 +622,7 @@ export const selectGameResetIndex = createSelector(
         domain.parsed &&
         domain.parsed.includes(choices[index - 1].element!) === false
       ) {
+        console.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
 
@@ -642,6 +678,7 @@ export const selectGameResetIndex = createSelector(
         prev.sf.formula.eval(structure, prev.valuation) !== prev.sf.sign &&
         prev.type === "alpha"
       ) {
+        console.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
 
@@ -651,11 +688,13 @@ export const selectGameResetIndex = createSelector(
         valuation.get(prevVariableName) !== prevWinningElementValue &&
         prev.type === "gamma"
       ) {
+        console.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
       index++;
     }
 
+    console.timeEnd("selectGameResetIndex duration");
     return index;
   },
 );

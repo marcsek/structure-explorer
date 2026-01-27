@@ -8,7 +8,7 @@ import usePreset from "./usePreset";
 import Header from "./components_helper/Header";
 
 interface AppProps {
-  viewMode: boolean;
+  viewMode?: boolean;
 }
 
 function App({ viewMode }: AppProps) {
