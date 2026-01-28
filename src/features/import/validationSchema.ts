@@ -5,6 +5,7 @@ import { serializedLanguageStateSchema } from "../language/validationSchema";
 import { serializedStructureStateSchema } from "../structure/validationSchema";
 import { serializedTeacherModeStateSchema } from "../teacherMode/validationSchema";
 import { serializedVariablesStateSchema } from "../variables/validationSchema";
+import { serializedEditorToolbarStateSchema } from "../editorToolbar/validationSchema";
 
 export const MINIMAL_SUPPORTED_VERSION = 1;
 export const MAXIMAL_SUPPORTED_VERSION = 1;
@@ -26,6 +27,7 @@ export const serializedAppStateSchema = z.object({
   teacherMode: serializedTeacherModeStateSchema,
   graphView: serializedGraphViewStateSchema,
   formulas: serializedFormulasStateSchema,
+  editorToolbar: serializedEditorToolbarStateSchema,
 });
 
 export type SerializedAppState = z.infer<typeof serializedAppStateSchema>;

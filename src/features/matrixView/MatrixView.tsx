@@ -187,7 +187,7 @@ function PredicateIndicatorTableHead({
   predicateName,
   domainId,
 }: PredicateIndicatorTableHeadProps) {
-  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
+  const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewed] = useAppSelector((state) =>
     selectPredicatesToDisplay(state, predicateName, domainId),

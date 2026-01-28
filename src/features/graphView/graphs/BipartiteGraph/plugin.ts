@@ -35,6 +35,7 @@ const createNode = (
       leftover,
     },
     connectable: origin === "domain" ? undefined : false,
+    deletable: false,
   };
 };
 

@@ -140,7 +140,7 @@ interface UnaryPredicatesIndicatorProps {
 
 function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
   const parentInfo = useGraphInfo();
-  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort();
+  const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewedPreds] = useAppSelector((state) =>
     selectPredicatesToDisplay(state, parentInfo.id, domainId),

@@ -104,7 +104,7 @@ export default function StructureComponent() {
                   type="predicate"
                   name={name}
                   id={`predicate-${name}-${arity}`}
-                  key={`predicate-${name}-${arity}`}
+                  key={`predicate-${name}`}
                   textViewType="predicate_interpretation"
                   lockSelector={selectIpLock}
                   arity={arity}
@@ -136,7 +136,7 @@ export default function StructureComponent() {
                   name={name}
                   type="function"
                   id={`function-${name}-${arity}`}
-                  key={`function-${name}-${arity}`}
+                  key={`function-${name}`}
                   textViewType="function_interpretation"
                   lockSelector={selectIfLock}
                   arity={arity}

@@ -27,6 +27,10 @@ import {
   SERIALIZED_STATE_VERSION,
   type SerializedAppState,
 } from "./validationSchema";
+import {
+  getRelevantEditorToolbarState,
+  importEditorToolbarState,
+} from "../editorToolbar/editorToolbarSlice";
 
 export interface ImportedAppState
   extends Omit<
@@ -60,6 +64,7 @@ export const importAppState =
     dispatch(importFormulasState(importedState.formulas));
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
+    dispatch(importEditorToolbarState(importedState.editorToolbar));
 
     const { language, structure, variables } = getState().present;
 
@@ -136,5 +141,9 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
       relevantSymbols,
     ),
     graphView: getGraphViewStateToExport(state, relevantSymbols),
+    editorToolbar: getRelevantEditorToolbarState(
+      state.present.editorToolbar,
+      relevantSymbols,
+    ),
   };
 };

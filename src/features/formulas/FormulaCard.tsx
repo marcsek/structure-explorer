@@ -127,14 +127,7 @@ function ContextFormulasDropdown({
       {formulasByType.map(([formulaType, formulaWithType]) => (
         <React.Fragment key={formulaType}>
           <Dropdown.Divider />
-          <Dropdown.ItemText
-            className="text-secondary b-0"
-            style={{
-              minWidth: "fitContent",
-              fontSize: "14px",
-              paddingBlock: "0px",
-            }}
-          >
+          <Dropdown.ItemText className="drop-down-title-text">
             {formulaTypeDisplayNames[formulaType]}
           </Dropdown.ItemText>
 

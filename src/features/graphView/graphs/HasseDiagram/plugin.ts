@@ -27,6 +27,7 @@ const createNode = (
     type: "predicate",
     position: position ?? { x: 0, y: 0 },
     data: { label: id, leftover },
+    deletable: false,
   };
 };
 

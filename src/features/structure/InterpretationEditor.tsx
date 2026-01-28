@@ -1,8 +1,14 @@
-import React, { memo, useState, type ChangeEvent } from "react";
-import { useAppSelector } from "../../app/hooks";
+import React, { memo, useCallback, useEffect, type ChangeEvent } from "react";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
-import { ButtonGroup, Stack, ToggleButton, Dropdown } from "react-bootstrap";
+import {
+  ButtonGroup,
+  Stack,
+  ToggleButton,
+  Dropdown,
+  DropdownButton,
+} from "react-bootstrap";
 
 import {
   faDiagramProject,
@@ -22,6 +28,10 @@ import {
   type InterpretationType,
 } from "./structureSlice";
 import { useInstanceId } from "../../instanceIdContext";
+import {
+  editorOpened,
+  selectOpenedEditor,
+} from "../editorToolbar/editorToolbarSlice";
 
 export type EditorType = "text" | "matrix" | "database" | GraphType;
 
@@ -87,7 +97,11 @@ function InterpretationEditor({
   lockSelector,
   arity = 0,
 }: InterpretationEditorProps) {
-  const [selectedEditor, setSelectedEditor] = useState<EditorType>("text");
+  const dispatch = useAppDispatch();
+  const openedEditor = useAppSelector((state) =>
+    selectOpenedEditor(state, name),
+  );
+  //const [selectedEditor, setSelectedEditor] = useState<EditorType>("text");
   const textView = useAppSelector((state) =>
     selectValidatedTextView(state, textViewType, name),
   );
@@ -108,12 +122,26 @@ function InterpretationEditor({
   const correctedArity = isFunction ? arity + 1 : arity;
   const isTuple = correctedArity === 2;
 
+  const handleEditorSelect = useCallback(
+    (editor: EditorType) => {
+      dispatch(editorOpened({ id: name, editor }));
+    },
+    [dispatch, name],
+  );
+
+  useEffect(() => {
+    if (wrongArityError) handleEditorSelect("text");
+  }, [handleEditorSelect, wrongArityError]);
+
   const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
-    { text: <FontAwesomeIcon icon={faPen} />, value: "text" },
+    {
+      text: "Text Editor",
+      value: "text",
+    },
   ];
 
   controlButtons.push({
-    text: <FontAwesomeIcon icon={faTableCellsLarge} />,
+    text: <>Tables</>,
     value: ["matrix", "database"],
     dropDown: [
       {
@@ -129,7 +157,7 @@ function InterpretationEditor({
 
   if (isFunction) {
     controlButtons.push({
-      text: <FontAwesomeIcon icon={faDiagramProject} />,
+      text: <>Graphs</>,
       value: ["oriented", "bipartite"],
       dropDown: [
         {
@@ -144,7 +172,7 @@ function InterpretationEditor({
     });
   } else {
     controlButtons.push({
-      text: <FontAwesomeIcon icon={faDiagramProject} />,
+      text: <>Graphs</>,
       value: ["oriented", "hasse", "bipartite"],
       dropDown: [
         {
@@ -174,9 +202,9 @@ function InterpretationEditor({
       <Stack
         direction="horizontal"
         gap={3}
-        className={`align-items-start ${selectedEditor !== "text" ? "flex-wrap" : ""} `}
+        className={`align-items-start ${openedEditor !== "text" ? "flex-wrap" : ""} `}
       >
-        {selectedEditor === "text" && (
+        {openedEditor === "text" && (
           <InputGroupTitle
             label=""
             id={id}
@@ -184,15 +212,15 @@ function InterpretationEditor({
             suffix={isConstant ? "" : <InlineMath>{suffixRaw}</InlineMath>}
             controlButtons={
               type !== "constant" &&
-              selectedEditor === "text" && (
+              openedEditor === "text" && (
                 <ControlButtons
                   id={`controls-${id}`}
                   buttons={omitControlButtons(
                     controlButtons,
                     controlButtonsToOmit,
                   )}
-                  selected={selectedEditor}
-                  onSelected={setSelectedEditor}
+                  selected={openedEditor}
+                  onSelected={handleEditorSelect}
                   disabled={wrongArityError}
                 />
               )
@@ -207,14 +235,14 @@ function InterpretationEditor({
         )}
       </Stack>
 
-      {selectedEditor !== "text" && type !== "constant" && (
+      {openedEditor !== "text" && type !== "constant" && (
         <DrawerEditor
           tupleName={name}
           tupleArity={arity}
-          type={selectedEditor}
+          type={openedEditor}
           tupleType={type}
           tupleDisplayName={prefixRawNoEnd}
-          editorDisplayName={editorTypeFullNameLookup[selectedEditor]}
+          editorDisplayName={editorTypeFullNameLookup[openedEditor]}
           locker={locker}
           locked={locked}
           error={textView.error}
@@ -225,8 +253,8 @@ function InterpretationEditor({
                 ...controlButtonsToOmit,
                 ...(omit ?? []),
               ])}
-              selected={selectedEditor}
-              onSelected={setSelectedEditor}
+              selected={openedEditor}
+              onSelected={handleEditorSelect}
               teacherMode={teacherMode}
               locked={locked}
               locker={locker}
@@ -280,61 +308,56 @@ function ControlButtons<T extends string | number>({
   disabled = false,
 }: ControlButtonsProps<T>) {
   const buttonId = (value: string | number) => `${id}-${value}`;
-  const instanceId = useInstanceId();
 
   if (buttons.length === 0) return null;
 
   return (
     <ButtonGroup id={id} className="editor-controls-buttons-group">
-      {buttons.map((button) => {
-        if ("dropDown" in button) {
-          const childValues = button.dropDown.map((ch) => ch.value);
-          const isActive = childValues.includes(selected);
+      <Dropdown as={ButtonGroup}>
+        <Dropdown.Toggle
+          id={buttonId("dropDown")}
+          className="btn-bd-light-outline"
+          disabled={disabled}
+          title="Interpretation editors"
+        >
+          <FontAwesomeIcon icon={faPen} />
+        </Dropdown.Toggle>
+        <Dropdown.Menu>
+          {buttons.map((button, idx) => {
+            if ("dropDown" in button) {
+              return (
+                <React.Fragment key={String(button.value)}>
+                  {idx !== 0 && <Dropdown.Divider />}
+                  <Dropdown.ItemText className="drop-down-title-text">
+                    {button.text}
+                  </Dropdown.ItemText>
+                  {button.dropDown.map((item) => (
+                    <Dropdown.Item
+                      key={String(item.value)}
+                      active={item.value === selected}
+                      onClick={() => onSelected(item.value)}
+                      as="button"
+                    >
+                      {item.text}
+                    </Dropdown.Item>
+                  ))}
+                </React.Fragment>
+              );
+            }
 
-          return (
-            <Dropdown as={ButtonGroup} key={buttonId(button.value.join(","))}>
-              <Dropdown.Toggle
-                id={buttonId("dropDown")}
-                className="btn-bd-light-outline"
-                disabled={disabled}
-                role="toolbar"
-                active={isActive}
+            return (
+              <Dropdown.Item
+                key={String(button.value)}
+                active={button.value === selected}
+                onClick={() => onSelected(button.value)}
+                as="button"
               >
                 {button.text}
-              </Dropdown.Toggle>
-
-              <Dropdown.Menu>
-                {button.dropDown.map((item) => (
-                  <Dropdown.Item
-                    key={String(item.value)}
-                    active={item.value === selected}
-                    onClick={() => onSelected(item.value)}
-                  >
-                    {item.text}
-                  </Dropdown.Item>
-                ))}
-              </Dropdown.Menu>
-            </Dropdown>
-          );
-        }
-
-        return (
-          <ToggleButton
-            id={buttonId(button.value) + instanceId}
-            key={buttonId(button.value)}
-            className="btn-bd-light-outline"
-            value={button.value}
-            type="checkbox"
-            name={id}
-            title={`${button.value} editor`}
-            disabled={disabled}
-            checked={button.value === selected}
-            onChange={() => onSelected(button.value)}
-          >
-            {button.text}
-          </ToggleButton>
-        );
-      })}
+              </Dropdown.Item>
+            );
+          })}
+        </Dropdown.Menu>
+      </Dropdown>
 
       {locker && teacherMode && <LockButton locker={locker} locked={locked} />}
     </ButtonGroup>

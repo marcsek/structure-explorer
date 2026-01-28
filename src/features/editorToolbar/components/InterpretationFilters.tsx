@@ -77,9 +77,7 @@ interface UnaryPredicatesFilterProps {
 
 function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
   const dispatch = useAppDispatch();
-  const predicates = useAppSelector(selectUnaryPreds)
-    ?.sort()
-    .map(([name]) => name);
+  const predicates = useAppSelector(selectUnaryPreds)?.map(([name]) => name);
   const selectedPredicates = useAppSelector((state) =>
     selectSelectedUnary(state, id),
   );

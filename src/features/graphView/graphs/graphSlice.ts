@@ -30,10 +30,7 @@ import {
   type GraphType,
   type Plugin,
 } from "./plugins.ts";
-import {
-  selectValidatedPredicates,
-  type LanguageState,
-} from "../../language/languageSlice.ts";
+import { type LanguageState } from "../../language/languageSlice.ts";
 import {
   updateDomain,
   updateFunctionSymbols,
@@ -108,12 +105,9 @@ export const graphManagerSlice = createSlice({
       >,
     ) {
       const { id, type, changes } = action.payload;
-      const changesWithoutRemove = changes.filter(
-        ({ type }) => type !== "remove",
-      );
 
       state[id].state[type].nodes = applyNodeChanges(
-        changesWithoutRemove,
+        changes,
         state[id].state[type].nodes,
       );
     },
@@ -310,13 +304,8 @@ export const selectRelevantConstants = createSelector(
 );
 
 export const selectUnaryPreds = createSelector(
-  [selectValidatedPredicates],
-  (preds) => {
-    if (preds.error) return [];
-    return [...(preds.parsed.entries() ?? [])].filter(
-      ([, arity]) => arity === 1,
-    );
-  },
+  [(state: RootState) => state.present.language.predicates.value],
+  (preds) => preds.filter(([, arity]) => arity === 1),
 );
 
 export const selectRelevantUnaryPreds = createSelector(

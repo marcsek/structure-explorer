@@ -35,7 +35,6 @@ import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
-import { UndoActions } from "../../../undoHistory/undoHistory.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -214,7 +213,6 @@ export default function OrientedGraph({
           edgesFocusable={false}
           edgesReconnectable={false}
           connectOnClick={false}
-          onNodeDragStop={() => dispatch(UndoActions.checkpoint())}
           panOnDrag={nodes.length !== 0}
           zoomOnScroll={nodes.length !== 0}
         >

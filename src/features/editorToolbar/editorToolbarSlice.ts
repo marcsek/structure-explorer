@@ -1,21 +1,24 @@
 import {
   createSelector,
   createSlice,
-  isAnyOf,
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import { selectRelevantUnaryPreds } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
-import { updateFunctions, updatePredicates } from "../language/languageSlice";
+import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../common/redux";
 import { updateDomain } from "../structure/structureSlice";
+import type { EditorType } from "../structure/InterpretationEditor";
+import type { RelevantSymbols } from "../import/importThunk";
+import type { SerializedEditorToolbarState } from "./validationSchema";
 
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
   selectedUnary: string[];
-  selectedDomain: string[] | undefined;
+  selectedDomain?: string[] | undefined;
   unaryFilterDomain: boolean;
   unaryFilterHovered: boolean;
+  openedEditor: EditorType;
 };
 
 export type EditorToolbarState = Record<string, EditorToolbarEntry>;
@@ -28,6 +31,13 @@ export const editorToolbarSlice = createSlice({
   name: "editorToolbar",
   initialState,
   reducers: {
+    importEditorToolbarState(
+      _,
+      action: PayloadAction<SerializedEditorToolbarState>,
+    ) {
+      return action.payload;
+    },
+
     unaryPredicateToggled(
       state,
       action: PayloadAction<WithEditorId<{ predicate: string | string[] }>>,
@@ -54,12 +64,18 @@ export const editorToolbarSlice = createSlice({
 
       const selectedNodes = state[id].selectedDomain ?? domain;
 
-      if (toggledNode === "") state[id].selectedDomain = domain;
+      if (toggledNode === "") state[id].selectedDomain = undefined;
       else if (selectedNodes.includes(toggledNode))
         state[id].selectedDomain = selectedNodes.filter(
           (selectedNode) => selectedNode != toggledNode,
         );
-      else state[id].selectedDomain = [...selectedNodes, toggledNode];
+      else {
+        const newSelectedDomain = [...selectedNodes, toggledNode];
+        state[id].selectedDomain =
+          newSelectedDomain.length === domain.length
+            ? undefined
+            : newSelectedDomain;
+      }
     },
 
     predicateHovered(
@@ -91,38 +107,49 @@ export const editorToolbarSlice = createSlice({
 
       state[id].unaryFilterDomain = !state[id].unaryFilterDomain;
     },
+
+    editorOpened(
+      state,
+      action: PayloadAction<WithEditorId<{ editor: EditorType }>>,
+    ) {
+      const { id, editor } = action.payload;
+
+      state[id] = initializeStateIfNotSet(state[id]);
+
+      state[id].openedEditor = editor;
+    },
   },
 
   extraReducers(builder) {
-    builder.addCase(updateDomain, (state, action) => {
+    builder.addCase(updateDomain, (state) => {
       for (const entry of Object.values(state)) {
-        entry.selectedDomain = action.payload;
+        entry.selectedDomain = undefined;
       }
     });
 
-    builder.addMatcher(
-      isAnyOf(updatePredicates, updateFunctions),
-      (state, action) => {
-        const unaryPredicates = action.payload
-          .filter(({ arity }) => arity === 1)
-          .map(({ name }) => name);
+    builder.addCase(updatePredicates, (state, action) => {
+      const unaryPredicates = action.payload
+        .filter(({ arity }) => arity === 1)
+        .map(({ name }) => name);
 
-        for (const [predName, value] of Object.entries(state)) {
-          const newSelectedUnary = value.selectedUnary.filter((selectedPred) =>
-            unaryPredicates.includes(selectedPred),
-          );
+      for (const [predName, value] of Object.entries(state)) {
+        const newSelectedUnary = value.selectedUnary.filter((selectedPred) =>
+          unaryPredicates.includes(selectedPred),
+        );
 
-          const newHoveredUnary = value.hoveredUnary.filter((hoveredPred) =>
-            unaryPredicates.includes(hoveredPred),
-          );
+        const newHoveredUnary = value.hoveredUnary.filter((hoveredPred) =>
+          unaryPredicates.includes(hoveredPred),
+        );
 
-          state[predName].selectedUnary = newSelectedUnary;
-          state[predName].hoveredUnary = newHoveredUnary;
-        }
-      },
-    );
+        state[predName].selectedUnary = newSelectedUnary;
+        state[predName].hoveredUnary = newHoveredUnary;
+      }
+    });
   },
 });
+
+export const selectOpenedEditor = (state: RootState, id: string) =>
+  state.present.editorToolbar[id]?.openedEditor ?? "text";
 
 export const selectSelectedUnary = (state: RootState, id: string) =>
   fallbackToEmptyArray(state.present.editorToolbar[id]?.selectedUnary);
@@ -158,9 +185,8 @@ export const selectPredicatesToDisplay = createSelector(
     const vissiblePreds = [...hoveredUnary, ...selectedUnary];
 
     const toDisplay =
-      relevantUnary
-        .filter((relevant) => vissiblePreds.includes(relevant))
-        ?.sort() ?? [];
+      relevantUnary.filter((relevant) => vissiblePreds.includes(relevant)) ??
+      [];
 
     const previewed = relevantUnary.filter(
       (predicate) =>
@@ -241,14 +267,36 @@ export const selectHoveredIntr = createSelector(
   },
 );
 
+export const getRelevantEditorToolbarState = (
+  editorToolbar: EditorToolbarState,
+  relevantSymbols: RelevantSymbols,
+): EditorToolbarState => {
+  const stateToExport: EditorToolbarState = {};
+
+  for (const [name, entry] of Object.entries(editorToolbar)) {
+    if (!relevantSymbols[name] || relevantSymbols[name].type === "constant")
+      continue;
+
+    stateToExport[name] = {
+      ...entry,
+      hoveredUnary: [],
+      unaryFilterHovered: false,
+    };
+  }
+
+  return stateToExport;
+};
+
 export default editorToolbarSlice.reducer;
 
 export const {
+  importEditorToolbarState,
   nodeToggled,
   predicateHovered,
   unaryFilterDomainHovered,
   unaryFilterDomainToggled,
   unaryPredicateToggled,
+  editorOpened,
 } = editorToolbarSlice.actions;
 
 const initializeStateIfNotSet = (
@@ -263,5 +311,6 @@ const initializeStateIfNotSet = (
     selectedDomain: selectedNodes,
     unaryFilterDomain: true,
     unaryFilterHovered: false,
+    openedEditor: "text",
   };
 };
