@@ -2,10 +2,12 @@ import "./ComponentCard.css";
 
 import { Card, Stack } from "react-bootstrap";
 import TooltipButton from "../TooltipButton";
+import type React from "react";
 
 interface ComponentCardProps {
   heading: React.ReactNode;
   help?: React.ReactNode;
+  right?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
 }
@@ -13,6 +15,7 @@ interface ComponentCardProps {
 export default function ComponentCard({
   heading,
   help,
+  right,
   children,
   className,
 }: ComponentCardProps) {
@@ -23,8 +26,11 @@ export default function ComponentCard({
         as={Stack}
         direction="horizontal"
       >
-        <h5 className="m-0">{heading}</h5>
-        {help && <TooltipButton text={help}></TooltipButton>}
+        <Stack className="flex-grow-0" direction="horizontal" gap={3}>
+          <h5 className="m-0">{heading}</h5>
+          {help && <TooltipButton text={help}></TooltipButton>}
+        </Stack>
+        {right}
       </Card.Header>
       <Card.Body className="component-card-body">{children}</Card.Body>
     </Card>

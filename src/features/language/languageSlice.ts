@@ -18,12 +18,14 @@ export interface LanguageState {
   constants: LockableValue<ConstantsRepresentation>;
   predicates: LockableValue<AritySymbolsRepresentation>;
   functions: LockableValue<AritySymbolsRepresentation>;
+  editMode: boolean;
 }
 
 const initialState: LanguageState = {
   constants: { value: [], locked: false },
   predicates: { value: [], locked: false },
   functions: { value: [], locked: false },
+  editMode: true,
 };
 
 export type PayloadActionSource<P = void> = PayloadAction<
@@ -80,6 +82,10 @@ export const languageSlice = createSlice({
 
     lockFunctions(state) {
       state.functions.locked = !state.functions.locked;
+    },
+
+    editModeChanged(state, action: PayloadAction<boolean>) {
+      state.editMode = action.payload;
     },
   },
 });
@@ -205,6 +211,7 @@ export const {
   lockConstants,
   lockFunctions,
   lockPredicates,
+  editModeChanged,
 } = languageSlice.actions;
 
 export default languageSlice.reducer;

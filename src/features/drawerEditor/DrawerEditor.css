@@ -27,7 +27,7 @@
 
 .drawer-editor-container-body {
   height: 100%;
-  z-index: 10;
+  /* z-index: 10; */
 }
 
 .structure-explorer.modal.fade .drawer-editor-modal-dialog {

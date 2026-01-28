@@ -10,6 +10,7 @@ export const serializedLanguageStateSchema = z.object({
   constants: lockable(constantsRepresentationSchema),
   predicates: lockable(aritySymbolsRepresentationSchema),
   functions: lockable(aritySymbolsRepresentationSchema),
+  editMode: z.boolean().default(true),
 });
 
 export type SerializedLanguageState = z.infer<

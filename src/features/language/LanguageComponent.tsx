@@ -1,4 +1,4 @@
-import { Stack } from "react-bootstrap";
+import { Button, Stack } from "react-bootstrap";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
@@ -10,6 +10,7 @@ import {
   lockPredicates,
   lockConstants,
   lockFunctions,
+  editModeChanged,
 } from "./languageSlice";
 import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 import {
@@ -17,6 +18,8 @@ import {
   updateTextView,
 } from "../textView/textViewSlice.ts";
 import { useSyncLanguageContext } from "../../logicContext.ts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -37,6 +40,7 @@ export default function LanguageComponent() {
 
   const symbolsClash = useAppSelector(selectSymbolsClash);
   const { hasContext } = useSyncLanguageContext();
+  const editMode = useAppSelector((state) => state.present.language.editMode);
 
   return (
     <ComponentCard
@@ -46,69 +50,120 @@ export default function LanguageComponent() {
         </>
       }
       help={help}
+      right={
+        <Button
+          size="sm"
+          className="btn-bd-light-outline"
+          onClick={() => dispatch(editModeChanged(!editMode))}
+        >
+          <FontAwesomeIcon
+            className="me-2"
+            icon={editMode ? faCheck : faPenToSquare}
+          />
+          {editMode ? "Done" : "Edit"}
+        </Button>
+      }
     >
-      <Stack gap={3}>
-        <InputGroupTitle
-          label={"Individual constants"}
-          id="constants"
-          prefix={<InlineMath>{String.raw`\mathcal{C_L} = \{`}</InlineMath>}
-          suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-          placeholder="Constants"
-          text={constantsTextView.value}
-          onChange={(e) => {
-            dispatch(
-              updateTextView({ type: "constants", value: e.target.value }),
-            );
-          }}
-          error={constantsTextView.error}
-          lockChecker={constantsLock}
-          locker={() => dispatch(lockConstants())}
-          disabledOverride={hasContext}
-        />
+      {editMode ? (
+        <Stack gap={3}>
+          <InputGroupTitle
+            label={"Individual constants"}
+            id="constants"
+            prefix={<InlineMath>{String.raw`\mathcal{C_L} = \{`}</InlineMath>}
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Constants"
+            text={constantsTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "constants", value: e.target.value }),
+              );
+            }}
+            error={constantsTextView.error}
+            lockChecker={constantsLock}
+            locker={() => dispatch(lockConstants())}
+            disabledOverride={hasContext}
+          />
 
-        <InputGroupTitle
-          label={"Predicate symbols"}
-          id="predicates"
-          prefix={
-            <InlineMath>{String.raw`\mathcal{P}_{\mathcal{L}} = \{`}</InlineMath>
-          }
-          suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-          placeholder="Predicates"
-          text={predicatesTextView.value}
-          onChange={(e) => {
-            dispatch(
-              updateTextView({ type: "predicates", value: e.target.value }),
-            );
-          }}
-          error={predicatesTextView.error}
-          lockChecker={predicatesLock}
-          locker={() => dispatch(lockPredicates())}
-          disabledOverride={hasContext}
-        />
+          <InputGroupTitle
+            label={"Predicate symbols"}
+            id="predicates"
+            prefix={
+              <InlineMath>{String.raw`\mathcal{P}_{\mathcal{L}} = \{`}</InlineMath>
+            }
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Predicates"
+            text={predicatesTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "predicates", value: e.target.value }),
+              );
+            }}
+            error={predicatesTextView.error}
+            lockChecker={predicatesLock}
+            locker={() => dispatch(lockPredicates())}
+            disabledOverride={hasContext}
+          />
 
-        <InputGroupTitle
-          label={"Function symbols"}
-          id="functions"
-          prefix={
-            <InlineMath>{String.raw`\mathcal{F}_{\mathcal{L}} = \{`}</InlineMath>
-          }
-          suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-          placeholder="Functions"
-          text={functionsTextView.value}
-          onChange={(e) => {
-            dispatch(
-              updateTextView({ type: "functions", value: e.target.value }),
-            );
-          }}
-          error={functionsTextView.error}
-          lockChecker={functionsLock}
-          locker={() => dispatch(lockFunctions())}
-          disabledOverride={hasContext}
-        />
+          <InputGroupTitle
+            label={"Function symbols"}
+            id="functions"
+            prefix={
+              <InlineMath>{String.raw`\mathcal{F}_{\mathcal{L}} = \{`}</InlineMath>
+            }
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Functions"
+            text={functionsTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "functions", value: e.target.value }),
+              );
+            }}
+            error={functionsTextView.error}
+            lockChecker={functionsLock}
+            locker={() => dispatch(lockFunctions())}
+            disabledOverride={hasContext}
+          />
 
-        {symbolsClash && <div className="text-danger">{symbolsClash}</div>}
-      </Stack>
+          {symbolsClash && <div className="text-danger">{symbolsClash}</div>}
+        </Stack>
+      ) : (
+        <ViewOnlyLanguageDisplay
+          constants={constantsTextView.value}
+          predicates={predicatesTextView.value}
+          functions={functionsTextView.value}
+        />
+      )}
     </ComponentCard>
+  );
+}
+
+interface ViewOnlyLanguageDisplayProps {
+  constants: string;
+  predicates: string;
+  functions: string;
+}
+
+function ViewOnlyLanguageDisplay(props: ViewOnlyLanguageDisplayProps) {
+  return (
+    <Stack gap={3} className="ms-2">
+      <div>
+        <InlineMath>{"\\mathcal{C_L} = \\{"}</InlineMath>
+        {props.constants && <span className="mx-1">{props.constants}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+
+      <div>
+        <InlineMath>{"\\mathcal{P_L} = \\{"}</InlineMath>
+        {props.predicates && <span className="mx-1">{props.predicates}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+
+      <div>
+        <InlineMath>{"\\mathcal{F_L} = \\{"}</InlineMath>
+        {props.functions && <span className="mx-1">{props.functions}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+    </Stack>
   );
 }
 

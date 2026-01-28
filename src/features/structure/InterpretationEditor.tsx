@@ -2,19 +2,9 @@ import React, { memo, useCallback, useEffect, type ChangeEvent } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
-import {
-  ButtonGroup,
-  Stack,
-  ToggleButton,
-  Dropdown,
-  DropdownButton,
-} from "react-bootstrap";
+import { ButtonGroup, Stack, Dropdown } from "react-bootstrap";
 
-import {
-  faDiagramProject,
-  faPen,
-  faTableCellsLarge,
-} from "@fortawesome/free-solid-svg-icons";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
@@ -27,7 +17,6 @@ import {
   selectHasWrongArityError,
   type InterpretationType,
 } from "./structureSlice";
-import { useInstanceId } from "../../instanceIdContext";
 import {
   editorOpened,
   selectOpenedEditor,
@@ -135,7 +124,7 @@ function InterpretationEditor({
 
   const controlButtons: ControlButtonsProps<EditorType>["buttons"] = [
     {
-      text: "Text Editor",
+      text: "Text (default)",
       value: "text",
     },
   ];

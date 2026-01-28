@@ -11,6 +11,8 @@
   height: 2rem;
   width: 100%;
   padding-block: 0;
+  justify-content: space-between;
+  align-items: center;
 
   background-color: unset;
 

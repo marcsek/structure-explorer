@@ -29,7 +29,7 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
       onToggle={() => setShow(!show)}
     >
       <Button
-        className="rounded-circle d-flex p-1 btn-bd-info-outline help-tooltip-button"
+        className="rounded-circle d-inline-block d-flex p-1 btn-bd-info-outline help-tooltip-button"
         variant="outline-dark"
         title="Help"
         onClick={(e) => {
