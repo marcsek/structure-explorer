@@ -34,9 +34,9 @@ export default function MatrixView({
   tupleType,
   locked,
 }: MatrixViewProps) {
-  const [hovered, setHovered] = useState({ row: "", col: "" });
-
   const dispatch = useAppDispatch();
+
+  const [hovered, setHovered] = useState({ row: "", col: "" });
 
   const { values, leftovers } = useAppSelector((state) =>
     selectMatrixValuesWithInvalid(state, tupleName, tupleType),
@@ -95,12 +95,20 @@ export default function MatrixView({
       dispatch(UndoActions.checkpoint());
   };
 
-  const domainWithLeftovers = [...selectedDomain, ...leftovers];
+  const unselectedDomain = domain.filter(
+    (d) => !selectedDomain.includes(d) && !leftovers.includes(d),
+  );
+  const domainWithLeftovers = [
+    ...selectedDomain,
+    ...leftovers,
+    ...unselectedDomain,
+  ];
 
   const getTableClass = (element: string, hovered: string) => {
-    if (leftovers.includes(element)) return "error";
-    if (hovered === element) return "hovered";
-    return "";
+    const unselected = unselectedDomain.includes(element) ? " unselected" : "";
+    if (leftovers.includes(element) && !unselected) return "error";
+    if (hovered === element) return "hovered" + unselected;
+    return unselected;
   };
 
   if (domainWithLeftovers.length === 0) {
@@ -151,6 +159,10 @@ export default function MatrixView({
                   hovered={hovered.col === col}
                   columnError={leftovers.includes(col)}
                   invalid={isInvalid(row, col)}
+                  unselected={
+                    unselectedDomain.includes(col) ||
+                    unselectedDomain.includes(row)
+                  }
                   onHovered={(hovered) =>
                     setHovered(hovered ? { row, col } : { row: "", col: "" })
                   }
@@ -167,6 +179,10 @@ export default function MatrixView({
                   }
                   onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
+                  unselected={
+                    unselectedDomain.includes(col) ||
+                    unselectedDomain.includes(row)
+                  }
                   onBlur={() => dispatch(UndoActions.checkpoint())}
                 />
               ),

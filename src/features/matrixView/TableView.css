@@ -11,6 +11,11 @@
   background-color: var(--bs-danger-bg-subtle);
 }
 
+.table-view tr.error td.unselected {
+  border-color: inherit;
+  background-color: initial;
+}
+
 .table-view tr.hovered td.error {
   background-color: var(--bs-danger-bg-subtle);
 }
@@ -33,6 +38,7 @@
 .table-view tbody td:first-child {
   font-weight: 500;
   user-select: none;
+  position: sticky;
 }
 
 .table-view tr.hovered td,
@@ -68,6 +74,13 @@
 .table-view tr th:last-child,
 .table-view tr td:last-child {
   border-right: none;
+}
+
+.table-view td.unselected,
+.table-view th.unselected,
+.table-view tr.unselected td {
+  color: var(--bs-tertiary-color);
+  opacity: 0.5;
 }
 
 .table-view td,

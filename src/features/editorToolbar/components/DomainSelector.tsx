@@ -121,11 +121,9 @@ function DomainSelectorItem({
   isSelected: boolean;
   onToggle: () => void;
 }) {
-  const allUnaryPreds = useAppSelector(selectUnaryPreds)?.sort() ?? [];
+  const allUnaryPreds = useAppSelector(selectUnaryPreds) ?? [];
   const relevantPreds =
-    useAppSelector((state) =>
-      selectRelevantUnaryPreds(state, element),
-    )?.sort() ?? [];
+    useAppSelector((state) => selectRelevantUnaryPreds(state, element)) ?? [];
 
   const colorMap = getUnaryPredicateToColorMap(relevantPreds, allUnaryPreds);
 

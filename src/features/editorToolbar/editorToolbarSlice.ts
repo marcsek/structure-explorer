@@ -70,7 +70,11 @@ export const editorToolbarSlice = createSlice({
           (selectedNode) => selectedNode != toggledNode,
         );
       else {
-        const newSelectedDomain = [...selectedNodes, toggledNode];
+        // Done this way to preserve order
+        const newSelectedDomain = domain.filter((element) =>
+          [...selectedNodes, toggledNode].includes(element),
+        );
+
         state[id].selectedDomain =
           newSelectedDomain.length === domain.length
             ? undefined
