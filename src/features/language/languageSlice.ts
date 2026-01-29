@@ -21,7 +21,7 @@ export interface LanguageState {
   editMode: boolean;
 }
 
-const initialState: LanguageState = {
+export const initialLanguageState: LanguageState = {
   constants: { value: [], locked: false },
   predicates: { value: [], locked: false },
   functions: { value: [], locked: false },
@@ -36,7 +36,7 @@ export type PayloadActionSource<P = void> = PayloadAction<
 
 export const languageSlice = createSlice({
   name: "language",
-  initialState,
+  initialState: initialLanguageState,
   reducers: {
     importLanguageState(
       _state,

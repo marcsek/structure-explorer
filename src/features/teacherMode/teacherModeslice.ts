@@ -7,13 +7,13 @@ export interface TeacherModeState {
   teacherMode: boolean | undefined;
 }
 
-const initialState: TeacherModeState = {
+export const initialTeacherModeState: TeacherModeState = {
   teacherMode: false,
 };
 
 export const teacherModeSlice = createSlice({
   name: "teacherMode",
-  initialState,
+  initialState: initialTeacherModeState,
   reducers: {
     importTeacherMode: (
       _state,

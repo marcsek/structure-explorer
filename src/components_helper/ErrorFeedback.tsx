@@ -3,7 +3,7 @@ import { Form } from "react-bootstrap";
 import type { InterpretationError } from "../common/errors";
 
 // TODO
-interface Props {
+interface ErrorFeedbackProps {
   error: SyntaxError | Error | InterpretationError | undefined;
   text: string;
 }
@@ -27,7 +27,7 @@ function LocationDisplay({ text, location }: LocationDisplayProps) {
   );
 }
 
-export default function ErrorFeedback({ error, text }: Props) {
+export default function ErrorFeedback({ error, text }: ErrorFeedbackProps) {
   if (!error) {
     return null;
   }

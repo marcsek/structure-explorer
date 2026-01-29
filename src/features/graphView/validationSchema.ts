@@ -12,3 +12,5 @@ export const serializedGraphViewStateSchema = z.record(
 export type SerializedGraphViewState = z.infer<
   typeof serializedGraphViewStateSchema
 >;
+
+export const serializedGraphViewStateDefault: SerializedGraphViewState = {};

@@ -14,11 +14,14 @@ import type { SerializedVariablesState } from "./validationSchema";
 export type VariableRepresentation = { from: string; to: string };
 export type VariablesState = LockableValue<VariableRepresentation[]>;
 
-const initialState: VariablesState = { value: [], locked: false };
+export const initialVariablesState: VariablesState = {
+  value: [],
+  locked: false,
+};
 
 export const variablesSlice = createSlice({
   name: "variables",
-  initialState,
+  initialState: initialVariablesState,
   reducers: {
     importVariablesState(
       _state,

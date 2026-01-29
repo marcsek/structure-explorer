@@ -6,6 +6,7 @@ import FormulaCard from "./features/formulas/FormulaCard";
 import "./App.css";
 import usePreset from "./usePreset";
 import Header from "./components_helper/Header";
+import ErrorAlert from "./features/errorAlert/ErrorAlert";
 
 interface AppProps {
   viewMode?: boolean;
@@ -15,7 +16,8 @@ function App({ viewMode }: AppProps) {
   usePreset();
 
   return (
-    <div className="structure-explorer">
+    <div className="structure-explorer position-relative">
+      <ErrorAlert />
       <Container
         fluid
         className={`mt-2 mb-2 px-3 ${viewMode ? "view-mode" : ""}`}

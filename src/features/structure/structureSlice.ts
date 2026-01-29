@@ -44,7 +44,7 @@ type InterpretationMap = {
   function: StructureState["iF"];
 };
 
-const initialState: StructureState = {
+export const initialStructureState: StructureState = {
   domain: { value: [], locked: false },
   iC: {},
   iP: {},
@@ -53,7 +53,7 @@ const initialState: StructureState = {
 
 export const structureSlice = createSlice({
   name: "structure",
-  initialState,
+  initialState: initialStructureState,
   reducers: {
     importStructureState(
       state,

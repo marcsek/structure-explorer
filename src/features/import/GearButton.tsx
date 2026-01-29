@@ -13,6 +13,7 @@ import {
 } from "../teacherMode/teacherModeslice";
 import { useLogicContext } from "../../logicContext";
 import { serializedAppStateSchema } from "./validationSchema";
+import { clearError, setError } from "../errorAlert/errorAlertSlice";
 
 export default function GearButton() {
   const dispatch = useAppDispatch();
@@ -32,11 +33,13 @@ export default function GearButton() {
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result?.toString() ?? "");
-        const result = serializedAppStateSchema.parse(json);
-        dispatch(importAppState(result, !!logicContext));
+        const serializedAppState = serializedAppStateSchema.parse(json);
+
+        dispatch(importAppState(serializedAppState, !!logicContext));
+        dispatch(clearError());
       } catch (err) {
-        alert("Invalid JSON file.");
         console.error(err);
+        dispatch(setError("localImportFailed"));
       }
     };
     reader.readAsText(file);

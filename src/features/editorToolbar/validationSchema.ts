@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { initialEditorToolbarState } from "./editorToolbarSlice";
 
 export const editorTypes = [
   "text",
@@ -26,3 +27,6 @@ export const serializedEditorToolbarStateSchema = z
 export type SerializedEditorToolbarState = z.infer<
   typeof serializedEditorToolbarStateSchema
 >;
+
+export const serializedEditorToolbarStateDefault: SerializedEditorToolbarState =
+  initialEditorToolbarState;

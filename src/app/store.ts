@@ -13,6 +13,7 @@ import graphViewReducer from "../features/graphView/graphs/graphSlice";
 import textViewReducer from "../features/textView/textViewSlice";
 import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
 import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
+import errorAlertReducer from "../features/errorAlert/errorAlertSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
 
@@ -26,6 +27,7 @@ const rootReducer = {
   textView: textViewReducer,
   databaseView: databaseViewReducer,
   editorToolbar: editorToolbarReducer,
+  errorAlert: errorAlertReducer,
 };
 
 const historyEqualityExcludedReducers: RootReducerEntryName[] = [

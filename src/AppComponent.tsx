@@ -9,8 +9,9 @@ import {
 } from "./features/import/importThunk";
 import { type CellContext, LogicContext } from "./logicContext";
 import { useEffect, useRef } from "react";
-import { serializedAppStateSchema } from "./features/import/validationSchema";
+import { parseSerializedAppStateWithDefaults } from "./features/import/validationSchema";
 import { generateInstanceId, InstanceIdContext } from "./instanceIdContext";
+import { setError } from "./features/errorAlert/errorAlertSlice";
 
 interface PrepareResult {
   instance: any;
@@ -27,12 +28,14 @@ export function prepare(initialState?: any): PrepareResult {
   };
 
   if (initialState !== null) {
-    console.log("Importing app state");
+    const result = parseSerializedAppStateWithDefaults(initialState);
 
-    const result = serializedAppStateSchema.safeParse(initialState);
+    if (result.errors.length !== 0) {
+      console.error(result.errors);
+      store.dispatch(setError("workbookImportFailed"));
+    }
 
-    if (!result.success) console.log(result.error.message);
-    else instance.store.dispatch(importAppState(result.data));
+    store.dispatch(importAppState(result.data));
   }
 
   return { instance, getState };

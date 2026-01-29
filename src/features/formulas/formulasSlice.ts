@@ -52,7 +52,7 @@ export interface FormulasState {
   allFormulas: FormulaState[];
 }
 
-const initialState: FormulasState = {
+export const initialFormulasState: FormulasState = {
   allFormulas: [],
 };
 
@@ -74,7 +74,7 @@ function newFormulaState(options: NewFormulaOptions = {}): FormulaState {
 
 export const formulasSlice = createSlice({
   name: "formulas",
-  initialState,
+  initialState: initialFormulasState,
   reducers: {
     importFormulasState: (
       _state,

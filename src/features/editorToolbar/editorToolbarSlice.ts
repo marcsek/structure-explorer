@@ -23,13 +23,13 @@ export type EditorToolbarEntry = {
 
 export type EditorToolbarState = Record<string, EditorToolbarEntry>;
 
-const initialState: EditorToolbarState = {};
+export const initialEditorToolbarState: EditorToolbarState = {};
 
 type WithEditorId<T = object> = { id: string } & T;
 
 export const editorToolbarSlice = createSlice({
   name: "editorToolbar",
-  initialState,
+  initialState: initialEditorToolbarState,
   reducers: {
     importEditorToolbarState(
       _,

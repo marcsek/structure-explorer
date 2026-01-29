@@ -58,9 +58,11 @@ export type GraphManagerState = Record<
 
 type WithGraphId<T = object> = { id: string; type: GraphType } & T;
 
+export const initialGraphViewState: GraphManagerState = {};
+
 export const graphManagerSlice = createSlice({
   name: "graphManager",
-  initialState: {} as GraphManagerState,
+  initialState: initialGraphViewState,
   reducers: {
     setNodes(
       state,

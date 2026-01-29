@@ -1,5 +1,6 @@
 import z from "zod";
 import { lockable } from "../../common/validation";
+import { initialStructureState } from "./structureSlice";
 
 const domainRepresentationSchema = z.array(z.string());
 const constantInterpretationSchema = z.string();
@@ -15,3 +16,6 @@ export const serializedStructureStateSchema = z.object({
 export type SerializedStructureState = z.infer<
   typeof serializedStructureStateSchema
 >;
+
+export const serializedStructureStateDefault: SerializedStructureState =
+  initialStructureState;
