@@ -43,23 +43,23 @@ export default function FormulaCard() {
         direction="horizontal"
         className="mb-3 flex-wrap formula-card-header"
       >
-        <Button
-          variant="success"
-          onClick={() => {
-            dispatch(addFormulas());
-            dispatch(UndoActions.checkpoint());
-          }}
-        >
-          <FontAwesomeIcon icon={faPlus} /> Add
-        </Button>
+        {allFormulas.length === 0 && (
+          <Button
+            variant="success"
+            onClick={() => {
+              dispatch(addFormulas());
+              dispatch(UndoActions.checkpoint());
+            }}
+          >
+            <FontAwesomeIcon icon={faPlus} /> Add
+          </Button>
+        )}
 
         <ContextFormulasDropdown
           presentContextFormulas={presentContextFormulas}
         />
 
-        <div className="ms-sm-auto">
-          {allFormulas.length > 0 && <PrettifyButton />}
-        </div>
+        <div>{allFormulas.length > 0 && <PrettifyButton />}</div>
       </Stack>
 
       {allFormulas.map((formula: FormulaState, index: number) => (
@@ -71,6 +71,18 @@ export default function FormulaCard() {
           guess={formula.guess}
         />
       ))}
+
+      {allFormulas.length > 0 && (
+        <Button
+          variant="success"
+          onClick={() => {
+            dispatch(addFormulas());
+            dispatch(UndoActions.checkpoint());
+          }}
+        >
+          <FontAwesomeIcon icon={faPlus} /> Add
+        </Button>
+      )}
     </ComponentCard>
   );
 }

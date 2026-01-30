@@ -20,6 +20,11 @@ import { selectDomain, type TupleType } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowDownLong,
+  faArrowRightLong,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface MatrixViewProps {
   tupleName: string;
@@ -123,7 +128,7 @@ export default function MatrixView({
     <Table responsive className="table-bordered table-view">
       <thead>
         <tr>
-          <th key="col-head">Domain</th>
+          <TableHeadsIndicator key="col-head" headCount={tupleArity} />
           {!isUnary &&
             domainWithLeftovers.map((head) => (
               <th className={getTableClass(head, hovered.col)} key={head}>
@@ -223,5 +228,33 @@ function PredicateIndicatorTableHead({
         size="sm"
       />
     </div>
+  );
+}
+
+interface TableHeadsIndicatorProps {
+  headCount: number;
+}
+
+function TableHeadsIndicator({ headCount }: TableHeadsIndicatorProps) {
+  return (
+    <th className="table-heads-indicator">
+      <div className="table-heads-indicator-item down">
+        {headCount > 1 && <FontAwesomeIcon icon={faArrowDownLong} />}
+        <span>
+          m<sub>1</sub>
+        </span>
+      </div>
+      {headCount > 1 && (
+        <>
+          <span>/</span>
+          <div className="table-heads-indicator-item right">
+            <FontAwesomeIcon icon={faArrowRightLong} />
+            <span>
+              m<sub>2</sub>
+            </span>
+          </div>
+        </>
+      )}
+    </th>
   );
 }

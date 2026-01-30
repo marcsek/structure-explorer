@@ -298,6 +298,7 @@ export default function BipartiteGraph({
           connectOnClick={false}
           panOnDrag={nodes.length !== 0}
           zoomOnScroll={nodes.length !== 0}
+          minZoom={0.25}
         >
           <Background
             id={`bg-bipartite-${id}-${expandedView ? "expanded" : ""}`}

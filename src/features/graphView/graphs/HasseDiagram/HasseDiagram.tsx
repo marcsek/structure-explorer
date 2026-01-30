@@ -217,6 +217,7 @@ export default function HasseDiagram({
         connectOnClick={false}
         panOnDrag={isPoset && nodes.length !== 0}
         zoomOnScroll={isPoset && nodes.length !== 0}
+        minZoom={0.25}
       >
         <Background id={`bg-hasse-${id}-${expandedView ? "expanded" : ""}`} />
         <Controls

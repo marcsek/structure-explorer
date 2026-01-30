@@ -80,10 +80,62 @@
 .table-view th.unselected,
 .table-view tr.unselected td {
   color: var(--bs-tertiary-color);
-  opacity: 0.5;
+  /* opacity: 0.5; */
+}
+
+.table-view td.unselected.hovered,
+.table-view th.unselected.hovered,
+.table-view tr.hovered td.unselected,
+.table-view tr.unselected.hovered td {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hover-bg),
+    var(--hover-bg) 6px,
+    transparent 6px,
+    transparent 12px
+  );
 }
 
 .table-view td,
 .table-view td {
   min-width: 3rem;
+}
+
+.table-heads-indicator {
+  border-right: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.1675rem;
+}
+
+.table-heads-indicator > span,
+.table-heads-indicator svg {
+  color: var(--bs-tertiary-color);
+}
+
+.table-heads-indicator-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.1rem;
+  position: relative;
+}
+
+.table-heads-indicator-item svg {
+  font-size: 0.6875rem;
+}
+
+.table-heads-indicator-item.right {
+  flex-direction: column;
+  text-wrap: nowrap;
+}
+
+.table-heads-indicator-item.right svg {
+  position: absolute;
+  top: -2px;
+}
+
+.table-heads-indicator-item.down svg {
+  margin-top: 2px;
 }

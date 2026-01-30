@@ -71,21 +71,16 @@ export function parseSerializedAppStateWithDefaults(data: unknown): {
 } {
   const errors: string[] = [];
   const input = (data ?? {}) as Record<string, unknown>;
-  const result = {} as SerializedAppState;
+  const result = { ...schemaDefaults };
 
   for (const [field, schema] of Object.entries(schemaFields)) {
     const key = field as keyof typeof schemaFields;
     const parsed = schema.safeParse(input[key]);
 
     if (parsed.success) {
-      // Typescript won't be able to narrow this.
+      // Typescript isn't able to narrow this.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (result as any)[key] = parsed.data;
-    } else {
-      // Same here.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (result as any)[key] = schemaDefaults[key];
-      errors.push(z.prettifyError(parsed.error));
     }
   }
 

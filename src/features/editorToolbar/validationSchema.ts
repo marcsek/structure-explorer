@@ -22,7 +22,7 @@ export const serializedEditorToolbarStateSchema = z
       openedEditor: z.enum(editorTypes),
     }),
   )
-  .catch({});
+  .default({});
 
 export type SerializedEditorToolbarState = z.infer<
   typeof serializedEditorToolbarStateSchema
