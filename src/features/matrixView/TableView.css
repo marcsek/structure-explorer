@@ -2,6 +2,7 @@
   margin: 0;
 
   --hover-bg: var(--bs-tertiary-bg);
+  --danger-hover-bg: #facacf;
 }
 
 .table-view tr.error td,
@@ -11,13 +12,17 @@
   background-color: var(--bs-danger-bg-subtle);
 }
 
+.table-view tr.error.hovered td,
+.table-view td.error.hovered,
+.table-view th.error.hovered,
+.table-view tr.hovered td.error,
+.table-view tr.hovered td.error.hovered {
+  background-color: var(--danger-hover-bg);
+}
+
 .table-view tr.error td.unselected {
   border-color: inherit;
   background-color: initial;
-}
-
-.table-view tr.hovered td.error {
-  background-color: var(--bs-danger-bg-subtle);
 }
 
 .table-view tr.error:last-child td,

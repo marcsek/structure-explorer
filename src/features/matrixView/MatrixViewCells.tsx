@@ -4,7 +4,6 @@ type PredicateInputProps = {
   value: boolean;
   locked: boolean;
   invalid: boolean;
-  hovered: boolean;
   columnError: boolean;
   unselected: boolean;
   onValueChange: () => void;
@@ -15,14 +14,13 @@ export function PredicateTableCell({
   value,
   locked,
   invalid,
-  hovered,
   columnError,
   onValueChange,
   onHovered,
   unselected,
 }: PredicateInputProps) {
   const shouldError = !unselected && (columnError || invalid);
-  let cellClass = shouldError ? "error" : hovered ? "hovered" : "";
+  let cellClass = shouldError ? "error" : "";
   const isDisabled = locked || (invalid && !value) || unselected;
 
   if (unselected) cellClass += " unselected";

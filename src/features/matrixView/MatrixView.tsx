@@ -2,7 +2,6 @@ import "./TableView.css";
 
 import { Table } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { useState } from "react";
 import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import {
   selectFilteredDomain,
@@ -25,6 +24,7 @@ import {
   faArrowDownLong,
   faArrowRightLong,
 } from "@fortawesome/free-solid-svg-icons";
+import useTableCrosshairHover from "./useTableCrosshairHover";
 
 interface MatrixViewProps {
   tupleName: string;
@@ -41,7 +41,7 @@ export default function MatrixView({
 }: MatrixViewProps) {
   const dispatch = useAppDispatch();
 
-  const [hovered, setHovered] = useState({ row: "", col: "" });
+  const { tableRef, handleCellHover } = useTableCrosshairHover();
 
   const { values, leftovers } = useAppSelector((state) =>
     selectMatrixValuesWithInvalid(state, tupleName, tupleType),
@@ -109,10 +109,9 @@ export default function MatrixView({
     ...unselectedDomain,
   ];
 
-  const getTableClass = (element: string, hovered: string) => {
+  const getTableClass = (element: string) => {
     const unselected = unselectedDomain.includes(element) ? " unselected" : "";
     if (leftovers.includes(element) && !unselected) return "error";
-    if (hovered === element) return "hovered" + unselected;
     return unselected;
   };
 
@@ -125,25 +124,28 @@ export default function MatrixView({
   }
 
   return (
-    <Table responsive className="table-bordered table-view">
+    <Table responsive className="table-bordered table-view" ref={tableRef}>
       <thead>
         <tr>
           <TableHeadsIndicator key="col-head" headCount={tupleArity} />
-          {!isUnary &&
+          {isUnary ? (
+            <th></th>
+          ) : (
             domainWithLeftovers.map((head) => (
-              <th className={getTableClass(head, hovered.col)} key={head}>
+              <th className={getTableClass(head)} key={head}>
                 <PredicateIndicatorTableHead
                   predicateName={tupleName}
                   domainId={head}
                 />
               </th>
-            ))}
+            ))
+          )}
         </tr>
       </thead>
 
       <tbody>
-        {domainWithLeftovers.map((row) => (
-          <tr key={`r-${row}`} className={getTableClass(row, hovered.row)}>
+        {domainWithLeftovers.map((row, rowIdx) => (
+          <tr key={`r-${row}`} className={getTableClass(row)}>
             <td key="row-head">
               <PredicateIndicatorTableHead
                 predicateName={tupleName}
@@ -151,7 +153,7 @@ export default function MatrixView({
               />
             </td>
 
-            {(isUnary ? [row] : domainWithLeftovers).map((col) =>
+            {(isUnary ? [row] : domainWithLeftovers).map((col, colIdx) =>
               tupleType === "predicate" ? (
                 <PredicateTableCell
                   key={col}
@@ -161,7 +163,6 @@ export default function MatrixView({
                     dispatch(UndoActions.checkpoint());
                   }}
                   locked={locked}
-                  hovered={hovered.col === col}
                   columnError={leftovers.includes(col)}
                   invalid={isInvalid(row, col)}
                   unselected={
@@ -169,7 +170,9 @@ export default function MatrixView({
                     unselectedDomain.includes(row)
                   }
                   onHovered={(hovered) =>
-                    setHovered(hovered ? { row, col } : { row: "", col: "" })
+                    hovered
+                      ? handleCellHover(rowIdx, isUnary ? -1 : colIdx)
+                      : handleCellHover(-1, -1)
                   }
                 />
               ) : (
