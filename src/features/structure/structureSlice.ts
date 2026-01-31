@@ -446,6 +446,9 @@ export const selectValidatedFunction = createSelector(
   },
 );
 
+// This is a weird selector, but it's not that bad since all the selectors are memoized.
+// Making this better would require creating another set of selectors that only take portion of the RootState.
+// That wouldn't make for much of a performance improvement anyway.
 export const selectStructureErrors = createSelector(
   [
     (state: RootState) => state,
@@ -455,27 +458,35 @@ export const selectStructureErrors = createSelector(
     selectValidatedDomain,
   ],
   (state, constants, predicates, functions, domain) => {
-    if (domain.error !== undefined) return false;
+    if (domain.error !== undefined) return domain.error;
 
+    console.time("selectStructureErrors duration");
     for (const name of constants.parsed ?? []) {
-      if (selectValidatedConstant(state, name).error !== undefined) {
-        return false;
+      const validated = selectValidatedConstant(state, name);
+      if (validated.error !== undefined) {
+        console.timeEnd("selectStructureErrors duration");
+        return validated.error;
       }
     }
 
     for (const [name] of predicates.parsed ?? []) {
-      if (selectValidatedPredicate(state, name).error !== undefined) {
-        return false;
+      const validated = selectValidatedPredicate(state, name);
+      if (validated.error !== undefined) {
+        console.timeEnd("selectStructureErrors duration");
+        return validated.error;
       }
     }
 
     for (const [name] of functions.parsed ?? []) {
-      if (selectValidatedFunction(state, name).error !== undefined) {
-        return false;
+      const validated = selectValidatedFunction(state, name);
+      if (validated.error !== undefined) {
+        console.timeEnd("selectStructureErrors duration");
+        return validated.error;
       }
     }
 
-    return true;
+    console.timeEnd("selectStructureErrors duration");
+    return undefined;
   },
 );
 

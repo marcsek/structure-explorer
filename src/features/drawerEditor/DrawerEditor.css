@@ -19,15 +19,12 @@
 
   background-color: var(--bs-white);
   border: none;
-  /* border: var(--bs-border-width) solid var(--bs-border-color); */
-  /* border-radius: var(--bs-border-radius); */
   box-shadow: var(--bs-box-shadow-sm);
   background-clip: unset;
 }
 
 .drawer-editor-container-body {
   height: 100%;
-  /* z-index: 10; */
 }
 
 .structure-explorer.modal.fade .drawer-editor-modal-dialog {
@@ -49,18 +46,9 @@
   background-color: var(--bs-light-border-subtle);
 }
 
-/* .drawer-editor-container.expanded .drawer-editor-divider-container-body { */
-/*   margin-inline: -1rem; */
-/* } */
-
 .drawer-editor-container {
   padding: 0;
 }
-
-/* .drawer-editor-container.expanded { */
-/*   border: unset; */
-/*   border-radius: unset; */
-/* } */
 
 .drawer-editor-view-container {
   position: relative;
@@ -126,6 +114,7 @@
 }
 
 .drawer-editor-error-container:first-child {
+  position: relative;
   margin-top: -1px;
 }
 
@@ -208,6 +197,11 @@
 
 .editor-controls-buttons-group:has(+ button) button:last-of-type {
   border-radius: 0;
+}
+
+/* Needed when overlapping with error border of .drawer-editor-error-container */
+.editor-controls-buttons-group .btn {
+  z-index: unset !important;
 }
 
 .drawer-editor-header .editor-controls-buttons-group button {

@@ -61,10 +61,11 @@ export const importAppState =
       dispatch(importStructureState({ state: importedState.structure }));
     }
 
-    dispatch(importFormulasState(importedState.formulas));
+    // Mind the order
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
     dispatch(importEditorToolbarState(importedState.editorToolbar));
+    dispatch(importFormulasState(importedState.formulas));
 
     const { language, structure, variables } = getState().present;
 

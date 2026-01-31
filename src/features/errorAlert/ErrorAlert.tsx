@@ -9,42 +9,46 @@ export default function ErrorAlert() {
     (state) => state.present.errorAlert.errorKind,
   );
 
-  switch (errorKind) {
-    case "localImportFailed":
-      return (
-        <ToastErrorVisual
-          heading="Import failed"
-          message="The provided JSON file was invalid. See console output for details."
-          onClose={() => dispatch(clearError())}
-        />
-      );
-    case "workbookImportFailed":
-      return (
-        <AlertErrorVisual
-          heading="Error restoring cell data"
-          message="An unexpected error occurred while importing the saved data for this cell. Some data may be incomplete."
-          onClose={() => dispatch(clearError())}
-        />
-      );
-    default:
-      return null;
-  }
+  return (
+    <>
+      <ToastErrorVisual
+        show={errorKind === "localImportFailed"}
+        heading="Import failed"
+        message="The provided JSON file was invalid. See console output for details."
+        onClose={() => dispatch(clearError())}
+      />
+
+      <AlertErrorVisual
+        show={errorKind === "workbookImportFailed"}
+        heading="Error while restoring cell data"
+        message="An unexpected error occurred while importing the saved data for this cell. Some data may be incomplete."
+        onClose={() => dispatch(clearError())}
+      />
+    </>
+  );
 }
 
 interface ErrorVisual {
   heading: string;
   message: string;
   onClose: () => void;
+  show: boolean;
 }
 
-function ToastErrorVisual({ heading, message, onClose }: ErrorVisual) {
+function ToastErrorVisual({ heading, message, onClose, show }: ErrorVisual) {
   return (
     <ToastContainer
       as="div"
-      className="position-absolute left-50"
-      style={{ top: "1.5rem", left: "1.5rem" }}
+      className="position-absolute m-2"
+      position="top-start"
     >
-      <Toast bg="danger" className="overflow-hidden" onClose={onClose}>
+      <Toast
+        animation
+        bg="danger"
+        className="overflow-hidden m-2"
+        onClose={onClose}
+        show={show}
+      >
         <Toast.Header className="bg-danger-subtle">
           <strong className="me-auto">{heading}</strong>
         </Toast.Header>
@@ -54,9 +58,11 @@ function ToastErrorVisual({ heading, message, onClose }: ErrorVisual) {
   );
 }
 
-function AlertErrorVisual({ heading, message, onClose }: ErrorVisual) {
+function AlertErrorVisual({ heading, message, onClose, show }: ErrorVisual) {
+  if (!show) return null;
+
   return (
-    <Alert variant="danger" onClose={onClose} dismissible>
+    <Alert className="rounded-0" variant="danger" onClose={onClose} dismissible>
       <Alert.Heading>{heading}</Alert.Heading>
       <p>{message}</p>
     </Alert>

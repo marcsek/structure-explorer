@@ -33,12 +33,31 @@ import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { useFormulasContext } from "../../logicContext";
+import { selectLanguageErrors } from "../language/languageSlice";
+import type { InterpretationError } from "../../common/errors";
 
 interface Props {
   id: number;
   name?: string;
   text: string;
   guess: boolean | null;
+}
+
+function getErrorMessageFromValidation(
+  errors: Partial<{
+    languageError: InterpretationError;
+    structureError: InterpretationError;
+    variablesError: InterpretationError;
+  }>,
+) {
+  const locations: string[] = [];
+
+  if (errors.languageError) locations.push("language");
+  if (errors.structureError) locations.push("structure");
+  if (errors.variablesError) locations.push("variable assignment");
+
+  if (locations.length === 0) return "";
+  return `There are errors in: ${locations.join(", ")}.`;
 }
 
 export default function FormulaComponent({ id, text, guess, name }: Props) {
@@ -53,8 +72,9 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
   const domain = useAppSelector(selectValidatedDomain);
   const isVerified = useAppSelector((state) => selectIsVerifiedGame(state, id));
   const backIndex = useAppSelector((state) => selectGameResetIndex(state, id));
-  const structureErrors = useAppSelector(selectStructureErrors);
-  const variablesErrors = useAppSelector(selectValidatedVariables);
+  const structureError = useAppSelector(selectStructureErrors);
+  const languageError = useAppSelector(selectLanguageErrors);
+  const { error: variablesError } = useAppSelector(selectValidatedVariables);
   const teacherMode = useAppSelector(selectTeacherMode);
   const locked = useAppSelector((state) => selectFormulaLock(state, id));
   const lockedGuess = useAppSelector((state) =>
@@ -70,14 +90,24 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
     ? new Error(`Formula is missing in context. ${formulaError?.message ?? ""}`)
     : undefined;
 
-  const isPlayable = structureErrors && variablesErrors.error === undefined;
+  const validtionErrorMessage = getErrorMessageFromValidation({
+    languageError,
+    structureError,
+    variablesError,
+  });
+
+  const nonFormulaError = validtionErrorMessage
+    ? new Error(validtionErrorMessage)
+    : undefined;
+
+  const isPlayable = !nonFormulaError;
 
   useEffect(() => {
     dispatch(gameGoBack({ id, index: backIndex }));
   }, [backIndex, dispatch, id]);
 
   const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`}`;
-  const error = contextError || formulaError;
+  const error = contextError || formulaError || nonFormulaError;
 
   return (
     <>

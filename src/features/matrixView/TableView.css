@@ -139,3 +139,11 @@
 .table-heads-indicator-item.down svg {
   margin-top: 2px;
 }
+
+.table-view .form-control {
+  min-width: 5rem;
+}
+
+.table-view .form-control.is-invalid {
+  padding-right: 0;
+}

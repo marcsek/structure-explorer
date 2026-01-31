@@ -120,6 +120,10 @@ export const formulasSlice = createSlice({
       const { id, index } = action.payload;
 
       state.allFormulas[id].gameChoices.splice(index);
+      console.log(
+        "AFTER BACK",
+        state.allFormulas[id].gameChoices.splice(index),
+      );
     },
 
     addAlpha: (
@@ -321,7 +325,11 @@ export const selectCurrentGameFormula = createSelector(
   (choices, { formula }, userGuess): SignedFormula => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
 
+    console.log("SELECT CUR", newFormula, choices, userGuess);
+
     for (const { formula, type } of choices) {
+      let newPotentialFormula: SignedFormula | undefined = undefined;
+
       if (
         newFormula.formula.getSignedSubFormulas(newFormula.sign).length === 0
       ) {
@@ -329,16 +337,19 @@ export const selectCurrentGameFormula = createSelector(
       }
 
       if (type === "alpha" || type === "beta") {
-        newFormula = newFormula.formula.getSignedSubFormulas(newFormula.sign)[
-          formula!
-        ];
+        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
+          newFormula.sign,
+        )[formula!];
       }
 
       if (type === "delta" || type === "gamma") {
-        newFormula = newFormula.formula.getSignedSubFormulas(
+        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
           newFormula.sign,
         )[0];
       }
+
+      if (!newPotentialFormula) return newFormula;
+      newFormula = newPotentialFormula;
     }
 
     return newFormula;
@@ -364,6 +375,8 @@ export const selectCurrentAssignment = createSelector(
     }
 
     for (const { formula, element, type } of choices) {
+      let newPotentialFormula: SignedFormula | undefined = undefined;
+
       if (
         newFormula.formula.getSignedSubFormulas(newFormula.sign).length === 0
       ) {
@@ -371,20 +384,23 @@ export const selectCurrentAssignment = createSelector(
       }
 
       if (type === "alpha" || type === "beta") {
-        newFormula = newFormula.formula.getSignedSubFormulas(newFormula.sign)[
-          formula!
-        ];
+        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
+          newFormula.sign,
+        )[formula!];
       }
 
       if (type === "delta" || type === "gamma") {
         let f = newFormula.formula;
         if (f instanceof QuantifiedFormula) {
           current.set(f.getVariableName(), element!);
-          newFormula = newFormula.formula.getSignedSubFormulas(
+          newPotentialFormula = newFormula.formula.getSignedSubFormulas(
             newFormula.sign,
           )[0];
         }
       }
+
+      if (!newPotentialFormula) return newFormula;
+      newPotentialFormula = newFormula;
     }
     console.timeEnd("selectCurrentAssignment duration");
     return current;
@@ -538,11 +554,28 @@ export const selectHistoryData = createSelector(
       addStep();
     } catch (error) {}
 
+    console.log("FORMULA", formula, choices, history);
     for (const { formula: formulaIndex, element, type } of choices) {
+      console.log("CURRENT", f);
+
+      // If type doesn't match choice's type, cut-off history
+      if (f.getSignedType(s) !== type) {
+        if (history.length) history.pop();
+        break;
+      }
+
       if (type === "alpha" || type === "beta") {
+        const subs = f.getSignedSubFormulas(s);
         currentFormula = f.getSignedSubFormulas(s)[formulaIndex!];
 
-        if (!currentFormula) break;
+        console.log("CURRENT FORMULA AL", currentFormula);
+        console.log("CURRENT SUBS", f.getSignedSubFormulas(s));
+
+        // If type matches choice's type, but the selected formula doesn't exist
+        // TODO: Is that possible?
+        if (!currentFormula) {
+          break;
+        }
 
         f = currentFormula.formula;
         s = currentFormula.sign;
@@ -554,7 +587,13 @@ export const selectHistoryData = createSelector(
         currentValuation.set(varName, element!);
         currentFormula = f.getSignedSubFormulas(s)[0];
 
-        if (!currentFormula) break;
+        console.log("CURRENT FORMULA GAM", currentFormula);
+        console.log("CURRENT SUBS", f.getSignedSubFormulas(s));
+
+        // Same as above
+        if (!currentFormula) {
+          break;
+        }
 
         f = currentFormula.formula;
         s = currentFormula.sign;

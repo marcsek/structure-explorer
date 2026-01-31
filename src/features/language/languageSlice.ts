@@ -188,6 +188,21 @@ export const selectSymbolsClash = createSelector(
   },
 );
 
+export const selectLanguageErrors = createSelector(
+  [
+    selectValidatedConstants,
+    selectValidatedPredicates,
+    selectValidatedFunctions,
+    selectSymbolsClash,
+  ],
+  (constants, predicates, functions, clash) => {
+    if (clash) return createValidationError(clash);
+
+    const errors = [constants, predicates, functions].map(({ error }) => error);
+    return errors.find((error) => error !== undefined);
+  },
+);
+
 export const selectLanguage = createSelector(
   [
     selectValidatedConstants,
