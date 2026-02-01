@@ -105,6 +105,7 @@
 .domain-selector-body-divider {
   left: 0;
   right: 0;
+  flex-shrink: 0;
   background-color: var(--bs-light-border-subtle);
   height: var(--bs-border-width);
   margin-inline: -12px;

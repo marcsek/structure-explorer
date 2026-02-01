@@ -562,7 +562,7 @@ export const selectHistoryData = createSelector(
       }
 
       if (type === "alpha" || type === "beta") {
-        const subs = f.getSignedSubFormulas(s);
+        // const subs = f.getSignedSubFormulas(s);
         currentFormula = f.getSignedSubFormulas(s)[formulaIndex!];
 
         console.log("CURRENT FORMULA AL", currentFormula);

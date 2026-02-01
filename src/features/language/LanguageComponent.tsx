@@ -131,6 +131,7 @@ export default function LanguageComponent() {
           constants={constantsTextView.value}
           predicates={predicatesTextView.value}
           functions={functionsTextView.value}
+          triggerEdit={() => dispatch(editModeChanged(true))}
         />
       )}
     </ComponentCard>
@@ -141,11 +142,12 @@ interface ViewOnlyLanguageDisplayProps {
   constants: string;
   predicates: string;
   functions: string;
+  triggerEdit: () => void;
 }
 
 function ViewOnlyLanguageDisplay(props: ViewOnlyLanguageDisplayProps) {
   return (
-    <Stack gap={3} className="ms-2">
+    <Stack gap={3} className="ms-2" onDoubleClick={props.triggerEdit}>
       <div>
         <InlineMath>{"\\mathcal{C_L} = \\{"}</InlineMath>
         {props.constants && <span className="mx-1">{props.constants}</span>}

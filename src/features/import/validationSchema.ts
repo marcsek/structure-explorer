@@ -81,6 +81,8 @@ export function parseSerializedAppStateWithDefaults(data: unknown): {
       // Typescript isn't able to narrow this.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (result as any)[key] = parsed.data;
+    } else {
+      errors.push(z.prettifyError(parsed.error));
     }
   }
 
