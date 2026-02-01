@@ -2,7 +2,6 @@ import {
   Background,
   ReactFlow,
   type Edge,
-  type NodeChange,
   type EdgeChange,
   type OnConnect,
   MarkerType,
@@ -14,9 +13,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
-import PredicateNodeComponent, {
-  type PredicateNodeType,
-} from "../graphComponents/PredicateNode";
+import PredicateNodeComponent from "../graphComponents/PredicateNode";
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
@@ -35,6 +32,7 @@ import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
 import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
+import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -80,7 +78,7 @@ export default function OrientedGraph({
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const storeNodes = useAppSelector((state) => nodeSelector(state, name, type));
   const edges = useAppSelector(
     (state) => state.present.graphView[name]?.state[type]?.edges,
   );
@@ -97,6 +95,12 @@ export default function OrientedGraph({
 
   const historyIdx = useAppSelector((state) => state.index);
 
+  const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
+    id: name,
+    type,
+    storeNodes,
+  });
+
   const { fitView } = useReactFlow();
   //TODO: memoize
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -112,13 +116,7 @@ export default function OrientedGraph({
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
-  }, [[nodes, (a, b) => a.id === b.id]]);
-
-  const onNodesChange = useCallback(
-    (changes: NodeChange<PredicateNodeType>[]) =>
-      dispatch(onNodesChanged({ id: name, type, changes })),
-    [name, dispatch],
-  );
+  }, [[storeNodes, (a, b) => a.id === b.id]]);
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
@@ -145,12 +143,12 @@ export default function OrientedGraph({
       instant: boolean = false,
       onlyIfNotMoved: boolean = false,
     ) => {
-      const nodesMoved = !nodes.every(
+      const nodesMoved = !storeNodes.every(
         ({ position }) => position.x === 0 && position.y === 0,
       );
 
       if (!onlyIfNotMoved || !nodesMoved) {
-        computeLayoutOriented(nodes, edges).then((nodeChanges) => {
+        computeLayoutOriented(storeNodes, edges).then((nodeChanges) => {
           dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
 
           if (fitAfter)
@@ -161,11 +159,13 @@ export default function OrientedGraph({
       } else
         dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
     },
-    [nodes, edges, dispatch, name, fitView],
+    [storeNodes, edges, dispatch, name, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
+      if (!newEdge.targetHandle) return false;
+
       const duplicateEdges = edges.some(
         (edge) =>
           newEdge.source === edge.source && newEdge.target === edge.target,
@@ -199,6 +199,7 @@ export default function OrientedGraph({
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
+          onNodeDragStop={syncNodesWithStore}
           fitView
           fitViewOptions={fitViewOptions}
           nodeTypes={nodeTypes}

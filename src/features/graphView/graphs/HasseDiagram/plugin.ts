@@ -286,6 +286,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
           ) && !data?.helper,
       ),
     );
+    console.log(state.edges);
     const domain = new Set(state.nodes.map((node) => node.id));
     const expanded = expandReducedPoset(relevantRelation, domain);
 

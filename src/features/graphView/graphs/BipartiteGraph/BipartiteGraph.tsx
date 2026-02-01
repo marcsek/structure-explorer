@@ -17,7 +17,13 @@ import {
   type Node,
   useNodesInitialized,
 } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import PredicateNodeComponent, {
   type PredicateNodeType,
 } from "../graphComponents/PredicateNode";
@@ -29,7 +35,6 @@ import {
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
-  onNodesChanged,
   warningChanged,
 } from "../graphSlice.ts";
 import {
@@ -46,6 +51,7 @@ import SetGroupNode, {
   type SetGroupNodeType,
 } from "../graphComponents/SetGroupNode.tsx";
 import { partition } from "../../helpers/utils.ts";
+import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
 
 export type OriginSet = "domain" | "range";
 
@@ -87,6 +93,12 @@ const groupNodeOptions = {
 const fitViewOptions: FitViewOptions = {
   padding: "35px",
   maxZoom: 1,
+};
+
+const controlsFitViewOptions: FitViewOptions = {
+  ...fitViewOptions,
+  maxZoom: 1,
+  duration: 300,
 };
 
 const createGroupNode = (
@@ -165,7 +177,7 @@ export default function BipartiteGraph({
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const storeNodes = useAppSelector((state) => nodeSelector(state, name, type));
   const edges = useAppSelector(
     (state) => state.present.graphView[name]?.state[type]?.edges,
   );
@@ -177,18 +189,24 @@ export default function BipartiteGraph({
   );
   const nodesInitialized = useNodesInitialized();
 
+  const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
+    id: name,
+    type,
+    storeNodes,
+  });
+
   const { getNode, fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 450 });
-  }, [[nodes, (a, b) => a.id === b.id]]);
+  }, [[storeNodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
     graphDidInitialLayout({ id: name, type, didLayout: true });
   }, [name]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (nodesInitialized) {
       fitView(fitViewOptions);
     }
@@ -200,21 +218,25 @@ export default function BipartiteGraph({
 
   const groupedNodes = useMemo(() => addGroupNodes(nodes), [nodes]);
 
-  const onNodesChange = useCallback(
+  const computeLayoutChange = useCallback(
     (changes: NodeChange<BipartiteNodeType | Node>[]) => {
       const bipartiteNodeChanges = changes.filter(
         (ch): ch is NodeChange<BipartiteNodeType> =>
           ch.type === "add" || getNode(ch.id)?.type !== "setGroup",
       );
 
-      const allChanges = [
-        ...bipartiteNodeChanges,
-        ...generateNodeChangesWithLayout(bipartiteNodeChanges, nodes),
-      ];
+      const onlyDimensionChanges = changes.every(
+        (ch) => ch.type === "dimensions",
+      );
 
-      dispatch(onNodesChanged({ id: name, type, changes: allChanges }));
+      // We don't need to layout on only dimension changes
+      const layoutChanges = onlyDimensionChanges
+        ? []
+        : generateNodeChangesWithLayout(bipartiteNodeChanges, nodes);
+
+      onNodesChange([...bipartiteNodeChanges, ...layoutChanges]);
     },
-    [nodes, name, dispatch, getNode],
+    [nodes, onNodesChange, getNode],
   );
 
   const onEdgesChange = useCallback(
@@ -280,10 +302,11 @@ export default function BipartiteGraph({
           id={name}
           nodes={groupedNodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={computeLayoutChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
+          onNodeDragStop={syncNodesWithStore}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           defaultEdgeOptions={defaultEdgeOptions}
@@ -296,8 +319,8 @@ export default function BipartiteGraph({
           edgesFocusable={false}
           edgesReconnectable={false}
           connectOnClick={false}
-          panOnDrag={nodes.length !== 0}
-          zoomOnScroll={nodes.length !== 0}
+          panOnDrag={storeNodes.length !== 0}
+          zoomOnScroll={storeNodes.length !== 0}
           minZoom={0.25}
         >
           <Background
@@ -305,14 +328,14 @@ export default function BipartiteGraph({
           />
           <Controls
             expandedView={expandedView}
-            fitViewOptions={{ ...fitViewOptions, maxZoom: 1, duration: 300 }}
+            fitViewOptions={controlsFitViewOptions}
             onExpandedViewChange={onExpandedViewChange}
           />
         </ReactFlow>
         {warning && (
           <MessageDialog type="error" position="corner" body={warning} />
         )}
-        {nodes.length === 0 && (
+        {storeNodes.length === 0 && (
           <MessageDialog
             type="info"
             position="center"

@@ -229,7 +229,7 @@ export const graphManagerSlice = createSlice({
           graphType
         ].edges.map((e) => ({
           ...e,
-          selectable: locked,
+          selectable: !locked,
           selected: false,
         }));
       }
@@ -447,6 +447,7 @@ export const onEdgesChanged = ({
         ? updateInterpretationPredicates
         : updateFunctionSymbols;
 
+    console.log(relationSyncedEdges);
     dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
     dispatch(creator({ key: id, value: relation }));
     if (containedRemoveChange) dispatch(UndoActions.checkpoint());
@@ -490,6 +491,7 @@ export const onConnected = ({
     );
 
     console.log("On Connected");
+    console.log(relevantEdges);
 
     const updater = interpretationUpdaters[tupleType];
 
@@ -510,20 +512,28 @@ export const leftoverDeleted = ({
   return (dispatch, getState) => {
     const managerState = getState().present.graphView;
     const tupleType = managerState[id].tupleType;
+    const selectedEdges = selectEdges(getState(), id, type);
 
-    const { edges: newEdges } = processDeleteLeftover(
+    const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
       plugins[type],
       managerState[id].state[type],
       deletedNode,
     );
 
-    const [relation] = processEdgesToRelation(plugins[type], {
-      ...managerState[id].state[type],
-      edges: newEdges,
-    });
+    console.log(newEdges);
+    const [relation] = processEdgesToRelation(
+      plugins[type],
+      {
+        ...managerState[id].state[type],
+        edges: newEdges,
+      },
+      edgesToRelation(selectedEdges),
+    );
 
+    console.log(relation);
     const updater = interpretationUpdaters[tupleType];
 
+    dispatch(setNodes({ id, type, nodes: newNodes }));
     dispatch(updater({ key: id, value: relation }));
     dispatch(UndoActions.checkpoint());
   };

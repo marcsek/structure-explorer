@@ -2,7 +2,6 @@ import {
   Background,
   ReactFlow,
   type Edge,
-  type NodeChange,
   type EdgeChange,
   type OnConnect,
   MarkerType,
@@ -14,9 +13,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
-import PredicateNodeComponent, {
-  type PredicateNodeType,
-} from "../graphComponents/PredicateNode";
+import PredicateNodeComponent from "../graphComponents/PredicateNode";
 import DirectEdge from "../graphComponents/DirectEdge";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
@@ -38,6 +35,7 @@ import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { computeLayoutHasse } from "./layout.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
+import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
 
 const connectionLineStyle = {
   stroke: "#b1b1b7",
@@ -84,11 +82,17 @@ export default function HasseDiagram({
   const flowWrapper = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
-  const nodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const storeNodes = useAppSelector((state) => nodeSelector(state, name, type));
   const edges = useAppSelector((state) => selectEdges(state, name, type, true));
   const warning = useAppSelector(
     (state) => state.present.graphView[name]?.state[type]?.warning,
   );
+
+  const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
+    id: name,
+    type,
+    storeNodes,
+  });
 
   const { fitView } = useReactFlow();
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
@@ -97,7 +101,7 @@ export default function HasseDiagram({
 
   useComparatorEffect(() => {
     if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
-  }, [[nodes, (a, b) => a.id === b.id]]);
+  }, [[storeNodes, (a, b) => a.id === b.id]]);
 
   useEffect(() => {
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
@@ -108,12 +112,6 @@ export default function HasseDiagram({
     dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const onNodesChange = useCallback(
-    (changes: NodeChange<PredicateNodeType>[]) =>
-      dispatch(onNodesChanged({ id: name, type, changes })),
-    [name, dispatch],
-  );
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
@@ -132,12 +130,12 @@ export default function HasseDiagram({
       instant: boolean = false,
       onlyIfNotMoved: boolean = false,
     ) => {
-      const nodesMoved = !nodes.every(
+      const nodesMoved = !storeNodes.every(
         ({ position }) => position.x === 0 && position.y === 0,
       );
 
       if (!onlyIfNotMoved || !nodesMoved) {
-        const { nodeChanges } = computeLayoutHasse(nodes, edges);
+        const { nodeChanges } = computeLayoutHasse(storeNodes, edges);
         dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
       }
 
@@ -147,7 +145,7 @@ export default function HasseDiagram({
           fitView({ ...fitViewOptions, duration: instant ? 0 : 300 }),
         );
     },
-    [nodes, edges, dispatch, name, fitView],
+    [storeNodes, edges, dispatch, name, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -202,6 +200,7 @@ export default function HasseDiagram({
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onConnectEnd={onConnectEnd}
+        onNodeDragStop={syncNodesWithStore}
         fitViewOptions={fitViewOptions}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
@@ -215,8 +214,8 @@ export default function HasseDiagram({
         edgesFocusable={false}
         edgesReconnectable={false}
         connectOnClick={false}
-        panOnDrag={isPoset && nodes.length !== 0}
-        zoomOnScroll={isPoset && nodes.length !== 0}
+        panOnDrag={isPoset && storeNodes.length !== 0}
+        zoomOnScroll={isPoset && storeNodes.length !== 0}
         minZoom={0.25}
       >
         <Background id={`bg-hasse-${id}-${expandedView ? "expanded" : ""}`} />
@@ -227,7 +226,7 @@ export default function HasseDiagram({
         />
       </ReactFlow>
       {messageDialog}
-      {isPoset && nodes.length === 0 && (
+      {isPoset && storeNodes.length === 0 && (
         <MessageDialog
           type="info"
           position="center"

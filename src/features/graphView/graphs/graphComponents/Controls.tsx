@@ -16,7 +16,7 @@ import {
   type FitViewOptions,
   type ViewportHelperFunctionOptions,
 } from "@xyflow/react";
-import { useState } from "react";
+import { memo, useState } from "react";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView";
 
 const defaultFitViewOptions: FitViewOptions = {
@@ -29,7 +29,7 @@ const defaultZoomOptions: ViewportHelperFunctionOptions = {
   duration: 150,
 };
 
-export default function Controls({
+function ControlsComponent({
   showInteractive = false,
   expandedView = false,
   fitViewOptions = defaultFitViewOptions,
@@ -115,3 +115,5 @@ export default function Controls({
     </XYControls>
   );
 }
+
+export default memo(ControlsComponent);

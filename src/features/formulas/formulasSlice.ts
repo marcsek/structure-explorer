@@ -292,6 +292,7 @@ const evaluateFormula = (
     console.timeEnd("selectEvaluatedFormula duration");
     return { evaluated: value, formula: formula };
   } catch (error) {
+    console.log("ERROR");
     if (error instanceof Error) {
       return { error: error };
     }
@@ -375,32 +376,28 @@ export const selectCurrentAssignment = createSelector(
     }
 
     for (const { formula, element, type } of choices) {
-      let newPotentialFormula: SignedFormula | undefined = undefined;
-
       if (
+        !newFormula ||
         newFormula.formula.getSignedSubFormulas(newFormula.sign).length === 0
       ) {
         continue;
       }
 
       if (type === "alpha" || type === "beta") {
-        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
-          newFormula.sign,
-        )[formula!];
+        newFormula = newFormula.formula.getSignedSubFormulas(newFormula.sign)[
+          formula!
+        ];
       }
 
       if (type === "delta" || type === "gamma") {
         let f = newFormula.formula;
         if (f instanceof QuantifiedFormula) {
           current.set(f.getVariableName(), element!);
-          newPotentialFormula = newFormula.formula.getSignedSubFormulas(
+          newFormula = newFormula.formula.getSignedSubFormulas(
             newFormula.sign,
           )[0];
         }
       }
-
-      if (!newPotentialFormula) return newFormula;
-      newPotentialFormula = newFormula;
     }
     console.timeEnd("selectCurrentAssignment duration");
     return current;
