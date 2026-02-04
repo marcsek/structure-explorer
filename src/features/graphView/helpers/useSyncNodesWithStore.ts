@@ -41,8 +41,17 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
         );
       }
 
+      const onlyDimensionChanges = otherChanges.every(
+        ({ type }) => type === "dimensions",
+      );
+
       if (otherChanges.length !== 0)
-        dispatch(onNodesChanged({ id, type, changes }));
+        dispatch(
+          onNodesChanged(
+            { id, type, changes },
+            { ignore: onlyDimensionChanges },
+          ),
+        );
     },
     [dispatch, id, storeNodes, type],
   );

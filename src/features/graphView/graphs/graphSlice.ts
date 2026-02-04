@@ -47,6 +47,10 @@ import {
 import type { RelevantSymbols } from "../../import/importThunk.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
+import {
+  prepareWithListenerIgnoreMeta,
+  type PayloadActionListenerIgnore,
+} from "../../../common/redux.ts";
 
 export type GraphManagerState = Record<
   string,
@@ -97,21 +101,23 @@ export const graphManagerSlice = createSlice({
       state[id].state[type].didLayout = didLayout;
     },
 
-    onNodesChanged(
-      state,
-      action: PayloadAction<
-        WithGraphId<{
-          changes: NodeChange<PredicateNodeType>[];
-          userChange?: boolean;
-        }>
-      >,
-    ) {
-      const { id, type, changes } = action.payload;
+    onNodesChanged: {
+      reducer(
+        state,
+        action: PayloadActionListenerIgnore<
+          WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
+        >,
+      ) {
+        const { id, type, changes } = action.payload;
 
-      state[id].state[type].nodes = applyNodeChanges(
-        changes,
-        state[id].state[type].nodes,
-      );
+        state[id].state[type].nodes = applyNodeChanges(
+          changes,
+          state[id].state[type].nodes,
+        );
+      },
+      prepare: prepareWithListenerIgnoreMeta<
+        WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
+      >,
     },
 
     syncGraphView(

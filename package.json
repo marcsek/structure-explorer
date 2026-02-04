@@ -9,7 +9,6 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "prepare": "npm run build",
     "build": "tsc -b ./tsconfig.lib.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview --config vite.demo.config.ts",

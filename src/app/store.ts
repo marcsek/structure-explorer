@@ -2,6 +2,7 @@ import {
   combineReducers,
   configureStore,
   type Action,
+  type Middleware,
   type ThunkAction,
 } from "@reduxjs/toolkit";
 import formulasReducer from "../features/formulas/formulasSlice";
@@ -31,6 +32,7 @@ const rootReducer = {
 };
 
 const historyEqualityExcludedReducers: RootReducerEntryName[] = [
+  "textView",
   "teacherMode",
   "editorToolbar",
 ];
@@ -46,11 +48,17 @@ const comparator = (
 
 const undoReducer = undoable(combineReducers(rootReducer), comparator);
 
-export const createStore = () =>
+export const createStore = (extraMiddleware?: Middleware) =>
   configureStore({
     reducer: undoReducer,
-    middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().prepend(graphSliceListener.middleware),
+    middleware: (getDefaultMiddleware) => {
+      const middlewareChain = getDefaultMiddleware().prepend(
+        graphSliceListener.middleware,
+      );
+
+      if (extraMiddleware) return middlewareChain.prepend(extraMiddleware);
+      return middlewareChain;
+    },
   });
 
 export type AppStore = ReturnType<typeof createStore>;
