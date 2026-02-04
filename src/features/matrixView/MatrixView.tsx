@@ -104,9 +104,10 @@ export default function MatrixView({
     (d) => !selectedDomain.includes(d) && !leftovers.includes(d),
   );
   const domainWithLeftovers = [
-    ...selectedDomain,
+    ...domain,
+    // ...selectedDomain,
+    // ...unselectedDomain,
     ...leftovers,
-    ...unselectedDomain,
   ];
 
   const getTableClass = (element: string) => {
@@ -242,20 +243,28 @@ function TableHeadsIndicator({ headCount }: TableHeadsIndicatorProps) {
   return (
     <th className="table-heads-indicator">
       <div className="table-heads-indicator-item down">
-        {headCount > 1 && <FontAwesomeIcon icon={faArrowDownLong} />}
+        {headCount > 1 && (
+          <>
+            <span>(</span>
+            <FontAwesomeIcon icon={faArrowDownLong} />
+          </>
+        )}
         <span>
-          m<sub>1</sub>
+          <var>m</var>
+          <sub>1</sub>
         </span>
       </div>
       {headCount > 1 && (
         <>
-          <span>/</span>
+          <span>,</span>
           <div className="table-heads-indicator-item right">
             <FontAwesomeIcon icon={faArrowRightLong} />
             <span>
-              m<sub>2</sub>
+              <var>m</var>
+              <sub>2</sub>
             </span>
           </div>
+          <span>)</span>
         </>
       )}
     </th>

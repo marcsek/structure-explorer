@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo } from "react";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { useAppDispatch } from "./app/hooks";
 import {
+  editModeChanged,
   updateConstants,
   updateFunctions,
   updatePredicates,
@@ -52,6 +53,11 @@ export function useSyncLanguageContext() {
   const constants = context?.constants;
   const predicates = context?.predicates;
   const functions = context?.functions;
+
+  useEffect(() => {
+    if (!hasContext) return;
+    dispatch(editModeChanged(false));
+  }, [dispatch, hasContext]);
 
   useEffect(() => {
     if (!hasContext) return;

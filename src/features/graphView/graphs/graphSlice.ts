@@ -560,26 +560,41 @@ export const getGraphViewStateToExport = (
       relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),
   );
 
-  const getNodesToExport = (nodes: PredicateNodeType[], didLayout: boolean) => {
+  const getNodesToExport = (
+    nodes: PredicateNodeType[],
+    didLayout: boolean,
+  ): [string, [number, number]][] => {
     const changedNodes = didLayout ? nodes : [];
 
-    return changedNodes.map(
-      ({ id, position: { x, y } }) =>
-        [id, [x ?? 0, y ?? 0].map(Math.trunc)] as const,
-    );
+    return changedNodes.map(({ id, position: { x, y } }) => [
+      id,
+      [x ?? 0, y ?? 0].map(Math.trunc) as [number, number],
+    ]);
   };
 
-  return Object.fromEntries(
-    relevantEntries.map(([key, { state }]) => [
-      key,
-      Object.fromEntries(
-        Object.entries(state).map(([graph, { nodes, didLayout }]) => [
-          graph,
-          Object.fromEntries(getNodesToExport(nodes, !!didLayout)),
-        ]),
-      ) as SerializedGraphViewState[string],
-    ]),
-  );
+  const serializedState: SerializedGraphViewState = {};
+
+  for (const [predicateName, { state }] of relevantEntries) {
+    const graphEntries: [GraphType, Record<string, [number, number]>][] = [];
+    for (const graphType in state) {
+      const { nodes, didLayout } = state[graphType as GraphType];
+      const positions = getNodesToExport(nodes, !!didLayout);
+
+      if (positions.length === 0) continue;
+
+      graphEntries.push([
+        graphType as GraphType,
+        Object.fromEntries(positions),
+      ]);
+    }
+
+    if (graphEntries.length === 0) continue;
+    serializedState[predicateName] = Object.fromEntries(
+      graphEntries,
+    ) as SerializedGraphViewState[string];
+  }
+
+  return serializedState;
 };
 
 export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>

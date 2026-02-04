@@ -3,7 +3,7 @@ import { graphTypes } from "./graphs/plugins";
 
 export const serializedGraphViewStateSchema = z.record(
   z.string(),
-  z.record(
+  z.partialRecord(
     z.enum(graphTypes),
     z.record(z.string(), z.tuple([z.number(), z.number()])),
   ),

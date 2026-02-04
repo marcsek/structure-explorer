@@ -91,7 +91,9 @@ function DrawerEditorContent({
               direction="horizontal"
               className="drawer-editor-header-control-group"
             >
-              {buildControlButtons(expandedView ? ["text"] : undefined)}
+              {buildControlButtons(
+                expandedView ? ["text", "matrix", "database"] : undefined,
+              )}
               {expandedView && (
                 <CloseButton onClick={() => setExpandedView(false)} />
               )}

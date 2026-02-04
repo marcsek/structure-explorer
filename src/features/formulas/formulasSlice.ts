@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import type { RootState } from "../../app/store";
+import type { AppThunk, RootState } from "../../app/store";
 import Constant from "../../model/term/Term.Constant";
 import Variable from "../../model/term/Term.Variable";
 import {
@@ -99,6 +99,10 @@ export const formulasSlice = createSlice({
     syncContextFormulas(state, action: PayloadAction<Record<string, string>>) {
       state.allFormulas.forEach(({ name }, idx) => {
         if (!name || !(name in action.payload)) return;
+
+        if (state.allFormulas[idx].text !== action.payload[name])
+          state.allFormulas[idx].gameChoices = [];
+
         state.allFormulas[idx].text = action.payload[name];
       });
     },
@@ -120,10 +124,6 @@ export const formulasSlice = createSlice({
       const { id, index } = action.payload;
 
       state.allFormulas[id].gameChoices.splice(index);
-      console.log(
-        "AFTER BACK",
-        state.allFormulas[id].gameChoices.splice(index),
-      );
     },
 
     addAlpha: (
@@ -245,7 +245,7 @@ export const selectFormulaGuessLock = (state: RootState, id: number) =>
 const evaluateFormula = (
   language: Language,
   structure: Structure,
-  form: FormulaState,
+  formText: string,
   valuation: Map<string, string>,
 ) => {
   console.time("selectEvaluatedFormula duration");
@@ -283,7 +283,7 @@ const evaluateFormula = (
 
   try {
     const formula = parseFormulaWithPrecedence(
-      form.text,
+      formText,
       language.getParserLanguage(),
       factories,
     );
@@ -292,7 +292,6 @@ const evaluateFormula = (
     console.timeEnd("selectEvaluatedFormula duration");
     return { evaluated: value, formula: formula };
   } catch (error) {
-    console.log("ERROR");
     if (error instanceof Error) {
       return { error: error };
     }
@@ -310,14 +309,14 @@ const evaluateFormula = (
 export const selectEvaluatedFormula = createSelector(
   [selectLanguage, selectStructure, selectFormula, selectValuation],
   (language, structure, form, valuation) =>
-    evaluateFormula(language, structure, form, valuation),
+    evaluateFormula(language, structure, form.text, valuation),
 );
 
 export const selectEvaluatedFormulas = createSelector(
   [selectLanguage, selectStructure, selectFormulas, selectValuation],
   (language, structure, allFormulas, valuation) =>
     allFormulas.map((form) =>
-      evaluateFormula(language, structure, form, valuation),
+      evaluateFormula(language, structure, form.text, valuation),
     ),
 );
 
@@ -734,5 +733,28 @@ export const selectGameResetIndex = createSelector(
     return index;
   },
 );
+
+export const updateFormulaText =
+  ({ id, text }: { id: number; text: string }): AppThunk =>
+  (dispatch, getState) => {
+    const language = selectLanguage(getState());
+    const structure = selectStructure(getState());
+    const valuation = selectValuation(getState());
+
+    const prevText = getState().present.formulas.allFormulas[id].text;
+    const previous = evaluateFormula(language, structure, prevText, valuation);
+
+    const current = evaluateFormula(language, structure, text, valuation);
+
+    if (
+      previous.formula &&
+      current.formula &&
+      previous.formula.toString() !== current.formula.toString()
+    ) {
+      dispatch(gameGoBack({ id, index: 0 }));
+    }
+
+    dispatch(updateText({ id, text }));
+  };
 
 export default formulasSlice.reducer;

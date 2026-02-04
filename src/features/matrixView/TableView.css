@@ -114,7 +114,6 @@
   gap: 0.1675rem;
 }
 
-.table-heads-indicator > span,
 .table-heads-indicator svg {
   color: var(--bs-tertiary-color);
 }

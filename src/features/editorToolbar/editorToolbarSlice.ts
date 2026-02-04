@@ -272,9 +272,9 @@ export const selectHoveredIntr = createSelector(
 );
 
 export const getRelevantEditorToolbarState = (
-  editorToolbar: EditorToolbarState,
+  editorToolbar: SerializedEditorToolbarState,
   relevantSymbols: RelevantSymbols,
-): EditorToolbarState => {
+): SerializedEditorToolbarState => {
   const stateToExport: EditorToolbarState = {};
 
   for (const [name, entry] of Object.entries(editorToolbar)) {

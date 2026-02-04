@@ -4,7 +4,6 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {
   removeFormula,
-  updateText,
   updateGuess,
   selectEvaluatedFormula,
   selectIsVerifiedGame,
@@ -14,6 +13,7 @@ import {
   selectFormulaGuessLock,
   lockFormula,
   lockFormulaGuess,
+  updateFormulaText,
 } from "./formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
@@ -124,7 +124,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
               disabled={isFromContext || locked === true}
               value={text}
               onChange={(e) => {
-                dispatch(updateText({ id: id, text: e.target.value }));
+                dispatch(updateFormulaText({ id: id, text: e.target.value }));
               }}
               isInvalid={!!error}
               onBlur={() => dispatch(UndoActions.checkpoint())}
