@@ -32,7 +32,6 @@ const rootReducer = {
 };
 
 const historyEqualityExcludedReducers: RootReducerEntryName[] = [
-  "textView",
   "teacherMode",
   "editorToolbar",
 ];

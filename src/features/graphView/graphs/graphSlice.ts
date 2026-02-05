@@ -51,6 +51,7 @@ import {
   prepareWithListenerIgnoreMeta,
   type PayloadActionListenerIgnore,
 } from "../../../common/redux.ts";
+import { dev } from "../../../common/logging.ts";
 
 export type GraphManagerState = Record<
   string,
@@ -72,7 +73,6 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
-      console.log("NODES UPDATED");
       const { id, type, nodes } = action.payload;
       state[id].state[type].nodes = nodes;
     },
@@ -189,7 +189,7 @@ export const graphManagerSlice = createSlice({
       }>,
     ) {
       const { domain, preds, funcs, tupleIntr } = action.payload;
-      console.time(`Graph of plugins initialization duration`);
+      dev.time(`Graph of plugins initialization duration`);
 
       const tuples = [
         ...preds.map((pred) => [...pred, "predicate"] as const),
@@ -218,7 +218,7 @@ export const graphManagerSlice = createSlice({
 
       const tupleNames = [...preds, ...funcs].map((tuple) => tuple[0]);
       for (const key in state) if (!tupleNames.includes(key)) delete state[key];
-      console.timeEnd(`Graph of plugins initialization duration`);
+      dev.timeEnd(`Graph of plugins initialization duration`);
     },
 
     editorLocked(
@@ -253,7 +253,7 @@ export const graphManagerSlice = createSlice({
 
   extraReducers(builder) {
     builder.addCase(updateDomain, (state, action) => {
-      console.time("Graph domain update duration");
+      dev.time("Graph domain update duration");
       for (const [, graphs] of Object.entries(state)) {
         for (const graphType of graphTypes) {
           const graphState = graphs.state[graphType];
@@ -270,7 +270,7 @@ export const graphManagerSlice = createSlice({
           (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
         }
       }
-      console.timeEnd("Graph domain update duration");
+      dev.timeEnd("Graph domain update duration");
     });
 
     builder.addMatcher(
@@ -280,7 +280,7 @@ export const graphManagerSlice = createSlice({
 
         if (!(key in state)) return;
 
-        console.time("Graph interpretation update duration");
+        dev.time("Graph interpretation update duration");
         const graphs = state[key];
         for (const graphType of graphTypes) {
           const graphState = graphs.state[graphType];
@@ -295,7 +295,7 @@ export const graphManagerSlice = createSlice({
             );
         }
 
-        console.timeEnd("Graph interpretation update duration");
+        dev.timeEnd("Graph interpretation update duration");
       },
     );
   },
@@ -348,7 +348,6 @@ export const selectPosetValidity = createSelector(
 export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
     [
-      (_: RootState, id: string) => id,
       (_: RootState, __: string, type: T) => type,
       (state: RootState, id: string, type: T) =>
         state.present.graphView[id]?.state[type]?.nodes,
@@ -359,7 +358,6 @@ export function makeSelectNodes<T extends GraphType>() {
       selectUnaryFilterDomain,
     ],
     (
-      id,
       type,
       nodes,
       relevantDomain,
@@ -368,7 +366,6 @@ export function makeSelectNodes<T extends GraphType>() {
       unaryFilterDomain,
     ): GraphState[T]["nodes"] => {
       const plugin = plugins[type] as Plugin<T>;
-      console.log("SELECTING NODES of ", type, id);
 
       if (!nodes) return [];
 
@@ -446,14 +443,11 @@ export const onEdgesChanged = ({
       relevantEdges,
     );
 
-    console.log("Edges Changed");
-
     const creator =
       tupleType === "predicate"
         ? updateInterpretationPredicates
         : updateFunctionSymbols;
 
-    console.log(relationSyncedEdges);
     dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
     dispatch(creator({ key: id, value: relation }));
     if (containedRemoveChange) dispatch(UndoActions.checkpoint());
@@ -496,9 +490,6 @@ export const onConnected = ({
       relevantEdges,
     );
 
-    console.log("On Connected");
-    console.log(relevantEdges);
-
     const updater = interpretationUpdaters[tupleType];
 
     dispatch(updater({ key: id, value: relation }));
@@ -526,7 +517,6 @@ export const leftoverDeleted = ({
       deletedNode,
     );
 
-    console.log(newEdges);
     const [relation] = processEdgesToRelation(
       plugins[type],
       {
@@ -536,7 +526,6 @@ export const leftoverDeleted = ({
       edgesToRelation(selectedEdges),
     );
 
-    console.log(relation);
     const updater = interpretationUpdaters[tupleType];
 
     dispatch(setNodes({ id, type, nodes: newNodes }));

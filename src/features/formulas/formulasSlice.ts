@@ -34,6 +34,7 @@ import type { ReactNode } from "react";
 import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
+import { dev } from "../../common/logging";
 
 export interface FormulaState {
   name?: string;
@@ -248,7 +249,7 @@ const evaluateFormula = (
   formText: string,
   valuation: Map<string, string>,
 ) => {
-  console.time("selectEvaluatedFormula duration");
+  dev.time("selectEvaluatedFormula duration");
   const factories = {
     variable: (symbol: string, _ee: ErrorExpected) => new Variable(symbol),
     constant: (symbol: string, _ee: ErrorExpected) => new Constant(symbol),
@@ -289,7 +290,7 @@ const evaluateFormula = (
     );
 
     const value = formula.eval(structure, valuation);
-    console.timeEnd("selectEvaluatedFormula duration");
+    dev.timeEnd("selectEvaluatedFormula duration");
     return { evaluated: value, formula: formula };
   } catch (error) {
     if (error instanceof Error) {
@@ -297,12 +298,12 @@ const evaluateFormula = (
     }
 
     if (error instanceof SyntaxError) {
-      console.timeEnd("selectEvaluatedFormula duration");
+      dev.timeEnd("selectEvaluatedFormula duration");
       return { error: error };
     }
   }
 
-  console.timeEnd("selectEvaluatedFormula duration");
+  dev.timeEnd("selectEvaluatedFormula duration");
   return {};
 };
 
@@ -324,8 +325,6 @@ export const selectCurrentGameFormula = createSelector(
   [selectFormulaChoices, selectEvaluatedFormula, selectFormulaGuess],
   (choices, { formula }, userGuess): SignedFormula => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
-
-    console.log("SELECT CUR", newFormula, choices, userGuess);
 
     for (const { formula, type } of choices) {
       let newPotentialFormula: SignedFormula | undefined = undefined;
@@ -367,7 +366,7 @@ export const selectCurrentAssignment = createSelector(
   (choices, { formula }, e, userGuess, { parsed: domain }) => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
 
-    console.time("selectCurrentAssignment duration");
+    dev.time("selectCurrentAssignment duration");
     let current = new Map(e);
 
     if (domain === undefined) {
@@ -398,7 +397,7 @@ export const selectCurrentAssignment = createSelector(
         }
       }
     }
-    console.timeEnd("selectCurrentAssignment duration");
+    dev.timeEnd("selectCurrentAssignment duration");
     return current;
   },
 );
@@ -411,10 +410,10 @@ export const selectGameButtons = createSelector(
     selectCurrentAssignment,
   ],
   ({ sign, formula }, { parsed: domain }, structure, e) => {
-    console.time("selectGameButtons duration");
+    dev.time("selectGameButtons duration");
 
     if (formula.getSignedSubFormulas(sign).length === 0) {
-      console.timeEnd("selectGameButtons duration");
+      dev.timeEnd("selectGameButtons duration");
       return;
     }
 
@@ -422,7 +421,7 @@ export const selectGameButtons = createSelector(
       formula.getSignedType(sign) === SignedFormulaType.DELTA &&
       formula instanceof QuantifiedFormula
     ) {
-      console.timeEnd("selectGameButtons duration");
+      dev.timeEnd("selectGameButtons duration");
       return {
         values: domain ?? [],
         elements: domain ?? [],
@@ -432,7 +431,7 @@ export const selectGameButtons = createSelector(
     }
 
     if (formula.getSignedType(sign) === SignedFormulaType.BETA) {
-      console.timeEnd("selectGameButtons duration");
+      dev.timeEnd("selectGameButtons duration");
       return {
         values: formula
           .getSignedSubFormulas(sign)
@@ -452,7 +451,7 @@ export const selectGameButtons = createSelector(
         winners = formula.getSignedSubFormulas(sign);
       }
 
-      console.timeEnd("selectGameButtons duration");
+      dev.timeEnd("selectGameButtons duration");
       return {
         values: ["Continue"],
         subformulas: winners,
@@ -472,7 +471,7 @@ export const selectGameButtons = createSelector(
         winners = domain ?? ["domain error"];
       }
 
-      console.timeEnd("selectGameButtons duration");
+      dev.timeEnd("selectGameButtons duration");
       return {
         values: ["Continue"],
         elements: winners,
@@ -509,7 +508,7 @@ export const selectHistoryData = createSelector(
 
     if (!formula) return [];
 
-    console.time("selectHistoryData duration");
+    dev.time("selectHistoryData duration");
 
     let currentValuation = new Map(valuation);
     let currentFormula: SignedFormula = {
@@ -550,10 +549,7 @@ export const selectHistoryData = createSelector(
       addStep();
     } catch (error) {}
 
-    console.log("FORMULA", formula, choices, history);
     for (const { formula: formulaIndex, element, type } of choices) {
-      console.log("CURRENT", f);
-
       // If type doesn't match choice's type, cut-off history
       if (f.getSignedType(s) !== type) {
         if (history.length) history.pop();
@@ -563,9 +559,6 @@ export const selectHistoryData = createSelector(
       if (type === "alpha" || type === "beta") {
         // const subs = f.getSignedSubFormulas(s);
         currentFormula = f.getSignedSubFormulas(s)[formulaIndex!];
-
-        console.log("CURRENT FORMULA AL", currentFormula);
-        console.log("CURRENT SUBS", f.getSignedSubFormulas(s));
 
         // If type matches choice's type, but the selected formula doesn't exist
         // TODO: Is that possible?
@@ -583,9 +576,6 @@ export const selectHistoryData = createSelector(
         currentValuation.set(varName, element!);
         currentFormula = f.getSignedSubFormulas(s)[0];
 
-        console.log("CURRENT FORMULA GAM", currentFormula);
-        console.log("CURRENT SUBS", f.getSignedSubFormulas(s));
-
         // Same as above
         if (!currentFormula) {
           break;
@@ -600,7 +590,7 @@ export const selectHistoryData = createSelector(
       } catch (error) {}
     }
 
-    console.timeEnd("selectHistoryData duration");
+    dev.timeEnd("selectHistoryData duration");
     return history;
   },
 );
@@ -614,16 +604,16 @@ export const selectIsVerifiedGame = createSelector(
 
     if (last === undefined) return false;
 
-    console.time("selectIsVerifiedGame duration");
+    dev.time("selectIsVerifiedGame duration");
     try {
-      console.timeEnd("selectIsVerifiedGame duration");
+      dev.timeEnd("selectIsVerifiedGame duration");
       return (
         (last.sf.formula instanceof PredicateAtom ||
           last.sf.formula instanceof EqualityAtom) &&
         last.sf.formula.eval(structure, last.valuation) === last.sf.sign
       );
     } catch (error) {
-      console.timeEnd("selectIsVerifiedGame duration");
+      dev.timeEnd("selectIsVerifiedGame duration");
       return false;
     }
   },
@@ -639,7 +629,7 @@ export const selectGameResetIndex = createSelector(
   (data, structure, choices, domain) => {
     if (data.length === 0) return 0;
 
-    console.time("selectGameResetIndex duration");
+    dev.time("selectGameResetIndex duration");
     let index = 0;
 
     for (const { sf, valuation } of data) {
@@ -657,7 +647,7 @@ export const selectGameResetIndex = createSelector(
         domain.parsed &&
         domain.parsed.includes(choices[index - 1].element!) === false
       ) {
-        console.timeEnd("selectGameResetIndex duration");
+        dev.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
 
@@ -713,7 +703,7 @@ export const selectGameResetIndex = createSelector(
         prev.sf.formula.eval(structure, prev.valuation) !== prev.sf.sign &&
         prev.type === "alpha"
       ) {
-        console.timeEnd("selectGameResetIndex duration");
+        dev.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
 
@@ -723,13 +713,13 @@ export const selectGameResetIndex = createSelector(
         valuation.get(prevVariableName) !== prevWinningElementValue &&
         prev.type === "gamma"
       ) {
-        console.timeEnd("selectGameResetIndex duration");
+        dev.timeEnd("selectGameResetIndex duration");
         return index - 1;
       }
       index++;
     }
 
-    console.timeEnd("selectGameResetIndex duration");
+    dev.timeEnd("selectGameResetIndex duration");
     return index;
   },
 );

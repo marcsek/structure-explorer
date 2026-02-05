@@ -13,6 +13,7 @@ import {
   type TextViewSyncEntry,
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
+import { dev } from "../../common/logging";
 
 export interface TextViewEntry {
   type: TextViewType;
@@ -91,24 +92,19 @@ export const updateTextView = ({
 }): AppThunk => {
   return (dispatch, getState) => {
     const key = keyIn ?? type;
-    console.time(`Duration of ${key} text view update`);
 
     const { parsed, error } = parseByTextType(type, value, getState());
 
     if (error) {
       dispatch(textViewChanged({ key, type, value, parseError: error }));
-      console.timeEnd(`Duration of ${key} text view update`);
       return;
     }
-    console.timeEnd(`Duration of ${key} text view update`);
 
-    console.time(`Duration of ${key} text dispatch update`);
     dispatch(textViewChanged({ key, type, value, parseError: undefined }));
-    console.timeEnd(`Duration of ${key} text dispatch update`);
 
-    console.time(`Duration of ${key} text parent state update`);
+    dev.time(`Duration of ${key} text parent state update`);
     dispatch(updateActionByTextType(type, key, parsed));
-    console.timeEnd(`Duration of ${key} text parent state update`);
+    dev.timeEnd(`Duration of ${key} text parent state update`);
   };
 };
 

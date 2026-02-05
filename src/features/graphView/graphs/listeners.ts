@@ -8,6 +8,7 @@ import {
   updateFunctions,
   updatePredicates,
 } from "../../language/languageSlice";
+import { dev } from "../../../common/logging";
 
 export const graphSliceListener = createListenerMiddleware<RootState>();
 
@@ -37,7 +38,7 @@ graphSliceListener.startListening({
           [key, [...set].filter((arr) => arr.length > 0)] as const,
       );
 
-      console.time("Graph initialization duration");
+      dev.time("Graph initialization duration");
       api.dispatch(
         tuplesChanged({
           domain: [...structure.domain],
@@ -46,7 +47,7 @@ graphSliceListener.startListening({
           tupleIntr: Object.fromEntries(new Map([...predIntr, ...funcIntr])),
         }),
       );
-      console.timeEnd("Graph initialization duration");
+      dev.timeEnd("Graph initialization duration");
 
       // api.dispatch({ type: "REPLACE_PRESENT" });
     }

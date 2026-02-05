@@ -64,7 +64,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       didLayout: !!positions,
     };
 
-    console.time("Bipartite init");
     domain.forEach((domElement) => {
       const error =
         type === "function" &&
@@ -119,7 +118,6 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     });
 
     graph.nodes = computeLayoutBipartite(graph.nodes);
-    console.timeEnd("Bipartite init");
 
     return graph;
   },

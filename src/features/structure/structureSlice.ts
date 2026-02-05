@@ -22,6 +22,7 @@ import {
 } from "../../common/redux";
 import type { RelevantSymbols } from "../import/importThunk";
 import type { SerializedStructureState } from "./validationSchema";
+import { dev } from "../../common/logging";
 
 export type InterpretationType = "predicate" | "function" | "constant";
 export type TupleType = "function" | "predicate";
@@ -460,11 +461,9 @@ export const selectStructureErrors = createSelector(
   (state, constants, predicates, functions, domain) => {
     if (domain.error !== undefined) return domain.error;
 
-    console.time("selectStructureErrors duration");
     for (const name of constants.parsed ?? []) {
       const validated = selectValidatedConstant(state, name);
       if (validated.error !== undefined) {
-        console.timeEnd("selectStructureErrors duration");
         return validated.error;
       }
     }
@@ -472,7 +471,6 @@ export const selectStructureErrors = createSelector(
     for (const [name] of predicates.parsed ?? []) {
       const validated = selectValidatedPredicate(state, name);
       if (validated.error !== undefined) {
-        console.timeEnd("selectStructureErrors duration");
         return validated.error;
       }
     }
@@ -480,12 +478,10 @@ export const selectStructureErrors = createSelector(
     for (const [name] of functions.parsed ?? []) {
       const validated = selectValidatedFunction(state, name);
       if (validated.error !== undefined) {
-        console.timeEnd("selectStructureErrors duration");
         return validated.error;
       }
     }
 
-    console.timeEnd("selectStructureErrors duration");
     return undefined;
   },
 );
@@ -515,7 +511,7 @@ export const selectStructure = createSelector(
     selectValidatedDomain,
   ],
   (constants, predicates, functions, language, domain) => {
-    console.time("selectStructure duration");
+    dev.time("selectStructure duration");
     const usedConstants = language.constants;
     const usedPredicates = language.predicates;
     const usedFunctions = language.functions;
@@ -543,7 +539,7 @@ export const selectStructure = createSelector(
       iF.set(name, map);
     });
 
-    console.timeEnd("selectStructure duration");
+    dev.timeEnd("selectStructure duration");
     return new Structure(
       language,
       new Set(domain.error ? [] : domain.parsed),

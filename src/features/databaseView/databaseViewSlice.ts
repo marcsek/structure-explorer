@@ -11,6 +11,7 @@ import {
   type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
+import { dev } from "../../common/logging";
 
 export interface DatabaseViewEntry {
   type: TupleType;
@@ -149,14 +150,14 @@ export const updateDatabaseViewValue = ({
       isValidTuple(tuple, arity),
     );
 
-    console.time("Database parent state dispatch duration");
+    dev.time("Database parent state dispatch duration");
     dispatch(
       updaters[type](
         { value: validTuples, key: tupleName },
         { source: "databaseView" },
       ),
     );
-    console.timeEnd("Database parent state dispatch duration");
+    dev.timeEnd("Database parent state dispatch duration");
   };
 };
 

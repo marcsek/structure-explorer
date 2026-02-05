@@ -56,7 +56,6 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       didLayout: !!positions,
     };
 
-    console.time("Hasse init");
     if (type === "function") return graph;
 
     domain.forEach((domElement) => {
@@ -96,7 +95,6 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       graph.nodes.push(createNode(element, { leftover: true })),
     );
 
-    console.timeEnd("Hasse init");
     return graph;
   },
 
@@ -286,7 +284,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
           ) && !data?.helper,
       ),
     );
-    console.log(state.edges);
+
     const domain = new Set(state.nodes.map((node) => node.id));
     const expanded = expandReducedPoset(relevantRelation, domain);
 
