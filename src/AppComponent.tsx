@@ -89,7 +89,7 @@ export function AppComponent({
 }: AppComponentProps): JSX.Element {
   const appstore = instance.store;
 
-  // Since some components need to have a unique id across the whole document
+  // Since some components must have a unique id across the whole document
   // we need a way do disntiguish between identical instances.
   // (e.g copied instances inside workbook)
   const instanceIdRef = useRef<string>(generateInstanceId());

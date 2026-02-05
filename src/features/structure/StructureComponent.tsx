@@ -22,6 +22,7 @@ import {
   selectValidatedTextView,
   updateTextView,
 } from "../textView/textViewSlice.ts";
+import TextView from "../textView/TextViewEditor.tsx";
 
 export default function StructureComponent() {
   const dispatch = useAppDispatch();
@@ -69,22 +70,12 @@ export default function StructureComponent() {
 
             <Stack gap={3}>
               {Array.from(constants.parsed ?? []).map((name) => (
-                <InterpretationEditor
+                <TextView
                   name={name}
                   id={`constant-${name}`}
-                  type="constant"
-                  key={`constant-${name}`}
                   textViewType="constant_interpretation"
+                  key={`constant-${name}`}
                   lockSelector={selectIcLock}
-                  onChange={(e) => {
-                    dispatch(
-                      updateTextView({
-                        type: "constant_interpretation",
-                        key: name,
-                        value: e.target.value,
-                      }),
-                    );
-                  }}
                   locker={() => {
                     dispatch(lockInterpretationConstants({ key: name }));
                   }}

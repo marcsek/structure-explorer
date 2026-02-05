@@ -31,7 +31,7 @@ export default function InputGroupTitle({
   suffix,
   controlButtons = null,
   placeholder,
-  disabledOverride,
+  disabledOverride = false,
   text,
   onChange,
   locker,
@@ -62,7 +62,7 @@ export default function InputGroupTitle({
           onChange={onChange}
           id={`${id}-${label.toLowerCase()}`}
           isInvalid={!!error}
-          disabled={disabledOverride === true || lockChecker === true}
+          disabled={disabledOverride || lockChecker}
           onBlur={() =>
             createHistoryOnBlur && dispatch(UndoActions.checkpoint())
           }
@@ -77,7 +77,7 @@ export default function InputGroupTitle({
         {controlButtons}
 
         {teacherMode && <LockButton locker={locker} locked={lockChecker} />}
-        <ErrorFeedback error={error} text={text}></ErrorFeedback>
+        <ErrorFeedback error={error} text={text} />
       </InputGroup>
     </Form.Group>
   );

@@ -174,7 +174,7 @@ const updateActionByTextType = <T extends TextViewType>(
   return descriptor.syncActionCreator(parsed, { source: "textView" });
 };
 
-const selectValidation = (
+export const selectValidation = (
   state: RootState,
   type: TextViewType,
   key: string,
