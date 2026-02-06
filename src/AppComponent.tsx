@@ -103,7 +103,7 @@ export function AppComponent({
     <Provider store={appstore}>
       <InstanceIdContext.Provider value={instanceIdRef.current}>
         <LogicContext.Provider value={context}>
-          <App viewMode={!isEdited} />
+          <App viewOnlyMode={!isEdited} />
         </LogicContext.Provider>
       </InstanceIdContext.Provider>
     </Provider>

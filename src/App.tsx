@@ -9,10 +9,10 @@ import Header from "./components_helper/Header";
 import ErrorAlert from "./features/errorAlert/ErrorAlert";
 
 interface AppProps {
-  viewMode?: boolean;
+  viewOnlyMode?: boolean;
 }
 
-function App({ viewMode }: AppProps) {
+function App({ viewOnlyMode }: AppProps) {
   usePreset();
 
   return (
@@ -20,7 +20,7 @@ function App({ viewMode }: AppProps) {
       <ErrorAlert />
       <Container
         fluid
-        className={`mt-2 mb-2 px-3 ${viewMode ? "view-mode" : ""}`}
+        className={`mt-2 mb-2 px-3 ${viewOnlyMode ? "view-mode" : ""}`}
       >
         <Row className="g-3">
           <Header />

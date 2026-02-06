@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 
-const HOVERED = "hovered";
+const HOVERED_CLASS = "hovered";
 const rowOffsetByHead = 1;
 
 export default function useTableCrosshairHover() {
@@ -12,8 +12,8 @@ export default function useTableCrosshairHover() {
     if (!table) return;
 
     table
-      .querySelectorAll(`.${HOVERED}`)
-      .forEach((el) => el.classList.remove(HOVERED));
+      .querySelectorAll(`.${HOVERED_CLASS}`)
+      .forEach((el) => el.classList.remove(HOVERED_CLASS));
 
     if (row === -1 && col === -1) return;
 
@@ -27,12 +27,12 @@ export default function useTableCrosshairHover() {
     if (!headRow) return;
 
     const bodyRows = [...body.children];
-    bodyRows[row].classList.add(HOVERED);
+    bodyRows[row].classList.add(HOVERED_CLASS);
 
     if (col !== -1) {
-      headRow.children[rowOffsetByHead + col].classList.add(HOVERED);
+      headRow.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS);
       bodyRows.forEach((rowEl) =>
-        rowEl.children[rowOffsetByHead + col].classList.add(HOVERED),
+        rowEl.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS),
       );
     }
   }, []);

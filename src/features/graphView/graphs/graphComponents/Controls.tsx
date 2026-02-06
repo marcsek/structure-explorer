@@ -2,8 +2,6 @@ import {
   faDownLeftAndUpRightToCenter,
   faExpand,
   faHexagonNodes,
-  faLock,
-  faLockOpen,
   faMinus,
   faPlus,
   faUpRightAndDownLeftFromCenter,
@@ -16,7 +14,7 @@ import {
   type FitViewOptions,
   type ViewportHelperFunctionOptions,
 } from "@xyflow/react";
-import { memo, useState } from "react";
+import { memo } from "react";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView";
 
 const defaultFitViewOptions: FitViewOptions = {
@@ -30,7 +28,6 @@ const defaultZoomOptions: ViewportHelperFunctionOptions = {
 };
 
 function ControlsComponent({
-  showInteractive = false,
   expandedView = false,
   fitViewOptions = defaultFitViewOptions,
   onExpandedViewChange,
@@ -44,14 +41,7 @@ function ControlsComponent({
   onInteractiveChange?: (change: boolean) => void;
   onLayout?: () => void;
 }) {
-  const [isInteractive, setIsInteractive] = useState(true);
-
   const { fitView, zoomIn, zoomOut } = useReactFlow();
-
-  const handleInteractiveChange = () => {
-    onInteractiveChange?.(!isInteractive);
-    setIsInteractive((prev) => !prev);
-  };
 
   const handleExpandedViewChange = () => {
     onExpandedViewChange?.(!expandedView);
@@ -85,18 +75,6 @@ function ControlsComponent({
       {onLayout !== undefined && (
         <ControlButton title="Layout" onClick={onLayout}>
           <FontAwesomeIcon icon={faHexagonNodes} fixedWidth />
-        </ControlButton>
-      )}
-
-      {showInteractive && (
-        <ControlButton
-          title="Toggle Interactivity"
-          onClick={handleInteractiveChange}
-        >
-          <FontAwesomeIcon
-            icon={isInteractive ? faLockOpen : faLock}
-            fixedWidth
-          />
         </ControlButton>
       )}
 

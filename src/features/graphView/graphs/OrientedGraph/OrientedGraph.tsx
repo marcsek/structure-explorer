@@ -4,18 +4,10 @@ import {
   type Edge,
   type EdgeChange,
   type OnConnect,
-  MarkerType,
   type IsValidConnection,
-  type DefaultEdgeOptions,
-  type EdgeTypes,
-  type NodeTypes,
-  type FitViewOptions,
   useReactFlow,
 } from "@xyflow/react";
 import { useCallback, useEffect, useRef } from "react";
-import PredicateNodeComponent from "../graphComponents/PredicateNode";
-import DirectEdge from "../graphComponents/DirectEdge";
-import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 import {
   graphDidInitialLayout,
   makeSelectNodes,
@@ -24,40 +16,21 @@ import {
   onNodesChanged,
   warningChanged,
 } from "../graphSlice.ts";
-import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import { computeLayoutOriented } from "./layout.ts";
-import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
-import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
+import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
-
-const connectionLineStyle = {
-  stroke: "#b1b1b7",
-};
-
-const nodeTypes: NodeTypes = {
-  predicate: PredicateNodeComponent,
-};
-
-const edgeTypes: EdgeTypes = {
-  direct: DirectEdge,
-  selfConnecting: SelfConnectingEdge,
-};
-
-const defaultEdgeOptions: DefaultEdgeOptions = {
-  type: "direct",
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-  },
-};
-
-const fitViewOptions: FitViewOptions = {
-  padding: "50px",
-  maxZoom: 1,
-};
+import {
+  defaultFitViewOptions,
+  defaultFlowProps,
+} from "../common/graphOptions.ts";
+import {
+  EmptyDomainMessageDialog,
+  ErrorMessageDialogBuilder,
+} from "../common/MessageDialogs.tsx";
 
 const nodeSelector = makeSelectNodes<"oriented">();
 
@@ -65,15 +38,9 @@ export default function OrientedGraph({
   id,
   name,
   locked,
-  expandedView = false,
+  expandedView,
   onExpandedViewChange,
-}: {
-  id: string;
-  name: string;
-  locked: boolean;
-  expandedView?: boolean;
-  onExpandedViewChange?: OnExpandedViewChange;
-}) {
+}: GraphComponentProps) {
   const type = "oriented";
   const flowWrapper = useRef<HTMLDivElement>(null);
 
@@ -106,7 +73,7 @@ export default function OrientedGraph({
   const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
   useEffect(() => {
-    requestAnimationFrame(() => fitView({ ...fitViewOptions }));
+    requestAnimationFrame(() => fitView({ ...defaultFitViewOptions }));
   }, [expandedView, fitView]);
 
   useEffect(() => {
@@ -115,7 +82,7 @@ export default function OrientedGraph({
   }, [historyIdx]);
 
   useComparatorEffect(() => {
-    if (!areAllInView()) fitView({ ...fitViewOptions, duration: 300 });
+    if (!areAllInView()) fitView({ ...defaultFitViewOptions, duration: 300 });
   }, [[storeNodes, (a, b) => a.id === b.id]]);
 
   const onEdgesChange = useCallback(
@@ -152,7 +119,7 @@ export default function OrientedGraph({
           dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
 
           if (fitAfter)
-            fitView({ ...fitViewOptions, duration: instant ? 0 : 300 });
+            fitView({ ...defaultFitViewOptions, duration: instant ? 0 : 300 });
 
           dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
         });
@@ -201,22 +168,12 @@ export default function OrientedGraph({
           onConnectEnd={onConnectEnd}
           onNodeDragStop={syncNodesWithStore}
           fitView
-          fitViewOptions={fitViewOptions}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          connectionLineComponent={CustomConnectionLine}
-          connectionLineStyle={connectionLineStyle}
+          fitViewOptions={defaultFitViewOptions}
           isValidConnection={isValidConnection}
-          proOptions={{ hideAttribution: true }}
-          nodesFocusable={false}
           nodesConnectable={!locked}
-          edgesFocusable={false}
-          edgesReconnectable={false}
-          connectOnClick={false}
           panOnDrag={nodes.length !== 0}
           zoomOnScroll={nodes.length !== 0}
-          minZoom={0.25}
+          {...defaultFlowProps}
         >
           <Background
             id={`bg-oriented-${id}-${expandedView ? "expanded" : ""}`}
@@ -227,17 +184,12 @@ export default function OrientedGraph({
             onLayout={onLayout}
           />
         </ReactFlow>
+
         {warning && (
-          <MessageDialog type="error" position="corner" body={warning} />
+          <ErrorMessageDialogBuilder body={warning} graphType="oriented" />
         )}
-        {nodes.length === 0 && (
-          <MessageDialog
-            type="info"
-            position="center"
-            title="No nodes to display"
-            body={"The domain you have selected is empty."}
-          />
-        )}
+
+        {nodes.length === 0 && <EmptyDomainMessageDialog />}
       </div>
     </>
   );

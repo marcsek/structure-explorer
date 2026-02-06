@@ -4,17 +4,19 @@ import { faInfoCircle, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import type { ReactNode } from "react";
 
+export interface MessageDialogProps {
+  type: "error" | "warning" | "info";
+  position: "center" | "corner";
+  title?: string;
+  body: ReactNode;
+}
+
 export default function MessageDialog({
   type,
   position,
   title,
   body,
-}: {
-  type: "error" | "warning" | "info";
-  position: "center" | "corner";
-  title?: string;
-  body: ReactNode;
-}) {
+}: MessageDialogProps) {
   return (
     <div className={`message-dialog-container ${type} ${position}`}>
       <div className="message-dialog shadow-sm">

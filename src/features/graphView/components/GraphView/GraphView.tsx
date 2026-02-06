@@ -12,20 +12,21 @@ import { useInstanceId } from "../../../../instanceIdContext.ts";
 import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
+import type { GraphType } from "../../graphs/plugins.ts";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
-type SelectedType = "oriented" | "hasse" | "bipartite";
+export interface GraphComponentProps {
+  id: string;
+  name: string;
+  locked: boolean;
+  expandedView?: boolean;
+  onExpandedViewChange?: OnExpandedViewChange;
+}
 
 const graphComponents: Record<
-  SelectedType,
-  React.ComponentType<{
-    id: string;
-    name: string;
-    locked: boolean;
-    expandedView?: boolean;
-    onExpandedViewChange?: OnExpandedViewChange;
-  }>
+  GraphType,
+  React.ComponentType<GraphComponentProps>
 > = {
   oriented: OrientedGraph,
   hasse: HasseDiagram,
@@ -41,9 +42,9 @@ export default function GraphView({
 }: {
   predName: string;
   locked: boolean;
-  graphType: SelectedType;
-  expandedView?: boolean;
-  onExpandedViewChange?: OnExpandedViewChange;
+  graphType: GraphType;
+  expandedView: boolean;
+  onExpandedViewChange: OnExpandedViewChange;
 }) {
   const dispatch = useAppDispatch();
   const instanceId = useInstanceId();

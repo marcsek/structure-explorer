@@ -5,10 +5,6 @@ import {
   type NodeChange,
   type EdgeChange,
   type OnConnect,
-  MarkerType,
-  type DefaultEdgeOptions,
-  type EdgeTypes,
-  type NodeTypes,
   applyNodeChanges,
   type NodePositionChange,
   type FitViewOptions,
@@ -24,11 +20,7 @@ import {
   useMemo,
   useRef,
 } from "react";
-import PredicateNodeComponent, {
-  type PredicateNodeType,
-} from "../graphComponents/PredicateNode";
-import DirectEdge from "../graphComponents/DirectEdge";
-import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
+import { type PredicateNodeType } from "../graphComponents/PredicateNode";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
   graphDidInitialLayout,
@@ -41,45 +33,24 @@ import {
   computeGroupContainerBounds,
   generateLayoutNodesChangesBipartite,
 } from "./layout.ts";
-import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import Controls from "../graphComponents/Controls.tsx";
 import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
 import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
-import MessageDialog from "../graphComponents/MessageDialog/MessageDialog.tsx";
-import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
-import SetGroupNode, {
-  type SetGroupNodeType,
-} from "../graphComponents/SetGroupNode.tsx";
+import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
+import { type SetGroupNodeType } from "../graphComponents/SetGroupNode.tsx";
 import { partition } from "../../helpers/utils.ts";
 import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
+import { defaultFlowProps } from "../common/graphOptions.ts";
+import {
+  EmptyDomainMessageDialog,
+  ErrorMessageDialogBuilder,
+} from "../common/MessageDialogs.tsx";
 
 export type OriginSet = "domain" | "range";
 
 export type BipartiteNodeType = PredicateNodeType<{
   origin: OriginSet;
 }>;
-
-const connectionLineStyle = {
-  stroke: "#b1b1b7",
-};
-
-const nodeTypes: NodeTypes = {
-  predicate: PredicateNodeComponent,
-  setGroup: SetGroupNode,
-};
-
-const edgeTypes: EdgeTypes = {
-  direct: DirectEdge,
-  selfConnecting: SelfConnectingEdge,
-};
-
-const defaultEdgeOptions: DefaultEdgeOptions = {
-  type: "direct",
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: "#b1b1b7",
-  },
-};
 
 const groupNodeOptions = {
   selectable: false,
@@ -101,78 +72,15 @@ const controlsFitViewOptions: FitViewOptions = {
   duration: 300,
 };
 
-const createGroupNode = (
-  originSet: OriginSet,
-  size: { width: number; height: number },
-  offset: { x: number; y: number },
-): SetGroupNodeType => {
-  return {
-    id: `${originSet}-group`,
-    position: offset,
-    ...size,
-    measured: size,
-    data: { label: originSet, origin: originSet },
-    className: `set-group-node origin-${originSet}`,
-    ...groupNodeOptions,
-  };
-};
-
-const generateNodeChangesWithLayout = (
-  changes: NodeChange<BipartiteNodeType>[],
-  nodes: BipartiteNodeType[],
-) => {
-  const newNodes = applyNodeChanges(changes, nodes);
-
-  const draggedNodeIds = changes
-    .filter(
-      (change): change is NodePositionChange =>
-        change.type === "position" && !!change.dragging,
-    )
-    .map((change) => change.id);
-
-  return generateLayoutNodesChangesBipartite(newNodes, draggedNodeIds);
-};
-
-const addGroupNodes = (nodes: BipartiteNodeType[]) => {
-  const { bounds, offset } = computeGroupContainerBounds(nodes);
-
-  if (nodes.length === 0) return [];
-
-  const domainGroup = createGroupNode("domain", bounds, {
-    ...offset,
-    x: -offset.x,
-  });
-  const rangeGroup = createGroupNode("range", bounds, offset);
-
-  const childNodes: BipartiteNodeType[] = nodes.map((node) => ({
-    ...node,
-    parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
-    extent: "parent",
-  }));
-
-  const [childrenDomain, childrenRange] = partition(
-    childNodes,
-    (n) => n.data.origin === "domain",
-  );
-
-  return [domainGroup, ...childrenDomain, rangeGroup, ...childrenRange];
-};
-
 const nodeSelector = makeSelectNodes<"bipartite">();
 
 export default function BipartiteGraph({
   id,
   name,
   locked,
-  expandedView = false,
+  expandedView,
   onExpandedViewChange,
-}: {
-  id: string;
-  name: string;
-  locked: boolean;
-  expandedView?: boolean;
-  onExpandedViewChange?: OnExpandedViewChange;
-}) {
+}: GraphComponentProps) {
   const type = "bipartite";
   const flowWrapper = useRef<HTMLDivElement>(null);
 
@@ -307,21 +215,11 @@ export default function BipartiteGraph({
           onConnect={onConnect}
           onConnectEnd={onConnectEnd}
           onNodeDragStop={syncNodesWithStore}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          connectionLineComponent={CustomConnectionLine}
-          connectionLineStyle={connectionLineStyle}
           isValidConnection={isValidConnection}
-          proOptions={{ hideAttribution: true }}
-          nodesFocusable={false}
           nodesConnectable={!locked}
-          edgesFocusable={false}
-          edgesReconnectable={false}
-          connectOnClick={false}
           panOnDrag={storeNodes.length !== 0}
           zoomOnScroll={storeNodes.length !== 0}
-          minZoom={0.25}
+          {...defaultFlowProps}
         >
           <Background
             id={`bg-bipartite-${id}-${expandedView ? "expanded" : ""}`}
@@ -332,18 +230,70 @@ export default function BipartiteGraph({
             onExpandedViewChange={onExpandedViewChange}
           />
         </ReactFlow>
+
         {warning && (
-          <MessageDialog type="error" position="corner" body={warning} />
+          <ErrorMessageDialogBuilder body={warning} graphType="bipartite" />
         )}
-        {storeNodes.length === 0 && (
-          <MessageDialog
-            type="info"
-            position="center"
-            title="No nodes to display"
-            body={"The domain you have selected is empty."}
-          />
-        )}
+
+        {storeNodes.length === 0 && <EmptyDomainMessageDialog />}
       </div>
     </>
   );
 }
+
+const createGroupNode = (
+  originSet: OriginSet,
+  size: { width: number; height: number },
+  offset: { x: number; y: number },
+): SetGroupNodeType => {
+  return {
+    id: `${originSet}-group`,
+    position: offset,
+    ...size,
+    measured: size,
+    data: { label: originSet, origin: originSet },
+    className: `set-group-node origin-${originSet}`,
+    ...groupNodeOptions,
+  };
+};
+
+const generateNodeChangesWithLayout = (
+  changes: NodeChange<BipartiteNodeType>[],
+  nodes: BipartiteNodeType[],
+) => {
+  const newNodes = applyNodeChanges(changes, nodes);
+
+  const draggedNodeIds = changes
+    .filter(
+      (change): change is NodePositionChange =>
+        change.type === "position" && !!change.dragging,
+    )
+    .map((change) => change.id);
+
+  return generateLayoutNodesChangesBipartite(newNodes, draggedNodeIds);
+};
+
+const addGroupNodes = (nodes: BipartiteNodeType[]) => {
+  const { bounds, offset } = computeGroupContainerBounds(nodes);
+
+  if (nodes.length === 0) return [];
+
+  const domainGroup = createGroupNode("domain", bounds, {
+    ...offset,
+    x: -offset.x,
+  });
+  const rangeGroup = createGroupNode("range", bounds, offset);
+
+  const childNodes: BipartiteNodeType[] = nodes.map((node) => ({
+    ...node,
+    parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
+    extent: "parent",
+  }));
+
+  const [childrenDomain, childrenRange] = partition(
+    childNodes,
+    (n) => n.data.origin === "domain",
+  );
+
+  return [domainGroup, ...childrenDomain, rangeGroup, ...childrenRange];
+};
