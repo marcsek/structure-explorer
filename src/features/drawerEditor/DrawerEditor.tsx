@@ -54,7 +54,9 @@ export default function DrawerEditor(props: DrawerEditorProps) {
         />
       </Modal>
 
-      <DrawerEditorContent setExpandedView={setExpandedView} {...props} />
+      {!expandedView && (
+        <DrawerEditorContent setExpandedView={setExpandedView} {...props} />
+      )}
     </>
   );
 }
@@ -139,7 +141,7 @@ function DrawerEditorContent({
               />
             ) : (
               <GraphView
-                predName={tupleName}
+                tupleName={tupleName}
                 graphType={type}
                 locked={locked}
                 expandedView={expandedView}

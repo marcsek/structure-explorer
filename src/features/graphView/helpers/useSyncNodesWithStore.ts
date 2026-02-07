@@ -22,9 +22,7 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
   const isDragging = useRef<boolean>(false);
 
   useLayoutEffect(() => {
-    if (!isDragging.current) {
-      setLocalNodes(null);
-    }
+    if (!isDragging.current) setLocalNodes(null);
   }, [storeNodes]);
 
   const onNodesChange = useCallback(
@@ -41,16 +39,13 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
         );
       }
 
-      const onlyDimensionChanges = otherChanges.every(
-        ({ type }) => type === "dimensions",
+      const nonUserChanges = otherChanges.every(
+        ({ type }) => type === "dimensions" || type === "replace",
       );
 
       if (otherChanges.length !== 0)
         dispatch(
-          onNodesChanged(
-            { id, type, changes },
-            { ignore: onlyDimensionChanges },
-          ),
+          onNodesChanged({ id, type, changes }, { ignore: nonUserChanges }),
         );
     },
     [dispatch, id, storeNodes, type],

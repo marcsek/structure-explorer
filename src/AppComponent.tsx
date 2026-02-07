@@ -11,12 +11,16 @@ import { type CellContext, LogicContext } from "./logicContext";
 import { useEffect, useRef } from "react";
 import { parseSerializedAppStateWithDefaults } from "./features/import/validationSchema";
 import { generateInstanceId, InstanceIdContext } from "./instanceIdContext";
-import { setError } from "./features/errorAlert/errorAlertSlice";
+import {
+  errorAlertSlice,
+  setError,
+} from "./features/errorAlert/errorAlertSlice";
 import { isAction, isAnyOf, type Middleware } from "@reduxjs/toolkit";
 import { editorToolbarSlice } from "./features/editorToolbar/editorToolbarSlice";
 import { graphManagerSlice } from "./features/graphView/graphs/graphSlice";
 import { UndoActions } from "./features/undoHistory/undoHistory";
 import { listenerShouldIgnore } from "./common/redux";
+import { formulasSlice } from "./features/formulas/formulasSlice";
 
 interface PrepareResult {
   instance: any;
@@ -29,6 +33,9 @@ const actionsToFilter = [
   graphManagerSlice.actions.graphDidInitialLayout,
   graphManagerSlice.actions.warningChanged,
   graphManagerSlice.actions.editorLocked,
+  errorAlertSlice.actions.clearError,
+  errorAlertSlice.actions.setError,
+  formulasSlice.actions.gameGoBack,
   UndoActions.checkpoint,
 ];
 

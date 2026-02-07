@@ -14,11 +14,11 @@ export const serializedEditorToolbarStateSchema = z
   .record(
     z.string(),
     z.object({
-      hoveredUnary: z.array(z.string()),
+      hoveredUnary: z.array(z.string()).optional(),
       selectedUnary: z.array(z.string()),
       selectedDomain: z.array(z.string()).optional(),
       unaryFilterDomain: z.boolean(),
-      unaryFilterHovered: z.boolean(),
+      unaryFilterHovered: z.boolean().optional(),
       openedEditor: z.enum(editorTypes),
     }),
   )

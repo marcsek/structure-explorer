@@ -18,9 +18,9 @@ export type OnExpandedViewChange = (change: boolean) => void;
 
 export interface GraphComponentProps {
   id: string;
-  name: string;
+  tupleName: string;
   locked: boolean;
-  expandedView?: boolean;
+  expandedView: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
 }
 
@@ -34,13 +34,13 @@ const graphComponents: Record<
 };
 
 export default function GraphView({
-  predName,
+  tupleName,
   locked,
-  graphType = "oriented",
-  expandedView = false,
+  graphType,
+  expandedView,
   onExpandedViewChange,
 }: {
-  predName: string;
+  tupleName: string;
   locked: boolean;
   graphType: GraphType;
   expandedView: boolean;
@@ -50,8 +50,8 @@ export default function GraphView({
   const instanceId = useInstanceId();
 
   useEffect(() => {
-    dispatch(editorLocked({ id: predName, locked }));
-  }, [dispatch, locked, predName]);
+    dispatch(editorLocked({ id: tupleName, locked }));
+  }, [dispatch, locked, tupleName]);
 
   const GraphComponent = graphComponents[graphType];
 
@@ -65,12 +65,12 @@ export default function GraphView({
       <GenerateMarker type="connection" />
 
       <div className="graphViewContainer">
-        <div className="graphViewItem" key={predName}>
-          <GraphInfoContext.Provider value={{ id: predName, type: graphType }}>
+        <div className="graphViewItem" key={tupleName}>
+          <GraphInfoContext.Provider value={{ id: tupleName, type: graphType }}>
             <ReactFlowProvider>
               <GraphComponent
-                id={`${graphType}-${predName}-${instanceId}`}
-                name={predName}
+                id={`${graphType}-${tupleName}-${instanceId}`}
+                tupleName={tupleName}
                 locked={locked}
                 expandedView={expandedView}
                 onExpandedViewChange={onExpandedViewChange}

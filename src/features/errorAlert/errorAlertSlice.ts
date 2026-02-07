@@ -10,7 +10,7 @@ const initialState: ErrorState = {
   errorKind: null,
 };
 
-const errorAlertSlice = createSlice({
+export const errorAlertSlice = createSlice({
   name: "errorAlert",
   initialState,
   reducers: {

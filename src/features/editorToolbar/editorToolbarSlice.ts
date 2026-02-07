@@ -35,7 +35,12 @@ export const editorToolbarSlice = createSlice({
       _,
       action: PayloadAction<SerializedEditorToolbarState>,
     ) {
-      return action.payload;
+      return Object.fromEntries(
+        Object.entries(action.payload).map(([key, value]) => [
+          key,
+          { ...value, hoveredUnary: [], unaryFilterHovered: false },
+        ]),
+      );
     },
 
     unaryPredicateToggled(
@@ -275,16 +280,17 @@ export const getRelevantEditorToolbarState = (
   editorToolbar: SerializedEditorToolbarState,
   relevantSymbols: RelevantSymbols,
 ): SerializedEditorToolbarState => {
-  const stateToExport: EditorToolbarState = {};
+  const stateToExport: SerializedEditorToolbarState = {};
 
   for (const [name, entry] of Object.entries(editorToolbar)) {
     if (!relevantSymbols[name] || relevantSymbols[name].type === "constant")
       continue;
 
     stateToExport[name] = {
-      ...entry,
-      hoveredUnary: [],
-      unaryFilterHovered: false,
+      openedEditor: entry.openedEditor,
+      selectedUnary: entry.selectedUnary,
+      unaryFilterDomain: entry.unaryFilterDomain,
+      selectedDomain: entry.selectedDomain,
     };
   }
 

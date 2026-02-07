@@ -7,7 +7,7 @@ import {
   type IsValidConnection,
   useReactFlow,
 } from "@xyflow/react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import {
   graphDidInitialLayout,
   makeSelectNodes,
@@ -18,12 +18,12 @@ import {
 } from "../graphSlice.ts";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
-import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
-import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
+
 import { computeLayoutOriented } from "./layout.ts";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
 import {
+  defaultFitViewDuration,
   defaultFitViewOptions,
   defaultFlowProps,
 } from "../common/graphOptions.ts";
@@ -31,81 +31,71 @@ import {
   EmptyDomainMessageDialog,
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
+import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 
+const type = "oriented";
 const nodeSelector = makeSelectNodes<"oriented">();
 
 export default function OrientedGraph({
   id,
-  name,
+  tupleName,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const type = "oriented";
-  const flowWrapper = useRef<HTMLDivElement>(null);
-
   const dispatch = useAppDispatch();
-  const storeNodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const storeNodes = useAppSelector((state) =>
+    nodeSelector(state, tupleName, type),
+  );
   const edges = useAppSelector(
-    (state) => state.present.graphView[name]?.state[type]?.edges,
+    (state) => state.present.graphView[tupleName]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.present.graphView[name]?.tupleType === "function",
+    (state) => state.present.graphView[tupleName]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.present.graphView[name]?.state[type]?.warning,
+    (state) => state.present.graphView[tupleName]?.state[type]?.warning,
   );
-
   const didLayout = useAppSelector(
-    (state) => state.present.graphView[name]?.state[type]?.didLayout,
+    (state) => state.present.graphView[tupleName]?.state[type]?.didLayout,
   );
-
-  const historyIdx = useAppSelector((state) => state.index);
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    id: name,
+    id: tupleName,
     type,
     storeNodes,
   });
 
   const { fitView } = useReactFlow();
-  //TODO: memoize
-  const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
-  useEffect(() => {
-    requestAnimationFrame(() => fitView({ ...defaultFitViewOptions }));
-  }, [expandedView, fitView]);
+  const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
   useEffect(() => {
     onLayout(true, true, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [historyIdx]);
-
-  useComparatorEffect(() => {
-    if (!areAllInView()) fitView({ ...defaultFitViewOptions, duration: 300 });
-  }, [[storeNodes, (a, b) => a.id === b.id]]);
+  }, []);
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id: name, type, changes })),
-    [name, dispatch],
+      dispatch(onEdgesChanged({ id: tupleName, type, changes })),
+    [tupleName, dispatch],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          id: name,
+          id: tupleName,
           type,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [name, dispatch, representsFunction],
+    [tupleName, dispatch, representsFunction],
   );
 
   const onLayout = useCallback(
-    (
+    async (
       fitAfter: boolean = true,
       instant: boolean = false,
       onlyIfNotMoved: boolean = false,
@@ -115,18 +105,20 @@ export default function OrientedGraph({
       );
 
       if (!onlyIfNotMoved || !nodesMoved) {
-        computeLayoutOriented(storeNodes, edges).then((nodeChanges) => {
-          dispatch(onNodesChanged({ id: name, type, changes: nodeChanges }));
+        const nodeChanges = await computeLayoutOriented(storeNodes, edges);
 
-          if (fitAfter)
-            fitView({ ...defaultFitViewOptions, duration: instant ? 0 : 300 });
+        dispatch(onNodesChanged({ id: tupleName, type, changes: nodeChanges }));
+      }
 
-          dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
+      if (fitAfter)
+        fitView({
+          ...defaultFitViewOptions,
+          duration: instant ? 0 : defaultFitViewDuration,
         });
-      } else
-        dispatch(graphDidInitialLayout({ id: name, type, didLayout: true }));
+
+      dispatch(graphDidInitialLayout({ id: tupleName, type, didLayout: true }));
     },
-    [storeNodes, edges, dispatch, name, fitView],
+    [storeNodes, edges, dispatch, tupleName, fitView],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -140,57 +132,50 @@ export default function OrientedGraph({
 
       if (duplicateEdges)
         dispatch(
-          warningChanged({ id: name, type, warning: "Edge already exists." }),
+          warningChanged({
+            id: tupleName,
+            type,
+            warning: "Edge already exists.",
+          }),
         );
 
       return !duplicateEdges;
     },
-    [dispatch, edges, name],
+    [dispatch, edges, tupleName],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id: name, type, warning: undefined }));
-  }, [dispatch, name]);
+    dispatch(warningChanged({ id: tupleName, type, warning: undefined }));
+  }, [dispatch, tupleName]);
 
   return (
-    <>
-      <div
-        style={{ width: "100%", flexGrow: 1, position: "relative" }}
-        ref={flowWrapper}
+    <div className="react-flow__container" ref={flowWrapperRef}>
+      <ReactFlow
+        id={id}
+        nodes={didLayout ? nodes : []}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
+        onNodeDragStop={syncNodesWithStore}
+        isValidConnection={isValidConnection}
+        nodesConnectable={!locked}
+        panOnDrag={nodes.length !== 0}
+        zoomOnScroll={nodes.length !== 0}
+        {...defaultFlowProps}
       >
-        <ReactFlow
-          id={id}
-          nodes={didLayout ? nodes : []}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onConnectEnd={onConnectEnd}
-          onNodeDragStop={syncNodesWithStore}
-          fitView
-          fitViewOptions={defaultFitViewOptions}
-          isValidConnection={isValidConnection}
-          nodesConnectable={!locked}
-          panOnDrag={nodes.length !== 0}
-          zoomOnScroll={nodes.length !== 0}
-          {...defaultFlowProps}
-        >
-          <Background
-            id={`bg-oriented-${id}-${expandedView ? "expanded" : ""}`}
-          />
-          <Controls
-            expandedView={expandedView}
-            onExpandedViewChange={onExpandedViewChange}
-            onLayout={onLayout}
-          />
-        </ReactFlow>
+        <Background id={`bg-${type}-${id}-${expandedView ? "expanded" : ""}`} />
+        <Controls
+          expandedView={expandedView}
+          onExpandedViewChange={onExpandedViewChange}
+          onLayout={onLayout}
+        />
+      </ReactFlow>
 
-        {warning && (
-          <ErrorMessageDialogBuilder body={warning} graphType="oriented" />
-        )}
+      {warning && <ErrorMessageDialogBuilder body={warning} graphType={type} />}
 
-        {nodes.length === 0 && <EmptyDomainMessageDialog />}
-      </div>
-    </>
+      {nodes.length === 0 && <EmptyDomainMessageDialog />}
+    </div>
   );
 }

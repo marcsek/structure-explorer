@@ -41,6 +41,8 @@ export const defaultFitViewOptions: FitViewOptions = {
   maxZoom: 1,
 };
 
+export const defaultFitViewDuration = 300;
+
 export const defaultFlowProps: ReactFlowProps<
   PredicateNodeType,
   DirectEdgeType
@@ -48,6 +50,8 @@ export const defaultFlowProps: ReactFlowProps<
   nodeTypes,
   edgeTypes,
   defaultEdgeOptions,
+  fitView: true,
+  fitViewOptions: defaultFitViewOptions,
   connectionLineComponent: CustomConnectionLine,
   connectionLineStyle,
   proOptions: { hideAttribution: true },

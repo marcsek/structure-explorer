@@ -33,8 +33,9 @@ export default function CustomConnectionLine({
   const marker = isValid ? "url(#connection-marker)" : "";
 
   useEffect(() => {
-    if (!connection.toHandle?.id || connection.isValid)
+    if (!connection.toHandle?.id || connection.isValid) {
       dispatch(warningChanged({ ...parentInfo, warning: undefined }));
+    }
   }, [connection.toHandle?.id, connection.isValid, dispatch, parentInfo]);
 
   return (

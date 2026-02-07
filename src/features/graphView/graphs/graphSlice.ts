@@ -332,6 +332,8 @@ export const selectRelevantUnaryPreds = createSelector(
 export const selectPosetValidity = createSelector(
   [(state: RootState, id: string) => state.present.graphView[id]?.state.hasse],
   (graphState) => {
+    if (!graphState) return true;
+
     const nodes = graphState.nodes.map((node) => node.id);
 
     const vissibleRelation = edgesToRelation(

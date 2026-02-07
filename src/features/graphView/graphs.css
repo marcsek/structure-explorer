@@ -20,12 +20,10 @@
   --xy-edge-stroke-width-default: 1.5px;
 }
 
-.react-flow.dark {
-  --xy-node-boxshadow-default:
-    0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.05),
-    0px 3.54px 4.55px 0px rgba(255, 255, 255, 0.13),
-    0px 0.51px 1.01px 0px rgba(255, 255, 255, 0.2);
-  --xy-theme-color-focus: #535353;
+.react-flow__container {
+  width: 100%;
+  flex-grow: 1;
+  position: relative;
 }
 
 .react-flow__node {

@@ -13,13 +13,7 @@ import {
   type Node,
   useNodesInitialized,
 } from "@xyflow/react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { type PredicateNodeType } from "../graphComponents/PredicateNode";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
@@ -34,17 +28,19 @@ import {
   generateLayoutNodesChangesBipartite,
 } from "./layout.ts";
 import Controls from "../graphComponents/Controls.tsx";
-import { useComparatorEffect } from "../../helpers/useComparatorEffect.ts";
-import { useAreAllNodesInView } from "../../helpers/useAreAllNodesInView.ts";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import { type SetGroupNodeType } from "../graphComponents/SetGroupNode.tsx";
 import { partition } from "../../helpers/utils.ts";
 import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
-import { defaultFlowProps } from "../common/graphOptions.ts";
+import {
+  defaultFitViewDuration,
+  defaultFlowProps,
+} from "../common/graphOptions.ts";
 import {
   EmptyDomainMessageDialog,
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
+import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 
 export type OriginSet = "domain" | "range";
 
@@ -69,60 +65,52 @@ const fitViewOptions: FitViewOptions = {
 const controlsFitViewOptions: FitViewOptions = {
   ...fitViewOptions,
   maxZoom: 1,
-  duration: 300,
+  duration: defaultFitViewDuration,
 };
 
+const type = "bipartite";
 const nodeSelector = makeSelectNodes<"bipartite">();
 
 export default function BipartiteGraph({
   id,
-  name,
+  tupleName,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const type = "bipartite";
-  const flowWrapper = useRef<HTMLDivElement>(null);
-
   const dispatch = useAppDispatch();
-  const storeNodes = useAppSelector((state) => nodeSelector(state, name, type));
+  const storeNodes = useAppSelector((state) =>
+    nodeSelector(state, tupleName, type),
+  );
   const edges = useAppSelector(
-    (state) => state.present.graphView[name]?.state[type]?.edges,
+    (state) => state.present.graphView[tupleName]?.state[type]?.edges,
   );
   const representsFunction = useAppSelector(
-    (state) => state.present.graphView[name]?.tupleType === "function",
+    (state) => state.present.graphView[tupleName]?.tupleType === "function",
   );
   const warning = useAppSelector(
-    (state) => state.present.graphView[name]?.state[type]?.warning,
+    (state) => state.present.graphView[tupleName]?.state[type]?.warning,
   );
+
   const nodesInitialized = useNodesInitialized();
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    id: name,
+    id: tupleName,
     type,
     storeNodes,
   });
 
   const { getNode, fitView } = useReactFlow();
-  const areAllInView = useAreAllNodesInView(flowWrapper.current);
 
-  useComparatorEffect(() => {
-    if (!areAllInView()) fitView({ ...fitViewOptions, duration: 450 });
-  }, [[storeNodes, (a, b) => a.id === b.id]]);
+  const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
   useEffect(() => {
-    graphDidInitialLayout({ id: name, type, didLayout: true });
-  }, [name]);
+    dispatch(graphDidInitialLayout({ id: tupleName, type, didLayout: true }));
+  }, [dispatch, tupleName]);
 
   useLayoutEffect(() => {
-    if (nodesInitialized) {
-      fitView(fitViewOptions);
-    }
+    if (nodesInitialized) fitView({ ...fitViewOptions });
   }, [fitView, nodesInitialized]);
-
-  useEffect(() => {
-    requestAnimationFrame(() => fitView({ ...fitViewOptions }));
-  }, [expandedView, fitView]);
 
   const groupedNodes = useMemo(() => addGroupNodes(nodes), [nodes]);
 
@@ -149,21 +137,21 @@ export default function BipartiteGraph({
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id: name, type, changes })),
-    [name, dispatch],
+      dispatch(onEdgesChanged({ id: tupleName, type, changes })),
+    [tupleName, dispatch],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          id: name,
+          id: tupleName,
           type,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [name, dispatch, representsFunction],
+    [tupleName, dispatch, representsFunction],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -179,12 +167,16 @@ export default function BipartiteGraph({
 
       if (duplicateEdge)
         dispatch(
-          warningChanged({ id: name, type, warning: "Edge already exists." }),
+          warningChanged({
+            id: tupleName,
+            type,
+            warning: "Edge already exists.",
+          }),
         );
       else if (identicalOrigin) {
         dispatch(
           warningChanged({
-            id: name,
+            id: tupleName,
             type,
             warning: "Only edges from domain to range nodes are valid.",
           }),
@@ -193,51 +185,42 @@ export default function BipartiteGraph({
 
       return !duplicateEdge && !identicalOrigin;
     },
-    [dispatch, edges, getNode, name],
+    [dispatch, edges, getNode, tupleName],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id: name, type, warning: undefined }));
-  }, [dispatch, name]);
+    dispatch(warningChanged({ id: tupleName, type, warning: undefined }));
+  }, [dispatch, tupleName]);
 
   return (
-    <>
-      <div
-        style={{ width: "100%", flexGrow: 1, position: "relative" }}
-        ref={flowWrapper}
+    <div className="react-flow__container" ref={flowWrapperRef}>
+      <ReactFlow
+        id={tupleName}
+        nodes={groupedNodes}
+        edges={edges}
+        onNodesChange={computeLayoutChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onConnectEnd={onConnectEnd}
+        onNodeDragStop={syncNodesWithStore}
+        isValidConnection={isValidConnection}
+        nodesConnectable={!locked}
+        panOnDrag={storeNodes.length !== 0}
+        zoomOnScroll={storeNodes.length !== 0}
+        {...defaultFlowProps}
       >
-        <ReactFlow
-          id={name}
-          nodes={groupedNodes}
-          edges={edges}
-          onNodesChange={computeLayoutChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onConnectEnd={onConnectEnd}
-          onNodeDragStop={syncNodesWithStore}
-          isValidConnection={isValidConnection}
-          nodesConnectable={!locked}
-          panOnDrag={storeNodes.length !== 0}
-          zoomOnScroll={storeNodes.length !== 0}
-          {...defaultFlowProps}
-        >
-          <Background
-            id={`bg-bipartite-${id}-${expandedView ? "expanded" : ""}`}
-          />
-          <Controls
-            expandedView={expandedView}
-            fitViewOptions={controlsFitViewOptions}
-            onExpandedViewChange={onExpandedViewChange}
-          />
-        </ReactFlow>
+        <Background id={`bg-${type}-${id}-${expandedView ? "expanded" : ""}`} />
+        <Controls
+          expandedView={expandedView}
+          fitViewOptions={controlsFitViewOptions}
+          onExpandedViewChange={onExpandedViewChange}
+        />
+      </ReactFlow>
 
-        {warning && (
-          <ErrorMessageDialogBuilder body={warning} graphType="bipartite" />
-        )}
+      {warning && <ErrorMessageDialogBuilder body={warning} graphType={type} />}
 
-        {storeNodes.length === 0 && <EmptyDomainMessageDialog />}
-      </div>
-    </>
+      {storeNodes.length === 0 && <EmptyDomainMessageDialog />}
+    </div>
   );
 }
 
