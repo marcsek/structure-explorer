@@ -6,7 +6,7 @@ import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
 import LockButton from "./LockButton";
 import type { InterpretationError } from "../common/errors";
 import { useDispatch } from "react-redux";
-import { UndoActions } from "../features/undoHistory/undoHistory";
+import { textViewCheckpoint } from "../features/textView/textViewSlice";
 
 interface Props {
   label: string;
@@ -63,9 +63,7 @@ export default function InputGroupTitle({
           id={`${id}-${label.toLowerCase()}`}
           isInvalid={!!error}
           disabled={disabledOverride || lockChecker}
-          onBlur={() =>
-            createHistoryOnBlur && dispatch(UndoActions.checkpoint())
-          }
+          onBlur={() => createHistoryOnBlur && dispatch(textViewCheckpoint())}
         />
 
         {suffix && (

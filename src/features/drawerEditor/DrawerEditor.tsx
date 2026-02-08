@@ -18,6 +18,7 @@ import {
   type TupleType,
 } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
+import { usePreservedSize, type Size } from "./usePreservedSize";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -54,20 +55,24 @@ export default function DrawerEditor(props: DrawerEditorProps) {
         />
       </Modal>
 
-      {!expandedView && (
-        <DrawerEditorContent setExpandedView={setExpandedView} {...props} />
-      )}
+      <DrawerEditorContent
+        setExpandedView={setExpandedView}
+        show={!expandedView}
+        {...props}
+      />
     </>
   );
 }
 
 interface DrawerEditorContentProps extends DrawerEditorProps {
   expandedView?: boolean;
+  show?: boolean;
   setExpandedView: (value: boolean) => void;
 }
 
 function DrawerEditorContent({
   expandedView = false,
+  show = true,
   setExpandedView,
   tupleName,
   tupleArity,
@@ -80,78 +85,83 @@ function DrawerEditorContent({
   error,
 }: DrawerEditorContentProps) {
   const dispatch = useAppDispatch();
+  const { ref: preservedSizeRef, size: preservedSize } =
+    usePreservedSize<HTMLDivElement>();
+
+  const editorComponent = !show ? (
+    <InactiveViewPlaceholder size={preservedSize} />
+  ) : type === "matrix" ? (
+    <MatrixView
+      tupleName={tupleName}
+      tupleArity={tupleArity}
+      tupleType={tupleType}
+      locked={locked}
+    />
+  ) : type === "database" ? (
+    <DatabaseView
+      tupleName={tupleName}
+      tupleArity={tupleArity}
+      tupleType={tupleType}
+      locked={locked}
+    />
+  ) : (
+    <GraphView
+      tupleName={tupleName}
+      graphType={type}
+      locked={locked}
+      expandedView={expandedView}
+      onExpandedViewChange={(expanded) => setExpandedView(expanded)}
+    />
+  );
 
   return (
-    <>
-      <Stack
-        className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
-      >
-        <div className="drawer-editor-header">
-          <Stack direction="horizontal">
-            <EditorTitle base={tupleDisplayName} editor={editorDisplayName} />
-            <Stack
-              direction="horizontal"
-              className="drawer-editor-header-control-group"
-            >
-              {buildControlButtons(
-                expandedView ? ["text", "matrix", "database"] : undefined,
-              )}
-              {expandedView && (
-                <CloseButton onClick={() => setExpandedView(false)} />
-              )}
-            </Stack>
-          </Stack>
-        </div>
-
-        <Stack className="drawer-editor-container-body">
-          {type !== "database" && (
-            <div className="drawer-editor-toolbar-container">
-              <EditorToolbar id={tupleName} />
-            </div>
-          )}
-
-          {error && (
-            <EditorError
-              error={error}
-              onRemoveInvalidClick={() => {
-                dispatch(
-                  removeInvalidEntries({ key: tupleName, type: tupleType }),
-                );
-                dispatch(UndoActions.checkpoint());
-              }}
-            />
-          )}
-
-          <div
-            className={`drawer-editor-view-container ${error ? "error" : ""}`}
+    <Stack
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
+    >
+      <div className="drawer-editor-header">
+        <Stack direction="horizontal">
+          <EditorTitle base={tupleDisplayName} editor={editorDisplayName} />
+          <Stack
+            direction="horizontal"
+            className="drawer-editor-header-control-group"
           >
-            {type === "matrix" ? (
-              <MatrixView
-                tupleName={tupleName}
-                tupleArity={tupleArity}
-                tupleType={tupleType}
-                locked={locked}
-              />
-            ) : type === "database" ? (
-              <DatabaseView
-                tupleName={tupleName}
-                tupleArity={tupleArity}
-                tupleType={tupleType}
-                locked={locked}
-              />
-            ) : (
-              <GraphView
-                tupleName={tupleName}
-                graphType={type}
-                locked={locked}
-                expandedView={expandedView}
-                onExpandedViewChange={(expanded) => setExpandedView(expanded)}
-              />
+            {buildControlButtons(
+              expandedView ? ["text", "matrix", "database"] : undefined,
             )}
-          </div>
+            {expandedView && (
+              <CloseButton onClick={() => setExpandedView(false)} />
+            )}
+          </Stack>
         </Stack>
+      </div>
+
+      <Stack className="drawer-editor-container-body">
+        {type !== "database" && (
+          <div className="drawer-editor-toolbar-container">
+            <EditorToolbar id={tupleName} />
+          </div>
+        )}
+
+        {error && (
+          <EditorError
+            error={error}
+            onRemoveInvalidClick={() => {
+              dispatch(
+                removeInvalidEntries({ key: tupleName, type: tupleType }),
+              );
+              dispatch(UndoActions.checkpoint());
+            }}
+          />
+        )}
+
+        <div
+          ref={preservedSizeRef}
+          className={`drawer-editor-view-container ${error ? "error" : ""}`}
+        >
+          {editorComponent}
+        </div>
       </Stack>
-    </>
+    </Stack>
   );
 }
 
@@ -201,6 +211,21 @@ function EditorTitle({ base, editor }: EditorTitleProps) {
       <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
         {editor}
       </span>
+    </Stack>
+  );
+}
+
+interface InactiveViewPlaceholderProps {
+  size: Size | null;
+}
+
+function InactiveViewPlaceholder({ size }: InactiveViewPlaceholderProps) {
+  return (
+    <Stack
+      className="align-items-center justify-content-center"
+      style={{ height: size?.height ?? 0 }}
+    >
+      Fullscreen view is enabled
     </Stack>
   );
 }

@@ -1,4 +1,4 @@
-.empty_placeholder_container {
+.empty-placeholder-container {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -8,7 +8,7 @@
   color: var(--bs-secondary-color);
 }
 
-.empty_placeholder_container_text {
+.empty-placeholder-container-text {
   margin: 0;
   font-weight: 500;
   user-select: none;

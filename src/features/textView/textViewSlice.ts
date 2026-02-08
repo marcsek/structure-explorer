@@ -14,6 +14,7 @@ import {
 } from "./textViews";
 import type { SyntaxError } from "../../common/errors";
 import { dev } from "../../common/logging";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export interface TextViewEntry {
   type: TextViewType;
@@ -106,6 +107,23 @@ export const updateTextView = ({
     dispatch(updateActionByTextType(type, key, parsed));
     dev.timeEnd(`Duration of ${key} text parent state update`);
   };
+};
+
+export const textViewCheckpoint = (): AppThunk => (dispatch, getState) => {
+  const currentTextView = getState().present.textView;
+  const previousTextView = getState()._latestUnfiltered?.textView;
+
+  if (!previousTextView) {
+    dispatch(UndoActions.checkpoint());
+    return;
+  }
+
+  for (const key in currentTextView) {
+    if (currentTextView[key].value !== previousTextView[key].value) {
+      dispatch(UndoActions.checkpoint());
+      return;
+    }
+  }
 };
 
 export const selectValidatedTextView = createSelector(
