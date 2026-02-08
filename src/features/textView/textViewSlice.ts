@@ -119,7 +119,7 @@ export const textViewCheckpoint = (): AppThunk => (dispatch, getState) => {
   }
 
   for (const key in currentTextView) {
-    if (currentTextView[key].value !== previousTextView[key].value) {
+    if (currentTextView[key].value !== previousTextView[key]?.value) {
       dispatch(UndoActions.checkpoint());
       return;
     }

@@ -1,6 +1,6 @@
 import "./DomainSelector.css";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
 import {
@@ -16,6 +16,7 @@ import {
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import useClickAwayListener from "./useClickAwayListener";
 
 export interface DomainSelectorProps {
   id: string;
@@ -23,33 +24,20 @@ export interface DomainSelectorProps {
 
 export default function DomainSelector({ id }: DomainSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector((state) =>
     selectSelectedDomain(state, id),
   );
+  const onClickOutside = useCallback(() => setIsOpen(false), []);
+
+  const clickAwayRef = useClickAwayListener<HTMLDivElement>({
+    onClickOutside,
+    shouldListen: isOpen,
+  });
 
   const activeFilters = domain.length !== selectedNodes.length;
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("pointerdown", handleClickOutside);
-    } else {
-      document.removeEventListener("pointerdown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("pointerdown", handleClickOutside);
-    };
-  }, [isOpen]);
 
   const toggleItem = (element: string = "") =>
     dispatch(nodeToggled({ id, domain, node: element }));
@@ -57,7 +45,7 @@ export default function DomainSelector({ id }: DomainSelectorProps) {
   return (
     <div
       className={`domain-selector ${activeFilters ? "active" : ""}`}
-      ref={ref}
+      ref={clickAwayRef}
     >
       <Button
         className={`domain-selector-toggle editor-toolbar-button ${activeFilters ? "active" : ""}`}

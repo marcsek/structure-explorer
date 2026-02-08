@@ -12,6 +12,7 @@ import {
   selectIfLock,
 } from "./structureSlice";
 import {
+  selectSymbolsClash,
   selectValidatedConstants,
   selectValidatedFunctions,
   selectValidatedPredicates,
@@ -37,6 +38,7 @@ export default function StructureComponent() {
   const constants = useAppSelector(selectValidatedConstants);
   const predicates = useAppSelector(selectValidatedPredicates);
   const functions = useAppSelector(selectValidatedFunctions);
+  const symbolsClash = useAppSelector(selectSymbolsClash);
 
   return (
     <ComponentCard
@@ -64,7 +66,7 @@ export default function StructureComponent() {
           error={domainTextView.error}
         />
 
-        {!constants.error && constants.parsed.size > 0 && (
+        {!symbolsClash && !constants.error && constants.parsed.size > 0 && (
           <div className="structure-component-section">
             <h6 className="fw-normal">Constants interpretation</h6>
 
@@ -85,7 +87,7 @@ export default function StructureComponent() {
           </div>
         )}
 
-        {!predicates.error && predicates.parsed.size > 0 && (
+        {!symbolsClash && !predicates.error && predicates.parsed.size > 0 && (
           <div className="structure-component-section">
             <h6 className="fw-normal">Predicates interpretation</h6>
 
@@ -117,7 +119,7 @@ export default function StructureComponent() {
           </div>
         )}
 
-        {!functions.error && functions.parsed.size > 0 && (
+        {!symbolsClash && !functions.error && functions.parsed.size > 0 && (
           <div className="structure-component-section">
             <h3 className="h6 fw-normal">Functions interpretation</h3>
 

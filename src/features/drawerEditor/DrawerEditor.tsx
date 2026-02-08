@@ -18,7 +18,7 @@ import {
   type TupleType,
 } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
-import { usePreservedSize, type Size } from "./usePreservedSize";
+import usePreservedSize, { type Size } from "./usePreservedSize";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -222,7 +222,7 @@ interface InactiveViewPlaceholderProps {
 function InactiveViewPlaceholder({ size }: InactiveViewPlaceholderProps) {
   return (
     <Stack
-      className="align-items-center justify-content-center"
+      className="align-items-center justify-content-center user-select-none"
       style={{ height: size?.height ?? 0 }}
     >
       Fullscreen view is enabled

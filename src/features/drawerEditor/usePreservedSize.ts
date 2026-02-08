@@ -5,7 +5,7 @@ export type Size = {
   height: number;
 };
 
-export function usePreservedSize<T extends HTMLElement>() {
+export default function usePreservedSize<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const sizeRef = useRef<Size | null>(null);
 

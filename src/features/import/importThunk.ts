@@ -81,6 +81,7 @@ export const importAppState =
         structure,
         language,
         positions: importedState.graphView,
+        overwrite: true,
       }),
     );
 

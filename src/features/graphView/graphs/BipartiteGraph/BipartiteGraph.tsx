@@ -125,7 +125,7 @@ export default function BipartiteGraph({
         (ch) => ch.type === "dimensions",
       );
 
-      // We don't need to layout on only dimension changes
+      // No need to layout on only dimension changes
       const layoutChanges = onlyDimensionChanges
         ? []
         : generateNodeChangesWithLayout(bipartiteNodeChanges, nodes);

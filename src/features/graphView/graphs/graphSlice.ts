@@ -121,15 +121,24 @@ export const graphManagerSlice = createSlice({
     },
 
     syncGraphView(
-      _,
+      state,
       action: PayloadAction<{
         structure: StructureState;
         language: LanguageState;
         positions?: SerializedGraphViewState;
+        overwrite?: boolean;
       }>,
     ) {
-      const { structure, language, positions } = action.payload;
-      const newState: GraphManagerState = {};
+      dev.time("Graph synchronization duration");
+
+      const {
+        structure,
+        language,
+        positions,
+        overwrite = false,
+      } = action.payload;
+
+      const newState: GraphManagerState = overwrite ? {} : state;
 
       const domain = structure.domain.value;
       const preds = language.predicates.value;
@@ -141,8 +150,10 @@ export const graphManagerSlice = createSlice({
         ...funcs.map((func) => [...func, "function"] as const),
       ];
 
-      tuples.forEach(([name, artity, type]) => {
-        if (artity !== 2 && (type !== "function" || artity !== 1)) return;
+      tuples.forEach(([name, arity, type]) => {
+        const correctedArity = type === "function" ? arity + 1 : arity;
+
+        if (correctedArity !== 2 || name in newState) return;
 
         const tuple = {
           name,
@@ -176,49 +187,24 @@ export const graphManagerSlice = createSlice({
         };
       });
 
+      dev.timeEnd("Graph synchronization duration");
+
+      if (!overwrite) {
+        const newTupleNames = [
+          ...preds.map(([name]) => ({ name, kind: "predicate" as const })),
+          ...funcs.map(([name]) => ({ name, kind: "function" as const })),
+        ];
+
+        for (const [key, { tupleType }] of Object.entries(newState)) {
+          const isLeftover = !newTupleNames.find(
+            ({ name, kind }) => name === key && kind === tupleType,
+          );
+
+          if (isLeftover) delete newState[key];
+        }
+      }
+
       return newState;
-    },
-
-    tuplesChanged(
-      state,
-      action: PayloadAction<{
-        domain: string[];
-        preds: [string, number][];
-        funcs: [string, number][];
-        tupleIntr: Record<string, string[][]>;
-      }>,
-    ) {
-      const { domain, preds, funcs, tupleIntr } = action.payload;
-      dev.time(`Graph of plugins initialization duration`);
-
-      const tuples = [
-        ...preds.map((pred) => [...pred, "predicate"] as const),
-        ...funcs.map((func) => [...func, "function"] as const),
-      ];
-
-      tuples.forEach(([name, arity, type]) => {
-        const correctedArity = type === "function" ? arity + 1 : arity;
-
-        if (correctedArity !== 2 || name in state) return;
-
-        const tuple = {
-          name,
-          intr: [...(tupleIntr[name] ?? [])] as BinaryRelation<string>,
-        };
-
-        state[name] = {
-          tupleType: type,
-          state: {
-            oriented: plugins.oriented.init(domain, tuple, type),
-            hasse: plugins.hasse.init(domain, tuple, type),
-            bipartite: plugins.bipartite.init(domain, tuple, type),
-          },
-        };
-      });
-
-      const tupleNames = [...preds, ...funcs].map((tuple) => tuple[0]);
-      for (const key in state) if (!tupleNames.includes(key)) delete state[key];
-      dev.timeEnd(`Graph of plugins initialization duration`);
     },
 
     editorLocked(
@@ -596,7 +582,6 @@ export const {
   setEdges,
   edgeAdded,
   onNodesChanged,
-  tuplesChanged,
   editorLocked,
   warningChanged,
   syncGraphView,
