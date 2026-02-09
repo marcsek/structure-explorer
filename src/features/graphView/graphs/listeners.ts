@@ -22,11 +22,9 @@ graphSliceListener.startListening({
     const symbolsClash = selectSymbolsClash(state);
     const { language, structure } = api.getState().present;
 
-    dev.log("GRAPHS", symbolsClash, api.getState().present);
     if (!parsedPredicates.error && !parsedFuncs.error && !symbolsClash) {
       dev.time("Graph initialization duration");
 
-      dev.log("SYNC");
       api.dispatch(syncGraphView({ structure, language }));
 
       dev.timeEnd("Graph initialization duration");

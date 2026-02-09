@@ -57,7 +57,8 @@ function PredicateNode({
   };
 
   const createSelfEdge = () => {
-    if (parentInfo.type === "bipartite" || data.leftover || data.ghost) return;
+    if (parentInfo.graphType === "bipartite" || data.leftover || data.ghost)
+      return;
 
     dispatch(
       onConnected({
@@ -143,7 +144,7 @@ function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewedPreds] = useAppSelector((state) =>
-    selectPredicatesToDisplay(state, parentInfo.id, domainId),
+    selectPredicatesToDisplay(state, parentInfo.tupleName, domainId),
   );
 
   return (

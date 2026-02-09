@@ -9,6 +9,7 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect } from "react";
 import {
+  getTupleId,
   graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
@@ -35,33 +36,37 @@ import {
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 
-const type = "hasse";
+const graphType = "hasse";
 const nodeSelector = makeSelectNodes<"hasse">();
 
 export default function HasseDiagram({
   id,
   tupleName,
+  tupleType,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
+  const tupleId = getTupleId(tupleType, tupleName);
+
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, type),
+    nodeSelector(state, tupleName, graphType, tupleType),
   );
   const edges = useAppSelector((state) =>
-    selectEdges(state, tupleName, type, true),
+    selectEdges(state, tupleName, graphType, tupleType, true),
   );
   const warning = useAppSelector(
-    (state) => state.present.graphView[tupleName]?.state[type]?.warning,
+    (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,
   );
   const isPoset = useAppSelector((state) =>
-    selectPosetValidity(state, tupleName),
+    selectPosetValidity(state, tupleName, tupleType),
   );
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    id: tupleName,
-    type,
+    tupleName,
+    graphType,
+    tupleType,
     storeNodes,
   });
 
@@ -76,13 +81,14 @@ export default function HasseDiagram({
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ id: tupleName, type, changes })),
-    [tupleName, dispatch],
+      dispatch(onEdgesChanged({ tupleName, graphType, tupleType, changes })),
+    [dispatch, tupleName, tupleType],
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) => dispatch(onConnected({ id: tupleName, type, connection })),
-    [tupleName, dispatch],
+    (connection) =>
+      dispatch(onConnected({ tupleName, graphType, tupleType, connection })),
+    [dispatch, tupleName, tupleType],
   );
 
   const onLayout = useCallback(
@@ -97,7 +103,14 @@ export default function HasseDiagram({
 
       if (!onlyIfNotMoved || !nodesMoved) {
         const { nodeChanges } = computeLayoutHasse(storeNodes, edges);
-        dispatch(onNodesChanged({ id: tupleName, type, changes: nodeChanges }));
+        dispatch(
+          onNodesChanged({
+            tupleName,
+            graphType,
+            tupleType,
+            changes: nodeChanges,
+          }),
+        );
       }
 
       if (fitAfter)
@@ -106,9 +119,16 @@ export default function HasseDiagram({
           duration: instant ? 0 : defaultFitViewDuration,
         });
 
-      dispatch(graphDidInitialLayout({ id: tupleName, type, didLayout: true }));
+      dispatch(
+        graphDidInitialLayout({
+          tupleName,
+          graphType,
+          tupleType,
+          didLayout: true,
+        }),
+      );
     },
-    [storeNodes, edges, dispatch, tupleName, fitView],
+    [storeNodes, fitView, dispatch, tupleName, tupleType, edges],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -123,16 +143,30 @@ export default function HasseDiagram({
       ]);
 
       if (!ok)
-        dispatch(warningChanged({ id: tupleName, type, warning: error }));
+        dispatch(
+          warningChanged({
+            tupleName,
+            graphType,
+            tupleType,
+            warning: error,
+          }),
+        );
 
       return ok;
     },
-    [dispatch, edges, tupleName],
+    [dispatch, edges, tupleName, tupleType],
   );
 
   const onConnectEnd = useCallback(() => {
-    dispatch(warningChanged({ id: tupleName, type, warning: undefined }));
-  }, [dispatch, tupleName]);
+    dispatch(
+      warningChanged({
+        tupleName,
+        graphType,
+        tupleType,
+        warning: undefined,
+      }),
+    );
+  }, [dispatch, tupleName, tupleType]);
 
   return (
     <div className="react-flow__container" ref={flowWrapperRef}>
@@ -151,7 +185,7 @@ export default function HasseDiagram({
         zoomOnScroll={isPoset && storeNodes.length !== 0}
         {...defaultFlowProps}
       >
-        <Background id={`bg-${type}-${id}-${expandedView ? "expanded" : ""}`} />
+        <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
         <Controls
           expandedView={expandedView}
           onExpandedViewChange={onExpandedViewChange}
@@ -162,7 +196,7 @@ export default function HasseDiagram({
       {(warning || !isPoset) && (
         <ErrorMessageDialogBuilder
           body={warning}
-          graphType={type}
+          graphType={graphType}
           invalidPoset={!isPoset}
         />
       )}

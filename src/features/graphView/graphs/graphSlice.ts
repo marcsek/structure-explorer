@@ -61,7 +61,11 @@ export type GraphManagerState = Record<
   }
 >;
 
-type WithGraphId<T = object> = { id: string; type: GraphType } & T;
+type WithGraphId<T = object> = {
+  tupleName: string;
+  graphType: GraphType;
+  tupleType: TupleType;
+} & T;
 
 export const initialGraphViewState: GraphManagerState = {};
 
@@ -73,32 +77,47 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
-      const { id, type, nodes } = action.payload;
-      state[id].state[type].nodes = nodes;
+      const { tupleName, graphType, tupleType, nodes } = action.payload;
+
+      const tupleId = getTupleId(tupleType, tupleName);
+
+      state[tupleId].state[graphType].nodes = nodes;
     },
 
     setEdges(
       state,
       action: PayloadAction<WithGraphId<{ edges: DirectEdgeType[] }>>,
     ) {
-      const { id, type, edges } = action.payload;
-      state[id].state[type].edges = edges;
+      const { tupleName, graphType, tupleType, edges } = action.payload;
+
+      const tupleId = getTupleId(tupleType, tupleName);
+
+      state[tupleId].state[graphType].edges = edges;
     },
 
     edgeAdded(
       state,
       action: PayloadAction<WithGraphId<{ edge: DirectEdgeType }>>,
     ) {
-      const { id, type, edge } = action.payload;
-      state[id].state[type].edges = [...state[id].state[type].edges, edge];
+      const { tupleName, graphType, tupleType, edge } = action.payload;
+
+      const tupleId = getTupleId(tupleType, tupleName);
+
+      state[tupleId].state[graphType].edges = [
+        ...state[tupleId].state[graphType].edges,
+        edge,
+      ];
     },
 
     graphDidInitialLayout(
       state,
       action: PayloadAction<WithGraphId<{ didLayout: boolean }>>,
     ) {
-      const { id, type, didLayout } = action.payload;
-      state[id].state[type].didLayout = didLayout;
+      const { tupleName, graphType, tupleType, didLayout } = action.payload;
+
+      const tupleId = getTupleId(tupleType, tupleName);
+
+      state[tupleId].state[graphType].didLayout = didLayout;
     },
 
     onNodesChanged: {
@@ -108,11 +127,13 @@ export const graphManagerSlice = createSlice({
           WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
         >,
       ) {
-        const { id, type, changes } = action.payload;
+        const { tupleName, graphType, tupleType, changes } = action.payload;
 
-        state[id].state[type].nodes = applyNodeChanges(
+        const tupleId = getTupleId(tupleType, tupleName);
+
+        state[tupleId].state[graphType].nodes = applyNodeChanges(
           changes,
-          state[id].state[type].nodes,
+          state[tupleId].state[graphType].nodes,
         );
       },
       prepare: prepareWithListenerIgnoreMeta<
@@ -143,44 +164,48 @@ export const graphManagerSlice = createSlice({
       const domain = structure.domain.value;
       const preds = language.predicates.value;
       const funcs = language.functions.value;
-      const tupleIntr = { ...structure.iP, ...structure.iF };
+      const getTupleIntr = (tupleType: TupleType) =>
+        tupleType === "predicate" ? structure.iP : structure.iF;
 
       const tuples = [
         ...preds.map((pred) => [...pred, "predicate"] as const),
         ...funcs.map((func) => [...func, "function"] as const),
       ];
 
-      tuples.forEach(([name, arity, type]) => {
-        const correctedArity = type === "function" ? arity + 1 : arity;
+      tuples.forEach(([tupleName, arity, tupleType]) => {
+        const correctedArity = tupleType === "function" ? arity + 1 : arity;
+        const tupleId = getTupleId(tupleType, tupleName);
 
-        if (correctedArity !== 2 || name in newState) return;
+        if (correctedArity !== 2 || tupleId in newState) return;
 
         const tuple = {
-          name,
-          intr: [...(tupleIntr[name]?.value ?? [])] as BinaryRelation<string>,
+          name: tupleName,
+          intr: [
+            ...(getTupleIntr(tupleType)[tupleName]?.value ?? []),
+          ] as BinaryRelation<string>,
         };
 
-        const graphPositions = positions?.[name];
+        const graphPositions = positions?.[tupleName];
 
-        newState[name] = {
-          tupleType: type,
+        newState[tupleId] = {
+          tupleType: tupleType,
           state: {
             oriented: plugins.oriented.init(
               domain,
               tuple,
-              type,
+              tupleType,
               graphPositions?.["oriented"],
             ),
             hasse: plugins.hasse.init(
               domain,
               tuple,
-              type,
+              tupleType,
               graphPositions?.["hasse"],
             ),
             bipartite: plugins.bipartite.init(
               domain,
               tuple,
-              type,
+              tupleType,
               graphPositions?.["bipartite"],
             ),
           },
@@ -195,12 +220,12 @@ export const graphManagerSlice = createSlice({
           ...funcs.map(([name]) => ({ name, kind: "function" as const })),
         ];
 
-        for (const [key, { tupleType }] of Object.entries(newState)) {
+        for (const tupleId in newState) {
           const isLeftover = !newTupleNames.find(
-            ({ name, kind }) => name === key && kind === tupleType,
+            ({ name, kind }) => tupleId === getTupleId(kind, name),
           );
 
-          if (isLeftover) delete newState[key];
+          if (isLeftover) delete newState[tupleId];
         }
       }
 
@@ -209,10 +234,15 @@ export const graphManagerSlice = createSlice({
 
     editorLocked(
       state,
-      action: PayloadAction<{ id: string; locked: boolean }>,
+      action: PayloadAction<{
+        tupleName: string;
+        tupleType: TupleType;
+        locked: boolean;
+      }>,
     ) {
-      const { id, locked } = action.payload;
-      const graphState = state[id];
+      const { tupleName, tupleType, locked } = action.payload;
+      const tupleId = getTupleId(tupleType, tupleName);
+      const graphState = state[tupleId];
 
       if (!graphState) return;
 
@@ -231,9 +261,11 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ warning?: string }>>,
     ) {
-      const { id, type, warning } = action.payload;
+      const { tupleName, graphType, tupleType, warning } = action.payload;
 
-      if (state[id]) state[id].state[type].warning = warning;
+      const tupleId = getTupleId(tupleType, tupleName);
+
+      if (state[tupleId]) state[tupleId].state[graphType].warning = warning;
     },
   },
 
@@ -262,12 +294,15 @@ export const graphManagerSlice = createSlice({
     builder.addMatcher(
       isAnyOf(updateInterpretationPredicates, updateFunctionSymbols),
       (state, action) => {
-        const { value, key } = action.payload;
+        const { value, key: tupleName } = action.payload;
+        const tupleType = tupleUpdaterToTupleType[action.type];
 
-        if (!(key in state)) return;
+        const tupleId = getTupleId(tupleType, tupleName);
+
+        if (!(tupleId in state)) return;
 
         dev.time("Graph interpretation update duration");
-        const graphs = state[key];
+        const graphs = state[tupleId];
         for (const graphType of graphTypes) {
           const graphState = graphs.state[graphType];
           const plugin = plugins[graphType];
@@ -316,7 +351,10 @@ export const selectRelevantUnaryPreds = createSelector(
 );
 
 export const selectPosetValidity = createSelector(
-  [(state: RootState, id: string) => state.present.graphView[id]?.state.hasse],
+  [
+    (state: RootState, tupleName: string, tupleType: TupleType) =>
+      state.present.graphView[getTupleId(tupleType, tupleName)]?.state.hasse,
+  ],
   (graphState) => {
     if (!graphState) return true;
 
@@ -337,10 +375,11 @@ export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
     [
       (_: RootState, __: string, type: T) => type,
-      (state: RootState, id: string, type: T) =>
-        state.present.graphView[id]?.state[type]?.nodes,
-      (state: RootState, id: string) =>
-        selectRelevantDomainElements(state, id, false),
+      (state: RootState, tupleName: string, type: T, tupleType: TupleType) =>
+        state.present.graphView[getTupleId(tupleType, tupleName)]?.state[type]
+          ?.nodes,
+      (state: RootState, tupleName: string) =>
+        selectRelevantDomainElements(state, tupleName, false),
       selectHoveredIntr,
       selectSelectedDomain,
       selectUnaryFilterDomain,
@@ -372,14 +411,19 @@ export function makeSelectNodes<T extends GraphType>() {
 export const selectEdges = createSelector(
   [
     (_: RootState, __: string, type: GraphType) => type,
-    (state: RootState, id: string, type: GraphType) =>
-      state.present.graphView[id]?.state[type],
     (
       state: RootState,
-      id: string,
+      tupleName: string,
+      type: GraphType,
+      tupleType: TupleType,
+    ) => state.present.graphView[getTupleId(tupleType, tupleName)]?.state[type],
+    (
+      state: RootState,
+      tupleName: string,
       _: GraphType,
+      __: TupleType,
       includeHovered: boolean = false,
-    ) => selectRelevantDomainElements(state, id, includeHovered),
+    ) => selectRelevantDomainElements(state, tupleName, includeHovered),
     selectSelectedDomain,
   ],
   (type, graphState, relevantDomain, selectedNodes) => {
@@ -397,22 +441,29 @@ export const selectEdges = createSelector(
 );
 
 export const onEdgesChanged = ({
-  id,
-  type,
+  tupleName,
+  graphType,
+  tupleType,
   changes,
 }: {
-  id: string;
-  type: GraphType;
+  tupleName: string;
+  graphType: GraphType;
+  tupleType: TupleType;
   changes: EdgeChange<DirectEdgeType>[];
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().present.graphView;
-    const tupleType = managerState[id].tupleType;
-    const selectedEdges = selectEdges(getState(), id, type);
+    const selectedEdges = selectEdges(
+      getState(),
+      tupleName,
+      graphType,
+      tupleType,
+    );
+    const tupleId = getTupleId(tupleType, tupleName);
 
     const newEdges = applyEdgeChanges(
       changes,
-      managerState[id].state[type].edges,
+      managerState[tupleId].state[graphType].edges,
     );
 
     const containedRemoveChange = changes.some(
@@ -423,9 +474,9 @@ export const onEdgesChanged = ({
 
     //TODO: Questionable use-case for this function
     const [relation, relationSyncedEdges] = processEdgesToRelation(
-      plugins[type],
+      plugins[graphType],
       {
-        ...managerState[id].state[type],
+        ...managerState[tupleId].state[graphType],
         edges: newEdges,
       },
       relevantEdges,
@@ -436,28 +487,43 @@ export const onEdgesChanged = ({
         ? updateInterpretationPredicates
         : updateFunctionSymbols;
 
-    dispatch(setEdges({ id, type, edges: relationSyncedEdges }));
-    dispatch(creator({ key: id, value: relation }));
+    dispatch(
+      setEdges({
+        tupleName: tupleName,
+        graphType: graphType,
+        tupleType,
+        edges: relationSyncedEdges,
+      }),
+    );
+    dispatch(creator({ key: tupleName, value: relation }));
     if (containedRemoveChange) dispatch(UndoActions.checkpoint());
   };
 };
 
 export const onConnected = ({
-  id,
-  type,
+  tupleName,
+  graphType,
+  tupleType,
   connection,
   breakPrevious = false,
 }: {
-  id: string;
-  type: GraphType;
+  tupleName: string;
+  graphType: GraphType;
+  tupleType: TupleType;
   connection: Connection;
   breakPrevious?: boolean;
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().present.graphView;
-    const tupleType = managerState[id].tupleType;
-    const selectedEdges = selectEdges(getState(), id, type);
-    let newEdges = [...managerState[id].state[type].edges];
+    const selectedEdges = selectEdges(
+      getState(),
+      tupleName,
+      graphType,
+      tupleType,
+    );
+    const tupleId = getTupleId(tupleType, tupleName);
+
+    let newEdges = [...managerState[tupleId].state[graphType].edges];
 
     if (breakPrevious)
       newEdges = newEdges.filter((e) => e.source !== connection.source);
@@ -470,9 +536,9 @@ export const onConnected = ({
     ] as [string, string][];
 
     const [relation] = processEdgesToRelation(
-      plugins[type],
+      plugins[graphType],
       {
-        ...managerState[id].state[type],
+        ...managerState[tupleId].state[graphType],
         edges: newEdges,
       },
       relevantEdges,
@@ -480,35 +546,42 @@ export const onConnected = ({
 
     const updater = interpretationUpdaters[tupleType];
 
-    dispatch(updater({ key: id, value: relation }));
+    dispatch(updater({ key: tupleName, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
 };
 
 export const leftoverDeleted = ({
-  id,
-  type,
+  tupleName,
+  graphType,
+  tupleType,
   deletedNode,
 }: {
-  id: string;
-  type: GraphType;
+  tupleName: string;
+  graphType: GraphType;
+  tupleType: TupleType;
   deletedNode: string;
 }): AppThunk => {
   return (dispatch, getState) => {
     const managerState = getState().present.graphView;
-    const tupleType = managerState[id].tupleType;
-    const selectedEdges = selectEdges(getState(), id, type);
+    const selectedEdges = selectEdges(
+      getState(),
+      tupleName,
+      graphType,
+      tupleType,
+    );
+    const tupleId = getTupleId(tupleType, tupleName);
 
     const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
-      plugins[type],
-      managerState[id].state[type],
+      plugins[graphType],
+      managerState[tupleId].state[graphType],
       deletedNode,
     );
 
     const [relation] = processEdgesToRelation(
-      plugins[type],
+      plugins[graphType],
       {
-        ...managerState[id].state[type],
+        ...managerState[tupleId].state[graphType],
         edges: newEdges,
       },
       edgesToRelation(selectedEdges),
@@ -516,8 +589,15 @@ export const leftoverDeleted = ({
 
     const updater = interpretationUpdaters[tupleType];
 
-    dispatch(setNodes({ id, type, nodes: newNodes }));
-    dispatch(updater({ key: id, value: relation }));
+    dispatch(
+      setNodes({
+        tupleName: tupleName,
+        graphType: graphType,
+        tupleType,
+        nodes: newNodes,
+      }),
+    );
+    dispatch(updater({ key: tupleName, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
 };
@@ -532,9 +612,13 @@ export const getGraphViewStateToExport = (
   relevantSymbols: RelevantSymbols,
 ): SerializedGraphViewState => {
   const relevantEntries = Object.entries(state.present.graphView).filter(
-    ([key, { tupleType }]) =>
-      relevantSymbols[key]?.type === tupleType &&
-      relevantSymbols[key]?.arity === (tupleType === "function" ? 1 : 2),
+    ([tupleId, { tupleType }]) => {
+      const tupleName = getKeyFromTupleId(tupleId);
+      const relevantEntry = relevantSymbols[tupleName];
+
+      if (!relevantEntry || relevantEntry.type === "constant") return false;
+      return relevantEntry.arity === (tupleType === "function" ? 1 : 2);
+    },
   );
 
   const getNodesToExport = (
@@ -551,7 +635,7 @@ export const getGraphViewStateToExport = (
 
   const serializedState: SerializedGraphViewState = {};
 
-  for (const [predicateName, { state }] of relevantEntries) {
+  for (const [tupleId, { state }] of relevantEntries) {
     const graphEntries: [GraphType, Record<string, [number, number]>][] = [];
     for (const graphType in state) {
       const { nodes, didLayout } = state[graphType as GraphType];
@@ -566,7 +650,7 @@ export const getGraphViewStateToExport = (
     }
 
     if (graphEntries.length === 0) continue;
-    serializedState[predicateName] = Object.fromEntries(
+    serializedState[tupleId] = Object.fromEntries(
       graphEntries,
     ) as SerializedGraphViewState[string];
   }
@@ -576,6 +660,15 @@ export const getGraphViewStateToExport = (
 
 export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
   edges.map(({ source, target }) => [source, target]);
+
+export const getTupleId = (type: TupleType, key: string) => `${type}-${key}`;
+export const getKeyFromTupleId = (tupleId: string) =>
+  tupleId.substring(tupleId.lastIndexOf("-") + 1);
+
+const tupleUpdaterToTupleType = {
+  [updateInterpretationPredicates.type]: "predicate",
+  [updateFunctionSymbols.type]: "function",
+} satisfies Record<string, TupleType>;
 
 export const {
   setNodes,

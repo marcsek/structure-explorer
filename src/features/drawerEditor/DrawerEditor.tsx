@@ -107,6 +107,7 @@ function DrawerEditorContent({
   ) : (
     <GraphView
       tupleName={tupleName}
+      tupleType={tupleType}
       graphType={type}
       locked={locked}
       expandedView={expandedView}

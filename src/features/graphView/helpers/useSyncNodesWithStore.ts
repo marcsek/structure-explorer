@@ -5,16 +5,19 @@ import type { PredicateNodeType } from "../graphs/graphComponents/PredicateNode"
 import { useAppDispatch } from "../../../app/hooks";
 import { onNodesChanged } from "../graphs/graphSlice";
 import type { GraphType } from "../graphs/plugins";
+import type { TupleType } from "../../structure/structureSlice";
 
 interface UseSyncNodesWithStoreProps<TNode extends PredicateNodeType> {
-  id: string;
-  type: GraphType;
+  tupleName: string;
+  graphType: GraphType;
+  tupleType: TupleType;
   storeNodes: TNode[];
 }
 
 export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
-  id,
-  type,
+  tupleName,
+  graphType,
+  tupleType,
   storeNodes,
 }: UseSyncNodesWithStoreProps<TNode>) {
   const dispatch = useAppDispatch();
@@ -45,10 +48,13 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
 
       if (otherChanges.length !== 0)
         dispatch(
-          onNodesChanged({ id, type, changes }, { ignore: nonUserChanges }),
+          onNodesChanged(
+            { tupleName, graphType, tupleType, changes },
+            { ignore: nonUserChanges },
+          ),
         );
     },
-    [dispatch, id, storeNodes, type],
+    [dispatch, tupleName, storeNodes, tupleType, graphType],
   );
 
   const syncNodesWithStore = useCallback(() => {
@@ -58,10 +64,12 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
       ({ id, position }) => ({ type: "position", id, position }),
     );
 
-    dispatch(onNodesChanged({ id, type, changes: nodeChanges }));
+    dispatch(
+      onNodesChanged({ tupleName, graphType, tupleType, changes: nodeChanges }),
+    );
     isDragging.current = false;
     setLocalNodes(null);
-  }, [dispatch, id, localNodes, type]);
+  }, [dispatch, tupleName, localNodes, tupleType, graphType]);
 
   return { nodes: localNodes ?? storeNodes, onNodesChange, syncNodesWithStore };
 }
