@@ -374,12 +374,12 @@ export const selectPosetValidity = createSelector(
 export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
     [
-      (_: RootState, __: string, type: T) => type,
-      (state: RootState, tupleName: string, type: T, tupleType: TupleType) =>
+      (_: RootState, __: string, ___: TupleType, type: T) => type,
+      (state: RootState, tupleName: string, tupleType: TupleType, type: T) =>
         state.present.graphView[getTupleId(tupleType, tupleName)]?.state[type]
           ?.nodes,
-      (state: RootState, tupleName: string) =>
-        selectRelevantDomainElements(state, tupleName, false),
+      (state: RootState, tupleName: string, tupleType: TupleType) =>
+        selectRelevantDomainElements(state, tupleName, tupleType, false),
       selectHoveredIntr,
       selectSelectedDomain,
       selectUnaryFilterDomain,
@@ -420,10 +420,11 @@ export const selectEdges = createSelector(
     (
       state: RootState,
       tupleName: string,
-      _: GraphType,
-      __: TupleType,
+      _,
+      tupleType: TupleType,
       includeHovered: boolean = false,
-    ) => selectRelevantDomainElements(state, tupleName, includeHovered),
+    ) =>
+      selectRelevantDomainElements(state, tupleName, tupleType, includeHovered),
     selectSelectedDomain,
   ],
   (type, graphState, relevantDomain, selectedNodes) => {

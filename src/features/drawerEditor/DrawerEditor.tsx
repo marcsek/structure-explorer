@@ -139,7 +139,7 @@ function DrawerEditorContent({
       <Stack className="drawer-editor-container-body">
         {type !== "database" && (
           <div className="drawer-editor-toolbar-container">
-            <EditorToolbar id={tupleName} />
+            <EditorToolbar tupleName={tupleName} tupleType={tupleType} />
           </div>
         )}
 

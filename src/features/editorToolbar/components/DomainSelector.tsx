@@ -2,7 +2,10 @@ import "./DomainSelector.css";
 
 import { useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { selectValidatedDomain } from "../../structure/structureSlice";
+import {
+  selectValidatedDomain,
+  type TupleType,
+} from "../../structure/structureSlice";
 import {
   selectRelevantUnaryPreds,
   selectUnaryPreds,
@@ -19,16 +22,20 @@ import { RelevantPredicatesIndicator } from "../../../components_helper/Relevant
 import useClickAwayListener from "./useClickAwayListener";
 
 export interface DomainSelectorProps {
-  id: string;
+  tupleName: string;
+  tupleType: TupleType;
 }
 
-export default function DomainSelector({ id }: DomainSelectorProps) {
+export default function DomainSelector({
+  tupleName,
+  tupleType,
+}: DomainSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector((state) =>
-    selectSelectedDomain(state, id),
+    selectSelectedDomain(state, tupleName, tupleType),
   );
   const onClickOutside = useCallback(() => setIsOpen(false), []);
 
@@ -40,7 +47,7 @@ export default function DomainSelector({ id }: DomainSelectorProps) {
   const activeFilters = domain.length !== selectedNodes.length;
 
   const toggleItem = (element: string = "") =>
-    dispatch(nodeToggled({ id, domain, node: element }));
+    dispatch(nodeToggled({ tupleName, tupleType, domain, node: element }));
 
   return (
     <div

@@ -51,7 +51,7 @@ export default function HasseDiagram({
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, graphType, tupleType),
+    nodeSelector(state, tupleName, tupleType, graphType),
   );
   const edges = useAppSelector((state) =>
     selectEdges(state, tupleName, graphType, tupleType, true),

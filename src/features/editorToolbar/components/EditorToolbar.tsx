@@ -2,16 +2,18 @@ import "./EditorToolbar.css";
 
 import DomainSelector from "./DomainSelector";
 import InterpretationFilters from "./InterpretationFilters";
+import type { TupleType } from "../../structure/structureSlice";
 
 export interface GraphToolbarProps {
-  id: string;
+  tupleName: string;
+  tupleType: TupleType;
 }
 
-export function EditorToolbar({ id }: GraphToolbarProps) {
+export function EditorToolbar({ tupleName, tupleType }: GraphToolbarProps) {
   return (
     <div className="editor-toolbar">
-      <InterpretationFilters id={id} />
-      <DomainSelector id={id} />
+      <InterpretationFilters tupleName={tupleName} tupleType={tupleType} />
+      <DomainSelector tupleName={tupleName} tupleType={tupleType} />
     </div>
   );
 }

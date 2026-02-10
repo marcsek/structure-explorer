@@ -50,7 +50,7 @@ export default function MatrixView({
   const domain = useAppSelector(selectDomain).value;
 
   const selectedDomain = useAppSelector((state) =>
-    selectFilteredDomain(state, tupleName, true),
+    selectFilteredDomain(state, tupleName, tupleType, true),
   );
 
   const isUnary = tupleArity === 1;
@@ -136,6 +136,7 @@ export default function MatrixView({
               <th className={getTableClass(head)} key={head}>
                 <PredicateIndicatorTableHead
                   predicateName={tupleName}
+                  tupleType={tupleType}
                   domainId={head}
                 />
               </th>
@@ -150,6 +151,7 @@ export default function MatrixView({
             <td key="row-head">
               <PredicateIndicatorTableHead
                 predicateName={tupleName}
+                tupleType={tupleType}
                 domainId={row}
               />
             </td>
@@ -205,17 +207,19 @@ export default function MatrixView({
 
 interface PredicateIndicatorTableHeadProps {
   predicateName: string;
+  tupleType: TupleType;
   domainId: string;
 }
 
 function PredicateIndicatorTableHead({
   predicateName,
+  tupleType,
   domainId,
 }: PredicateIndicatorTableHeadProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewed] = useAppSelector((state) =>
-    selectPredicatesToDisplay(state, predicateName, domainId),
+    selectPredicatesToDisplay(state, predicateName, tupleType, domainId),
   );
 
   const colorMap = getUnaryPredicateToColorMap(

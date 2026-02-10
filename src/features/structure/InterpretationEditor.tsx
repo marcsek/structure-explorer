@@ -49,7 +49,7 @@ function InterpretationEditor({
 }: InterpretationEditorProps) {
   const dispatch = useAppDispatch();
   const openedEditor = useAppSelector((state) =>
-    selectOpenedEditor(state, name),
+    selectOpenedEditor(state, name, type),
   );
   const validation = useAppSelector((state) =>
     selectValidation(state, textViewType, name),
@@ -65,9 +65,9 @@ function InterpretationEditor({
 
   const handleEditorSelect = useCallback(
     (editor: EditorType) => {
-      dispatch(editorOpened({ id: name, editor }));
+      dispatch(editorOpened({ tupleName: name, tupleType: type, editor }));
     },
-    [dispatch, name],
+    [dispatch, name, type],
   );
 
   useEffect(() => {

@@ -23,26 +23,29 @@ import {
   unaryPredicateToggled,
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
+import type { TupleType } from "../../structure/structureSlice";
 
 export interface InterpretationFiltersProps {
-  id: string;
+  tupleName: string;
+  tupleType: TupleType;
 }
 
 export default function InterpretationFilters({
-  id,
+  tupleName,
+  tupleType,
 }: InterpretationFiltersProps) {
   const dispatch = useAppDispatch();
   const unaryFilterDomain = useAppSelector((state) =>
-    selectUnaryFilterDomain(state, id),
+    selectUnaryFilterDomain(state, tupleName, tupleType),
   );
   const selectedPredicates = useAppSelector((state) =>
-    selectSelectedUnary(state, id),
+    selectSelectedUnary(state, tupleName, tupleType),
   );
 
   const unaryPredicatesCount = useAppSelector(selectUnaryPreds)?.length ?? 0;
 
   const handleDomainHover = (hovered: boolean) => {
-    dispatch(unaryFilterDomainHovered({ id, hovered }));
+    dispatch(unaryFilterDomainHovered({ tupleName, tupleType, hovered }));
   };
 
   return (
@@ -50,7 +53,9 @@ export default function InterpretationFilters({
       <Button
         className={`domain-button editor-toolbar-button legend-button  ${!unaryFilterDomain ? "active" : ""}`}
         title="Select Domain"
-        onClick={() => dispatch(unaryFilterDomainToggled({ id }))}
+        onClick={() =>
+          dispatch(unaryFilterDomainToggled({ tupleName, tupleType }))
+        }
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
         disabled={selectedPredicates.length === 0}
@@ -61,7 +66,7 @@ export default function InterpretationFilters({
       <div className="intr-filters-divider" />
 
       {unaryPredicatesCount !== 0 ? (
-        <UnaryPredicatesFilter id={id} />
+        <UnaryPredicatesFilter tupleName={tupleName} tupleType={tupleType} />
       ) : (
         <span className="intr-filter-no-elements-info">
           No unary predicates to filter
@@ -72,16 +77,22 @@ export default function InterpretationFilters({
 }
 
 interface UnaryPredicatesFilterProps {
-  id: string;
+  tupleName: string;
+  tupleType: TupleType;
 }
 
-function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
+function UnaryPredicatesFilter({
+  tupleName,
+  tupleType,
+}: UnaryPredicatesFilterProps) {
   const dispatch = useAppDispatch();
   const predicates = useAppSelector(selectUnaryPreds).map(([name]) => name);
   const selectedPredicates = useAppSelector((state) =>
-    selectSelectedUnary(state, id),
+    selectSelectedUnary(state, tupleName, tupleType),
   );
-  const predicatesExcludingSelf = predicates.filter((name) => name !== id);
+  const predicatesExcludingSelf = predicates.filter(
+    (name) => name !== tupleName,
+  );
 
   const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
 
@@ -99,11 +110,17 @@ function UnaryPredicatesFilter({ id }: UnaryPredicatesFilterProps) {
   };
 
   const handlePredicateHover = (hoveredPredicates: string[]) => {
-    dispatch(predicateHovered({ id, predicates: hoveredPredicates }));
+    dispatch(
+      predicateHovered({
+        tupleName,
+        tupleType,
+        predicates: hoveredPredicates,
+      }),
+    );
   };
 
   const handlePredicateToggle = (predicate: string | string[]) => {
-    dispatch(unaryPredicateToggled({ id, predicate }));
+    dispatch(unaryPredicateToggled({ tupleName, tupleType, predicate }));
   };
 
   return (

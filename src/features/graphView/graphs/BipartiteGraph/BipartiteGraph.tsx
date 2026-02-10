@@ -85,7 +85,7 @@ export default function BipartiteGraph({
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, graphType, tupleType),
+    nodeSelector(state, tupleName, tupleType, graphType),
   );
   const edges = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.edges,
