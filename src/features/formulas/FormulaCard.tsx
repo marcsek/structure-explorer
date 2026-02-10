@@ -108,6 +108,10 @@ function ContextFormulasDropdown({
     .filter(({ name }) => !presentContextFormulas.has(name))
     .map(({ name, formula }) => ({ name, text: formula }));
 
+  const nonEmptyFormulasByType = formulasByType.filter(
+    ([, formulas]) => formulas.length > 0,
+  );
+
   function handleAddAllFormulas() {
     dispatch(addFormulas(notYetAdded));
     dispatch(UndoActions.checkpoint());
@@ -136,28 +140,32 @@ function ContextFormulasDropdown({
       >
         <FontAwesomeIcon icon={faCheckDouble} size="sm" /> Add all
       </Dropdown.Item>
-      {formulasByType.map(([formulaType, formulaWithType]) => (
-        <React.Fragment key={formulaType}>
-          <Dropdown.Divider />
-          <Dropdown.ItemText className="drop-down-title-text">
-            {formulaTypeDisplayNames[formulaType]}
-          </Dropdown.ItemText>
+      {nonEmptyFormulasByType.length > 0 ? (
+        nonEmptyFormulasByType.map(([formulaType, formulaWithType]) => (
+          <React.Fragment key={formulaType}>
+            <Dropdown.Divider />
+            <Dropdown.ItemText className="drop-down-title-text">
+              {formulaTypeDisplayNames[formulaType]}
+            </Dropdown.ItemText>
 
-          {formulaWithType.map(({ name, formula }) => (
-            <Dropdown.Item
-              key={name}
-              as="button"
-              disabled={presentContextFormulas.has(name)}
-              onClick={() => {
-                dispatch(addFormulas([{ name, text: formula }]));
-                dispatch(UndoActions.checkpoint());
-              }}
-            >
-              {name}
-            </Dropdown.Item>
-          ))}
-        </React.Fragment>
-      ))}
+            {formulaWithType.map(({ name, formula }) => (
+              <Dropdown.Item
+                key={name}
+                as="button"
+                disabled={presentContextFormulas.has(name)}
+                onClick={() => {
+                  dispatch(addFormulas([{ name, text: formula }]));
+                  dispatch(UndoActions.checkpoint());
+                }}
+              >
+                {name}
+              </Dropdown.Item>
+            ))}
+          </React.Fragment>
+        ))
+      ) : (
+        <Dropdown.ItemText>No formulas to add.</Dropdown.ItemText>
+      )}
     </DropdownButton>
   );
 }

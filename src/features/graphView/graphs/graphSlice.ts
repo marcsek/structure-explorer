@@ -185,7 +185,7 @@ export const graphManagerSlice = createSlice({
           ] as BinaryRelation<string>,
         };
 
-        const graphPositions = positions?.[tupleName];
+        const graphPositions = positions?.[tupleId];
 
         newState[tupleId] = {
           tupleType: tupleType,

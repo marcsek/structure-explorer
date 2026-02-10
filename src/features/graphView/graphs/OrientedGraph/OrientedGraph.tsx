@@ -74,7 +74,7 @@ export default function OrientedGraph({
   const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
   useEffect(() => {
-    onLayout(true, true, true);
+    if (!didLayout) onLayout(true, true, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

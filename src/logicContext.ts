@@ -87,8 +87,8 @@ export function useFormulasContext() {
 
   const formulasByType = useMemo<[FormulaType, ContextFormula[]][]>(
     () => [
-      ["formula", namedFormulas ?? []],
       ["axiom", axioms ?? []],
+      ["formula", namedFormulas ?? []],
     ],
     [namedFormulas, axioms],
   );

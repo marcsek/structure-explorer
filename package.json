@@ -10,10 +10,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b ./tsconfig.lib.json && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview --config vite.demo.config.ts",
     "build:demo": "vite build --config vite.demo.config.ts",
     "build:dev": "vite build --config vite.dev-build.config.ts --watch",
+    "lint": "eslint .",
+    "preview": "vite preview --config vite.demo.config.ts",
     "deploy": "npm run build:demo && gh-pages -d dist"
   },
   "peerDependencies": {
