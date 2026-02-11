@@ -81,7 +81,10 @@
 }
 
 .view-mode .component-card-body > .vstack,
-.view-mode .component-card-body .structure-component-section .vstack {
+.view-mode
+  .component-card-body
+  .structure-component-section
+  .vstack:not(.drawer-editor-container-body) {
   gap: 0.25rem !important;
 }
 

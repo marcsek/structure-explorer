@@ -1,4 +1,10 @@
-import { memo, useCallback, useEffect, type ChangeEvent } from "react";
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  type ChangeEvent,
+} from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
@@ -59,6 +65,7 @@ function InterpretationEditor({
     selectHasWrongArityError(state, name, type),
   );
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+  const previousArityRef = useRef(arity);
 
   const escapedName = name.replace(/_/g, "\\_");
   const prefixRawNoEnd = `i(\\text{\\textsf{${escapedName}}})`;
@@ -70,9 +77,9 @@ function InterpretationEditor({
     [dispatch, name, type],
   );
 
-  useEffect(() => {
-    if (wrongArityError) handleEditorSelect("text");
-  }, [handleEditorSelect, wrongArityError]);
+  useLayoutEffect(() => {
+    if (previousArityRef.current !== arity) handleEditorSelect("text");
+  }, [arity, handleEditorSelect]);
 
   const controlButtons = getEditorControlButtons(type, arity);
 
