@@ -1,12 +1,12 @@
 export const unaryPredicatesColors = [
-  "#00b0f0",
-  "#23cc61",
-  "#FFAB00",
+  "#42a7c6",
+  "#64c183",
+  "#f7b503",
   "#FF70A4",
   "#987EF0",
+  "#684957",
   "#00a892",
-  "#fd8c46",
-  "#4d8db2",
+  "#88ccee",
 ];
 
 export function getUnaryPredicateColor(idx: number) {
