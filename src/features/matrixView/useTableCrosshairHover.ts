@@ -27,14 +27,13 @@ export default function useTableCrosshairHover() {
     if (!headRow) return;
 
     const bodyRows = [...body.children];
-    bodyRows[row].classList.add(HOVERED_CLASS);
 
-    if (col !== -1) {
-      headRow.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS);
-      bodyRows.forEach((rowEl) =>
-        rowEl.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS),
-      );
-    }
+    if (row !== -1) bodyRows[row].classList.add(HOVERED_CLASS);
+
+    headRow.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS);
+    bodyRows.forEach((rowEl) =>
+      rowEl.children[rowOffsetByHead + col].classList.add(HOVERED_CLASS),
+    );
   }, []);
 
   return { tableRef, handleCellHover };

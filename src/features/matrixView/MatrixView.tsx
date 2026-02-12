@@ -55,7 +55,7 @@ export default function MatrixView({
 
   const isUnary = tupleArity === 1;
   const getDomainTuple = (row: string, col: string) =>
-    isUnary ? [row] : [row, col];
+    isUnary ? [col] : [row, col];
 
   const getEntry = (row: string, col: string) =>
     values[getKeyFromDomainTuple(getDomainTuple(row, col))];
@@ -125,38 +125,43 @@ export default function MatrixView({
   }
 
   return (
-    <Table responsive className="table-bordered table-view" ref={tableRef}>
+    <Table
+      responsive
+      className="table-bordered table-view"
+      size="sm"
+      ref={tableRef}
+    >
       <thead>
         <tr>
           <TableHeadsIndicator key="col-head" headCount={tupleArity} />
-          {isUnary ? (
-            <th></th>
-          ) : (
-            domainWithLeftovers.map((head) => (
-              <th className={getTableClass(head)} key={head}>
-                <PredicateIndicatorTableHead
-                  predicateName={tupleName}
-                  tupleType={tupleType}
-                  domainId={head}
-                />
-              </th>
-            ))
-          )}
+          {domainWithLeftovers.map((head) => (
+            <th className={getTableClass(head)} key={head}>
+              <PredicateIndicatorTableHead
+                predicateName={tupleName}
+                tupleType={tupleType}
+                domainId={head}
+              />
+            </th>
+          ))}
         </tr>
       </thead>
 
       <tbody>
-        {domainWithLeftovers.map((row, rowIdx) => (
+        {(isUnary ? [""] : domainWithLeftovers).map((row, rowIdx) => (
           <tr key={`r-${row}`} className={getTableClass(row)}>
-            <td key="row-head">
-              <PredicateIndicatorTableHead
-                predicateName={tupleName}
-                tupleType={tupleType}
-                domainId={row}
-              />
-            </td>
+            {isUnary ? (
+              <td key="row-head" />
+            ) : (
+              <td key="row-head">
+                <PredicateIndicatorTableHead
+                  predicateName={tupleName}
+                  tupleType={tupleType}
+                  domainId={row}
+                />
+              </td>
+            )}
 
-            {(isUnary ? [row] : domainWithLeftovers).map((col, colIdx) =>
+            {domainWithLeftovers.map((col, colIdx) =>
               tupleType === "predicate" ? (
                 <PredicateTableCell
                   key={col}
@@ -174,7 +179,7 @@ export default function MatrixView({
                   }
                   onHovered={(hovered) =>
                     hovered
-                      ? handleCellHover(rowIdx, isUnary ? -1 : colIdx)
+                      ? handleCellHover(isUnary ? -1 : rowIdx, colIdx)
                       : handleCellHover(-1, -1)
                   }
                 />
