@@ -54,8 +54,8 @@ export default function StructureComponent() {
         <InputGroupTitle
           label={"Domain"}
           id="domain"
-          prefix={<InlineMath>{String.raw`\mathcal{D} = \{`}</InlineMath>}
-          suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+          prefix={<InlineMath>{"D = \\{"}</InlineMath>}
+          suffix={<InlineMath>{"\\}"}</InlineMath>}
           placeholder="Domain"
           text={domainTextView.value}
           onChange={(e) => {

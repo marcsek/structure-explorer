@@ -47,6 +47,9 @@
 .view-mode .input-group > .form-select,
 .view-mode .input-group > .input-group-text {
   border: none;
+}
+
+.view-mode .input-group > .input-group-text {
   background: initial;
 }
 
@@ -86,6 +89,10 @@
   .structure-component-section
   .vstack:not(.drawer-editor-container-body) {
   gap: 0.25rem !important;
+}
+
+.view-mode .component-card-body .view-only-language {
+  gap: 0.5rem !important;
 }
 
 .view-mode .formula-card .formula-select-input-group > * {

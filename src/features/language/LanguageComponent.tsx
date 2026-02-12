@@ -147,7 +147,11 @@ interface ViewOnlyLanguageDisplayProps {
 
 function ViewOnlyLanguageDisplay(props: ViewOnlyLanguageDisplayProps) {
   return (
-    <Stack gap={3} className="ms-2" onDoubleClick={props.triggerEdit}>
+    <Stack
+      gap={3}
+      className="ms-2 view-only-language"
+      onDoubleClick={props.triggerEdit}
+    >
       <div>
         <InlineMath>{"\\mathcal{C_L} = \\{"}</InlineMath>
         {props.constants && <span className="mx-1">{props.constants}</span>}
