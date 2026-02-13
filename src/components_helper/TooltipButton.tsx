@@ -41,7 +41,7 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
         <FontAwesomeIcon
           icon={faQuestion}
           size="sm"
-          style={{ width: "0.875rem", height: "0.875rem" }}
+          style={{ width: "0.75rem", height: "0.75rem" }}
         />
       </Button>
     </OverlayTrigger>

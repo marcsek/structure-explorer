@@ -46,6 +46,7 @@ export default function FormulaCard() {
         {allFormulas.length === 0 && (
           <Button
             variant="success"
+            size="sm"
             onClick={() => {
               dispatch(addFormulas());
               dispatch(UndoActions.checkpoint());
@@ -75,6 +76,7 @@ export default function FormulaCard() {
       {allFormulas.length > 0 && (
         <Button
           variant="success"
+          size="sm"
           onClick={() => {
             dispatch(addFormulas());
             dispatch(UndoActions.checkpoint());
@@ -122,6 +124,7 @@ function ContextFormulasDropdown({
 
   return (
     <DropdownButton
+      size="sm"
       title={
         <>
           <FontAwesomeIcon icon={faPlus} /> Add from context
@@ -134,7 +137,8 @@ function ContextFormulasDropdown({
       show={showDropdown}
     >
       <Dropdown.Item
-        as="button"
+        as={Button}
+        size="sm"
         onClick={handleAddAllFormulas}
         disabled={notYetAdded.length === 0}
       >
@@ -151,7 +155,8 @@ function ContextFormulasDropdown({
             {formulaWithType.map(({ name, formula }) => (
               <Dropdown.Item
                 key={name}
-                as="button"
+                as={Button}
+                size="sm"
                 disabled={presentContextFormulas.has(name)}
                 onClick={() => {
                   dispatch(addFormulas([{ name, text: formula }]));

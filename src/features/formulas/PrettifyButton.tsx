@@ -31,7 +31,7 @@ export default function PrettifyButton() {
   };
 
   return (
-    <Button onClick={prettifyAll} variant="outline-success">
+    <Button onClick={prettifyAll} variant="outline-success" size="sm">
       <FontAwesomeIcon size="sm" icon={faMagicWandSparkles} className="me-1" />
       Prettify formulas
     </Button>

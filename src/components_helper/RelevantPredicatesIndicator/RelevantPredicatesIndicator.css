@@ -15,13 +15,13 @@
 }
 
 .relevant-pred-indicator.size-md .relevant-pred-indicator-pred {
-  height: 18px;
-  width: 18px;
-  margin-left: -6px;
-}
-
-.relevant-pred-indicator.size-sm .relevant-pred-indicator-pred {
   height: 1rem;
   width: 1rem;
   margin-left: -4px;
+}
+
+.relevant-pred-indicator.size-sm .relevant-pred-indicator-pred {
+  height: 0.875rem;
+  width: 0.875rem;
+  margin-left: -3px;
 }

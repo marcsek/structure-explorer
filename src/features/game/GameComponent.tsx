@@ -18,6 +18,7 @@ export default function GameComponent({ id }: Props) {
           style={{
             maxHeight: "33vh",
             overflowY: "auto",
+            fontSize: "0.875rem",
             position: "relative",
           }}
         >

@@ -113,7 +113,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
     <>
       <Form>
         <Row>
-          <InputGroup className="mb-2" hasValidation={!!error}>
+          <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
             <InputGroup.Text>
               <InlineMath>{`${displayName} =`}</InlineMath>
             </InputGroup.Text>
@@ -130,17 +130,19 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
               onBlur={() => dispatch(UndoActions.checkpoint())}
             />
 
-            <Button
-              variant="outline-danger"
-              id="button-addon2"
-              disabled={locked === true}
-              onClick={() => {
-                dispatch(removeFormula(id));
-                dispatch(UndoActions.checkpoint());
-              }}
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </Button>
+            {!locked && (
+              <Button
+                variant="outline-danger"
+                id="button-addon2"
+                onClick={() => {
+                  dispatch(removeFormula(id));
+                  dispatch(UndoActions.checkpoint());
+                }}
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </Button>
+            )}
+
             {teacherMode === true && (
               <LockButton
                 locked={locked}
@@ -154,7 +156,11 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
 
         <Row className="align-items-start mb-3 formula-select-container">
           <Col xs="auto">
-            <InputGroup hasValidation className="formula-select-input-group">
+            <InputGroup
+              hasValidation
+              size="sm"
+              className="formula-select-input-group"
+            >
               <InputGroup.Text>
                 <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
               </InputGroup.Text>
@@ -216,6 +222,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
           <Col xs="auto">
             <Button
               variant={isVerified ? "success" : "danger"}
+              size="sm"
               disabled={
                 !!error ||
                 guess === null ||

@@ -3,6 +3,8 @@
 
   --hover-bg: var(--bs-tertiary-bg);
   --danger-hover-bg: #facacf;
+
+  font-size: 0.875rem;
 }
 
 .table-view tr.error td,
@@ -104,6 +106,10 @@
 .table-view td,
 .table-view td {
   min-width: 3rem;
+}
+
+.table-view td > button {
+  width: 100%;
 }
 
 .table-heads-indicator {

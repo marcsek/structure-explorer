@@ -49,7 +49,7 @@ export default function InputGroupTitle({
           {label}
         </Form.Label>
       )}
-      <InputGroup hasValidation={!!error}>
+      <InputGroup hasValidation={!!error} size="sm">
         <InputGroup.Text className="input-group-fix-height">
           {prefix}
         </InputGroup.Text>

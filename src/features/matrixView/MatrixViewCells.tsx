@@ -67,6 +67,7 @@ export function FunctionTableCell({
     <td className={(columnError || invalid) && !unselected ? "error" : ""}>
       <Form.Control
         type="text"
+        size="sm"
         value={value}
         isInvalid={invalid}
         disabled={locked || (invalid && !value) || unselected}

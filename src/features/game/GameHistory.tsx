@@ -13,6 +13,7 @@ import { useEffect, useRef } from "react";
 import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
 import { InlineMath } from "react-katex";
+import { Stack } from "react-bootstrap";
 
 interface Props {
   id: number;
@@ -241,7 +242,7 @@ export default function GameHistory({ id }: Props) {
   }
 
   return (
-    <>
+    <Stack gap={1}>
       {bubbles.map(({ text, sender, goBack, win, lose }, index) => (
         <MessageBubble
           key={`${index}-${sender}`}
@@ -259,6 +260,6 @@ export default function GameHistory({ id }: Props) {
         />
       ))}
       <div ref={last}></div>
-    </>
+    </Stack>
   );
 }

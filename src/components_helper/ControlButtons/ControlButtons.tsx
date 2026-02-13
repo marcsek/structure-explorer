@@ -1,7 +1,7 @@
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
-import { ButtonGroup, Dropdown } from "react-bootstrap";
+import { Button, ButtonGroup, Dropdown } from "react-bootstrap";
 import LockButton from "../LockButton";
 
 export type ControlButton<T> =
@@ -41,8 +41,12 @@ export default function ControlButtons<T extends string | number>({
   if (buttons.length === 0) return null;
 
   return (
-    <ButtonGroup id={id} className="editor-controls-buttons-group">
-      <Dropdown as={ButtonGroup}>
+    <ButtonGroup
+      id={id}
+      className="editor-controls-buttons-group btn-fix-height"
+      size="sm"
+    >
+      <Dropdown as={ButtonGroup} size="sm">
         <Dropdown.Toggle
           id={buttonId("dropDown")}
           className="btn-bd-light-outline"
@@ -63,9 +67,10 @@ export default function ControlButtons<T extends string | number>({
                   {button.dropDown.map((item) => (
                     <Dropdown.Item
                       key={String(item.value)}
+                      as={Button}
+                      size="sm"
                       active={item.value === selected}
                       onClick={() => onSelected(item.value)}
-                      as="button"
                     >
                       {item.text}
                     </Dropdown.Item>
@@ -77,9 +82,10 @@ export default function ControlButtons<T extends string | number>({
             return (
               <Dropdown.Item
                 key={String(button.value)}
+                as={Button}
+                size="sm"
                 active={button.value === selected}
                 onClick={() => onSelected(button.value)}
-                as="button"
               >
                 {button.text}
               </Dropdown.Item>

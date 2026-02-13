@@ -6,8 +6,9 @@
   border-radius: 100px;
   gap: 0.5rem;
 
-  height: 40px;
-  width: 40px;
+  height: 2.25rem;
+  width: 2.25rem;
+  font-size: 0.875rem;
 
   margin-block: 3px;
 }
@@ -15,14 +16,14 @@
 .domain-selector-body {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 
-  padding: 16px 12px;
+  padding: 0.875rem 0.5rem;
   position: absolute;
   z-index: 1000;
   background-color: white;
   width: 320px;
-  max-height: 400px;
+  max-height: 364px;
   overflow-y: auto;
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
   border-radius: var(--bs-border-radius);
@@ -34,8 +35,8 @@
 
 .domain-selector-toggle-icon-container {
   position: relative;
-  width: 1rem;
-  height: 1rem;
+  width: 0.875rem;
+  height: 0.875rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -88,6 +89,7 @@
 .domain-selector-list-empty-text {
   user-select: none;
   color: var(--bs-secondary-color);
+  font-size: 0.875rem;
 }
 
 .domain-selector-header {
@@ -98,8 +100,9 @@
 
 .domain-selector-header p {
   margin: 0;
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
+  line-height: 1;
 }
 
 .domain-selector-body-divider {
@@ -108,7 +111,7 @@
   flex-shrink: 0;
   background-color: var(--bs-light-border-subtle);
   height: var(--bs-border-width);
-  margin-inline: -12px;
+  margin-inline: -0.5rem;
 }
 
 .domain-selector-list {
@@ -129,14 +132,15 @@
   overflow: hidden;
 
   color: var(--bs-dark);
-  font-size: 1.15rem;
+  font-size: 1rem;
+  line-height: 1;
   gap: 12px;
   width: 100%;
   text-align: left;
   background-color: white;
   border: var(--bs-border-width) solid var(--bs-border-color);
   border-radius: 6px;
-  padding: 10px 16px;
+  padding: 0.75rem 1rem;
   font-weight: 400;
   cursor: pointer;
   outline: none;

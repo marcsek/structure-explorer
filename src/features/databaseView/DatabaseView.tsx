@@ -116,7 +116,7 @@ export default function DatabaseView({
   }
 
   return (
-    <Table responsive className="table-bordered table-view">
+    <Table responsive className="table-bordered table-view" size="sm">
       <thead>
         <tr>
           {Array.from({ length: correctedArity }, (_, idx) => (
@@ -148,6 +148,7 @@ export default function DatabaseView({
                     ) : (
                       <Form.Control
                         type="text"
+                        size="sm"
                         value={tuple[idx] ?? ""}
                         disabled={locked}
                         isInvalid={isLeftover || isDuplicate}

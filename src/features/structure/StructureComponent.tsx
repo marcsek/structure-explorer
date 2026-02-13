@@ -68,7 +68,7 @@ export default function StructureComponent() {
 
         {!symbolsClash && !constants.error && constants.parsed.size > 0 && (
           <div className="structure-component-section">
-            <h6 className="fw-normal">Constants interpretation</h6>
+            <h6 className="fw-normal lh-base">Constants interpretation</h6>
 
             <Stack gap={3}>
               {Array.from(constants.parsed ?? []).map((name) => (

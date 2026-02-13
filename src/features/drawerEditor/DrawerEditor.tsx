@@ -207,7 +207,7 @@ function EditorTitle({ base, editor }: EditorTitleProps) {
 
       <ForwardSlashIcon
         className="drawer-editor-title-divider text-body-secondary"
-        size="1rem"
+        size="0.875rem"
       />
       <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
         {editor}

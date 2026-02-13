@@ -26,12 +26,12 @@ function App({ viewOnlyMode }: AppProps) {
           <Header />
         </Row>
         <Row className="gx-4 split-pane">
-          <Col xs={12} xl={6} className="vh-pane-left col-divider">
+          <Col xs={12} lg={6} className="vh-pane-left col-divider">
             <LanguageComponent />
             <StructureComponent />
             <VariablesComponent />
           </Col>
-          <Col className="vh-pane-right" xs={12} xl={6}>
+          <Col className="vh-pane-right" xs={12} lg={6}>
             <FormulaCard />
           </Col>
         </Row>

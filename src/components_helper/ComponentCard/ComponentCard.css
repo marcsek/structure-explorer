@@ -19,6 +19,10 @@
   gap: 1rem;
 }
 
+.component-card-header h5 {
+  font-size: 1.125rem;
+}
+
 .component-card-body {
   padding-top: 0.5rem;
 }

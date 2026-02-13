@@ -151,6 +151,7 @@ function ViewOnlyLanguageDisplay(props: ViewOnlyLanguageDisplayProps) {
       gap={3}
       className="ms-2 view-only-language"
       onDoubleClick={props.triggerEdit}
+      style={{ fontSize: "0.875rem" }}
     >
       <div>
         <InlineMath>{"\\mathcal{C_L} = \\{"}</InlineMath>
