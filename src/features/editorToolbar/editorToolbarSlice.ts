@@ -192,7 +192,7 @@ export const selectHoveredUnary = withToolbarId((state, tupleId) =>
 
 export const selectUnaryFilterDomain = withToolbarId(
   (state, tupleId) =>
-    state.present.editorToolbar[tupleId]?.unaryFilterDomain ?? true,
+    state.present.editorToolbar[tupleId]?.unaryFilterDomain ?? false,
 );
 
 export const selectUnaryFilterDomainHovered = withToolbarId(
@@ -358,7 +358,7 @@ const initializeStateIfNotSet = (
     hoveredUnary: [],
     selectedUnary: [],
     selectedDomain: selectedNodes,
-    unaryFilterDomain: true,
+    unaryFilterDomain: false,
     unaryFilterHovered: false,
     openedEditor: "text",
   };

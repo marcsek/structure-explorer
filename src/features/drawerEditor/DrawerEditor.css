@@ -148,6 +148,10 @@
   border-inline: 1px solid var(--bs-border-color);
 }
 
+.drawer-editor-container.expanded .drawer-editor-toolbar-container {
+  padding-inline: 0.75rem;
+}
+
 .drawer-editor-title {
   display: flex;
   flex-direction: row;

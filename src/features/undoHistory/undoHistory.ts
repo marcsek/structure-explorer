@@ -25,6 +25,7 @@ export const UndoActions = {
 const reduxUndoOptions: UndoableOptions = {
   debug: import.meta.env.DEV,
   filter: includeAction(UndoActionTypes.CHECKPOINT),
+  limit: 20,
 };
 
 export type StateComparator<State> = (
