@@ -20,7 +20,7 @@ function App({ viewOnlyMode }: AppProps) {
       <ErrorAlert />
       <Container
         fluid
-        className={`mt-2 mb-2 px-3 ${viewOnlyMode ? "view-mode" : ""}`}
+        className={`mt-3 px-3 ${viewOnlyMode ? "view-mode" : ""}`}
       >
         <Row className="g-3">
           <Header />

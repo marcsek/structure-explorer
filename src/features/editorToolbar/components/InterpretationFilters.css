@@ -155,7 +155,7 @@
 
 .intr-filters-divider {
   width: var(--bs-border-width);
-  height: 38px;
+  height: 34px;
   background-color: var(--bs-light-border-subtle);
   margin-top: 0.25rem;
 }

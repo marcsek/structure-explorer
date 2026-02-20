@@ -155,5 +155,5 @@
 }
 
 .table-view .form-control.is-invalid {
-  padding-right: 0;
+  padding-right: 0.5rem;
 }

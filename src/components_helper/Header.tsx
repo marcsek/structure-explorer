@@ -9,9 +9,8 @@ import { UndoActions } from "../features/undoHistory/undoHistory";
 export default function Header() {
   return (
     <Stack
-      className="mb-2 header-container"
+      className="mb-2 header-container justify-content-between"
       direction="horizontal"
-      style={{ justifyContent: "space-between" }}
     >
       <HistoryButtons />
       <GearButton />

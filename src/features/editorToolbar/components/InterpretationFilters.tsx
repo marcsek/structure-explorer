@@ -51,7 +51,7 @@ export default function InterpretationFilters({
   return (
     <div className="intr-filters-container">
       <Button
-        className={`domain-button editor-toolbar-button legend-button  ${!unaryFilterDomain ? "active" : ""}`}
+        className={`domain-button editor-toolbar-button legend-button ${!unaryFilterDomain ? "active" : ""}`}
         title="Select Domain"
         onClick={() =>
           dispatch(unaryFilterDomainToggled({ tupleName, tupleType }))
@@ -60,7 +60,7 @@ export default function InterpretationFilters({
         onMouseLeave={() => handleDomainHover(false)}
         disabled={selectedPredicates.length === 0}
       >
-        <InlineMath>{String.raw`\mathcal{D}`}</InlineMath>
+        <InlineMath>{"D"}</InlineMath>
       </Button>
 
       <div className="intr-filters-divider" />
