@@ -137,11 +137,15 @@ function DrawerEditorContent({
       </div>
 
       <Stack className="drawer-editor-container-body">
-        {type !== "database" && (
-          <div className="drawer-editor-toolbar-container">
-            <EditorToolbar tupleName={tupleName} tupleType={tupleType} />
-          </div>
-        )}
+        <div className="drawer-editor-toolbar-container">
+          <EditorToolbar
+            tupleName={tupleName}
+            tupleType={tupleType}
+            disabledFilters={
+              type === "database" ? ["domainSelector", "unaryFilterToggle"] : []
+            }
+          />
+        </div>
 
         {error && (
           <EditorError

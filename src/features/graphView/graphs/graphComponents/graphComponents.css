@@ -9,6 +9,28 @@
   border-radius: var(--xy-node-border-radius-default);
 }
 
+.predicate-node.hatched {
+  content: "";
+  --stripe-bg: var(--bs-tertiary-bg);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--stripe-bg),
+    var(--stripe-bg) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+
+.predicate-node.hatched .predicate-node-body {
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+.predicate-node.hatched .predicate-node-indicator {
+  visibility: hidden;
+}
+
 .predicate-node-body {
   position: absolute;
   border-radius: 2px;

@@ -141,7 +141,7 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
     hoveredPredicateIntr,
   ) {
     const relevantNodesWithHovered = [
-      ...(relevantNodes ?? []),
+      ...(relevantNodes ?? selectedNodes),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
@@ -160,10 +160,25 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       !(relevantNodes?.includes(node.id) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id);
 
+    const isHatched = (node: PredicateNodeType) =>
+      unaryFilterDomain &&
+      (hoveredPredicateIntr?.flat().length ?? 0) !== 0 &&
+      !node.data.leftover &&
+      selectedNodes.includes(node.id) &&
+      relevantNodes === undefined &&
+      hoveredPredicateIntr &&
+      !hoveredPredicateIntr?.flat().includes(node.id);
+
     return filteredNodes.map((node) =>
       isGhost(node)
         ? { ...node, data: { ...node.data, ghost: true }, selectable: false }
-        : node,
+        : isHatched(node)
+          ? {
+              ...node,
+              data: { ...node.data, hatched: true },
+              selectable: false,
+            }
+          : node,
     );
   },
 

@@ -6,6 +6,7 @@ type PredicateInputProps = {
   invalid: boolean;
   columnError: boolean;
   unselected: boolean;
+  hatched: boolean;
   onValueChange: () => void;
   onHovered?: (hovered: boolean) => void;
 };
@@ -18,18 +19,20 @@ export function PredicateTableCell({
   onValueChange,
   onHovered,
   unselected,
+  hatched,
 }: PredicateInputProps) {
-  const shouldError = !unselected && (columnError || invalid);
+  const shouldError = !hatched && !unselected && (columnError || invalid);
   let cellClass = shouldError ? "error" : "";
-  const isDisabled = locked || (invalid && !value) || unselected;
+  const isDisabled = locked || (invalid && !value) || unselected || hatched;
 
   if (unselected) cellClass += " unselected";
+  if (hatched) cellClass += " hatched";
 
   return (
     <td
       className={cellClass}
-      onMouseEnter={() => onHovered?.(true)}
-      onMouseLeave={() => onHovered?.(false)}
+      onMouseEnter={() => !unselected && onHovered?.(true)}
+      onMouseLeave={() => !unselected && onHovered?.(false)}
       onClick={() => !isDisabled && onValueChange()}
     >
       <Form.Check
@@ -50,6 +53,7 @@ type FunctionInputProps = {
   invalid: boolean;
   columnError: boolean;
   unselected: boolean;
+  hatched: boolean;
   onValueChange: (value: string) => void;
   onBlur: () => void;
 };
@@ -62,9 +66,16 @@ export function FunctionTableCell({
   onValueChange,
   onBlur,
   unselected,
+  hatched,
 }: FunctionInputProps) {
+  const shouldError = !hatched && !unselected && (columnError || invalid);
+  let cellClass = shouldError ? "error" : "";
+
+  if (unselected) cellClass += " unselected";
+  if (hatched) cellClass += " hatched";
+
   return (
-    <td className={(columnError || invalid) && !unselected ? "error" : ""}>
+    <td className={cellClass}>
       <Form.Control
         type="text"
         size="sm"

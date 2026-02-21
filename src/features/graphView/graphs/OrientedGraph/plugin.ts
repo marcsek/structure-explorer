@@ -154,7 +154,7 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
     hoveredPredicateIntr,
   ) {
     const relevantNodesWithHovered = [
-      ...(relevantNodes ?? []),
+      ...(relevantNodes ?? selectedNodes),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
@@ -173,12 +173,26 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       !(relevantNodes?.includes(node.id) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id);
 
-    const d = filteredNodes.map((node) =>
+    const isHatched = (node: PredicateNodeType) =>
+      unaryFilterDomain &&
+      (hoveredPredicateIntr?.flat().length ?? 0) !== 0 &&
+      !node.data.leftover &&
+      selectedNodes.includes(node.id) &&
+      relevantNodes === undefined &&
+      hoveredPredicateIntr &&
+      !hoveredPredicateIntr?.flat().includes(node.id);
+
+    return filteredNodes.map((node) =>
       isGhost(node)
         ? { ...node, data: { ...node.data, ghost: true }, selectable: false }
-        : node,
+        : isHatched(node)
+          ? {
+              ...node,
+              data: { ...node.data, hatched: true },
+              selectable: false,
+            }
+          : node,
     );
-    return d;
   },
 
   filterEdgesToShow(state) {

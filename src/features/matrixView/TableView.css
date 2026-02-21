@@ -22,6 +22,7 @@
   background-color: var(--danger-hover-bg);
 }
 
+.table-view tr.error td.hatched,
 .table-view tr.error td.unselected {
   border-color: inherit;
   background-color: initial;
@@ -86,14 +87,38 @@
 .table-view td.unselected,
 .table-view th.unselected,
 .table-view tr.unselected td {
-  color: var(--bs-tertiary-color);
-  /* opacity: 0.5; */
+  color: transparent;
 }
 
-.table-view td.unselected.hovered,
-.table-view th.unselected.hovered,
-.table-view tr.hovered td.unselected,
-.table-view tr.unselected.hovered td {
+.table-view td.hatched,
+.table-view th.hatched,
+.table-view tr.hatched td {
+  color: var(--bs-tertiary-color);
+}
+
+.table-view td.unselected > *,
+.table-view th.unselected > *,
+.table-view tr.unselected td > * {
+  visibility: hidden;
+}
+
+.table-view td.unselected,
+.table-view th.unselected,
+.table-view tr td.unselected,
+.table-view tr.unselected td {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hover-bg),
+    var(--hover-bg) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.table-view td.hatched,
+.table-view th.hatched,
+.table-view tr td.hatched,
+.table-view tr.hatched td {
   background: repeating-linear-gradient(
     -45deg,
     var(--hover-bg),
@@ -156,4 +181,14 @@
 
 .table-view .form-control.is-invalid {
   padding-right: 0.5rem;
+}
+
+.table-view-data-indicator {
+  display: flex;
+  gap: calc(0.5rem + 3px);
+  align-items: center;
+}
+
+.table-view-data-indicator .relevant-pred-indicator {
+  margin-right: 0.25rem;
 }

@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import {
   selectFilteredDomain,
+  selectHatchedDomain,
   selectPredicatesToDisplay,
 } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
@@ -51,6 +52,10 @@ export default function MatrixView({
 
   const selectedDomain = useAppSelector((state) =>
     selectFilteredDomain(state, tupleName, tupleType, true),
+  );
+
+  const hatchedDomain = useAppSelector((state) =>
+    selectHatchedDomain(state, tupleName, tupleType),
   );
 
   const isUnary = tupleArity === 1;
@@ -100,23 +105,27 @@ export default function MatrixView({
       dispatch(UndoActions.checkpoint());
   };
 
+  const selectedDomainWithHatched = domain.filter(
+    (d) => selectedDomain.includes(d) || hatchedDomain.includes(d),
+  );
   const unselectedDomain = domain.filter(
-    (d) => !selectedDomain.includes(d) && !leftovers.includes(d),
+    (d) => !selectedDomainWithHatched.includes(d) && !leftovers.includes(d),
   );
   const domainWithLeftovers = [
-    ...domain,
-    // ...selectedDomain,
-    // ...unselectedDomain,
+    ...selectedDomainWithHatched,
     ...leftovers,
+    ...unselectedDomain,
   ];
 
   const getTableClass = (element: string) => {
     const unselected = unselectedDomain.includes(element) ? " unselected" : "";
     if (leftovers.includes(element) && !unselected) return "error";
+    if (hatchedDomain.includes(element)) return "hatched";
     return unselected;
   };
 
-  if (domainWithLeftovers.length === 0) {
+  const domainWithoutUnselected = [...selectedDomainWithHatched, ...leftovers];
+  if (domainWithoutUnselected.length === 0) {
     return (
       <EmptyPlaceholder
         message={"Nothing to display (selected domain is empty)"}
@@ -177,6 +186,9 @@ export default function MatrixView({
                     unselectedDomain.includes(col) ||
                     unselectedDomain.includes(row)
                   }
+                  hatched={
+                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
+                  }
                   onHovered={(hovered) =>
                     hovered
                       ? handleCellHover(isUnary ? -1 : rowIdx, colIdx)
@@ -198,6 +210,9 @@ export default function MatrixView({
                   unselected={
                     unselectedDomain.includes(col) ||
                     unselectedDomain.includes(row)
+                  }
+                  hatched={
+                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
                   }
                   onBlur={() => dispatch(UndoActions.checkpoint())}
                 />

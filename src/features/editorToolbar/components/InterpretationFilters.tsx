@@ -24,15 +24,18 @@ import {
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 import type { TupleType } from "../../structure/structureSlice";
+import type { EditorFilters } from "./EditorToolbar";
 
 export interface InterpretationFiltersProps {
   tupleName: string;
   tupleType: TupleType;
+  disabledFilters: EditorFilters[];
 }
 
 export default function InterpretationFilters({
   tupleName,
   tupleType,
+  disabledFilters,
 }: InterpretationFiltersProps) {
   const dispatch = useAppDispatch();
   const unaryFilterDomain = useAppSelector((state) =>
@@ -58,7 +61,10 @@ export default function InterpretationFilters({
         }
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
-        disabled={selectedPredicates.length === 0}
+        disabled={
+          selectedPredicates.length === 0 ||
+          disabledFilters.includes("unaryFilterToggle")
+        }
       >
         <InlineMath>{"D"}</InlineMath>
       </Button>
@@ -66,7 +72,11 @@ export default function InterpretationFilters({
       <div className="intr-filters-divider" />
 
       {unaryPredicatesCount !== 0 ? (
-        <UnaryPredicatesFilter tupleName={tupleName} tupleType={tupleType} />
+        <UnaryPredicatesFilter
+          tupleName={tupleName}
+          tupleType={tupleType}
+          disabled={disabledFilters.includes("intrFilters")}
+        />
       ) : (
         <span className="intr-filter-no-elements-info">
           No unary predicates to filter
@@ -79,11 +89,13 @@ export default function InterpretationFilters({
 interface UnaryPredicatesFilterProps {
   tupleName: string;
   tupleType: TupleType;
+  disabled: boolean;
 }
 
 function UnaryPredicatesFilter({
   tupleName,
   tupleType,
+  disabled,
 }: UnaryPredicatesFilterProps) {
   const dispatch = useAppDispatch();
   const predicates = useAppSelector(selectUnaryPreds).map(([name]) => name);
@@ -98,6 +110,8 @@ function UnaryPredicatesFilter({
 
   useDraggingScroll(filtersGroupRef);
   const scrollControls = useScrollControls(filtersGroupRef, { edgeMargin: 40 });
+
+  if (disabled) return null;
 
   const handleSelectAll = () => {
     const allSelected =

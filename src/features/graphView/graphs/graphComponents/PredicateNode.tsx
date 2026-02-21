@@ -26,6 +26,7 @@ interface PredicateNodeData extends Record<string, unknown> {
   label: string;
   error?: boolean;
   ghost?: boolean;
+  hatched?: boolean;
   leftover?: boolean;
 }
 
@@ -78,7 +79,7 @@ function PredicateNode({
   return (
     <>
       <div
-        className={`predicate-node ${hasErrorState ? "error" : ""} ${data.ghost ? "ghost" : ""}`}
+        className={`predicate-node ${hasErrorState ? "error" : ""} ${data.ghost ? "ghost" : ""} ${data.hatched ? "hatched" : ""}`}
         onDoubleClick={() => createSelfEdge()}
       >
         {!hasErrorState && <UnaryPredicatesIndicator domainId={data.label} />}

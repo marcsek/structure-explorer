@@ -174,7 +174,7 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
     hoveredPredicateIntr,
   ) {
     const relevantNodesWithHovered = [
-      ...(relevantNodes ?? []),
+      ...(relevantNodes ?? selectedNodes),
       ...new Set(hoveredPredicateIntr?.flat() ?? []),
     ];
 
@@ -193,6 +193,15 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       !(relevantNodes?.includes(node.id.slice("d-".length)) ?? true) &&
       hoveredPredicateIntr?.flat().includes(node.id.slice("d-".length));
 
+    const isHatched = (node: BipartiteNodeType) =>
+      unaryFilterDomain &&
+      (hoveredPredicateIntr?.flat().length ?? 0) !== 0 &&
+      !node.data.leftover &&
+      selectedNodes.includes(node.id.slice("d-".length)) &&
+      relevantNodes === undefined &&
+      hoveredPredicateIntr &&
+      !hoveredPredicateIntr?.flat().includes(node.id.slice("d-".length));
+
     const dragging = nodes
       .filter((node) => node.dragging)
       .map((node) => node.id);
@@ -201,7 +210,13 @@ export const bipartiteGraphPlugin: Plugin<"bipartite"> = {
       filteredNodes.map((node) =>
         isGhost(node)
           ? { ...node, data: { ...node.data, ghost: true }, selectable: false }
-          : node,
+          : isHatched(node)
+            ? {
+                ...node,
+                data: { ...node.data, hatched: true },
+                selectable: false,
+              }
+            : node,
       ),
       dragging,
     );

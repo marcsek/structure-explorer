@@ -24,11 +24,13 @@ import useClickAwayListener from "./useClickAwayListener";
 export interface DomainSelectorProps {
   tupleName: string;
   tupleType: TupleType;
+  disabled: boolean;
 }
 
 export default function DomainSelector({
   tupleName,
   tupleType,
+  disabled,
 }: DomainSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -59,6 +61,7 @@ export default function DomainSelector({
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         title="Domain Filters"
+        disabled={disabled}
       >
         <div className="domain-selector-toggle-icon-container">
           <div className="domain-selector-toggle-icon-indicator" />

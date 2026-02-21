@@ -308,6 +308,28 @@ export const selectHoveredIntr = createSelector(
   },
 );
 
+export const selectHatchedDomain = createSelector(
+  [
+    selectHoveredIntr,
+    selectUnaryFilterDomain,
+    selectSelectedDomain,
+    selectRelevantDomainElements,
+  ],
+  (hoveredIntr, unaryFilterDomain, selectedDomain, relevantDomain) => {
+    if (
+      !hoveredIntr ||
+      hoveredIntr.flat().length === 0 ||
+      relevantDomain !== undefined ||
+      !unaryFilterDomain
+    )
+      return [];
+
+    return selectedDomain.filter(
+      (element) => !hoveredIntr.flat().includes(element),
+    );
+  },
+);
+
 export const getRelevantEditorToolbarState = (
   editorToolbar: SerializedEditorToolbarState,
   relevantSymbols: RelevantSymbols,

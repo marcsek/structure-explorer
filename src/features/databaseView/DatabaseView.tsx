@@ -13,6 +13,10 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectDomain, type TupleType } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
+import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
+import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
+import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
+import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 
 interface DatabaseViewProps {
   tupleName: string;
@@ -143,21 +147,30 @@ export default function DatabaseView({
 
                 return (
                   <td key={`col-${idx}`} className={isLeftover ? "error" : ""}>
-                    {isReadOnly ? (
-                      <span>{tuple[idx]}</span>
-                    ) : (
-                      <Form.Control
-                        type="text"
-                        size="sm"
-                        value={tuple[idx] ?? ""}
-                        disabled={locked}
-                        isInvalid={isLeftover || isDuplicate}
-                        onChange={(e) =>
-                          handleTupleChange(tupleIdx, idx, e.target.value)
-                        }
-                        onBlur={() => handleCheckpointOnBlur(tupleIdx)}
-                      />
-                    )}
+                    <div className="table-view-data-indicator">
+                      {isReadOnly ? (
+                        <span>{tuple[idx]}</span>
+                      ) : (
+                        <Form.Control
+                          type="text"
+                          size="sm"
+                          value={tuple[idx] ?? ""}
+                          disabled={locked}
+                          isInvalid={isLeftover || isDuplicate}
+                          onChange={(e) =>
+                            handleTupleChange(tupleIdx, idx, e.target.value)
+                          }
+                          onBlur={() => handleCheckpointOnBlur(tupleIdx)}
+                        />
+                      )}
+                      {(!isLast || tupleType === "function") && (
+                        <PredicateIndicatorTableData
+                          tupleType={tupleType}
+                          tupleName={tupleName}
+                          domainId={tuple[idx]}
+                        />
+                      )}
+                    </div>
                   </td>
                 );
               })}
@@ -194,6 +207,39 @@ const findDuplicateTuples = (tuples: string[][]) => {
 };
 
 const countEmpty = (tuple: string[]) => tuple.filter((t) => t === "").length;
+
+interface PredicateIndicatorTableDataProps {
+  tupleName: string;
+  tupleType: TupleType;
+  domainId: string;
+}
+
+function PredicateIndicatorTableData({
+  tupleName,
+  tupleType,
+  domainId,
+}: PredicateIndicatorTableDataProps) {
+  const allUnaryPreds = useAppSelector(selectUnaryPreds);
+
+  const [predsToDisplay, previewed] = useAppSelector((state) =>
+    selectPredicatesToDisplay(state, tupleName, tupleType, domainId),
+  );
+
+  const colorMap = getUnaryPredicateToColorMap(
+    predsToDisplay ?? [],
+    allUnaryPreds ?? [],
+  );
+
+  if (predsToDisplay.length === 0 && previewed.length === 0) return null;
+
+  return (
+    <RelevantPredicatesIndicator
+      predicateToColorMap={colorMap}
+      previewed={previewed}
+      size="sm"
+    />
+  );
+}
 
 interface DeleteTupleTableEntryProps {
   isDuplicate: boolean;
