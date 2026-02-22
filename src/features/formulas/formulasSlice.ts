@@ -243,7 +243,7 @@ export const selectFormulaLock = (state: RootState, id: number) =>
 export const selectFormulaGuessLock = (state: RootState, id: number) =>
   selectFormula(state, id).lockedGuess;
 
-const evaluateFormula = (
+export const evaluateFormula = (
   language: Language,
   structure: Structure,
   formText: string,

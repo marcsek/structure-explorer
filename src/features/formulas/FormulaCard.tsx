@@ -41,7 +41,7 @@ export default function FormulaCard() {
       <Stack
         gap={2}
         direction="horizontal"
-        className="mb-3 flex-wrap formula-card-header"
+        className={`${allFormulas.length > 0 ? "mb-3" : ""} flex-wrap formula-card-header`}
       >
         {allFormulas.length === 0 && (
           <Button

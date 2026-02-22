@@ -124,7 +124,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
               disabled={isFromContext || locked === true}
               value={text}
               onChange={(e) => {
-                dispatch(updateFormulaText({ id: id, text: e.target.value }));
+                dispatch(updateFormulaText({ id, text: e.target.value }));
               }}
               isInvalid={!!error}
               onBlur={() => dispatch(UndoActions.checkpoint())}
@@ -150,7 +150,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
               />
             )}
 
-            <ErrorFeedback error={error} text={text}></ErrorFeedback>
+            <ErrorFeedback error={error} text={text} />
           </InputGroup>
         </Row>
 

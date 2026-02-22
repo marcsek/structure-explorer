@@ -32,16 +32,14 @@ export default function ErrorFeedback({ error, text }: ErrorFeedbackProps) {
     return null;
   }
   return (
-    <>
-      <Form.Control.Feedback type="invalid">
-        {error.message}
-        {error instanceof SyntaxError ||
-          (!(error instanceof Error) &&
-            error.kind === "syntax" &&
-            error.location && (
-              <LocationDisplay location={error.location} text={text} />
-            ))}
-      </Form.Control.Feedback>
-    </>
+    <Form.Control.Feedback type="invalid">
+      {error.message}
+      {error instanceof SyntaxError ||
+        (!(error instanceof Error) &&
+          error.kind === "syntax" &&
+          error.location && (
+            <LocationDisplay location={error.location} text={text} />
+          ))}
+    </Form.Control.Feedback>
   );
 }

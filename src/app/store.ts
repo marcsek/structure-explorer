@@ -6,6 +6,7 @@ import {
   type ThunkAction,
 } from "@reduxjs/toolkit";
 import formulasReducer from "../features/formulas/formulasSlice";
+import queriesReducer from "../features/queries/queriesSlice.ts";
 import languageReducer from "../features/language/languageSlice";
 import structureReducer from "../features/structure/structureSlice";
 import variablesReducer from "../features/variables/variablesSlice";
@@ -20,6 +21,7 @@ import { undoable } from "../features/undoHistory/undoHistory.ts";
 
 const rootReducer = {
   formulas: formulasReducer,
+  queries: queriesReducer,
   language: languageReducer,
   structure: structureReducer,
   variables: variablesReducer,
