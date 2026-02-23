@@ -14,7 +14,10 @@ class Conjunction extends Formula {
    * @param {Formula} subLeft
    * @param {Formula} subRight
    */
-  constructor(public subLeft: Formula, public subRight: Formula) {
+  constructor(
+    public subLeft: Formula,
+    public subRight: Formula,
+  ) {
     super([subLeft, subRight], " ∧ ", "\\land");
   }
 
@@ -37,6 +40,7 @@ class Conjunction extends Formula {
   getSignedType(sign: boolean): SignedFormulaType {
     return sign ? SignedFormulaType.ALPHA : SignedFormulaType.BETA;
   }
+
   getSignedSubFormulas(sign: boolean): SignedFormula[] {
     return [
       { sign: sign, formula: this.subLeft },

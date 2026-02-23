@@ -34,30 +34,13 @@ import LockButton from "../../components_helper/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { useFormulasContext } from "../../logicContext";
 import { selectLanguageErrors } from "../language/languageSlice";
-import type { InterpretationError } from "../../common/errors";
+import { getErrorMessageFromValidation } from "../../common/formulas";
 
 interface Props {
   id: number;
   name?: string;
   text: string;
   guess: boolean | null;
-}
-
-function getErrorMessageFromValidation(
-  errors: Partial<{
-    languageError: InterpretationError;
-    structureError: InterpretationError;
-    variablesError: InterpretationError;
-  }>,
-) {
-  const locations: string[] = [];
-
-  if (errors.languageError) locations.push("language");
-  if (errors.structureError) locations.push("structure");
-  if (errors.variablesError) locations.push("variable assignment");
-
-  if (locations.length === 0) return "";
-  return `There are errors in: ${locations.join(", ")}.`;
 }
 
 export default function FormulaComponent({ id, text, guess, name }: Props) {

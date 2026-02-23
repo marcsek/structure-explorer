@@ -13,7 +13,7 @@ import Structure, { type DomainElement } from "../Structure";
 abstract class Term extends Expression {
   abstract eval(
     structure: Structure,
-    e: Map<Symbol, DomainElement>
+    e: Map<Symbol, DomainElement>,
   ): DomainElement;
 }
 

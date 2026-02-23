@@ -1,33 +1,21 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppThunk, RootState } from "../../app/store";
-import Constant from "../../model/term/Term.Constant";
-import Variable from "../../model/term/Term.Variable";
 import {
-  type ErrorExpected,
   parseFormulaWithPrecedence,
   SyntaxError,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import Formula, {
+import {
   type SignedFormula,
   SignedFormulaType,
 } from "../../model/formula/Formula";
-import Term from "../../model/term/Term";
-import FunctionTerm from "../../model/term/Term.FunctionTerm";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
-import Negation from "../../model/formula/Formula.Negation";
-import Conjunction from "../../model/formula/Formula.Conjunction";
-import Disjunction from "../../model/formula/Formula.Disjunction";
-import Implication from "../../model/formula/Formula.Implication";
-import Equivalence from "../../model/formula/Formula.Equivalence";
-import ExistentialQuant from "../../model/formula/Formula.ExistentialQuant";
 import { selectLanguage } from "../language/languageSlice";
 import {
   selectValidatedDomain,
   selectStructure,
 } from "../structure/structureSlice";
-import UniversalQuant from "../../model/formula/Formula.UniversalQuant";
 import { selectValuation } from "../variables/variablesSlice";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import type { ReactNode } from "react";
@@ -35,6 +23,7 @@ import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../common/logging";
+import { getFormulaFactories } from "../../common/formulas";
 
 export interface FormulaState {
   name?: string;
@@ -243,44 +232,14 @@ export const selectFormulaLock = (state: RootState, id: number) =>
 export const selectFormulaGuessLock = (state: RootState, id: number) =>
   selectFormula(state, id).lockedGuess;
 
-export const evaluateFormula = (
+const evaluateFormula = (
   language: Language,
   structure: Structure,
   formText: string,
   valuation: Map<string, string>,
 ) => {
   dev.time("selectEvaluatedFormula duration");
-  const factories = {
-    variable: (symbol: string, _ee: ErrorExpected) => new Variable(symbol),
-    constant: (symbol: string, _ee: ErrorExpected) => new Constant(symbol),
-    functionApplication: (
-      symbol: string,
-      args: Array<Term>,
-      ee: ErrorExpected,
-    ) => {
-      language.checkFunctionArity(symbol, args, ee);
-      return new FunctionTerm(symbol, args);
-    },
-    predicateAtom: (symbol: string, args: Array<Term>, ee: ErrorExpected) => {
-      language.checkPredicateArity(symbol, args, ee);
-      return new PredicateAtom(symbol, args);
-    },
-    equalityAtom: (lhs: Term, rhs: Term, _ee: ErrorExpected) =>
-      new EqualityAtom(lhs, rhs),
-    negation: (subf: Formula, _ee: ErrorExpected) => new Negation(subf),
-    conjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-      new Conjunction(lhs, rhs),
-    disjunction: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-      new Disjunction(lhs, rhs),
-    implication: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-      new Implication(lhs, rhs),
-    equivalence: (lhs: Formula, rhs: Formula, _ee: ErrorExpected) =>
-      new Equivalence(lhs, rhs),
-    existentialQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
-      new ExistentialQuant(variable, subf),
-    universalQuant: (variable: string, subf: Formula, _ee: ErrorExpected) =>
-      new UniversalQuant(variable, subf),
-  };
+  const factories = getFormulaFactories(language);
 
   try {
     const formula = parseFormulaWithPrecedence(

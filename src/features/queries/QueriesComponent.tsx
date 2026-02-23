@@ -24,8 +24,8 @@ export default function QueriesComponent() {
       help={help}
     >
       <Stack
-        gap={2}
-        direction="horizontal"
+        gap={3}
+        direction="vertical"
         className={`${queryIndexes.length > 0 ? "mb-3" : ""} flex-wrap formula-card-header`}
       >
         {queryIndexes.map((idx) => (

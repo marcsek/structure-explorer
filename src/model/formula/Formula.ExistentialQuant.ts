@@ -15,7 +15,10 @@ class ExistentialQuant extends QuantifiedFormula {
    * @param {string} variableName
    * @param {Formula} subFormula
    */
-  constructor(public variableName: string, public subFormula: Formula) {
+  constructor(
+    public variableName: string,
+    public subFormula: Formula,
+  ) {
     super(variableName, subFormula, "∃", "\\exists");
   }
 
@@ -26,9 +29,9 @@ class ExistentialQuant extends QuantifiedFormula {
    * @return {boolean}
    */
   eval(structure: Structure, e: Valuation): boolean {
-    let eCopy = new Map(e);
+    const eCopy = new Map(e);
 
-    for (let item of structure.domain) {
+    for (const item of structure.domain) {
       eCopy.set(this.variableName, item);
       try {
         if (this.subFormula.eval(structure, eCopy)) {

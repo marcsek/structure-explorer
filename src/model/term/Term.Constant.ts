@@ -21,14 +21,14 @@ class Constant extends Term {
   /**
    * Return intepretation of the constant
    * @param {Structure} structure Structure
-   * @param {Map} e variables valuation
+   * @param {Map} _e variables valuation
    * @return {string} domain item
    */
-  eval(structure: Structure, _: Valuation): DomainElement {
+  eval(structure: Structure, _e: Valuation): DomainElement {
     const c = structure.iC.get(this.name);
     if (c === undefined || c === "") {
       throw new Error(
-        `The interpretation of the constant ${this.name} is not defined`
+        `The interpretation of the constant ${this.name} is not defined`,
       );
     }
 

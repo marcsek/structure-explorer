@@ -7,7 +7,7 @@ abstract class QuantifiedFormula extends Formula {
     public variableName: string,
     public subFormula: Formula,
     public connective: string,
-    public connectiveTex: string
+    public connectiveTex: string,
   ) {
     super([subFormula], connective, connectiveTex);
   }
@@ -39,11 +39,11 @@ abstract class QuantifiedFormula extends Formula {
   winningElements(
     sign: boolean,
     structure: Structure,
-    e: Valuation
+    e: Valuation,
   ): DomainElement[] {
     const signedFormula = this.getSignedSubFormulas(sign)[0];
 
-    let cpy = new Map(e);
+    const cpy = new Map(e);
 
     let winning: DomainElement[] = [];
 
@@ -62,8 +62,14 @@ abstract class QuantifiedFormula extends Formula {
   }
 
   getVariables(): Set<Symbol> {
-    let variables = this.subFormula.getVariables();
+    const variables = this.subFormula.getVariables();
     variables.add(this.variableName);
+    return variables;
+  }
+
+  getFreeVariables(): Set<Symbol> {
+    const variables = this.subFormula.getFreeVariables();
+    variables.delete(this.variableName);
     return variables;
   }
 

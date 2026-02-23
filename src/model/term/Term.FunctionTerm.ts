@@ -15,7 +15,10 @@ class FunctionTerm extends Term {
    * @param {string} name name of the function
    * @param {Term[]} terms parameters of function
    */
-  constructor(public name: string, public terms: Term[]) {
+  constructor(
+    public name: string,
+    public terms: Term[],
+  ) {
     super();
   }
 
@@ -26,7 +29,7 @@ class FunctionTerm extends Term {
    * @returns {string} domain item
    */
   eval(structure: Structure, e: Valuation): DomainElement {
-    let interpretedParams: string[] = [];
+    const interpretedParams: string[] = [];
     this.terms.forEach((term) => {
       interpretedParams.push(term.eval(structure, e));
     });
@@ -35,7 +38,7 @@ class FunctionTerm extends Term {
 
     if (interpretation === undefined) {
       throw new Error(
-        `The interpretation of the function symbol ${this.name} is not defined.`
+        `The interpretation of the function symbol ${this.name} is not defined.`,
       );
     }
 
@@ -47,7 +50,7 @@ class FunctionTerm extends Term {
           interpretedParams.length > 1
             ? `(${interpretedParams})`
             : interpretedParams
-        } is not defined`
+        } is not defined`,
       );
     }
     return interpretedValue;
@@ -76,7 +79,7 @@ class FunctionTerm extends Term {
   getVariables(): Set<Symbol> {
     const vars: Set<Symbol> = new Set();
     this.terms.forEach((term) =>
-      term.getVariables().forEach((variable) => vars.add(variable))
+      term.getVariables().forEach((variable) => vars.add(variable)),
     );
     return vars;
   }

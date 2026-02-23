@@ -14,7 +14,10 @@ class Disjunction extends Formula {
    * @param {Formula} subLeft
    * @param {Formula} subRight
    */
-  constructor(public subLeft: Formula, public subRight: Formula) {
+  constructor(
+    public subLeft: Formula,
+    public subRight: Formula,
+  ) {
     super([subLeft, subRight], " ∨ ", "\\lor");
   }
 
@@ -37,6 +40,7 @@ class Disjunction extends Formula {
   getSignedType(sign: boolean): SignedFormulaType {
     return sign ? SignedFormulaType.BETA : SignedFormulaType.ALPHA;
   }
+
   getSignedSubFormulas(sign: boolean): SignedFormula[] {
     return [
       { sign: sign, formula: this.subLeft },
