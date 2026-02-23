@@ -27,6 +27,10 @@ import {
   serializedEditorToolbarStateDefault,
   serializedEditorToolbarStateSchema,
 } from "../editorToolbar/validationSchema";
+import {
+  SerializedQueriesStateDefault,
+  serializedQueriesStateSchema,
+} from "../queries/validationSchema";
 
 export const MINIMAL_SUPPORTED_VERSION = 1;
 export const MAXIMAL_SUPPORTED_VERSION = 1;
@@ -48,6 +52,7 @@ const schemaFields = {
   teacherMode: serializedTeacherModeStateSchema,
   graphView: serializedGraphViewStateSchema,
   formulas: serializedFormulasStateSchema,
+  queries: serializedQueriesStateSchema,
   editorToolbar: serializedEditorToolbarStateSchema,
 } as const;
 
@@ -62,6 +67,7 @@ const schemaDefaults: SerializedAppState = {
   teacherMode: serializedTeacherModeStateDefault,
   graphView: serializedGraphViewStateDefault,
   formulas: SerializedFormulasStateDefault,
+  queries: SerializedQueriesStateDefault,
   editorToolbar: serializedEditorToolbarStateDefault,
 };
 

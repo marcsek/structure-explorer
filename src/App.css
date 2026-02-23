@@ -155,6 +155,10 @@
   border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
 }
 
+.view-mode .query-result-container {
+  display: none;
+}
+
 .btn-bd-light-outline {
   --bs-btn-color: var(--bs-body-color);
   --bs-btn-bg: var(--bs-light-bg-subtle);

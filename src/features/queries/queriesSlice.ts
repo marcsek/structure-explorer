@@ -14,6 +14,7 @@ import {
   parseConstants,
   parseFormulaWithPrecedence,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import type { SerializedQueriesState } from "./validationSchema";
 
 export interface QueryState {
   text: string;
@@ -41,6 +42,13 @@ export const queriesSlice = createSlice({
   name: "queries",
   initialState: initialQueriesState,
   reducers: {
+    importQueriesState: (
+      _state,
+      action: PayloadAction<SerializedQueriesState>,
+    ) => {
+      return action.payload;
+    },
+
     addQuery: (state) => {
       state.queries.push(createQuery());
     },
@@ -229,6 +237,7 @@ function* permutations<T>(domain: T[], n: number): Generator<T[]> {
 }
 
 export const {
+  importQueriesState,
   addQuery,
   lockQuery,
   updateQueryText,

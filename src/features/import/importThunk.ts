@@ -31,12 +31,12 @@ import {
   getRelevantEditorToolbarState,
   importEditorToolbarState,
 } from "../editorToolbar/editorToolbarSlice";
+import { importQueriesState } from "../queries/queriesSlice";
 
-export interface ImportedAppState
-  extends Omit<
-    RootState["present"],
-    "graphView" | "matrixView" | "databaseView" | "editorToolbar" | "textView"
-  > {
+export interface ImportedAppState extends Omit<
+  RootState["present"],
+  "graphView" | "matrixView" | "databaseView" | "editorToolbar" | "textView"
+> {
   graphView: Record<
     string,
     Record<GraphType, Record<string, [number, number]>>
@@ -65,6 +65,7 @@ export const importAppState =
     dispatch(importVariablesState(importedState.variables));
     dispatch(importTeacherMode(importedState.teacherMode));
     dispatch(importFormulasState(importedState.formulas));
+    dispatch(importQueriesState(importedState.queries));
 
     const { language, structure, variables } = getState().present;
 
@@ -137,6 +138,7 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
   return {
     version: SERIALIZED_STATE_VERSION,
     formulas: state.present.formulas,
+    queries: state.present.queries,
     language: state.present.language,
     variables: state.present.variables,
     teacherMode: state.present.teacherMode,
