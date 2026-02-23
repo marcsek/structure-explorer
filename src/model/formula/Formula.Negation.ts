@@ -39,7 +39,7 @@ class Negation extends Formula {
   }
 
   toTex(): string {
-    return `\\lnot ${this.subFormula.toString()}`;
+    return `\\lnot ${this.subFormula.toTex()}`;
   }
 
   getSubFormulas() {

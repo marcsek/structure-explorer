@@ -44,7 +44,7 @@ class Constant extends Term {
   }
 
   toTex(): string {
-    return this.toString();
+    return `\\text{${this.name}}`;
   }
 
   getVariables(): Set<Symbol> {

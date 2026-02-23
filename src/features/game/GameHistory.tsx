@@ -30,6 +30,10 @@ export function getDiffAndNew(
   );
 }
 
+const M = () => "\\mathcal{M}";
+const models = (m: boolean) => (m ? "\\models" : "\\not\\models");
+const evalVars = (vars?: string) => `[e${vars ?? ""}]`;
+
 export default function GameHistory({ id }: Props) {
   const dispatch = useAppDispatch();
   const data = useAppSelector((state) => selectHistoryData(state, id));
@@ -44,22 +48,23 @@ export default function GameHistory({ id }: Props) {
     }
   }, [data]);
 
-  let bubbles: BubbleFormat[] = [];
+  const bubbles: BubbleFormat[] = [];
   let back = 0;
 
   for (const { sf, valuation, type, winFormula, winElement } of data) {
     const valuationDiff = getDiffAndNew(initialValuation, valuation);
 
-    let valuationText = Array.from(valuationDiff)
-      .map(([from, to]) => `(${from} / ${to})`)
+    const valuationText = Array.from(valuationDiff)
+      .map(([from, to]) => `(${from} / \\text{${to}})`)
       .join(" ");
 
     bubbles.push({
       text: (
         <>
-          You assume that ℳ {sf?.sign ? " ⊨ " : " ⊭ "}{" "}
-          <InlineMath>{sf.formula.toTex()}</InlineMath>[<var> e</var>
-          {valuationText} ]
+          You assume that{" "}
+          <InlineMath>
+            {`${M()} ${models(sf?.sign)} ${sf.formula.toTex()}${evalVars(valuationText)}`}
+          </InlineMath>
         </>
       ),
       sender: "game",
@@ -76,27 +81,29 @@ export default function GameHistory({ id }: Props) {
       const explanaiton =
         sf.formula instanceof PredicateAtom ? (
           <>
-            , since (
-            {sf.formula.terms
-              .map((t) => t.eval(structure, valuation))
-              .join(",")}
-            ){sf.sign === satisfied ? " ∈ " : " ∉ "}
-            i({sf.formula.name})
+            , since{" "}
+            <InlineMath>
+              {`(\\text{${sf.formula.terms
+                .map((t) => t.eval(structure, valuation))
+                .join(
+                  ",",
+                )}}) ${sf.sign === satisfied ? "\\in" : "\\not\\in"} i(\\text{${sf.formula.name}})`}
+            </InlineMath>
           </>
         ) : (
           <>
-            , since {sf.formula.subLeft.eval(structure, valuation)}
-            {sf.sign === satisfied ? " = " : " ≠ "}
-            {sf.formula.subRight.eval(structure, valuation)}
+            , since{" "}
+            <InlineMath>
+              {`\\text{${sf.formula.subLeft.eval(structure, valuation)}} ${sf.sign === satisfied ? "=" : "\\neq"} \\text{${sf.formula.subRight.eval(structure, valuation)}}`}
+            </InlineMath>
           </>
         );
       bubbles.push({
         text: (
           <>
-            <strong>{satisfied ? "You win " : "You lose"}</strong>, ℳ
-            {sf.sign === satisfied ? " ⊨ " : " ⊭ "}
-            <InlineMath>{sf.formula.toTex()}</InlineMath>[<var> e</var>{" "}
-            {valuationText}]{explanaiton}
+            <strong>{satisfied ? "You win " : "You lose"}</strong>,{" "}
+            <InlineMath>{`${M()} ${models(sf.sign)} ${sf.formula.toTex()}${evalVars(valuationText)}`}</InlineMath>
+            {explanaiton}
           </>
         ),
         sender: "game",
@@ -114,9 +121,11 @@ export default function GameHistory({ id }: Props) {
                 <strong>You could have won, though.</strong>
               </>
             )}
-            Your initial assumption that ℳ {data[0].sf.sign ? "⊨" : "⊭"}
-            <InlineMath>{data[0].sf.formula.toTex()}</InlineMath>[<var> e</var>{" "}
-            ] was
+            Your initial assumption that{" "}
+            <InlineMath>
+              {`${M()} ${models(data[0].sf.sign)} ${data[0].sf.formula.toTex()} ${evalVars()}`}
+            </InlineMath>{" "}
+            was
             {originalGuess ? " correct." : " incorrect."}{" "}
             {originalGuess === true && satisfied === false && (
               <>
@@ -137,9 +146,10 @@ export default function GameHistory({ id }: Props) {
       bubbles.push({
         text: (
           <>
-            Then ℳ {winFormula.sign ? "⊨" : "⊭"}{" "}
-            <InlineMath>{winFormula.formula.toTex()}</InlineMath>[<var> e</var>
-            {valuationText} ]
+            Then{" "}
+            <InlineMath>
+              {`${M()} ${models(winFormula.sign)} ${winFormula.formula.toTex()} ${evalVars(valuationText)}`}
+            </InlineMath>
           </>
         ),
         sender: "game",
@@ -161,14 +171,10 @@ export default function GameHistory({ id }: Props) {
         sender: "game",
       });
 
-      subfs.forEach((s, _i) =>
+      subfs.forEach((s) =>
         bubbles.push({
           text: (
-            <>
-              ℳ {s.sign ? "⊨" : "⊭"}{" "}
-              <InlineMath>{s.formula.toTex()}</InlineMath>[<var> e</var>
-              {valuationText} ]
-            </>
+            <InlineMath>{`${M()} ${models(s.sign)} ${s.formula.toTex()}${evalVars(valuationText)}`}</InlineMath>
           ),
           sender: "game",
         }),
@@ -178,11 +184,9 @@ export default function GameHistory({ id }: Props) {
         const choice = subfs[choices[back].formula!];
         bubbles.push({
           text: (
-            <>
-              ℳ {choice.sign ? "⊨" : "⊭"}{" "}
-              <InlineMath>{choice.formula.toTex()}</InlineMath>[<var> e</var>
-              {valuationText} ]
-            </>
+            <InlineMath>
+              {`${M()} ${models(choice.sign)} ${choice.formula.toTex()}${evalVars(valuationText)}`}
+            </InlineMath>
           ),
           sender: "player",
           goBack: back,
@@ -194,10 +198,13 @@ export default function GameHistory({ id }: Props) {
       bubbles.push({
         text: (
           <>
-            Then ℳ {sf.sign ? " ⊨ " : " ⊭ "}{" "}
-            <InlineMath>{sf.formula.toTex()}</InlineMath>[<var> e</var>{" "}
-            {valuationText} ] also when we assign element {winElement} to{" "}
-            {sf.formula.variableName}
+            Then{" "}
+            <InlineMath>
+              {`${M()} ${models(sf.sign)} ${sf.formula.toTex()}${evalVars(valuationText)}`}
+            </InlineMath>{" "}
+            also when we assign element{" "}
+            <InlineMath>{`\\text{${winElement}}`}</InlineMath> to{" "}
+            <InlineMath>{sf.formula.variableName}</InlineMath>
           </>
         ),
         sender: "game",
@@ -216,10 +223,10 @@ export default function GameHistory({ id }: Props) {
         text: (
           <>
             Which domain element should we assign to{" "}
-            <var>{sf.formula.variableName}</var> to show that ℳ
-            {sf.sign ? " ⊨ " : " ⊭ "}{" "}
-            <InlineMath>{sf.formula.toTex()}</InlineMath>[<var> e</var>
-            {valuationText} ]
+            <InlineMath>{sf.formula.variableName}</InlineMath> to show that{" "}
+            <InlineMath>
+              {`${M()} ${models(sf.sign)} ${sf.formula.toTex()} ${evalVars(valuationText)}`}
+            </InlineMath>
           </>
         ),
         sender: "game",
@@ -229,7 +236,9 @@ export default function GameHistory({ id }: Props) {
         bubbles.push({
           text: (
             <>
-              Assign {choices[back].element} to {sf.formula.variableName}
+              Assign{" "}
+              <InlineMath>{`\\text{${choices[back].element}}`}</InlineMath> to{" "}
+              <InlineMath>{sf.formula.variableName}</InlineMath>
             </>
           ),
           sender: "player",

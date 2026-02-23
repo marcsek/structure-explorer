@@ -396,7 +396,7 @@ export const selectGameButtons = createSelector(
           .getSignedSubFormulas(sign)
           .map(
             ({ formula: f, sign: s }) =>
-              `ℳ ${s === true ? "⊨" : "⊭"} ${f.toString()}`,
+              `\\mathcal{M} ${s === true ? "\\models" : "\\not\\models"} ${f.toTex()}`,
           ),
         subformulas: formula.getSignedSubFormulas(sign),
         type: "beta",
@@ -412,7 +412,7 @@ export const selectGameButtons = createSelector(
 
       dev.timeEnd("selectGameButtons duration");
       return {
-        values: ["Continue"],
+        values: ["\\text{Continue}"],
         subformulas: winners,
         type: "alpha",
       };
@@ -432,7 +432,7 @@ export const selectGameButtons = createSelector(
 
       dev.timeEnd("selectGameButtons duration");
       return {
-        values: ["Continue"],
+        values: ["\\text{Continue}"],
         elements: winners,
         type: "gamma",
       };

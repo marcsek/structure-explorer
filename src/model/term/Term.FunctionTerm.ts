@@ -73,7 +73,15 @@ class FunctionTerm extends Term {
   }
 
   toTex(): string {
-    return this.toString();
+    let res = `\\text{${this.name}}` + "(";
+    for (let i = 0; i < this.terms.length; i++) {
+      if (i > 0) {
+        res += ", ";
+      }
+      res += this.terms[i].toString();
+    }
+    res += ")";
+    return res;
   }
 
   getVariables(): Set<Symbol> {

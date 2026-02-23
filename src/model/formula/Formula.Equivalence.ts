@@ -43,9 +43,9 @@ class Equivalence extends Formula {
   }
 
   toTex(): string {
-    return `(${this.subLeft.toString()} ${
+    return `(${this.subLeft.toTex()} ${
       this.connective
-    } ${this.subRight.toString()})`;
+    } ${this.subRight.toTex()})`;
   }
 
   getSubFormulas(): Formula[] {

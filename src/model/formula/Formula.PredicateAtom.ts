@@ -74,7 +74,7 @@ class PredicateAtom extends Formula {
   }
 
   toTex(): string {
-    return this.toString();
+    return `\\text{${this.name}}(${this.terms.map((t) => t.toTex()).join(", ")})`;
   }
 
   getSubFormulas(): Formula[] {

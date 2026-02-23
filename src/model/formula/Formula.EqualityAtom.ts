@@ -42,7 +42,7 @@ class EqualityAtom extends Formula {
   }
 
   toTex(): string {
-    return this.toString();
+    return `${this.subLeft.toTex()} \\doteq  ${this.subRight.toTex()}`;
   }
 
   getSubFormulas() {

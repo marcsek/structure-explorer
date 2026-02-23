@@ -40,7 +40,9 @@ abstract class Formula extends Expression {
   }
 
   toTex(): string {
-    return `(${this.getSubFormulas().join(` ${this.connectiveTex} `)})`;
+    return `(${this.getSubFormulas()
+      .map((f) => f.toTex())
+      .join(` ${this.connectiveTex} `)})`;
   }
 
   gameDepth(sign: boolean): number {
