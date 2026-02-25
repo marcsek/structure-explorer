@@ -73,7 +73,8 @@ class FunctionTerm extends Term {
   }
 
   toTex(): string {
-    let res = `\\text{${this.name}}` + "(";
+    const escapedName = this.name.replace(/_/g, "\\_");
+    let res = `\\text{${escapedName}}` + "(";
     for (let i = 0; i < this.terms.length; i++) {
       if (i > 0) {
         res += ", ";

@@ -74,7 +74,8 @@ class PredicateAtom extends Formula {
   }
 
   toTex(): string {
-    return `\\text{${this.name}}(${this.terms.map((t) => t.toTex()).join(", ")})`;
+    const escapedName = this.name.replace(/_/g, "\\_");
+    return `\\text{${escapedName}}(${this.terms.map((t) => t.toTex()).join(", ")})`;
   }
 
   getSubFormulas(): Formula[] {

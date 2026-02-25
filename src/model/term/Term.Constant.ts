@@ -44,7 +44,8 @@ class Constant extends Term {
   }
 
   toTex(): string {
-    return `\\text{${this.name}}`;
+    const escapedName = this.name.replace(/_/g, "\\_");
+    return `\\text{${escapedName}}`;
   }
 
   getVariables(): Set<Symbol> {
