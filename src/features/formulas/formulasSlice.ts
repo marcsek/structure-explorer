@@ -557,23 +557,22 @@ export const selectHistoryData = createSelector(
 export const selectIsVerifiedGame = createSelector(
   [selectHistoryData, selectStructure],
   (data, structure) => {
-    if (data.length === 0) return false;
+    if (data.length === 0) return undefined;
 
     const last = data.at(-1);
 
-    if (last === undefined) return false;
+    if (last === undefined) return undefined;
 
     dev.time("selectIsVerifiedGame duration");
     try {
       dev.timeEnd("selectIsVerifiedGame duration");
-      return (
-        (last.sf.formula instanceof PredicateAtom ||
-          last.sf.formula instanceof EqualityAtom) &&
-        last.sf.formula.eval(structure, last.valuation) === last.sf.sign
-      );
-    } catch (error) {
+      if (
+        last.sf.formula instanceof PredicateAtom ||
+        last.sf.formula instanceof EqualityAtom
+      )
+        return last.sf.formula.eval(structure, last.valuation) === last.sf.sign;
+    } catch (_error) {
       dev.timeEnd("selectIsVerifiedGame duration");
-      return false;
     }
   },
 );

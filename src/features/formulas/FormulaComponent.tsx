@@ -92,6 +92,9 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
   const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`}`;
   const error = contextError || formulaError || nonFormulaError;
 
+  const gameStatus =
+    isVerified === undefined ? "tbd" : isVerified ? "won" : "lost";
+
   return (
     <>
       <Form>
@@ -140,7 +143,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
         <Row className="align-items-start mb-3 formula-select-container">
           <Col xs="auto">
             <InputGroup
-              hasValidation
+              hasValidation={guess !== null}
               size="sm"
               className="formula-select-input-group"
             >
@@ -169,8 +172,8 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
                   dispatch(UndoActions.checkpoint());
                 }}
                 disabled={lockedGuess === true}
-                isValid={isVerified && guess !== null}
-                isInvalid={!isVerified && guess !== null}
+                isValid={gameStatus === "won" && guess !== null}
+                isInvalid={gameStatus === "lost" && guess !== null}
               >
                 <option value="null">⊨/⊭?</option>
                 <option value="true">⊨</option>
@@ -188,40 +191,41 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
                 />
               )}
 
-              {isVerified && (
+              {gameStatus === "won" && (
                 <Form.Control.Feedback type="valid">
                   Verified!
                 </Form.Control.Feedback>
               )}
 
-              {!isVerified && (
+              {gameStatus === "lost" && (
                 <Form.Control.Feedback type="invalid">
-                  Not verified!
+                  Failed verification!
                 </Form.Control.Feedback>
+              )}
+
+              {guess !== null && gameStatus === "tbd" && (
+                <div
+                  style={{
+                    width: "100%",
+                    marginTop: "0.25rem",
+                    fontSize: "0.875rem",
+                    color: "var(--bs-warning-text-emphasis)",
+                  }}
+                >
+                  Not verified.
+                </div>
               )}
             </InputGroup>
           </Col>
 
           <Col xs="auto">
-            <Button
-              variant={isVerified ? "success" : "danger"}
-              size="sm"
-              disabled={
-                !!error ||
-                guess === null ||
-                domain.error !== undefined ||
-                isPlayable === false
-              }
-              onClick={() => {
-                setBegin(!begin);
-              }}
-            >
-              {!isVerified
-                ? "Verify"
-                : begin
-                  ? "Hide verification"
-                  : "Show verification"}
-            </Button>
+            <GameVerificationButton
+              gameStatus={gameStatus}
+              gameOpened={begin}
+              didSelectGuess={guess !== null}
+              disabled={!!error || guess === null || !isPlayable}
+              onClick={() => setBegin(!begin)}
+            />
           </Col>
         </Row>
         {begin &&
@@ -233,5 +237,45 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
           )}
       </Form>
     </>
+  );
+}
+
+interface GameVerificationButtonProps {
+  gameStatus: "tbd" | "won" | "lost";
+  disabled: boolean;
+  gameOpened: boolean;
+  onClick: () => void;
+  didSelectGuess: boolean;
+}
+
+function GameVerificationButton({
+  gameStatus,
+  disabled,
+  gameOpened,
+  onClick,
+  didSelectGuess,
+}: GameVerificationButtonProps) {
+  const isVerified = gameStatus !== "tbd" && didSelectGuess;
+
+  const buttonVariant = !isVerified
+    ? "warning"
+    : gameStatus === "won"
+      ? "success"
+      : "danger";
+
+  const outcome = gameStatus === "won" ? "verification" : "failed verification";
+  const buttonAction = gameOpened ? "Hide" : "Show";
+
+  const buttonText = !isVerified ? "Verify" : `${buttonAction} ${outcome}`;
+
+  return (
+    <Button
+      variant={buttonVariant}
+      size="sm"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {buttonText}
+    </Button>
   );
 }

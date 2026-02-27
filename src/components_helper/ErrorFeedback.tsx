@@ -14,6 +14,8 @@ interface LocationDisplayProps {
 }
 
 function LocationDisplay({ text, location }: LocationDisplayProps) {
+  if (!text) return null;
+
   return (
     <div>
       {text.substring(0, location.start.offset)}
@@ -28,18 +30,18 @@ function LocationDisplay({ text, location }: LocationDisplayProps) {
 }
 
 export default function ErrorFeedback({ error, text }: ErrorFeedbackProps) {
-  if (!error) {
-    return null;
-  }
+  if (!error) return null;
+
+  const hasLocation =
+    error instanceof SyntaxError ||
+    (!(error instanceof Error) && error.kind === "syntax");
+
   return (
     <Form.Control.Feedback type="invalid">
       {error.message}
-      {error instanceof SyntaxError ||
-        (!(error instanceof Error) &&
-          error.kind === "syntax" &&
-          error.location && (
-            <LocationDisplay location={error.location} text={text} />
-          ))}
+      {hasLocation && error.location && (
+        <LocationDisplay location={error.location!} text={text} />
+      )}
     </Form.Control.Feedback>
   );
 }

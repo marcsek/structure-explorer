@@ -44,7 +44,7 @@ export default function MessageBubble({
           </Button>
         )}
         <div
-          className={` mt-1 p-2 text-wrap rounded-bottom-3 ${rounded} text-bg-${variant}`}
+          className={` mt-1 p-2 text-wrap rounded-bottom-3 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
         >
           {message}
         </div>
