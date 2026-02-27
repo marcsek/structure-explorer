@@ -179,7 +179,7 @@ function EditorError({ error, onRemoveInvalidClick }: EditorErrorProps) {
   return (
     <div className="drawer-editor-error-container">
       <div className="drawer-editor-error-message">
-        <FontAwesomeIcon icon={faWarning} />
+        <FontAwesomeIcon icon={faWarning} size="sm" />
         <p>{error.message}</p>
       </div>
       {error.kind !== "semantic" && (

@@ -18,6 +18,7 @@ import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import errorAlertReducer from "../features/errorAlert/errorAlertSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
+import { querySliceListener } from "../features/queries/listeners.ts";
 
 const rootReducer = {
   formulas: formulasReducer,
@@ -55,6 +56,7 @@ export const createStore = (extraMiddleware?: Middleware) =>
     middleware: (getDefaultMiddleware) => {
       const middlewareChain = getDefaultMiddleware().prepend(
         graphSliceListener.middleware,
+        querySliceListener.middleware,
       );
 
       if (extraMiddleware) return middlewareChain.prepend(extraMiddleware);

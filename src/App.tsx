@@ -7,7 +7,7 @@ import "./App.css";
 import usePreset from "./usePreset";
 import Header from "./components_helper/Header";
 import ErrorAlert from "./features/errorAlert/ErrorAlert";
-// import QueriesComponent from "./features/queries/QueriesComponent";
+import QueriesComponent from "./features/queries/QueriesComponent";
 
 interface AppProps {
   viewOnlyMode?: boolean;
@@ -34,7 +34,7 @@ function App({ viewOnlyMode }: AppProps) {
           </Col>
           <Col className="vh-pane-right" xs={12} lg={6}>
             <FormulaCard />
-            {/* <QueriesComponent /> */}
+            <QueriesComponent />
           </Col>
         </Row>
       </Container>

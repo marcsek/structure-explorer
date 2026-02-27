@@ -98,7 +98,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
         <Row>
           <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
             <InputGroup.Text>
-              <InlineMath>{`${displayName} =`}</InlineMath>
+              <InlineMath>{`${displayName} \\equiv`}</InlineMath>
             </InputGroup.Text>
             <Form.Control
               placeholder="Formula"

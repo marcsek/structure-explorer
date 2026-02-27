@@ -1,18 +1,15 @@
 import "./QueryResults.css";
 
-import {
-  faCircleCheck,
-  faCircleXmark,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, CloseButton, Table } from "react-bootstrap";
 import { InlineMath } from "react-katex";
 import type { QueryResult } from "./queriesSlice";
-import { partition } from "../graphView/helpers/utils";
 import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faWarning } from "@fortawesome/free-solid-svg-icons";
 
 export interface QueryResultsProps {
   queryIdx: number;
+  stale: boolean;
   results: QueryResult[];
   queryVariables: string[];
   onResultsReset: () => void;
@@ -20,6 +17,7 @@ export interface QueryResultsProps {
 
 export default function QueryResults({
   queryIdx,
+  stale,
   results,
   queryVariables,
   onResultsReset,
@@ -31,16 +29,13 @@ export default function QueryResults({
     altVariables.length > 1 ? `(${altVariables})` : altVariables;
   const correctDomainPower =
     queryVariables.length > 1 ? `D^${queryVariablesLen}` : "D";
-
-  const queryResultString = `\\ \\{${correctAltVarsString} \\in ${correctDomainPower} \\}`;
-
   const variablePairs = queryVariables
     .map((v, i) => `(${v}, ${altVariables[i]})`)
     .join("");
 
-  const queryEvalResultString = `\\mathcal{M} \\models \\psi_${queryIdx + 1}[e${variablePairs}]`;
+  const queryResultString = `\\ \\{${correctAltVarsString} \\in ${correctDomainPower} \\mid \\mathcal{M} \\models  \\psi_${queryIdx + 1}[e${variablePairs}]\\}`;
 
-  const [correct, incorrect] = partition(results, ({ ok }) => ok);
+  const correct = results.filter(({ ok }) => ok);
 
   return (
     <div className="query-result-container">
@@ -54,41 +49,32 @@ export default function QueryResults({
       </div>
 
       <QueryResultTable
-        results={incorrect}
-        kind="incorrect"
-        evalResultIndicatorString={queryEvalResultString}
-        variables={altVariables}
-      />
-
-      <QueryResultTable
+        stale={stale}
         results={correct}
         kind="correct"
-        evalResultIndicatorString={queryEvalResultString}
         variables={altVariables}
       />
     </div>
   );
 }
 
-const MIN_DISPLAY_COUNT = 3;
+const MIN_DISPLAY_COUNT = 6;
 const DISPLAY_INCREMENT = 10;
 
 interface QueryResultTableProps {
   results: QueryResult[];
+  stale: boolean;
   kind: "correct" | "incorrect";
   variables: string[];
-  evalResultIndicatorString: string;
 }
 
 function QueryResultTable({
   results,
+  stale,
   kind,
   variables,
-  evalResultIndicatorString,
 }: QueryResultTableProps) {
   const [displayCount, setDisplayCount] = useState(MIN_DISPLAY_COUNT);
-
-  if (results.length === 0) return null;
 
   const handleDisplayCountChange = (type: "more" | "less") => {
     const displayIncrement = DISPLAY_INCREMENT * (type === "more" ? 1 : -1);
@@ -101,22 +87,42 @@ function QueryResultTable({
     );
   };
 
-  const isCorrect = kind === "correct";
+  const foundResults = results.length !== 0;
 
   const canShowLess = displayCount > MIN_DISPLAY_COUNT;
   const canShowMore = displayCount < results.length;
 
-  const titleText = isCorrect ? "Correct results" : "Incorrect results";
+  const getTitleComponent = () => {
+    if (stale)
+      return (
+        <>
+          <FontAwesomeIcon icon={faWarning} />
+          Showing possibly outdated results. Press the query button again to
+          refresh.
+        </>
+      );
+
+    if (foundResults)
+      return (
+        <>
+          Found <strong>{results.length} results</strong>.
+        </>
+      );
+
+    return "No results found.";
+  };
+
+  const titleClass = stale ? "warning" : foundResults ? "success" : "danger";
 
   return (
     <>
-      <div className={`query-result-table-title ${kind}`}>
-        <span className="description">{titleText}</span>
-        <span className="total-count">{`(${results.length} in total)`}</span>
+      <div className={`query-result-table-title ${titleClass}`}>
+        <span className="description">{getTitleComponent()}</span>
       </div>
+
       <div className="query-result-table-scroll-wrapper">
         <Table
-          className={`query-result-table ${kind}`}
+          className={`query-result-table ${stale ? "stale" : ""}`}
           size="sm"
           hover
           bordered
@@ -128,9 +134,6 @@ function QueryResultTable({
                   <InlineMath>{v}</InlineMath>
                 </th>
               ))}
-              <th>
-                <InlineMath>{evalResultIndicatorString}</InlineMath>
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -139,12 +142,6 @@ function QueryResultTable({
                 {r.valuation.map((val, i) => (
                   <td key={i}>{val}</td>
                 ))}
-                <td>
-                  <FontAwesomeIcon
-                    icon={isCorrect ? faCircleCheck : faCircleXmark}
-                    color={isCorrect ? "var(--bs-success)" : "var(--bs-danger)"}
-                  />
-                </td>
               </tr>
             ))}
           </tbody>

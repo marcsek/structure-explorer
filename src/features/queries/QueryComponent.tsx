@@ -6,6 +6,7 @@ import {
   selectEvaluatedQuery,
   selectParsedQueryVariables,
   selectQuery,
+  updateQueryStaleness,
   updateQueryText,
   updateQueryVariablesText,
   type QueryResult,
@@ -18,7 +19,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
 import ErrorFeedback from "../../components_helper/ErrorFeedback";
-import { useLayoutEffect, useState } from "react";
+import { useState } from "react";
 import QueryResults from "./QueryResults";
 import { selectNonFormulaValidationError } from "../../common/formulas";
 
@@ -43,18 +44,14 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
   const queryVariables = useAppSelector((state) =>
     selectParsedQueryVariables(state, idx),
   );
-  const queryVariablesFormatted = queryVariables.parsed?.join(",") ?? "";
-
   const { text: queryText, variablesText, locked } = query;
 
   const handleQueryButtonClick = () => {
+    dispatch(updateQueryStaleness({ idx, stale: false }));
+
     const queryResults = getQueryResults(store.getState(), idx);
     setQueryResults(queryResults);
   };
-
-  useLayoutEffect(() => {
-    setQueryResults([]);
-  }, [queryVariablesFormatted]);
 
   const nonQueryError = nonFormulaErrorMessage
     ? new Error(nonFormulaErrorMessage)
@@ -71,7 +68,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
       >
         <InputGroup size="sm" hasValidation={!!error}>
           <InputGroup.Text>
-            <InlineMath>{"\\forall"}</InlineMath>
+            <InlineMath>{`\\psi_${idx + 1} (`}</InlineMath>
           </InputGroup.Text>
 
           <Form.Control
@@ -86,7 +83,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
           />
 
           <InputGroup.Text>
-            <InlineMath>{`(\\psi_${idx + 1} (${queryVariablesFormatted}) \\equiv`}</InlineMath>
+            <InlineMath>{`)\\equiv`}</InlineMath>
           </InputGroup.Text>
 
           <Form.Control
@@ -98,10 +95,6 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
             isInvalid={!!evaluatedQuery.error || !!nonQueryError}
             onBlur={() => dispatch(UndoActions.checkpoint())}
           />
-
-          <InputGroup.Text>
-            <InlineMath>{")"}</InlineMath>
-          </InputGroup.Text>
 
           {!locked && (
             <Button
@@ -142,6 +135,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
       {queryResults.length > 0 && (
         <QueryResults
           queryIdx={idx}
+          stale={query.stale}
           queryVariables={queryVariables.parsed ?? []}
           results={queryResults}
           onResultsReset={() => setQueryResults([])}

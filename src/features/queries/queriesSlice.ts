@@ -19,6 +19,7 @@ import type { SerializedQueriesState } from "./validationSchema";
 export interface QueryState {
   text: string;
   variablesText: string;
+  stale: boolean;
   locked: boolean;
 }
 
@@ -35,7 +36,7 @@ export const initialQueriesState: QueriesState = {
 };
 
 function createQuery(): QueryState {
-  return { text: "", variablesText: "", locked: false };
+  return { text: "", variablesText: "", stale: false, locked: false };
 }
 
 export const queriesSlice = createSlice({
@@ -71,6 +72,19 @@ export const queriesSlice = createSlice({
       if (state.queries[idx]) state.queries[idx].variablesText = text;
     },
 
+    allQueriesStale: (state) => {
+      for (const query of state.queries) query.stale = true;
+    },
+
+    updateQueryStaleness: (
+      state,
+      action: PayloadAction<WithQueryId<{ stale: boolean }>>,
+    ) => {
+      const { idx, stale } = action.payload;
+
+      if (state.queries[idx]) state.queries[idx].stale = stale;
+    },
+
     lockQuery: (state, action: PayloadAction<WithQueryId>) => {
       const { idx } = action.payload;
 
@@ -84,7 +98,7 @@ export const queriesSlice = createSlice({
   },
 });
 
-const parseQuery = (language: Language, formText: string) => {
+export const parseQuery = (language: Language, formText: string) => {
   const factories = getFormulaFactories(language);
 
   try {
@@ -175,7 +189,7 @@ export const selectEvaluatedQuery = createSelector(
 
       return {
         error: new Error(
-          `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} not free.`,
+          `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} not free on the right-hand side of the query definition.`,
         ),
       };
     }
@@ -239,6 +253,8 @@ function* permutations<T>(domain: T[], n: number): Generator<T[]> {
 export const {
   importQueriesState,
   addQuery,
+  allQueriesStale,
+  updateQueryStaleness,
   lockQuery,
   updateQueryText,
   updateQueryVariablesText,
