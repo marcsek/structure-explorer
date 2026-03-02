@@ -19,6 +19,7 @@ import {
 } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
+import IntervalView from "../intervalView/IntervalView";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -104,6 +105,12 @@ function DrawerEditorContent({
       tupleType={tupleType}
       locked={locked}
     />
+  ) : type === "interval" ? (
+    <IntervalView
+      tupleName={tupleName}
+      tupleArity={tupleArity}
+      locked={locked}
+    />
   ) : (
     <GraphView
       tupleName={tupleName}
@@ -137,15 +144,19 @@ function DrawerEditorContent({
       </div>
 
       <Stack className="drawer-editor-container-body">
-        <div className="drawer-editor-toolbar-container">
-          <EditorToolbar
-            tupleName={tupleName}
-            tupleType={tupleType}
-            disabledFilters={
-              type === "database" ? ["domainSelector", "unaryFilterToggle"] : []
-            }
-          />
-        </div>
+        {type !== "interval" && (
+          <div className="drawer-editor-toolbar-container">
+            <EditorToolbar
+              tupleName={tupleName}
+              tupleType={tupleType}
+              disabledFilters={
+                type === "database"
+                  ? ["domainSelector", "unaryFilterToggle"]
+                  : []
+              }
+            />
+          </div>
+        )}
 
         {error && (
           <EditorError
