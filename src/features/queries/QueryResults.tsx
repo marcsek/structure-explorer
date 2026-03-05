@@ -87,7 +87,7 @@ function QueryResultTable({
     );
   };
 
-  const foundResults = results.length !== 0;
+  const didFindResults = results.length !== 0;
 
   const canShowLess = displayCount > MIN_DISPLAY_COUNT;
   const canShowMore = displayCount < results.length;
@@ -102,7 +102,7 @@ function QueryResultTable({
         </>
       );
 
-    if (foundResults)
+    if (didFindResults)
       return (
         <>
           Found <strong>{results.length} results</strong>.
@@ -112,7 +112,7 @@ function QueryResultTable({
     return "No results found.";
   };
 
-  const titleClass = stale ? "warning" : foundResults ? "success" : "danger";
+  const titleClass = stale ? "warning" : didFindResults ? "success" : "danger";
 
   return (
     <>
@@ -120,46 +120,51 @@ function QueryResultTable({
         <span className="description">{getTitleComponent()}</span>
       </div>
 
-      <div className="query-result-table-scroll-wrapper">
-        <Table
-          className={`query-result-table ${stale ? "stale" : ""}`}
-          size="sm"
-          hover
-          bordered
-        >
-          <thead>
-            <tr>
-              {variables.map((v) => (
-                <th key={v}>
-                  <InlineMath>{v}</InlineMath>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {results.slice(0, displayCount).map((r) => (
-              <tr key={r.valuation.join(",")}>
-                {r.valuation.map((val, i) => (
-                  <td key={i}>{val}</td>
+      {results.length > 0 && (
+        <div className="query-result-table-scroll-wrapper">
+          <Table
+            className={`query-result-table ${stale ? "stale" : ""}`}
+            size="sm"
+            hover
+            bordered
+          >
+            <thead>
+              <tr>
+                {variables.map((v) => (
+                  <th key={v}>
+                    <InlineMath>{v}</InlineMath>
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </Table>
-      </div>
+            </thead>
 
-      <div className={`query-result-display-buttons ${kind}`}>
-        <DisplayCountButton
-          kind="less"
-          onClick={handleDisplayCountChange}
-          disabled={!canShowLess}
-        />
-        <DisplayCountButton
-          kind="more"
-          onClick={handleDisplayCountChange}
-          disabled={!canShowMore}
-        />
-      </div>
+            <tbody>
+              {results.slice(0, displayCount).map((r) => (
+                <tr key={r.valuation.join(",")}>
+                  {r.valuation.map((val, i) => (
+                    <td key={i}>{val}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </div>
+      )}
+
+      {results.length > MIN_DISPLAY_COUNT && (
+        <div className={`query-result-display-buttons ${kind}`}>
+          <DisplayCountButton
+            kind="less"
+            onClick={handleDisplayCountChange}
+            disabled={!canShowLess}
+          />
+          <DisplayCountButton
+            kind="more"
+            onClick={handleDisplayCountChange}
+            disabled={!canShowMore}
+          />
+        </div>
+      )}
     </>
   );
 }

@@ -84,7 +84,7 @@ export default function GameHistory({ id }: Props) {
           <>
             <InlineMath>{"[e']"}</InlineMath>, since{" "}
             <InlineMath>
-              {`(${sf.formula.terms.map(() => "(e')").join(" ")}) = (\\text{${escape(
+              {`(${sf.formula.terms.map((t) => `${t.toTex()}^\\mathcal{M}[e']`).join(", ")}) = (\\text{${escape(
                 sf.formula.terms
                   .map((t) => t.eval(structure, valuation))
                   .join(","),
@@ -94,16 +94,21 @@ export default function GameHistory({ id }: Props) {
           </>
         ) : (
           <>
-            , since{" "}
+            <InlineMath>{"[e']"}</InlineMath>, since{" "}
             <InlineMath>
-              {`${sf.formula.subLeft.toTex()}^\\mathcal{M}[${evalVars(valuationText)}] = \\text{${escape(sf.formula.subLeft.eval(structure, valuation))}} ${sf.sign === satisfied ? "=" : "\\neq"} \\text{${escape(sf.formula.subRight.eval(structure, valuation))}} = ${sf.formula.subRight.toTex()}^\\mathcal{M}[${evalVars(valuationText)}]`}
-            </InlineMath>
+              {`${sf.formula.subLeft.toTex()}^\\mathcal{M}[e'] = \\text{${escape(sf.formula.subLeft.eval(structure, valuation))}} ${sf.sign === satisfied ? "=" : "\\neq"} \\text{${escape(sf.formula.subRight.eval(structure, valuation))}} = ${sf.formula.subRight.toTex()}^\\mathcal{M}[e']`}
+            </InlineMath>{" "}
+            where <InlineMath>{`e' = ${evalVars(valuationText)}`}</InlineMath>
           </>
         );
+
+      const originalGuess =
+        data[0].sf.formula.eval(structure, valuation) === data[0].sf.sign;
+
       bubbles.push({
         text: (
           <>
-            <strong>{satisfied ? "You win " : "You lose"}</strong>, because{" "}
+            <strong>{satisfied ? "You win" : "You lose"}</strong>, because{" "}
             <InlineMath>{`${M()} ${models(sf.sign === satisfied)} ${sf.formula.toTex()}`}</InlineMath>
             {explanation}
           </>
@@ -111,10 +116,9 @@ export default function GameHistory({ id }: Props) {
         sender: "game",
         win: satisfied,
         lose: !satisfied,
+        fixableLoss: originalGuess && !satisfied ? true : undefined,
       });
 
-      const originalGuess =
-        data[0].sf.formula.eval(structure, valuation) === data[0].sf.sign;
       bubbles.push({
         text: (
           <>
@@ -254,22 +258,25 @@ export default function GameHistory({ id }: Props) {
 
   return (
     <Stack gap={1}>
-      {bubbles.map(({ text, sender, goBack, win, lose }, index) => (
-        <MessageBubble
-          key={`${index}-${sender}`}
-          children={text}
-          sent={sender === "player"}
-          recieved={sender === "game"}
-          onClick={
-            goBack !== undefined
-              ? () => dispatch(gameGoBack({ id: id, index: goBack }))
-              : undefined
-          }
-          change={goBack !== undefined}
-          lose={lose}
-          win={win}
-        />
-      ))}
+      {bubbles.map(
+        ({ text, sender, goBack, win, lose, fixableLoss }, index) => (
+          <MessageBubble
+            key={`${index}-${sender}`}
+            children={text}
+            sent={sender === "player"}
+            recieved={sender === "game"}
+            onClick={
+              goBack !== undefined
+                ? () => dispatch(gameGoBack({ id: id, index: goBack }))
+                : undefined
+            }
+            change={goBack !== undefined}
+            lose={lose}
+            win={win}
+            fixableLoss={fixableLoss}
+          />
+        ),
+      )}
       <div ref={last}></div>
     </Stack>
   );

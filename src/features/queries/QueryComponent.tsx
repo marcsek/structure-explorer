@@ -67,7 +67,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
         style={{ width: "100%", alignItems: "flex-start" }}
       >
         <InputGroup size="sm" hasValidation={!!error}>
-          <InputGroup.Text>
+          <InputGroup.Text className="input-group-fix-height">
             <InlineMath>{`\\psi_${idx + 1} (`}</InlineMath>
           </InputGroup.Text>
 

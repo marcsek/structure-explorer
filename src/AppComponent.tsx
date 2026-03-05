@@ -30,6 +30,9 @@ interface PrepareResult {
 const actionsToFilter = [
   editorToolbarSlice.actions.predicateHovered,
   editorToolbarSlice.actions.unaryFilterDomainHovered,
+  editorToolbarSlice.actions.nodeToggled,
+  editorToolbarSlice.actions.unaryFilterDomainToggled,
+  editorToolbarSlice.actions.unaryPredicateToggled,
   editorToolbarSlice.actions.editorOpened,
   graphManagerSlice.actions.graphDidInitialLayout,
   graphManagerSlice.actions.warningChanged,

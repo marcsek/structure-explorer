@@ -8,6 +8,7 @@ interface Props {
   change?: boolean;
   win?: boolean;
   lose?: boolean;
+  fixableLoss?: boolean;
   onClick?: () => void;
 }
 
@@ -18,17 +19,20 @@ export default function MessageBubble({
   win,
   lose,
   onClick,
+  fixableLoss,
 }: Props) {
-  const variant =
-    win === true
+  const variant = fixableLoss
+    ? "warning"
+    : win === true
       ? "success"
       : lose === true
         ? "danger"
         : sent
           ? "primary"
           : "light";
+
   const float = sent ? "align-self-end" : "align-self-start";
-  const rounded = sent ? "rounded-start-3" : "rounded-end-3";
+  const rounded = sent ? "rounded-start-4" : "rounded-end-4";
 
   return (
     <>
@@ -44,7 +48,8 @@ export default function MessageBubble({
           </Button>
         )}
         <div
-          className={` mt-1 p-2 text-wrap rounded-bottom-3 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
+          className={`flex-shrink-1 flex-grow-1 mt-1 p-2 text-wrap rounded-bottom-4 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
+          style={{ flexBasis: "0%" }}
         >
           {message}
         </div>

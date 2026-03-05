@@ -12,7 +12,6 @@ export default function getEditorControlButtons(
       text: "Text (default)",
       value: "text",
     },
-    { text: "Interval", value: "interval" },
   ];
 
   controlButtons.push({
@@ -55,7 +54,6 @@ export default function getEditorControlButtons(
 
   const controlButtonsToOmit: EditorType[] = [];
   if (isFunction) controlButtonsToOmit.push("hasse");
-  if (!isFunction) controlButtonsToOmit.push("interval");
   if (!isTuple) controlButtonsToOmit.push("hasse", "bipartite", "oriented");
   if (arity > 2) controlButtonsToOmit.push("matrix");
   if (arity > 2 && isFunction) controlButtonsToOmit.push("database");

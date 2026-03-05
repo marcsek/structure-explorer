@@ -446,6 +446,7 @@ export type BubbleFormat = {
   goBack?: number;
   win?: boolean;
   lose?: boolean;
+  fixableLoss?: boolean;
 };
 
 export const selectHistoryData = createSelector(

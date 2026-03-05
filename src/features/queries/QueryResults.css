@@ -32,6 +32,14 @@
 
 .query-result-table.stale td {
   opacity: 0.6;
+
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--bs-tertiary-bg),
+    var(--bs-tertiary-bg) 6px,
+    transparent 6px,
+    transparent 12px
+  );
 }
 
 .query-result-table thead tr {
@@ -79,7 +87,6 @@
 .query-result-table-title {
   padding-block: 0.5rem;
   padding-left: 0.5rem;
-  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .query-result-table-title span:has(svg) {
@@ -90,6 +97,10 @@
 
 .query-result-table-title span + span {
   margin-left: 0.5rem;
+}
+
+.query-result-table-title:has(+ .query-result-table-scroll-wrapper) {
+  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .query-result-table-title .total-count {
