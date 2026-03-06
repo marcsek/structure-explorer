@@ -1,3 +1,4 @@
+import { dev } from "../../common/logging";
 import Expression from "../Expression";
 import type { Symbol } from "../Language";
 import { Structure, type Valuation } from "../Structure";
@@ -67,6 +68,8 @@ abstract class Formula extends Expression {
     structure: Structure,
     e: Valuation,
   ): SignedFormula[] {
+    dev.time("winningSubformulas duration");
+
     const formulas = this.getSignedSubFormulas(sign);
 
     let shortest = undefined;
@@ -94,9 +97,11 @@ abstract class Formula extends Expression {
     }
 
     if (winning.length === 0) {
+      dev.timeEnd("winningSubformulas duration");
       return formulas;
     }
 
+    dev.timeEnd("winningSubformulas duration");
     return winning;
   }
 

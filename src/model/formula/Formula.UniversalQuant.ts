@@ -32,12 +32,9 @@ class UniversalQuant extends QuantifiedFormula {
     const eCopy = new Map(e);
     for (const item of structure.domain) {
       eCopy.set(this.variableName, item);
-      try {
-        if (!this.subFormula.eval(structure, eCopy)) {
-          return false;
-        }
-      } catch (error) {
-        throw error;
+
+      if (!this.subFormula.eval(structure, eCopy)) {
+        return false;
       }
     }
     return true;

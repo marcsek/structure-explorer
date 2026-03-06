@@ -1,6 +1,7 @@
 import Structure, { type DomainElement, type Valuation } from "../Structure";
 import Formula, { type SignedFormula, SignedFormulaType } from "./Formula";
 import type { Symbol } from "../Language";
+import { dev } from "../../common/logging";
 
 abstract class QuantifiedFormula extends Formula {
   constructor(
@@ -41,6 +42,8 @@ abstract class QuantifiedFormula extends Formula {
     structure: Structure,
     e: Valuation,
   ): DomainElement[] {
+    dev.time("winningElements duration");
+
     const signedFormula = this.getSignedSubFormulas(sign)[0];
 
     const cpy = new Map(e);
@@ -58,6 +61,7 @@ abstract class QuantifiedFormula extends Formula {
       winning = Array.from(structure.domain);
     }
 
+    dev.timeEnd("winningElements duration");
     return winning;
   }
 

@@ -238,7 +238,7 @@ const evaluateFormula = (
   formText: string,
   valuation: Map<string, string>,
 ) => {
-  dev.time("selectEvaluatedFormula duration");
+  dev.time(`selectEvaluatedFormula duration (${formText})`);
   const factories = getFormulaFactories(language);
 
   try {
@@ -249,20 +249,21 @@ const evaluateFormula = (
     );
 
     const value = formula.eval(structure, valuation);
-    dev.timeEnd("selectEvaluatedFormula duration");
+    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
     return { evaluated: value, formula: formula };
   } catch (error) {
     if (error instanceof Error) {
+      dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
       return { error: error };
     }
 
     if (error instanceof SyntaxError) {
-      dev.timeEnd("selectEvaluatedFormula duration");
+      dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
       return { error: error };
     }
   }
 
-  dev.timeEnd("selectEvaluatedFormula duration");
+  dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
   return {};
 };
 
@@ -623,14 +624,20 @@ export const selectGameResetIndex = createSelector(
             : undefined;
       } catch (error) {}
 
+      // const prevWinningElementValue =
+      //   (prev.type === "gamma" || prev.type === "delta") &&
+      //   prev.sf.formula instanceof QuantifiedFormula
+      //     ? prev.sf.formula.winningElements(
+      //         prev.sf.sign,
+      //         structure,
+      //         prev.valuation,
+      //       )[0]
+      //     : undefined;
+
       const prevWinningElementValue =
         (prev.type === "gamma" || prev.type === "delta") &&
         prev.sf.formula instanceof QuantifiedFormula
-          ? prev.sf.formula.winningElements(
-              prev.sf.sign,
-              structure,
-              prev.valuation,
-            )[0]
+          ? prev.winElement
           : undefined;
 
       // const prevWinningElementValues =
@@ -642,7 +649,7 @@ export const selectGameResetIndex = createSelector(
       //         prev.valuation,
       //       )
       //     : undefined;
-      //
+
       // console.log(prevWinningElementValues);
 
       const prevVariableName =

@@ -28,9 +28,7 @@ class Conjunction extends Formula {
    * @return {boolean}
    */
   eval(structure: Structure, e: Valuation): boolean {
-    const left = this.subLeft.eval(structure, e);
-    const right = this.subRight.eval(structure, e);
-    return left && right;
+    return this.subLeft.eval(structure, e) && this.subRight.eval(structure, e);
   }
 
   getSubFormulas() {

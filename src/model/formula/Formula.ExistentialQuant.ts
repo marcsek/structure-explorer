@@ -33,14 +33,12 @@ class ExistentialQuant extends QuantifiedFormula {
 
     for (const item of structure.domain) {
       eCopy.set(this.variableName, item);
-      try {
-        if (this.subFormula.eval(structure, eCopy)) {
-          return true;
-        }
-      } catch (error) {
-        throw error;
+
+      if (this.subFormula.eval(structure, eCopy)) {
+        return true;
       }
     }
+
     return false;
   }
 
