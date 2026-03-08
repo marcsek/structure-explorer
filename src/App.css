@@ -6,6 +6,10 @@
   max-height: 31px;
 }
 
+.no-caret::after {
+  display: none;
+}
+
 .btn-fix-height {
   height: 31px;
 }

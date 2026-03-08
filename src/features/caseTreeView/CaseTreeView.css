@@ -1,0 +1,4 @@
+.case-tree-node .form-control.is-invalid {
+  background-image: none;
+  padding-right: 0.5rem;
+}

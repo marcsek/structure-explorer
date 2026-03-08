@@ -12,6 +12,10 @@ export default function getEditorControlButtons(
       text: "Text (default)",
       value: "text",
     },
+    {
+      text: "Case Tree",
+      value: "caseTree",
+    },
   ];
 
   controlButtons.push({
@@ -54,6 +58,7 @@ export default function getEditorControlButtons(
 
   const controlButtonsToOmit: EditorType[] = [];
   if (isFunction) controlButtonsToOmit.push("hasse");
+  if (!isFunction) controlButtonsToOmit.push("caseTree");
   if (!isTuple) controlButtonsToOmit.push("hasse", "bipartite", "oriented");
   if (arity > 2) controlButtonsToOmit.push("matrix");
   if (arity > 2 && isFunction) controlButtonsToOmit.push("database");

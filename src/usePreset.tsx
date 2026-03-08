@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { useAppDispatch } from "./app/hooks";
-import { updatePredicates } from "./features/language/languageSlice";
+import {
+  updateFunctions,
+  updatePredicates,
+} from "./features/language/languageSlice";
 import {
   updateDomain,
   updateInterpretationPredicates,
@@ -25,6 +28,8 @@ export default function usePreset() {
         { name: "teacher", arity: 1 },
       ]),
     );
+
+    dispatch(updateFunctions([{ name: "room", arity: 1 }]));
 
     dispatch(updateDomain(["A", "B", "C", "D", "E"]));
 

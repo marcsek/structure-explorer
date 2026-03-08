@@ -22,7 +22,12 @@ import ControlButtons from "../../components_helper/ControlButtons/ControlButton
 import { omitControlButtons } from "../../components_helper/ControlButtons/omitControlButtons";
 import getEditorControlButtons from "./editorControlButtonsFactory";
 
-export type EditorType = "text" | "matrix" | "database" | GraphType;
+export type EditorType =
+  | "text"
+  | "matrix"
+  | "database"
+  | "caseTree"
+  | GraphType;
 
 interface InterpretationEditorProps {
   id: string;
@@ -41,6 +46,7 @@ const editorTypeFullNameLookup: Record<EditorType, string> = {
   bipartite: "Bipartite Graph",
   matrix: "Matrix Editor",
   database: "Database Table Editor",
+  caseTree: "Case Tree Editor",
   text: "Text Editor",
 };
 

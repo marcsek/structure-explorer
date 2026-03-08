@@ -19,6 +19,7 @@ import {
 } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
+import CaseTreeView from "../caseTreeView/CaseTreeView";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -87,6 +88,8 @@ function DrawerEditorContent({
   const dispatch = useAppDispatch();
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
+  const [errorOverride, setErrorOverride] =
+    useState<InterpretationError | null>(null);
 
   const editorComponent = !show ? (
     <InactiveViewPlaceholder size={preservedSize} />
@@ -104,6 +107,12 @@ function DrawerEditorContent({
       tupleType={tupleType}
       locked={locked}
     />
+  ) : type === "caseTree" ? (
+    <CaseTreeView
+      tupleName={tupleName}
+      tupleArity={tupleArity}
+      setErrorOverride={setErrorOverride}
+    />
   ) : (
     <GraphView
       tupleName={tupleName}
@@ -115,9 +124,11 @@ function DrawerEditorContent({
     />
   );
 
+  const finalError = errorOverride || error;
+
   return (
     <Stack
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${finalError ? "error" : ""}`}
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
@@ -137,19 +148,23 @@ function DrawerEditorContent({
       </div>
 
       <Stack className="drawer-editor-container-body">
-        <div className="drawer-editor-toolbar-container">
-          <EditorToolbar
-            tupleName={tupleName}
-            tupleType={tupleType}
-            disabledFilters={
-              type === "database" ? ["domainSelector", "unaryFilterToggle"] : []
-            }
-          />
-        </div>
+        {type !== "caseTree" && (
+          <div className="drawer-editor-toolbar-container">
+            <EditorToolbar
+              tupleName={tupleName}
+              tupleType={tupleType}
+              disabledFilters={
+                type === "database"
+                  ? ["domainSelector", "unaryFilterToggle"]
+                  : []
+              }
+            />
+          </div>
+        )}
 
-        {error && (
+        {finalError && (
           <EditorError
-            error={error}
+            error={finalError}
             onRemoveInvalidClick={() => {
               dispatch(
                 removeInvalidEntries({ key: tupleName, type: tupleType }),
@@ -161,7 +176,7 @@ function DrawerEditorContent({
 
         <div
           ref={preservedSizeRef}
-          className={`drawer-editor-view-container ${error ? "error" : ""}`}
+          className={`drawer-editor-view-container ${finalError ? "error" : ""}`}
         >
           {editorComponent}
         </div>
