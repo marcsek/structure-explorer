@@ -1,31 +1,31 @@
 import "./CaseTreeView.css";
 
-import { Fragment, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import type { RootState } from "../../app/store";
+import { Fragment, useEffect, useState, useMemo } from "react";
 import {
   addCase,
   deleteCase,
   initializeTree,
-  selectMaxDepthReached,
-  selectSwitchExhausted,
-  selectTreeNodeValidation,
+  selectStructuredCaseView,
   updateBranch,
   updateCase,
   updateNode,
-  type CaseTreeBranch,
-  type CaseTreeNode,
 } from "./caseTreeViewSlice";
 import { Button, Dropdown, FormControl } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
-import type { TreeValidationError } from "./helpers";
-import { dev } from "../../common/logging";
+import {
+  getAllCaseViewErrors,
+  type CaseViewBranch,
+  type CaseViewCase,
+  type CaseViewSwitch,
+  type TreeSwitchError,
+} from "./helpers";
 import {
   createSemanticError,
   type InterpretationError,
 } from "../../common/errors";
+import { dev } from "../../common/logging";
 
 export interface CaseTreeViewProps {
   tupleName: string;
@@ -35,32 +35,29 @@ export interface CaseTreeViewProps {
 
 export default function CaseTreeView({
   tupleName,
+  tupleArity,
   setErrorOverride,
 }: CaseTreeViewProps) {
   const dispatch = useAppDispatch();
-  const rootId = useSelector(
-    (state: RootState) => state.present.caseTreeView[tupleName]?.rootId,
+  const rootCaseViewSwitch = useAppSelector((state) =>
+    selectStructuredCaseView(state, tupleName),
   );
 
-  const errors = useAppSelector((state) =>
-    selectTreeNodeValidation(state, tupleName),
+  const allErrors = useMemo(
+    () => (rootCaseViewSwitch ? getAllCaseViewErrors(rootCaseViewSwitch) : []),
+    [rootCaseViewSwitch],
   );
 
   useEffect(() => {
-    if (!rootId) dispatch(initializeTree({ tupleName }));
-  }, [dispatch, rootId, tupleName]);
+    if (!rootCaseViewSwitch) dispatch(initializeTree({ tupleName }));
+  }, [dispatch, rootCaseViewSwitch, tupleName]);
 
   useEffect(() => {
-    const allErrors = Object.values(errors).flat();
-
     dev.log(allErrors);
 
-    if (allErrors.length === 0) {
-      setErrorOverride(null);
-    } else {
-      setErrorOverride(createSemanticError(allErrors[0].message));
-    }
-  }, [errors, setErrorOverride]);
+    if (allErrors.length === 0) setErrorOverride(null);
+    else setErrorOverride(createSemanticError(allErrors[0]));
+  }, [allErrors, setErrorOverride]);
 
   return (
     <div
@@ -72,7 +69,13 @@ export default function CaseTreeView({
         justifyContent: "start",
       }}
     >
-      {rootId && <CaseTreeNodeRenderer nodeId={rootId} tupleName={tupleName} />}
+      {rootCaseViewSwitch && (
+        <CaseTreeNodeRenderer
+          {...rootCaseViewSwitch}
+          tupleName={tupleName}
+          maxDepth={tupleArity}
+        />
+      )}
     </div>
   );
 }
@@ -83,27 +86,35 @@ function Branch({
   caseType,
   branch,
   tupleName,
-  isInvalid,
+  maxDepth,
+  exhausted,
 }: {
   parentId: string;
   idx: number;
   caseType: "case" | "default";
-  branch: CaseTreeBranch;
+  branch: CaseViewBranch;
   tupleName: string;
-  isInvalid?: boolean;
+  maxDepth: number;
+  exhausted: boolean;
 }) {
   const dispatch = useAppDispatch();
 
   if (branch.type === "value") {
     return (
       <div
-        style={{ padding: "4px 8px", display: "flex", alignItems: "center" }}
+        style={{
+          padding: "4px 8px",
+          display: "flex",
+          alignItems: "center",
+          opacity: exhausted ? 0.3 : 1,
+        }}
       >
         <FormControl
           value={branch.value}
           size="sm"
           style={{ maxWidth: "3rem", minWidth: "2rem" }}
-          isInvalid={isInvalid}
+          isInvalid={!!branch.error}
+          disabled={exhausted}
           onChange={(e) =>
             dispatch(
               updateBranch({
@@ -119,71 +130,65 @@ function Branch({
     );
   }
 
-  return <CaseTreeNodeRenderer nodeId={branch.nodeId} tupleName={tupleName} />;
+  return (
+    <CaseTreeNodeRenderer
+      {...branch.switch}
+      tupleName={tupleName}
+      maxDepth={maxDepth}
+      parentExhausted={exhausted}
+    />
+  );
 }
 
-const getErrorByScope = <S extends TreeValidationError["scope"]>(
-  errors: TreeValidationError[],
-  scope: S,
-  match?: Omit<Extract<TreeValidationError, { scope: S }>, "scope" | "message">,
-) =>
-  errors.find(
-    (e): e is Extract<TreeValidationError, { scope: S }> =>
-      e.scope === scope &&
-      (!match ||
-        Object.entries(match).every(([k, v]) => e[k as keyof typeof e] === v)),
-  );
-
 function CaseTreeNodeRenderer({
-  nodeId,
+  id,
+  variable,
+  cases,
+  errors,
+  exhausted,
   tupleName,
-}: {
-  nodeId: string;
+  depth,
+  maxDepth,
+  parentExhausted = false,
+}: CaseViewSwitch & {
   tupleName: string;
+  maxDepth: number;
+  parentExhausted?: boolean;
 }) {
-  const node = useAppSelector(
-    (state) => state.present.caseTreeView[tupleName].nodes[nodeId],
-  );
-
-  const errors =
-    useAppSelector((state) => selectTreeNodeValidation(state, tupleName))[
-      nodeId
-    ] ?? [];
-
-  const arms = [
-    ...node.cases.map((c) => ({ type: "case" as const, ...c })),
-    { type: "default" as const, branch: node.default },
-  ];
-
   return (
     <div
       className="case-tree-node"
       style={{
         display: "grid",
         gridTemplateColumns: "auto auto 1fr",
-        gridTemplateRows: `repeat(${arms.length}, auto)`,
+        gridTemplateRows: `repeat(${cases.length}, auto)`,
 
-        borderLeft: nodeId !== "root" ? "1px solid var(--bs-border-color)" : "",
+        borderLeft: id !== "root" ? "1px solid var(--bs-border-color)" : "",
       }}
     >
       <SwitchNode
         tupleName={tupleName}
-        nodeId={nodeId}
-        childrenCount={arms.length}
+        nodeId={id}
+        childrenCount={cases.length}
         errors={errors}
-        node={node}
+        variable={variable}
+        exhausted={parentExhausted}
       />
       <>
-        {arms.length > 1 &&
-          arms.map((arm, idx) => (
+        {cases.length > 1 &&
+          cases.map((switchCase, idx) => (
             <Fragment key={idx}>
               <CaseBranch
                 tupleName={tupleName}
-                nodeId={nodeId}
+                nodeId={id}
                 caseIdx={idx}
-                canAdd={idx === arms.length - 2}
-                errors={errors}
-                arm={arm}
+                canAdd={idx === cases.length - 2 && !exhausted}
+                exhausted={
+                  parentExhausted ||
+                  (switchCase.type === "default" && exhausted)
+                }
+                parentCase={switchCase}
+                maxDepthReached={depth >= maxDepth}
               />
 
               <div
@@ -195,38 +200,39 @@ function CaseTreeNodeRenderer({
                   justifyContent: "start",
                 }}
               >
-                {arm.branch ? (
+                {switchCase.branch ? (
                   <Branch
                     tupleName={tupleName}
-                    parentId={nodeId}
+                    parentId={id}
                     idx={idx}
-                    branch={arm.branch}
-                    caseType={arm.type}
-                    isInvalid={
-                      !!getErrorByScope(errors, "case", {
-                        caseIdx: idx,
-                        location: "value",
-                      })
+                    branch={switchCase.branch}
+                    caseType={switchCase.type}
+                    maxDepth={maxDepth}
+                    exhausted={
+                      parentExhausted ||
+                      (switchCase.type === "default" && exhausted)
                     }
                   />
                 ) : (
                   <CaseTreeAddButton
                     tupleName={tupleName}
-                    parentId={nodeId}
+                    parentId={id}
                     caseType="default"
                     canDelete={false}
+                    maxDepthReached={depth >= maxDepth}
                   />
                 )}
               </div>
             </Fragment>
           ))}
 
-        {arms.length <= 1 && (
+        {cases.length <= 1 && (
           <CaseTreeAddButton
             tupleName={tupleName}
-            parentId={nodeId}
+            parentId={id}
             caseType="case"
             canDelete={false}
+            maxDepthReached={depth >= maxDepth}
           />
         )}
       </>
@@ -238,16 +244,18 @@ interface SwitchNodeProps {
   tupleName: string;
   nodeId: string;
   childrenCount: number;
-  node: CaseTreeNode;
-  errors: TreeValidationError[];
+  variable: string;
+  errors: TreeSwitchError[];
+  exhausted: boolean;
 }
 
 function SwitchNode({
   tupleName,
   nodeId,
-  node,
   childrenCount,
   errors,
+  variable,
+  exhausted,
 }: SwitchNodeProps) {
   const dispatch = useAppDispatch();
 
@@ -266,15 +274,17 @@ function SwitchNode({
           display: "flex",
           alignItems: "center",
           whiteSpace: "nowrap",
+          opacity: exhausted ? 0.3 : 1,
         }}
       >
         switch |
         {
           <FormControl
-            value={node.variable}
+            value={variable}
             size="sm"
             style={{ maxWidth: "3rem", minWidth: "2rem" }}
-            isInvalid={!!getErrorByScope(errors, "variable")}
+            isInvalid={!!errors.find(({ scope }) => scope === "variable")}
+            disabled={exhausted}
             onChange={(e) =>
               dispatch(
                 updateNode({ tupleName, nodeId, variable: e.target.value }),
@@ -292,27 +302,23 @@ interface CaseBranchProps {
   tupleName: string;
   nodeId: string;
   caseIdx: number;
-  arm:
-    | { type: "case"; match: string; branch: CaseTreeBranch }
-    | { type: "default"; branch: CaseTreeBranch | undefined };
+  parentCase: CaseViewCase;
   canAdd: boolean;
-  errors: TreeValidationError[];
+  maxDepthReached: boolean;
+  exhausted: boolean;
 }
 
 function CaseBranch({
   tupleName,
   nodeId,
   caseIdx,
-  arm,
+  parentCase,
   canAdd,
-  errors,
+  maxDepthReached,
+  exhausted,
 }: CaseBranchProps) {
   const dispatch = useAppDispatch();
   const [hovered, setHovered] = useState(false);
-
-  const switchExhausted = useAppSelector((state) =>
-    selectSwitchExhausted(state, tupleName, nodeId),
-  );
 
   return (
     <div
@@ -325,11 +331,12 @@ function CaseBranch({
         flexDirection: "column",
         alignItems: "start",
         whiteSpace: "nowrap",
+        opacity: exhausted ? 0.3 : 1,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {arm.type === "case" ? (
+      {parentCase.type === "case" ? (
         <div
           style={{
             display: "flex",
@@ -350,14 +357,10 @@ function CaseBranch({
             case
             {
               <FormControl
-                value={arm.match}
+                value={parentCase.match}
                 size="sm"
-                isInvalid={
-                  !!getErrorByScope(errors, "case", {
-                    caseIdx,
-                    location: "match",
-                  })
-                }
+                disabled={exhausted}
+                isInvalid={!!parentCase.error}
                 style={{ maxWidth: "3rem", minWidth: "2rem" }}
                 onChange={(e) =>
                   dispatch(
@@ -380,25 +383,25 @@ function CaseBranch({
             height: "100%",
             display: "flex",
             alignItems: "start",
-            color: getErrorByScope(errors, "default") ? "var(--bs-danger)" : "",
+            color: parentCase.error ? "var(--bs-danger)" : "",
           }}
         >
           default:
         </div>
       )}
 
-      {hovered &&
-        (arm.type !== "default" || !getErrorByScope(errors, "default")) && (
-          <div>
-            <CaseTreeAddButton
-              tupleName={tupleName}
-              parentId={nodeId}
-              caseType={arm.type}
-              caseIdx={caseIdx}
-              canAdd={canAdd && !switchExhausted}
-            />
-          </div>
-        )}
+      {hovered && (parentCase.type !== "default" || !parentCase.error) && (
+        <div>
+          <CaseTreeAddButton
+            tupleName={tupleName}
+            parentId={nodeId}
+            caseType={parentCase.type}
+            caseIdx={caseIdx}
+            canAdd={canAdd}
+            maxDepthReached={maxDepthReached}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -410,6 +413,7 @@ interface CaseTreeAddButtonProps {
   caseIdx?: number;
   canDelete?: boolean;
   canAdd?: boolean;
+  maxDepthReached: boolean;
 }
 
 function CaseTreeAddButton({
@@ -419,11 +423,9 @@ function CaseTreeAddButton({
   caseIdx,
   canAdd = true,
   canDelete = true,
+  maxDepthReached = false,
 }: CaseTreeAddButtonProps) {
   const dispatch = useAppDispatch();
-  const maxDepthReached = useAppSelector((state) =>
-    selectMaxDepthReached(state, tupleName, parentId),
-  );
 
   const items = [
     { text: "Value", branchType: "value" as const },

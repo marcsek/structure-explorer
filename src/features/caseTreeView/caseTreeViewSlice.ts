@@ -13,8 +13,8 @@ import { selectValidatedFunctions } from "../language/languageSlice";
 import {
   generateTuples,
   getNextNodeId,
+  getStructuredCaseView,
   getSubstreeNodeIds,
-  validateTreeNode,
 } from "./helpers";
 import { dev } from "../../common/logging";
 
@@ -215,72 +215,20 @@ export const updateNode = treeUpdateWrapper(updateNodeAction);
 export const updateCase = treeUpdateWrapper(updateCaseAction);
 export const updateBranch = treeUpdateWrapper(updateBranchAction);
 
-export const selectTreeNodeValidation = createSelector(
-  [
-    selectDomain,
-    (state: RootState, tupleName: string) =>
-      selectValidatedFunctions(state).parsed.get(tupleName),
-    (state: RootState, tupleName: string) =>
-      state.present.caseTreeView[tupleName],
-  ],
+export const selectStructuredCaseView = createSelector(
+  selectDomain,
+  (state: RootState, tupleName: string) =>
+    selectValidatedFunctions(state).parsed.get(tupleName),
+  (state: RootState, tupleName: string) =>
+    state.present.caseTreeView[tupleName],
   ({ value: domain }, arity, caseTree) => {
-    if (!arity || !caseTree) return {};
+    if (!caseTree?.rootId) return undefined;
 
-    return validateTreeNode(
+    return getStructuredCaseView(
       caseTree.rootId,
       caseTree.nodes,
       new Set(domain),
-      arity,
+      arity ?? 0,
     );
-  },
-);
-
-export const selectMaxDepthReached = createSelector(
-  [
-    (state: RootState, tupleName: string) =>
-      selectValidatedFunctions(state).parsed.get(tupleName),
-    (state: RootState, tupleName: string) =>
-      state.present.caseTreeView[tupleName],
-    (_: RootState, __: string, nodeId: string) => nodeId,
-  ],
-  (arity, caseTree, targetNodeId) => {
-    if (!arity) return false;
-
-    const nodeStack = [{ nodeId: caseTree.rootId, depth: 1 }];
-    while (nodeStack.length > 0) {
-      const { nodeId, depth } = nodeStack.pop()!;
-      const node = caseTree.nodes[nodeId];
-
-      if (targetNodeId === nodeId) return depth >= arity;
-
-      const branches = [...node.cases.map((c) => c.branch)];
-      if (node.default) branches.push(node.default);
-
-      for (const branch of branches) {
-        if (branch.type === "value") continue;
-
-        nodeStack.push({
-          nodeId: branch.nodeId,
-          depth: depth + 1,
-        });
-      }
-    }
-
-    return false;
-  },
-);
-
-export const selectSwitchExhausted = createSelector(
-  [
-    selectDomain,
-    (state: RootState, tupleName: string) =>
-      state.present.caseTreeView[tupleName],
-    (_: RootState, __: string, nodeId: string) => nodeId,
-  ],
-  ({ value: domain }, caseTree, targetNodeId) => {
-    if (domain.length === 0) return false;
-
-    const node = caseTree.nodes[targetNodeId];
-    return node.cases.length === domain.length;
   },
 );
