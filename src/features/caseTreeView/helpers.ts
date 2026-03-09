@@ -213,6 +213,8 @@ export function getStructuredCaseView(
           branch: newBranch,
           error: matchError,
         });
+
+        matches.add(match);
       } else if (nodeCase.type === "default") {
         newCases.push({
           type: "default",

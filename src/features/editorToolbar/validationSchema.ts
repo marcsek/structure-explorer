@@ -8,6 +8,7 @@ export const editorTypes = [
   "oriented",
   "hasse",
   "bipartite",
+  "caseTree",
 ] as const;
 
 export const serializedEditorToolbarStateSchema = z

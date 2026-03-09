@@ -31,6 +31,10 @@ import {
   SerializedQueriesStateDefault,
   serializedQueriesStateSchema,
 } from "../queries/validationSchema";
+import {
+  SerializedCaseTreeViewStateDefault,
+  serializedCaseTreeViewStateSchema,
+} from "../caseTreeView/validationSchema";
 
 export const MINIMAL_SUPPORTED_VERSION = 1;
 export const MAXIMAL_SUPPORTED_VERSION = 1;
@@ -54,6 +58,7 @@ const schemaFields = {
   formulas: serializedFormulasStateSchema,
   queries: serializedQueriesStateSchema,
   editorToolbar: serializedEditorToolbarStateSchema,
+  caseTreeView: serializedCaseTreeViewStateSchema,
 } as const;
 
 export const serializedAppStateSchema = z.object(schemaFields);
@@ -69,6 +74,7 @@ const schemaDefaults: SerializedAppState = {
   formulas: SerializedFormulasStateDefault,
   queries: SerializedQueriesStateDefault,
   editorToolbar: serializedEditorToolbarStateDefault,
+  caseTreeView: SerializedCaseTreeViewStateDefault,
 };
 
 export function parseSerializedAppStateWithDefaults(data: unknown): {

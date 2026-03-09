@@ -32,6 +32,7 @@ import {
   importEditorToolbarState,
 } from "../editorToolbar/editorToolbarSlice";
 import { importQueriesState } from "../queries/queriesSlice";
+import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
 
 export interface ImportedAppState extends Omit<
   RootState["present"],
@@ -85,6 +86,7 @@ export const importAppState =
         overwrite: true,
       }),
     );
+    dispatch(importCaseTreeViewState(importedState.caseTreeView));
 
     // Needs to be last so it doesn't open uninitialized editor
     dispatch(importEditorToolbarState(importedState.editorToolbar));
@@ -151,5 +153,6 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
       state.present.editorToolbar,
       relevantSymbols,
     ),
+    caseTreeView: state.present.caseTreeView,
   };
 };

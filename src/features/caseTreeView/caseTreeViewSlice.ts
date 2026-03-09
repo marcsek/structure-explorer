@@ -17,6 +17,8 @@ import {
   getSubstreeNodeIds,
 } from "./helpers";
 import { dev } from "../../common/logging";
+import type { SerializedCaseTreeViewState } from "./validationSchema";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export type CaseTreeBranch =
   | { type: "value"; value: string }
@@ -44,13 +46,18 @@ type WithCaseTreeId<T = object> = {
   tupleName: string;
 } & T;
 
-const initialState: CaseTreeState = {};
+export const initialCaseTreeViewState: CaseTreeState = {};
 
 export const caseTreeViewSlice = createSlice({
   name: "caseTreeView",
-  initialState,
+  initialState: initialCaseTreeViewState,
   reducers: {
-    importState() {},
+    importCaseTreeViewState(
+      _,
+      action: PayloadAction<SerializedCaseTreeViewState>,
+    ) {
+      return action.payload;
+    },
 
     initializeTree(state, action: PayloadAction<WithCaseTreeId>) {
       const { tupleName } = action.payload;
@@ -186,7 +193,7 @@ const {
   updateBranch: updateBranchAction,
 } = caseTreeViewSlice.actions;
 
-export const { importState, initializeTree, addCase, deleteCase } =
+export const { importCaseTreeViewState, initializeTree, addCase, deleteCase } =
   caseTreeViewSlice.actions;
 
 const treeUpdateWrapper =
@@ -209,6 +216,7 @@ const treeUpdateWrapper =
 
     dev.log("Generated tuples", result.tuples);
     dispatch(updateFunctionSymbols({ key: tupleName, value: result.tuples }));
+    dispatch(UndoActions.checkpoint());
   };
 
 export const updateNode = treeUpdateWrapper(updateNodeAction);
