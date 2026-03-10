@@ -458,16 +458,17 @@ export const selectHistoryData = createSelector(
     selectValuation,
     selectStructure,
   ],
-  (choices, { formula }, initialGuess, valuation, structure) => {
+  (choices, { formula, evaluated }, initialGuess, valuation, structure) => {
     const history: {
       sf: SignedFormula;
+      evaluated: boolean;
       valuation: Map<string, string>;
       type: "alpha" | "beta" | "gamma" | "delta";
       winFormula?: SignedFormula;
       winElement?: string;
     }[] = [];
 
-    if (!formula) return [];
+    if (!formula || evaluated === undefined) return [];
 
     dev.time("selectHistoryData duration");
 
@@ -483,12 +484,14 @@ export const selectHistoryData = createSelector(
       const type = f.getSignedType(s);
       const step: {
         sf: SignedFormula;
+        evaluated: boolean;
         valuation: Map<string, string>;
         type: "alpha" | "beta" | "gamma" | "delta";
         winFormula?: SignedFormula;
         winElement?: string;
       } = {
         sf: currentFormula,
+        evaluated,
         valuation: new Map(currentValuation),
         type,
       };
@@ -562,20 +565,28 @@ export const selectIsVerifiedGame = createSelector(
     if (data.length === 0) return undefined;
 
     const last = data.at(-1);
+    const first = data.at(0);
 
-    if (last === undefined) return undefined;
+    if (last === undefined || first === undefined) return undefined;
 
     dev.time("selectIsVerifiedGame duration");
     try {
-      dev.timeEnd("selectIsVerifiedGame duration");
       if (
         last.sf.formula instanceof PredicateAtom ||
         last.sf.formula instanceof EqualityAtom
-      )
-        return last.sf.formula.eval(structure, last.valuation) === last.sf.sign;
-    } catch (_error) {
-      dev.timeEnd("selectIsVerifiedGame duration");
-    }
+      ) {
+        const originalGuess = first.evaluated;
+
+        const didWin =
+          last.sf.formula.eval(structure, last.valuation) === last.sf.sign;
+
+        dev.timeEnd("selectIsVerifiedGame duration");
+        if (originalGuess && !didWin) return undefined;
+
+        return didWin;
+      }
+    } catch (_error) {}
+    dev.timeEnd("selectIsVerifiedGame duration");
   },
 );
 
