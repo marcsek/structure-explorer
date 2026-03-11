@@ -26,7 +26,7 @@ abstract class Formula extends Expression {
   constructor(
     protected subFormulas: Formula[],
     protected connective: string,
-    protected connectiveTex: string
+    protected connectiveTex: string,
   ) {
     super();
   }
@@ -40,14 +40,16 @@ abstract class Formula extends Expression {
   }
 
   toTex(): string {
-    return `(${this.getSubFormulas().join(` ${this.connectiveTex} `)})`;
+    return `(${this.getSubFormulas()
+      .map((f) => f.toTex())
+      .join(` ${this.connectiveTex} `)})`;
   }
 
   gameDepth(sign: boolean): number {
     return Math.max(
       ...this.getSignedSubFormulas(sign).map(({ formula: f }) =>
-        f.gameDepth(sign)
-      )
+        f.gameDepth(sign),
+      ),
     ) +
       this.getSignedType(sign) ===
       SignedFormulaType.BETA ||
@@ -63,7 +65,7 @@ abstract class Formula extends Expression {
   winningSubformulas(
     sign: boolean,
     structure: Structure,
-    e: Valuation
+    e: Valuation,
   ): SignedFormula[] {
     const formulas = this.getSignedSubFormulas(sign);
 
@@ -71,7 +73,7 @@ abstract class Formula extends Expression {
     let winning: SignedFormula[] = [];
 
     for (const { sign, formula } of formulas) {
-      let current = { sign: sign, formula: formula };
+      const current = { sign: sign, formula: formula };
       if (formula.eval(structure, e) !== sign) {
         if (!shortest) {
           shortest = current;
@@ -101,11 +103,11 @@ abstract class Formula extends Expression {
   abstract eval(structure: Structure, e: Valuation): boolean;
 
   getVariables(): Set<Symbol> {
-    const vars: Set<Symbol> = new Set();
-    this.subFormulas.forEach((formula) =>
-      formula.getVariables().forEach((variable) => vars.add(variable))
-    );
-    return vars;
+    return new Set(this.subFormulas.flatMap((f) => [...f.getVariables()]));
+  }
+
+  getFreeVariables(): Set<Symbol> {
+    return new Set(this.subFormulas.flatMap((f) => [...f.getFreeVariables()]));
   }
 
   abstract getSignedType(sign: boolean): SignedFormulaType;

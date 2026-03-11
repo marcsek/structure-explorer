@@ -12,12 +12,13 @@ interface Props {
 export default function GameComponent({ id }: Props) {
   return (
     <>
-      <Card className="mb-3 mt-3 h-100">
+      <Card className="mb-3 mt-3 h-100 game-container border">
         <Card.Body
           className="d-flex flex-column overflow-y-auto text-break vw-25"
           style={{
             maxHeight: "33vh",
             overflowY: "auto",
+            fontSize: "0.875rem",
             position: "relative",
           }}
         >

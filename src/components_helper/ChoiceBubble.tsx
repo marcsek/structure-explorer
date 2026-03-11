@@ -16,6 +16,7 @@ export default function ChoiceBubble({ choices, onclicks }: Props) {
           return (
             <Button
               key={index}
+              size="sm"
               variant="outline-primary d-inline m-1"
               onClick={() => {
                 onclicks[index]();

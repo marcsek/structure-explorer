@@ -1,16 +1,42 @@
-import { Card, Col, Row } from "react-bootstrap";
-import TooltipButton from "../../components_helper/TooltipButton";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { lockVariables, selectVariablesLock } from "./variablesSlice";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
 import {
-  lockVariables,
-  selectParsedVariables,
-  selectVariablesLock,
-  selectVariablesText,
-  updateVariables,
-} from "./variablesSlice";
+  selectValidatedTextView,
+  updateTextView,
+} from "../textView/textViewSlice.ts";
 
+export default function VariablesComponent() {
+  const dispatch = useAppDispatch();
+
+  const textView = useAppSelector((state) =>
+    selectValidatedTextView(state, "variables"),
+  );
+  const lock = useAppSelector(selectVariablesLock);
+
+  return (
+    <ComponentCard heading="Variable assignment" help={help}>
+      <InputGroupTitle
+        label={"Variable assignment of individual variables"}
+        id="variables"
+        text={textView.value}
+        prefix={<InlineMath>{String.raw`e = \{`}</InlineMath>}
+        suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+        placeholder="assignments"
+        onChange={(e) =>
+          dispatch(updateTextView({ type: "variables", value: e.target.value }))
+        }
+        error={textView.error}
+        lockChecker={lock}
+        locker={() => dispatch(lockVariables())}
+      />
+    </ComponentCard>
+  );
+}
+
+/* eslint-disable */
 const help = (
   <>
     <p>
@@ -30,37 +56,3 @@ const help = (
     </p>
   </>
 );
-export default function VariablesComponent() {
-  const dispatch = useAppDispatch();
-  const text = useAppSelector(selectVariablesText);
-  const lock = useAppSelector(selectVariablesLock);
-  const { error } = useAppSelector(selectParsedVariables);
-  return (
-    <>
-      <Card>
-        <Card.Header as="h4">
-          <Row>
-            <Col>Variable assignment</Col>
-            <Col xs="auto">
-              <TooltipButton text={help}></TooltipButton>
-            </Col>
-          </Row>
-        </Card.Header>
-        <Card.Body>
-          <InputGroupTitle
-            label={"Variable assignment of individual variables"}
-            id="0"
-            text={text}
-            prefix={<InlineMath>{String.raw`e = \{`}</InlineMath>}
-            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-            placeholder="assignments"
-            onChange={(e) => dispatch(updateVariables(e.target.value))}
-            error={error}
-            lockChecker={lock}
-            locker={() => dispatch(lockVariables())}
-          ></InputGroupTitle>
-        </Card.Body>
-      </Card>
-    </>
-  );
-}

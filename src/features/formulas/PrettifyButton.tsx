@@ -1,28 +1,38 @@
 import {
-  selectEvaluatedFormula,
+  selectEvaluatedFormulas,
   selectFormulas,
   updateText,
 } from "../../features/formulas/formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { Button } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagicWandSparkles } from "@fortawesome/free-solid-svg-icons";
+import { UndoActions } from "../undoHistory/undoHistory";
 
 export default function PrettifyButton() {
   const allFormulas = useAppSelector(selectFormulas);
   const dispatch = useAppDispatch();
-  const evaluatedFormulas = useAppSelector((state) =>
-    allFormulas.map((_, id) => selectEvaluatedFormula(state, id))
-  );
+  const evaluatedFormulas = useAppSelector(selectEvaluatedFormulas);
 
   const prettifyAll = () => {
+    let someNeededUpdate = false;
+
     evaluatedFormulas.forEach((evaluated, id) => {
       if (evaluated?.formula) {
-        dispatch(updateText({ id, text: evaluated.formula.toString() }));
+        const evalutedText = evaluated.formula.toString();
+        dispatch(updateText({ id, text: evalutedText }));
+
+        someNeededUpdate ||=
+          allFormulas[id].text !== evaluated.formula.toString();
       }
     });
+
+    if (someNeededUpdate) dispatch(UndoActions.checkpoint());
   };
 
   return (
-    <Button onClick={prettifyAll} variant="success" className="mb-2">
+    <Button onClick={prettifyAll} variant="outline-success" size="sm">
+      <FontAwesomeIcon size="sm" icon={faMagicWandSparkles} className="me-1" />
       Prettify formulas
     </Button>
   );

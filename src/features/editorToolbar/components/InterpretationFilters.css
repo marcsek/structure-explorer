@@ -1,0 +1,168 @@
+.intr-filters-container {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+
+  min-width: 0;
+
+  gap: 0.5rem;
+}
+
+.unary-preds-filters-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.unary-preds-filters-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.scroll-button {
+  border: none;
+  background: none;
+  color: var(--bs-body-color);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding-inline: 0.5rem;
+
+  color: #171717;
+  font-size: 0.875rem;
+  background-color: oklch(97% 0 0);
+  border-radius: 4px;
+  z-index: 1;
+  pointer-events: all;
+}
+
+.scroll-button-background {
+  position: absolute;
+  top: 0;
+  padding-block: 0.25rem;
+  height: 42px;
+  border: none;
+  color: var(--bs-body-color);
+  z-index: 2;
+  display: flex;
+  pointer-events: none;
+}
+
+.scroll-button-background.left {
+  left: -1px;
+  padding-left: 0;
+  padding-right: 20px;
+
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, white 100%, transparent) 70%,
+    transparent
+  );
+}
+
+.scroll-button-background.right {
+  right: -1px;
+  padding-right: 0;
+  padding-left: 20px;
+
+  background: linear-gradient(
+    to left,
+    color-mix(in srgb, white 100%, transparent) 70%,
+    transparent
+  );
+}
+
+.unary-preds-filters-checkbox {
+  display: flex;
+  align-items: center;
+  color: var(--bs-body-color);
+  gap: 0.5rem;
+  outline: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: 100px;
+  padding: 9px 14px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  font-weight: 400;
+  line-height: 0;
+  transition: all 0.1s ease-in-out;
+  user-select: none;
+  position: relative;
+  margin: 0;
+}
+
+.unary-preds-filters-checkbox::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, currentColor 25%, transparent);
+  opacity: 0;
+  transition: opacity 0.1s ease-in-out;
+}
+
+.unary-preds-filters-checkbox input {
+  margin: 0;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.unary-preds-filters-checkbox .unary-preds-filters-checkbox-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-sizing: content-box;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  border: 2px solid currentColor;
+}
+
+.unary-preds-filters-checkbox .unary-preds-filters-checkbox-indicator svg {
+  height: 100%;
+  width: 100%;
+  color: color-mix(in srgb, currentColor 10%, white);
+}
+
+.unary-preds-filters-checkbox p {
+  line-height: 1;
+  margin: 0;
+  color: var(--bs-body-color);
+}
+
+.unary-preds-filters-checkbox:has(input:checked) {
+  outline-color: currentColor;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.unary-preds-filters-checkbox:has(input:checked)
+  .unary-preds-filters-checkbox-indicator {
+  background-color: currentColor;
+}
+
+.unary-preds-filters-checkbox:focus-within::after,
+.unary-preds-filters-checkbox:has(input:active)::after {
+  opacity: 1;
+}
+
+.intr-filters-divider {
+  width: var(--bs-border-width);
+  height: 34px;
+  background-color: var(--bs-light-border-subtle);
+  margin-top: 0.25rem;
+}
+
+.intr-filter-no-elements-info {
+  font-size: 0.875rem;
+  align-self: center;
+  color: var(--bs-secondary-color);
+  user-select: none;
+}

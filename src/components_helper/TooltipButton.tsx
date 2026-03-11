@@ -29,12 +29,20 @@ export default function TooltipButton({ text }: TooltipButtonProps) {
       onToggle={() => setShow(!show)}
     >
       <Button
-        variant="outline-info"
-        style={{ padding: "0.2rem 0.4rem" }}
+        className="rounded-circle d-inline-block d-flex p-1 btn-bd-info-outline help-tooltip-button"
+        variant="outline-dark"
         title="Help"
-        onClick={() => setShow(!show)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setShow(!show);
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
       >
-        <FontAwesomeIcon icon={faQuestion} />
+        <FontAwesomeIcon
+          icon={faQuestion}
+          size="sm"
+          style={{ width: "0.75rem", height: "0.75rem" }}
+        />
       </Button>
     </OverlayTrigger>
   );

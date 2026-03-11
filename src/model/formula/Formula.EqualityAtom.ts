@@ -1,3 +1,4 @@
+import type { Symbol } from "../Language";
 import Structure, { type Valuation } from "../Structure";
 import Term from "../term/Term";
 import Formula, { type SignedFormula, SignedFormulaType } from "./Formula";
@@ -15,7 +16,10 @@ class EqualityAtom extends Formula {
    * @param {Term} subLeft
    * @param {Term} subRight
    */
-  constructor(public subLeft: Term, public subRight: Term) {
+  constructor(
+    public subLeft: Term,
+    public subRight: Term,
+  ) {
     super([], "=", "=");
   }
 
@@ -38,19 +42,28 @@ class EqualityAtom extends Formula {
   }
 
   toTex(): string {
-    return this.toString();
+    return `${this.subLeft.toTex()} \\doteq  ${this.subRight.toTex()}`;
   }
 
   getSubFormulas() {
     return [];
   }
 
-  getSignedType(_sign: boolean): SignedFormulaType {
+  getSignedType(): SignedFormulaType {
     return SignedFormulaType.ALPHA;
   }
 
-  getSignedSubFormulas(_sign: boolean): SignedFormula[] {
+  getSignedSubFormulas(): SignedFormula[] {
     return [];
+  }
+
+  getVariables(): Set<Symbol> {
+    const subs = [this.subLeft, this.subRight];
+    return new Set(subs.flatMap((t) => [...t.getVariables()]));
+  }
+
+  getFreeVariables(): Set<Symbol> {
+    return this.getVariables();
   }
 }
 

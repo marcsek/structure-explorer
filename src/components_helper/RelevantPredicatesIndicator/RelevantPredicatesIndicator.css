@@ -1,0 +1,27 @@
+.relevant-pred-indicator {
+  display: flex;
+  height: 100%;
+}
+
+.relevant-pred-indicator .relevant-pred-indicator-pred {
+  border-radius: 100px;
+  outline: 2px solid white;
+  background-color: currentColor;
+}
+
+.relevant-pred-indicator .relevant-pred-indicator-pred.previewed {
+  background-color: color-mix(in srgb, currentColor 20%, white);
+  border: 2px solid currentColor;
+}
+
+.relevant-pred-indicator.size-md .relevant-pred-indicator-pred {
+  height: 1rem;
+  width: 1rem;
+  margin-left: -4px;
+}
+
+.relevant-pred-indicator.size-sm .relevant-pred-indicator-pred {
+  height: 0.875rem;
+  width: 0.875rem;
+  margin-left: -3px;
+}

@@ -8,6 +8,7 @@ interface Props {
   change?: boolean;
   win?: boolean;
   lose?: boolean;
+  fixableLoss?: boolean;
   onClick?: () => void;
 }
 
@@ -18,31 +19,40 @@ export default function MessageBubble({
   win,
   lose,
   onClick,
+  fixableLoss,
 }: Props) {
-  const variant =
-    win === true
+  const variant = fixableLoss
+    ? "warning"
+    : win === true
       ? "success"
       : lose === true
-      ? "danger"
-      : sent
-      ? "primary"
-      : "light";
-  const float = sent ? "float-end" : "float-start";
-  const rounded = sent ? "rounded-start-3" : "rounded-end-3";
+        ? "danger"
+        : sent
+          ? "primary"
+          : "light";
+
+  const float = sent ? "align-self-end" : "align-self-start";
+  const rounded = sent ? "rounded-start-4" : "rounded-end-4";
 
   return (
     <>
-      <div>
-        <div
-          className={`${float} mb-1 mt-1 p-2 text-wrap rounded-bottom-3 ${rounded} text-bg-${variant}`}
-        >
-          {message}
-        </div>
+      <div className={`d-flex ${float} flex-wrap-reverse`}>
         {change && (
-          <Button variant="link" onClick={onClick} className="float-end">
+          <Button
+            variant="link"
+            size="sm"
+            onClick={onClick}
+            className="flex-shrink-0"
+          >
             Change
           </Button>
         )}
+        <div
+          className={`flex-shrink-1 flex-grow-1 mt-1 p-2 text-wrap rounded-bottom-4 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
+          style={{ flexBasis: "0%" }}
+        >
+          {message}
+        </div>
       </div>
     </>
   );

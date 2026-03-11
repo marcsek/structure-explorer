@@ -15,7 +15,10 @@ class Implication extends Formula {
    * @param {Formula} subRight
    */
 
-  constructor(public subLeft: Formula, public subRight: Formula) {
+  constructor(
+    public subLeft: Formula,
+    public subRight: Formula,
+  ) {
     super([subLeft, subRight], "→", "\\rightarrow");
     this.subLeft = subLeft;
     this.subRight = subRight;
@@ -40,6 +43,7 @@ class Implication extends Formula {
   getSignedType(sign: boolean): SignedFormulaType {
     return sign ? SignedFormulaType.BETA : SignedFormulaType.ALPHA;
   }
+
   getSignedSubFormulas(sign: boolean): SignedFormula[] {
     return [
       { sign: !sign, formula: this.subLeft },

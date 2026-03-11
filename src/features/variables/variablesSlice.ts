@@ -1,79 +1,81 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import { parseValuation, SyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { selectLanguage } from "../language/languageSlice";
-import { selectParsedDomain } from "../structure/structureSlice";
+import { type PayloadActionSource } from "../language/languageSlice";
+import { selectValidatedDomain } from "../structure/structureSlice";
+import { createValidationError } from "../../common/errors";
+import {
+  prepareWithSourceMeta,
+  type LockableValue,
+  type Validated,
+} from "../../common/redux";
+import type { SerializedVariablesState } from "./validationSchema";
 
-export interface VariablesState {
-  text: string;
-  locked: boolean;
-}
+export type VariableRepresentation = { from: string; to: string };
+export type VariablesState = LockableValue<VariableRepresentation[]>;
 
-const initialState: VariablesState = {
-  text: "",
+export const initialVariablesState: VariablesState = {
+  value: [],
   locked: false,
 };
 
 export const variablesSlice = createSlice({
   name: "variables",
-  initialState,
+  initialState: initialVariablesState,
   reducers: {
-    importVariablesState: (_state, action: PayloadAction<string>) => {
-      return JSON.parse(action.payload);
+    importVariablesState(
+      _state,
+      action: PayloadAction<SerializedVariablesState>,
+    ) {
+      return action.payload;
     },
-    updateVariables: (state, action: PayloadAction<string>) => {
-      state.text = action.payload;
+
+    updateVariables: {
+      reducer(state, action: PayloadActionSource<[string, string][]>) {
+        state.value = action.payload.map(([from, to]) => ({ from, to }));
+      },
+      prepare: prepareWithSourceMeta<[string, string][]>,
     },
-    lockVariables: (state) => {
+
+    lockVariables(state) {
       state.locked = !state.locked;
     },
   },
 });
 
-export const { updateVariables, importVariablesState, lockVariables } =
-  variablesSlice.actions;
+export const selectVariablesLock = (state: RootState) =>
+  state.present.variables.locked;
 
-export default variablesSlice.reducer;
+export const selectValidatedVariables = createSelector(
+  [selectValidatedDomain, (state: RootState) => state.present.variables],
+  (domain, { value: variables }) => {
+    const result: Validated<VariableRepresentation[]> = { parsed: variables };
 
-export const selectVariablesText = (state: RootState) => state.variables.text;
-export const selectVariablesLock = (state: RootState) => state.variables.locked;
-
-export const selectParsedVariables = createSelector(
-  [selectVariablesText, selectLanguage, selectParsedDomain],
-  (variables, language, domain) => {
-    try {
-      const vars = parseValuation(variables, language.getParserLanguage());
-      let err = undefined;
-      const varsMap = vars.map(([from, to]) => {
-        if (
-          (domain.parsed && domain.parsed.includes(to) == false) ||
-          !domain.parsed
-        ) {
-          err = new Error(`${to} is not an element of domain`);
-        }
-
-        return { from: from, to: to };
-      });
-
-      if (err) return { error: err };
-
-      return { parsed: varsMap };
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        return { error: error };
+    for (const { to } of variables) {
+      if (
+        (domain.parsed && domain.parsed.includes(to) == false) ||
+        !domain.parsed
+      ) {
+        result.error = createValidationError(
+          `${to} is not an element of domain`,
+        );
       }
-
-      throw error;
     }
-  }
+
+    return result;
+  },
 );
 
 export const selectValuation = createSelector(
-  [selectParsedVariables],
+  [selectValidatedVariables],
   (variables) => {
     if (variables.parsed === undefined) return new Map<string, string>();
 
     return new Map(variables.parsed.map(({ from, to }) => [from, to]));
-  }
+  },
 );
+
+export const { updateVariables, importVariablesState, lockVariables } =
+  variablesSlice.actions;
+
+export default variablesSlice.reducer;

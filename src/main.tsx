@@ -1,4 +1,4 @@
-import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
 import ReactDOM from "react-dom";
 import { StrictMode } from "react";
 
@@ -13,5 +13,5 @@ ReactDOM.render(
       <App />
     </Provider>
   </StrictMode>,
-  document.getElementById("root")
+  document.getElementById("root"),
 );

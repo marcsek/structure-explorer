@@ -39,7 +39,7 @@ class Negation extends Formula {
   }
 
   toTex(): string {
-    return `\\lnot ${this.subFormula.toString()}`;
+    return `\\lnot ${this.subFormula.toTex()}`;
   }
 
   getSubFormulas() {
@@ -50,9 +50,14 @@ class Negation extends Formula {
     return this.subFormula.getVariables();
   }
 
-  getSignedType(_: boolean): SignedFormulaType {
+  getFreeVariables(): Set<Symbol> {
+    return this.getVariables();
+  }
+
+  getSignedType(): SignedFormulaType {
     return SignedFormulaType.ALPHA;
   }
+
   getSignedSubFormulas(sign: boolean): SignedFormula[] {
     return [{ sign: !sign, formula: this.subFormula }];
   }

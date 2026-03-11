@@ -12,6 +12,7 @@ import {
 import SelectBubble from "../../components_helper/SelectBubble";
 import { selectValuation } from "../variables/variablesSlice";
 import { getDiffAndNew } from "./GameHistory";
+import { InlineMath } from "react-katex";
 interface Props {
   id: number;
 }
@@ -19,7 +20,7 @@ interface Props {
 export default function GameControl({ id }: Props) {
   const dispatch = useAppDispatch();
   const current = useAppSelector((state) =>
-    selectCurrentGameFormula(state, id)
+    selectCurrentGameFormula(state, id),
   );
   const buttons = useAppSelector((state) => selectGameButtons(state, id));
   const initialValuation = useAppSelector(selectValuation);
@@ -45,13 +46,14 @@ export default function GameControl({ id }: Props) {
         id={id}
         title={
           <>
-            Select a domain element for <var>{buttons.variableName}</var>
+            Select a domain element for{" "}
+            <InlineMath>{buttons.variableName}</InlineMath>
           </>
         }
         choices={buttons.values}
         type={buttons.type}
         onclicks={buttons.elements!.map(
-          (element) => () => dispatch(addDelta({ id: id, element: element }))
+          (element) => () => dispatch(addDelta({ id: id, element: element })),
         )}
       />
     );
@@ -64,7 +66,7 @@ export default function GameControl({ id }: Props) {
         choices={buttons.values}
         type={buttons.type}
         onclicks={buttons.elements!.map(
-          (element) => () => dispatch(addGamma({ id: id, element: element }))
+          (element) => () => dispatch(addGamma({ id: id, element: element })),
         )}
       />
     );
@@ -73,7 +75,7 @@ export default function GameControl({ id }: Props) {
   if (buttons.type === "beta") {
     const valuationDiff = getDiffAndNew(
       initialValuation,
-      data.at(-1)?.valuation!
+      data.at(-1)?.valuation!,
     );
 
     const valuationText = Array.from(valuationDiff)
@@ -83,7 +85,7 @@ export default function GameControl({ id }: Props) {
     button = (
       <ChoiceBubble
         id={id}
-        choices={buttons.values.map((text) => `${text}[ 𝑒${valuationText} ]`)}
+        choices={buttons.values.map((text) => `${text}[ e${valuationText} ]`)}
         type={buttons.type}
         onclicks={buttons.subformulas!.map((_, index) => {
           if (index === 0 || index === 1) {
@@ -102,7 +104,7 @@ export default function GameControl({ id }: Props) {
         choices={buttons.values}
         type={buttons.type}
         onclicks={buttons.subformulas!.map((sf) => {
-          let index = arr.indexOf(sf.formula.signedFormulaToString(sf.sign));
+          const index = arr.indexOf(sf.formula.signedFormulaToString(sf.sign));
 
           if (index === 0 || index === 1) {
             return () => dispatch(addAlpha({ id: id, formula: index }));

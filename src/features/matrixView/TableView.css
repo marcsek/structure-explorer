@@ -1,0 +1,194 @@
+.table-view {
+  margin: 0;
+
+  --hover-bg: var(--bs-tertiary-bg);
+  --danger-hover-bg: #facacf;
+
+  font-size: 0.875rem;
+}
+
+.table-view tr.error td,
+.table-view td.error,
+.table-view th.error {
+  border: 1px solid var(--bs-danger);
+  background-color: var(--bs-danger-bg-subtle);
+}
+
+.table-view tr.error.hovered td,
+.table-view td.error.hovered,
+.table-view th.error.hovered,
+.table-view tr.hovered td.error,
+.table-view tr.hovered td.error.hovered {
+  background-color: var(--danger-hover-bg);
+}
+
+.table-view tr.error td.hatched,
+.table-view tr.error td.unselected {
+  border-color: inherit;
+  background-color: initial;
+}
+
+.table-view tr.error:last-child td,
+.table-view tr:last-child td.error {
+  border-bottom: none;
+}
+
+.table-view th.error {
+  border-top: none;
+}
+
+.table-view td:has(+ td.error),
+.table-view th:has(+ th.error) {
+  border-right: 1px solid var(--bs-danger);
+}
+
+.table-view thead th,
+.table-view tbody td:first-child {
+  font-weight: 500;
+  user-select: none;
+  position: sticky;
+}
+
+.table-view tr.hovered td,
+.table-view td.hovered,
+.table-view th.hovered,
+.table-view tr.hovered td.hovered {
+  background-color: var(--hover-bg);
+}
+
+.table-view .table-view-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.table-view td:has(> button) {
+  width: 1%;
+}
+
+.table-view thead tr:first-child {
+  border-top: none;
+}
+
+.table-view tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table-view tr th:first-child,
+.table-view tr td:first-child {
+  border-left: none;
+}
+
+.table-view tr th:last-child,
+.table-view tr td:last-child {
+  border-right: none;
+}
+
+.table-view td.unselected,
+.table-view th.unselected,
+.table-view tr.unselected td {
+  color: transparent;
+}
+
+.table-view td.hatched,
+.table-view th.hatched,
+.table-view tr.hatched td {
+  color: var(--bs-tertiary-color);
+}
+
+.table-view td.unselected > *,
+.table-view th.unselected > *,
+.table-view tr.unselected td > * {
+  visibility: hidden;
+}
+
+.table-view td.unselected,
+.table-view th.unselected,
+.table-view tr td.unselected,
+.table-view tr.unselected td {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hover-bg),
+    var(--hover-bg) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.table-view td.hatched,
+.table-view th.hatched,
+.table-view tr td.hatched,
+.table-view tr.hatched td {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--hover-bg),
+    var(--hover-bg) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.table-view td,
+.table-view td {
+  min-width: 3rem;
+}
+
+.table-view td > button {
+  width: 100%;
+}
+
+.table-heads-indicator {
+  border-right: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.1675rem;
+}
+
+.table-heads-indicator svg {
+  color: var(--bs-tertiary-color);
+}
+
+.table-heads-indicator-item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.1rem;
+  position: relative;
+}
+
+.table-heads-indicator-item svg {
+  font-size: 0.6875rem;
+}
+
+.table-heads-indicator-item.right {
+  flex-direction: column;
+  text-wrap: nowrap;
+}
+
+.table-heads-indicator-item.right svg {
+  position: absolute;
+  top: -2px;
+}
+
+.table-heads-indicator-item.down svg {
+  margin-top: 2px;
+}
+
+.table-view .form-control {
+  min-width: 5rem;
+}
+
+.table-view .form-control.is-invalid {
+  padding-right: 0.5rem;
+}
+
+.table-view-data-indicator {
+  display: flex;
+  gap: calc(0.5rem + 3px);
+  align-items: center;
+}
+
+.table-view-data-indicator .relevant-pred-indicator {
+  margin-right: 0.25rem;
+}

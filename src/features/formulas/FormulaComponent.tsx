@@ -4,7 +4,6 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import {
   removeFormula,
-  updateText,
   updateGuess,
   selectEvaluatedFormula,
   selectIsVerifiedGame,
@@ -14,6 +13,7 @@ import {
   selectFormulaGuessLock,
   lockFormula,
   lockFormulaGuess,
+  updateFormulaText,
 } from "./formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
@@ -25,87 +25,128 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import GameComponent from "../game/GameComponent";
 import { useEffect, useState } from "react";
 import {
-  selectParsedDomain,
+  selectValidatedDomain,
   selectStructureErrors,
 } from "../structure/structureSlice";
-import { selectParsedVariables } from "../variables/variablesSlice";
+import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
+import LockButton from "../../components_helper/LockButton";
+import { UndoActions } from "../undoHistory/undoHistory";
+import { useFormulasContext } from "../../logicContext";
+import { selectLanguageErrors } from "../language/languageSlice";
+import { getErrorMessageFromValidation } from "../../common/formulas";
 
 interface Props {
   id: number;
+  name?: string;
   text: string;
   guess: boolean | null;
 }
 
-export default function FormulaComponent({ id, text, guess }: Props) {
+export default function FormulaComponent({ id, text, guess, name }: Props) {
+  const isFromContext = !!name;
   const real_id = id + 1;
   const dispatch = useAppDispatch();
-  const { error, formula } = useAppSelector((state) =>
-    selectEvaluatedFormula(state, id)
+  const { error: formulaError, formula } = useAppSelector((state) =>
+    selectEvaluatedFormula(state, id),
   );
   const [begin, setBegin] = useState(false);
 
-  const domain = useAppSelector(selectParsedDomain);
+  const domain = useAppSelector(selectValidatedDomain);
   const isVerified = useAppSelector((state) => selectIsVerifiedGame(state, id));
   const backIndex = useAppSelector((state) => selectGameResetIndex(state, id));
-  const structureErrors = useAppSelector(selectStructureErrors);
-  const variablesErrors = useAppSelector(selectParsedVariables);
+  const structureError = useAppSelector(selectStructureErrors);
+  const languageError = useAppSelector(selectLanguageErrors);
+  const { error: variablesError } = useAppSelector(selectValidatedVariables);
   const teacherMode = useAppSelector(selectTeacherMode);
   const locked = useAppSelector((state) => selectFormulaLock(state, id));
   const lockedGuess = useAppSelector((state) =>
-    selectFormulaGuessLock(state, id)
+    selectFormulaGuessLock(state, id),
   );
+  const { formulas: contextFormulas } = useFormulasContext();
+  const contextFormulasNames = new Set(
+    contextFormulas.map((formula) => formula.name),
+  );
+  const isMissingInContext = isFromContext && !contextFormulasNames.has(name);
 
-  const isPlayable = structureErrors && variablesErrors.error === undefined;
+  const contextError = isMissingInContext
+    ? new Error(`Formula is missing in context. ${formulaError?.message ?? ""}`)
+    : undefined;
+
+  const validtionErrorMessage = getErrorMessageFromValidation({
+    languageError,
+    structureError,
+    variablesError,
+  });
+
+  const nonFormulaError = validtionErrorMessage
+    ? new Error(validtionErrorMessage)
+    : undefined;
+
+  const isPlayable = !nonFormulaError;
 
   useEffect(() => {
     dispatch(gameGoBack({ id, index: backIndex }));
-  });
+  }, [backIndex, dispatch, id]);
+
+  const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`}`;
+  const error = contextError || formulaError || nonFormulaError;
+
+  const gameStatus =
+    isVerified === undefined ? "tbd" : isVerified ? "won" : "lost";
 
   return (
     <>
       <Form>
         <Row>
-          <InputGroup className="mb-3" hasValidation={!!error}>
+          <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
             <InputGroup.Text>
-              <InlineMath>{String.raw`\varphi_{${real_id}} =`}</InlineMath>
+              <InlineMath>{`${displayName} \\equiv`}</InlineMath>
             </InputGroup.Text>
             <Form.Control
               placeholder="Formula"
               aria-label="Formula"
               aria-describedby="basic-addon2"
-              disabled={locked === true}
+              disabled={isFromContext || locked === true}
               value={text}
               onChange={(e) => {
-                dispatch(updateText({ id: id, text: e.target.value }));
+                dispatch(updateFormulaText({ id, text: e.target.value }));
               }}
               isInvalid={!!error}
+              onBlur={() => dispatch(UndoActions.checkpoint())}
             />
 
-            <Button
-              variant="outline-danger"
-              id="button-addon2"
-              disabled={locked === true}
-              onClick={() => dispatch(removeFormula(id))}
-            >
-              <FontAwesomeIcon icon={faTrash} />
-            </Button>
-            {teacherMode === true && (
+            {!locked && (
               <Button
-                variant="secondary"
-                onClick={() => dispatch(lockFormula(id))}
+                variant="outline-danger"
+                id="button-addon2"
+                onClick={() => {
+                  dispatch(removeFormula(id));
+                  dispatch(UndoActions.checkpoint());
+                }}
               >
-                {locked === true ? "Unlock" : "Lock"}
+                <FontAwesomeIcon icon={faTrash} />
               </Button>
             )}
 
-            <ErrorFeedback error={error} text={text}></ErrorFeedback>
+            {teacherMode === true && (
+              <LockButton
+                locked={locked}
+                locker={() => dispatch(lockFormula(id))}
+              />
+            )}
+
+            <ErrorFeedback error={error} text={text} />
           </InputGroup>
         </Row>
 
-        <Row className="align-items-start mb-3">
+        <Row className="align-items-start mb-3 formula-select-container">
           <Col xs="auto">
-            <InputGroup hasValidation>
+            <InputGroup
+              hasValidation={guess !== null}
+              size="sm"
+              className="formula-select-input-group"
+            >
               <InputGroup.Text>
                 <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
               </InputGroup.Text>
@@ -123,14 +164,16 @@ export default function FormulaComponent({ id, text, guess }: Props) {
                         e.target.value === "true"
                           ? true
                           : e.target.value === "false"
-                          ? false
-                          : null,
-                    })
+                            ? false
+                            : null,
+                    }),
                   );
+
+                  dispatch(UndoActions.checkpoint());
                 }}
                 disabled={lockedGuess === true}
-                isValid={isVerified && guess !== null}
-                isInvalid={!isVerified && guess !== null}
+                isValid={gameStatus === "won" && guess !== null}
+                isInvalid={gameStatus === "lost" && guess !== null}
               >
                 <option value="null">⊨/⊭?</option>
                 <option value="true">⊨</option>
@@ -138,48 +181,53 @@ export default function FormulaComponent({ id, text, guess }: Props) {
               </Form.Select>
 
               <InputGroup.Text>
-                <InlineMath>{String.raw`\varphi_{${real_id}}[e]`}</InlineMath>
+                <InlineMath>{`${displayName}[e]`}</InlineMath>
               </InputGroup.Text>
+
               {teacherMode === true && (
-                <Button
-                  onClick={() => dispatch(lockFormulaGuess(id))}
-                  variant="secondary"
-                >
-                  {lockedGuess === true ? "Unlock" : "Lock"}
-                </Button>
+                <LockButton
+                  locked={lockedGuess}
+                  locker={() => dispatch(lockFormulaGuess(id))}
+                />
               )}
 
-              <Form.Control.Feedback type="valid">
-                Verified!
-              </Form.Control.Feedback>
-              <Form.Control.Feedback type="invalid">
-                Not verified!
-              </Form.Control.Feedback>
+              {gameStatus === "won" && (
+                <Form.Control.Feedback type="valid">
+                  Verified!
+                </Form.Control.Feedback>
+              )}
+
+              {gameStatus === "lost" && (
+                <Form.Control.Feedback type="invalid">
+                  Failed verification!
+                </Form.Control.Feedback>
+              )}
+
+              {guess !== null && gameStatus === "tbd" && (
+                <div
+                  style={{
+                    width: "100%",
+                    marginTop: "0.25rem",
+                    fontSize: "0.875rem",
+                    color: "var(--bs-warning-text-emphasis)",
+                  }}
+                >
+                  Not verified.
+                </div>
+              )}
             </InputGroup>
           </Col>
 
           <Col xs="auto">
-            <Button
-              variant={isVerified ? "success" : "danger"}
-              disabled={
-                !!error ||
-                guess === null ||
-                domain.error !== undefined ||
-                isPlayable === false
-              }
-              onClick={() => {
-                setBegin(!begin);
-              }}
-            >
-              {!isVerified
-                ? "Verify"
-                : begin
-                ? "Hide verification"
-                : "Show verification"}
-            </Button>
+            <GameVerificationButton
+              gameStatus={gameStatus}
+              gameOpened={begin}
+              didSelectGuess={guess !== null}
+              disabled={!!error || guess === null || !isPlayable}
+              onClick={() => setBegin(!begin)}
+            />
           </Col>
         </Row>
-        {console.log(isPlayable)}
         {begin &&
           guess !== null &&
           formula &&
@@ -189,5 +237,45 @@ export default function FormulaComponent({ id, text, guess }: Props) {
           )}
       </Form>
     </>
+  );
+}
+
+interface GameVerificationButtonProps {
+  gameStatus: "tbd" | "won" | "lost";
+  disabled: boolean;
+  gameOpened: boolean;
+  onClick: () => void;
+  didSelectGuess: boolean;
+}
+
+function GameVerificationButton({
+  gameStatus,
+  disabled,
+  gameOpened,
+  onClick,
+  didSelectGuess,
+}: GameVerificationButtonProps) {
+  const isVerified = gameStatus !== "tbd" && didSelectGuess;
+
+  const buttonVariant = !isVerified
+    ? "warning"
+    : gameStatus === "won"
+      ? "success"
+      : "danger";
+
+  const outcome = gameStatus === "won" ? "verification" : "failed verification";
+  const buttonAction = gameOpened ? "Hide" : "Show";
+
+  const buttonText = !isVerified ? "Verify" : `${buttonAction} ${outcome}`;
+
+  return (
+    <Button
+      variant={buttonVariant}
+      size="sm"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {buttonText}
+    </Button>
   );
 }

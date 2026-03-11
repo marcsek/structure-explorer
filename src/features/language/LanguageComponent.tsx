@@ -1,18 +1,8 @@
-import { Card, Col, Row } from "react-bootstrap";
-import TooltipButton from "../../components_helper/TooltipButton";
+import { Button, Stack } from "react-bootstrap";
 import InputGroupTitle from "../../components_helper/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
-  selectConstantsText,
-  selectParsedConstants,
-  selectParsedFunctions,
-  selectParsedPredicates,
-  selectFunctionsText,
-  selectPredicatesText,
-  updateConstants,
-  updateFunctions,
-  updatePredicates,
   selectSymbolsClash,
   selectConstantsLock,
   selectPredicatesLock,
@@ -20,7 +10,169 @@ import {
   lockPredicates,
   lockConstants,
   lockFunctions,
+  editModeChanged,
 } from "./languageSlice";
+import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import {
+  selectValidatedTextView,
+  updateTextView,
+} from "../textView/textViewSlice.ts";
+import { useSyncLanguageContext } from "../../logicContext.ts";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+
+export default function LanguageComponent() {
+  const dispatch = useAppDispatch();
+
+  const constantsTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "constants"),
+  );
+  const predicatesTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "predicates"),
+  );
+  const functionsTextView = useAppSelector((state) =>
+    selectValidatedTextView(state, "functions"),
+  );
+
+  const constantsLock = useAppSelector(selectConstantsLock);
+  const predicatesLock = useAppSelector(selectPredicatesLock);
+  const functionsLock = useAppSelector(selectFunctionsLock);
+
+  const symbolsClash = useAppSelector(selectSymbolsClash);
+  const { hasContext } = useSyncLanguageContext();
+  const editMode = useAppSelector((state) => state.present.language.editMode);
+
+  return (
+    <ComponentCard
+      heading={
+        <>
+          Language <InlineMath>{String.raw`\mathcal{L}`}</InlineMath>
+        </>
+      }
+      help={help}
+      right={
+        <Button
+          size="sm"
+          className="btn-bd-light-outline"
+          onClick={() => dispatch(editModeChanged(!editMode))}
+        >
+          <FontAwesomeIcon
+            className="me-2"
+            icon={editMode ? faCheck : faPenToSquare}
+          />
+          {editMode ? "Done" : "Edit"}
+        </Button>
+      }
+    >
+      {editMode ? (
+        <Stack gap={3}>
+          <InputGroupTitle
+            label={"Individual constants"}
+            id="constants"
+            prefix={<InlineMath>{String.raw`\mathcal{C_L} = \{`}</InlineMath>}
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Constants"
+            text={constantsTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "constants", value: e.target.value }),
+              );
+            }}
+            error={constantsTextView.error}
+            lockChecker={constantsLock}
+            locker={() => dispatch(lockConstants())}
+            disabledOverride={hasContext}
+          />
+
+          <InputGroupTitle
+            label={"Predicate symbols"}
+            id="predicates"
+            prefix={
+              <InlineMath>{String.raw`\mathcal{P}_{\mathcal{L}} = \{`}</InlineMath>
+            }
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Predicates"
+            text={predicatesTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "predicates", value: e.target.value }),
+              );
+            }}
+            error={predicatesTextView.error}
+            lockChecker={predicatesLock}
+            locker={() => dispatch(lockPredicates())}
+            disabledOverride={hasContext}
+          />
+
+          <InputGroupTitle
+            label={"Function symbols"}
+            id="functions"
+            prefix={
+              <InlineMath>{String.raw`\mathcal{F}_{\mathcal{L}} = \{`}</InlineMath>
+            }
+            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+            placeholder="Functions"
+            text={functionsTextView.value}
+            onChange={(e) => {
+              dispatch(
+                updateTextView({ type: "functions", value: e.target.value }),
+              );
+            }}
+            error={functionsTextView.error}
+            lockChecker={functionsLock}
+            locker={() => dispatch(lockFunctions())}
+            disabledOverride={hasContext}
+          />
+
+          {symbolsClash && <div className="text-danger">{symbolsClash}</div>}
+        </Stack>
+      ) : (
+        <ViewOnlyLanguageDisplay
+          constants={constantsTextView.value}
+          predicates={predicatesTextView.value}
+          functions={functionsTextView.value}
+          triggerEdit={() => dispatch(editModeChanged(true))}
+        />
+      )}
+    </ComponentCard>
+  );
+}
+
+interface ViewOnlyLanguageDisplayProps {
+  constants: string;
+  predicates: string;
+  functions: string;
+  triggerEdit: () => void;
+}
+
+function ViewOnlyLanguageDisplay(props: ViewOnlyLanguageDisplayProps) {
+  return (
+    <Stack
+      gap={3}
+      className="ms-2 view-only-language"
+      onDoubleClick={props.triggerEdit}
+      style={{ fontSize: "0.875rem" }}
+    >
+      <div>
+        <InlineMath>{"\\mathcal{C_L} = \\{"}</InlineMath>
+        {props.constants && <span className="mx-1">{props.constants}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+
+      <div>
+        <InlineMath>{"\\mathcal{P_L} = \\{"}</InlineMath>
+        {props.predicates && <span className="mx-1">{props.predicates}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+
+      <div>
+        <InlineMath>{"\\mathcal{F_L} = \\{"}</InlineMath>
+        {props.functions && <span className="mx-1">{props.functions}</span>}
+        <InlineMath>{"\\}"}</InlineMath>
+      </div>
+    </Stack>
+  );
+}
 
 const help = (
   <>
@@ -42,85 +194,3 @@ const help = (
     </ul>
   </>
 );
-
-export default function LanguageComponent() {
-  const dispatch = useAppDispatch();
-  const constantsText = useAppSelector(selectConstantsText);
-  const constantsLock = useAppSelector(selectConstantsLock);
-  const predicatesText = useAppSelector(selectPredicatesText);
-  const predicatesLock = useAppSelector(selectPredicatesLock);
-  const functionsText = useAppSelector(selectFunctionsText);
-  const functionsLock = useAppSelector(selectFunctionsLock);
-  const constantsErorrs = useAppSelector(selectParsedConstants);
-  const predicatesErorrs = useAppSelector(selectParsedPredicates);
-  const functionsErrors = useAppSelector(selectParsedFunctions);
-  const symbolsClash = useAppSelector(selectSymbolsClash);
-  return (
-    <>
-      <Card className="mb-3 mt-3">
-        <Card.Header as="h4">
-          <Row>
-            <Col>
-              Language <InlineMath>{String.raw`\mathcal{L}`}</InlineMath>
-            </Col>
-            <Col xs="auto">
-              <TooltipButton text={help}></TooltipButton>
-            </Col>
-          </Row>
-        </Card.Header>
-        <Card.Body>
-          <InputGroupTitle
-            label={"Individual constants"}
-            id="0"
-            prefix={<InlineMath>{String.raw`\mathcal{C_L} = \{`}</InlineMath>}
-            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-            placeholder="Constants"
-            text={constantsText}
-            onChange={(e) => {
-              dispatch(updateConstants(e.target.value));
-            }}
-            error={constantsErorrs.error}
-            lockChecker={constantsLock}
-            locker={() => dispatch(lockConstants())}
-          ></InputGroupTitle>
-
-          <InputGroupTitle
-            label={"Predicate symbols"}
-            id="0"
-            prefix={
-              <InlineMath>{String.raw`\mathcal{P}_{\mathcal{L}} = \{`}</InlineMath>
-            }
-            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-            placeholder="Predicates"
-            text={predicatesText}
-            onChange={(e) => {
-              dispatch(updatePredicates(e.target.value));
-            }}
-            error={predicatesErorrs.error}
-            lockChecker={predicatesLock}
-            locker={() => dispatch(lockPredicates())}
-          ></InputGroupTitle>
-
-          <InputGroupTitle
-            label={"Function symbols"}
-            id="0"
-            prefix={
-              <InlineMath>{String.raw`\mathcal{F}_{\mathcal{L}} = \{`}</InlineMath>
-            }
-            suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
-            placeholder="Functions"
-            text={functionsText}
-            onChange={(e) => {
-              dispatch(updateFunctions(e.target.value));
-            }}
-            error={functionsErrors.error}
-            lockChecker={functionsLock}
-            locker={() => dispatch(lockFunctions())}
-          ></InputGroupTitle>
-
-          {symbolsClash && <div className="text-danger">{symbolsClash}</div>}
-        </Card.Body>
-      </Card>
-    </>
-  );
-}

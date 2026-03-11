@@ -1,21 +1,27 @@
 import type { ChangeEvent, ReactNode } from "react";
-import { Form, InputGroup, Col, Button } from "react-bootstrap";
-import { SyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { Form, InputGroup } from "react-bootstrap";
 import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../app/hooks";
 import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
+import LockButton from "./LockButton";
+import type { InterpretationError } from "../common/errors";
+import { useDispatch } from "react-redux";
+import { textViewCheckpoint } from "../features/textView/textViewSlice";
 
 interface Props {
   label: string;
   id: string;
   prefix: ReactNode;
   suffix: ReactNode;
+  controlButtons?: ReactNode;
   placeholder: string;
+  disabledOverride?: boolean;
   text: string;
   onChange(event: ChangeEvent<HTMLInputElement>): void;
   locker: () => void;
   lockChecker: boolean | undefined;
-  error?: Error | SyntaxError;
+  error?: InterpretationError;
+  createHistoryOnBlur?: boolean;
 }
 
 export default function InputGroupTitle({
@@ -23,43 +29,54 @@ export default function InputGroupTitle({
   id,
   prefix,
   suffix,
+  controlButtons = null,
   placeholder,
+  disabledOverride = false,
   text,
   onChange,
   locker,
-  lockChecker,
+  lockChecker = false,
   error,
+  createHistoryOnBlur = true,
 }: Props) {
-  const teacherMode = useAppSelector(selectTeacherMode);
+  const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+  const dispatch = useDispatch();
+
   return (
-    <>
+    <Form.Group className="flex-grow-1">
       {label != "" && (
         <Form.Label htmlFor={`${id}-${label.toLowerCase()}`}>
           {label}
         </Form.Label>
       )}
-      <InputGroup as={Col} className="mb-3" hasValidation={!!error}>
-        <InputGroup.Text>{prefix}</InputGroup.Text>
+      <InputGroup hasValidation={!!error} size="sm">
+        <InputGroup.Text className="input-group-fix-height">
+          {prefix}
+        </InputGroup.Text>
         <Form.Control
           placeholder={placeholder}
           aria-label={placeholder}
           aria-describedby="basic-addon2"
+          autoComplete="off"
           value={text}
           onChange={onChange}
           id={`${id}-${label.toLowerCase()}`}
           isInvalid={!!error}
-          disabled={lockChecker === true}
+          disabled={disabledOverride || lockChecker}
+          onBlur={() => createHistoryOnBlur && dispatch(textViewCheckpoint())}
         />
 
-        {suffix && <InputGroup.Text>{suffix}</InputGroup.Text>}
-        {teacherMode === true && (
-          <Button variant="secondary" onClick={() => locker()}>
-            {`${lockChecker === true ? "Unlock" : "Lock"}`}
-          </Button>
+        {suffix && (
+          <InputGroup.Text className="input-group-fix-height">
+            {suffix}
+          </InputGroup.Text>
         )}
 
-        <ErrorFeedback error={error} text={text}></ErrorFeedback>
+        {controlButtons}
+
+        {teacherMode && <LockButton locker={locker} locked={lockChecker} />}
+        <ErrorFeedback error={error} text={text} />
       </InputGroup>
-    </>
+    </Form.Group>
   );
 }

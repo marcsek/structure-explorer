@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Dropdown, DropdownButton } from "react-bootstrap";
+import { Button, Dropdown, DropdownButton } from "react-bootstrap";
 
 interface Props {
   id: number;
@@ -13,9 +13,14 @@ export default function SelectBubble({ title, choices, onclicks }: Props) {
   return (
     <>
       <div>
-        <DropdownButton title={title}>
+        <DropdownButton title={title} size="sm">
           {choices.map((choice, index) => (
-            <Dropdown.Item key={choice} onClick={() => onclicks[index]()}>
+            <Dropdown.Item
+              as={Button}
+              size="sm"
+              key={choice}
+              onClick={() => onclicks[index]()}
+            >
               {choice}
             </Dropdown.Item>
           ))}

@@ -1,0 +1,225 @@
+.predicate-node {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 75px;
+  overflow: hidden;
+  border-radius: var(--xy-node-border-radius-default);
+}
+
+.predicate-node.hatched {
+  content: "";
+  --stripe-bg: var(--bs-tertiary-bg);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--stripe-bg),
+    var(--stripe-bg) 10px,
+    transparent 10px,
+    transparent 20px
+  );
+}
+
+.predicate-node.hatched .predicate-node-body {
+  background-color: transparent;
+  opacity: 0.6;
+}
+
+.predicate-node.hatched .predicate-node-indicator {
+  visibility: hidden;
+}
+
+.predicate-node-body {
+  position: absolute;
+  border-radius: 2px;
+  inset: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.125rem;
+  background-color: white;
+  z-index: 3;
+  line-height: 1;
+  font-size: 0.875rem;
+}
+
+.predicate-node-error-text {
+  white-space: nowrap;
+  color: var(--bs-danger);
+}
+
+.predicate-node-label {
+  width: 100%;
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.predicate-node-constants {
+  width: 100%;
+  justify-self: flex-end;
+  color: var(--bs-tertiary-color);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.predicate-node-handle-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.predicate-node-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: unset;
+  transform: none;
+  border: none;
+  opacity: 0;
+  z-index: 2;
+
+  transition: opacity 0.1s cubic-bezier(0.33, 1, 0.68, 1) 0.15s;
+}
+
+.predicate-node-handle.source:hover {
+  background-color: var(--bs-black);
+  opacity: 0.05;
+}
+
+.predicate-node-handle.target {
+  z-index: 10;
+}
+
+.predicate-node-indicator {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: 12px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.predicate-node-indicator-item {
+  background: repeating-linear-gradient(
+    -45deg,
+    currentColor,
+    currentColor 7px,
+    color-mix(in srgb, currentColor 20%, transparent) 7px,
+    color-mix(in srgb, currentColor 20%, transparent) 14px
+  );
+
+  background-color: currentColor;
+  flex-grow: 1;
+  z-index: 3;
+}
+
+.predicate-node-indicator-stripy-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.8) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  mix-blend-mode: lighten;
+  z-index: 2;
+}
+
+.predicate-node-indicator .stripy {
+  z-index: 1;
+}
+
+.predicate-node-delete-button {
+  z-index: 100;
+  transform: scale(0.6);
+  position: absolute;
+  top: -15px;
+  right: -15px;
+}
+
+.predicate-edge-delete-button {
+  position: absolute;
+  pointer-events: all;
+  z-index: 100;
+}
+
+.set-group-node.origin-domain {
+  --set-group-bg: color-mix(in srgb, #ffab00, transparent 95%);
+  --set-group-border-color: color-mix(in srgb, #ffab00, transparent 50%);
+  --set-group-color: color-mix(in srgb, #ffab00, transparent 25%);
+}
+
+.set-group-node.origin-range {
+  --set-group-bg: color-mix(in srgb, #00b8d9, transparent 95%);
+  --set-group-border-color: color-mix(in srgb, #00b8d9, transparent 50%);
+  --set-group-color: color-mix(in srgb, #00b8d9, transparent 25%);
+}
+
+.set-group-node {
+  outline: none;
+  background-color: var(--set-group-bg);
+  color: var(--set-group-color);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.set-group-node-border {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.node-border-rect {
+  fill: none;
+  stroke: var(--set-group-border-color);
+  stroke-width: 2;
+  stroke-dasharray: 10 10;
+  rx: 10px;
+  ry: 10px;
+  width: calc(100% - 2px);
+  height: calc(100% - 2px);
+}
+
+.set-group-node-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.set-group-node-label {
+  position: absolute;
+  width: fit-content;
+  font-family: monospace;
+  top: 0;
+  line-height: 1;
+  transform: translateY(calc(-100% - 0.5rem));
+  font-size: 1.25rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.set-group-node.origin-domain .set-group-node-label {
+  left: 0;
+}
+
+.set-group-node.origin-range .set-group-node-label {
+  right: 0;
+}

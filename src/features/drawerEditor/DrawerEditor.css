@@ -1,0 +1,255 @@
+.drawer-editor-container.expanded {
+  width: 100%;
+  height: 100%;
+}
+
+.drawer-editor-modal-dialog {
+  width: 100%;
+  height: 100%;
+  padding: 2rem;
+  max-width: unset;
+  margin: 0;
+
+  transform: none;
+}
+
+.drawer-editor-modal-content {
+  height: 100%;
+  width: 100%;
+
+  background-color: var(--bs-white);
+  border: none;
+  box-shadow: var(--bs-box-shadow-sm);
+  background-clip: unset;
+}
+
+.drawer-editor-container-body {
+  height: 100%;
+}
+
+.structure-explorer.modal.fade .drawer-editor-modal-dialog {
+  transform: none;
+  transform: scale(0.95);
+
+  transition: all 0.2s ease-out;
+  opacity: 0;
+}
+
+.structure-explorer.modal.show .drawer-editor-modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.drawer-editor-divider-container-body {
+  align-self: stretch;
+  height: 1px;
+  background-color: var(--bs-light-border-subtle);
+}
+
+.drawer-editor-container {
+  padding: 0;
+}
+
+.drawer-editor-view-container {
+  position: relative;
+  padding: 0;
+  height: 100%;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+  overflow: hidden;
+}
+
+.drawer-editor-view-container:first-child {
+  border-top: 0;
+}
+
+.drawer-editor-view-container.error {
+  border-color: var(--bs-danger);
+}
+
+.drawer-editor-container.bordered {
+  padding: 0.5rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+}
+
+.drawer-editor-header .btn-close {
+  height: 100%;
+  flex: 1 0 0;
+  width: 38px;
+  --bs-btn-close-color: var(--bs-body-color);
+  --bs-btn-close-opacity: 1;
+  padding: 0;
+}
+
+.drawer-editor-header-control-group {
+  gap: 1rem;
+}
+
+.drawer-editor-container.expanded .drawer-editor-header {
+  padding: 0.5rem 0.75rem;
+
+  border: 1px solid var(--bs-border-color);
+  border-top-left-radius: var(--bs-border-radius);
+  border-top-right-radius: var(--bs-border-radius);
+
+  font-size: 1rem;
+}
+
+.drawer-editor-error-container {
+  padding: 0.5rem;
+  min-height: 1.5rem;
+  box-sizing: content-box;
+  border: 1px solid var(--bs-border-color);
+  border-bottom: 0;
+  border-color: var(--bs-danger);
+
+  color: var(--bs-danger);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drawer-editor-error-container:first-child {
+  position: relative;
+  margin-top: -1px;
+}
+
+.drawer-editor-error-message {
+  display: flex;
+  gap: 0.5rem;
+  line-height: 1;
+  align-items: center;
+}
+
+.drawer-editor-error-message > p {
+  font-size: 14px;
+  margin: 0;
+}
+
+.drawer-editor-error-container button {
+  font-size: 14px;
+  line-height: 1;
+
+  min-width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  overflow: hidden;
+}
+
+.drawer-editor-toolbar-container {
+  padding-inline: 0.5rem;
+  padding-block: 0.875rem;
+  border-inline: 1px solid var(--bs-border-color);
+}
+
+.drawer-editor-container.expanded .drawer-editor-toolbar-container {
+  padding-inline: 0.75rem;
+}
+
+.drawer-editor-title {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  user-select: none;
+  font-size: 0.875rem;
+
+  background-color: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-border-color);
+  border-right: 0;
+  border-top-left-radius: var(--bs-border-radius);
+
+  flex-shrink: 1;
+  flex-grow: 1;
+  min-width: 0;
+
+  padding-inline: 0.5rem;
+}
+
+.drawer-editor-title-primary {
+  max-height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.drawer-editor-title-divider {
+  flex-shrink: 0;
+}
+
+.drawer-editor-title-secondary {
+  flex-shrink: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.drawer-editor-container.expanded .drawer-editor-title {
+  background-color: unset;
+  border: unset;
+  border-radius: unset;
+  padding: 0;
+}
+
+.editor-controls-buttons-group button:first-of-type {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.editor-controls-buttons-group:has(+ button) button:last-of-type {
+  border-radius: 0;
+}
+
+/* Needed when overlapping with error border of .drawer-editor-error-container */
+.editor-controls-buttons-group .btn {
+  z-index: unset !important;
+}
+
+.drawer-editor-header .editor-controls-buttons-group button {
+  border-bottom-right-radius: 0;
+}
+
+.drawer-editor-container.expanded
+  .editor-controls-buttons-group
+  > :only-child
+  > button {
+  border-bottom-right-radius: var(--bs-border-radius);
+  border-top-right-radius: var(--bs-border-radius);
+}
+
+.drawer-editor-container.expanded
+  .editor-controls-buttons-group
+  button:first-child {
+  border-top-left-radius: var(--bs-border-radius);
+  border-bottom-left-radius: var(--bs-border-radius);
+}
+
+.drawer-editor-container.expanded
+  .editor-controls-buttons-group
+  > button:last-child {
+  border-bottom-right-radius: var(--bs-border-radius);
+  border-top-right-radius: var(--bs-border-radius);
+}
+
+.drop-down-title-text {
+  color: var(--bs-secondary-color);
+  min-width: fit-content;
+  font-size: 14px;
+  padding-block: 0;
+  border: 0;
+}
+
+@media (max-width: 1200px) {
+  .drawer-editor-modal-dialog {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .drawer-editor-modal-dialog {
+    padding: 0.5rem;
+  }
+}

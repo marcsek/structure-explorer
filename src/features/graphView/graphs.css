@@ -1,0 +1,241 @@
+.react-flow {
+  --xy-background-color: #ffffff;
+  --xy-theme-selected: #86b7fe;
+  --xy-theme-hover: #c5c5c5;
+  --xy-theme-edge-hover: #737373;
+  --xy-theme-color-focus: #e8e8e8;
+
+  --xy-node-border-default: 1px solid #ededed;
+
+  --xy-node-boxshadow-default:
+    0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
+    0px 0.51px 1.01px 0px #0000001a;
+
+  --xy-node-border-radius-default: 8px;
+
+  --xy-handle-background-color-default: #ffffff;
+  --xy-handle-border-color-default: #aaaaaa;
+
+  --xy-edge-label-color-default: #505050;
+  --xy-edge-stroke-width-default: 1.5px;
+}
+
+.react-flow__container {
+  width: 100%;
+  flex-grow: 1;
+  position: relative;
+}
+
+.react-flow__node {
+  box-shadow: var(--xy-node-boxshadow-default);
+  border-radius: var(--xy-node-border-radius-default);
+  background-color: var(--xy-node-background-color-default);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  flex-direction: column;
+  outline: var(--xy-node-border-default);
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  z-index: 1000;
+
+  transition: outline 0.05s ease-in-out;
+}
+
+.react-flow__node.draggable,
+.react-flow__node.draggable.dragging {
+  cursor: move;
+}
+
+.react-flow__node.selectable:focus {
+  box-shadow: 0px 0px 0px 4px var(--xy-theme-color-focus);
+  outline-color: #d9d9d9;
+}
+
+.react-flow__node.selectable:focus:active {
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.react-flow__node.selectable:hover,
+.react-flow__node.draggable:hover {
+  outline-color: var(--xy-theme-hover);
+}
+
+.react-flow__node.selectable.selected {
+  outline-color: var(--xy-theme-selected);
+  box-shadow:
+    var(--xy-node-boxshadow-default),
+    0 0 0 0.2rem color-mix(in srgb, var(--xy-theme-selected), transparent 60%);
+}
+
+.react-flow__node:has(> .error) {
+  outline-color: var(--bs-danger);
+}
+
+.react-flow__node:has(> .ghost) {
+  opacity: 0.6;
+}
+
+.react-flow__node.selectable:has(> .error):hover,
+.react-flow__node.draggable:has(> .error):hover {
+  outline-color: var(--bs-danger);
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.react-flow__node.selectable.selected:has(> .error) {
+  outline-color: var(--bs-danger);
+  box-shadow:
+    var(--xy-node-boxshadow-default),
+    0 0 0 0.2rem color-mix(in srgb, var(--bs-danger), transparent 75%);
+}
+
+.graph_editor__node-group {
+  background-color: rgba(207, 182, 255, 0.4);
+  border-color: #9e86ed;
+}
+
+.react-flow__connectionline {
+  z-index: 0 !important;
+}
+.react-flow__arrowhead polyline.arrowclosed {
+  stroke-width: 2.5px !important;
+}
+
+.react-flow__arrowhead.selected polyline.arrowclosed {
+  stroke: var(--xy-theme-selected);
+  fill: var(--xy-theme-selected);
+}
+
+.react-flow__arrowhead.error polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+}
+
+.react-flow__arrowhead.focusError polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+  stroke-width: 6px !important;
+}
+
+.react-flow__arrowhead.hover polyline.arrowclosed {
+  stroke: var(--xy-theme-edge-hover);
+  fill: var(--xy-theme-edge-hover);
+}
+
+.react-flow__arrowhead.connection polyline.arrowclosed {
+  stroke: #22c55e;
+  fill: #22c55e;
+}
+
+.react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  stroke-dasharray: 5, 3;
+
+  marker-end: url(#error-marker);
+}
+
+.react-flow__edge-path.helper {
+  stroke-dasharray: 5, 3;
+}
+
+.react-flow__edge-path-focus {
+  opacity: 0;
+  stroke-width: 6px;
+  stroke: var(--bs-danger);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path {
+  stroke: var(--xy-theme-edge-hover);
+  marker-end: url(#hover-marker);
+}
+
+.react-flow__edge.selectable.selected .react-flow__edge-path {
+  stroke: var(--xy-theme-selected);
+  marker-end: url(#selected-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  marker-end: url(#error-marker);
+}
+
+.react-flow__edge.selectable.selected .react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  stroke-dasharray: 5, 1;
+
+  marker-end: url(#error-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path-focus.error,
+.react-flow__edge.selectable.selected .react-flow__edge-path-focus.error {
+  opacity: 0.2;
+  stroke-dasharray: none;
+  marker-end: url(#focusError-marker);
+}
+
+.react-flow__handle {
+  background-color: var(--xy-handle-background-color-default);
+}
+
+.react-flow__handle.connectionindicator:hover {
+  pointer-events: all;
+  border-color: var(--xy-theme-edge-hover);
+  background-color: white;
+}
+
+.react-flow__handle.connectionindicator:focus,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  border-color: var(--xy-theme-edge-hover);
+}
+
+.react-flow__node-resizer {
+  border-radius: 0;
+  border: none;
+}
+
+.react-flow__resize-control.handle {
+  background-color: #ffffff;
+  border-color: #9e86ed;
+  border-radius: 0;
+  width: 5px;
+  height: 5px;
+}
+
+.react-flow__controls {
+  background-color: var(--bs-white);
+  border-radius: var(--bs-border-radius);
+  overflow: hidden;
+  border: 1px solid var(--bs-light-border-subtle);
+  box-shadow: var(--bs-box-shadow-sm);
+  padding: 0.25rem 0.25rem;
+  color: var(--bs-body);
+  margin: 1rem;
+}
+
+.react-flow__controls .react-flow__controls-button {
+  height: unset;
+  width: unset;
+  border-radius: calc(var(--bs-border-radius) - 0.125rem);
+
+  padding: 0.25rem 0.375rem;
+  height: 26px;
+  width: 26px;
+}
+
+.react-flow__controls-button svg {
+  max-width: 14px;
+  max-height: unset;
+}
+
+.react-flow__controls.horizontal .react-flow__controls-button {
+  border-right: none;
+}
+
+.react-flow__controls-divider {
+  align-self: stretch;
+  margin: 0rem 0.25rem;
+  width: 1px;
+  background-color: var(--bs-light-border-subtle);
+}

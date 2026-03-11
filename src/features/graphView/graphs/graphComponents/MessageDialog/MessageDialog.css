@@ -1,0 +1,127 @@
+.message-dialog-container {
+  position: absolute;
+  max-height: 160px;
+  background-color: transparent;
+  padding-inline: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+
+  --se-info: #2b7fff;
+  --se-info-border-color: #51a2ff;
+}
+
+.message-dialog-container.center {
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateX(0%) translateY(-50%);
+}
+
+.message-dialog-container.corner {
+  bottom: 1rem;
+  left: 1rem;
+  padding-inline: 0;
+}
+
+.message-dialog {
+  max-width: 480px;
+  background-color: white;
+  border: var(--bs-border-width) solid var(--bs-light-border-subtle);
+  border-radius: var(--bs-border-radius);
+
+  padding: 1rem;
+
+  display: flex;
+  gap: 1rem;
+
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.message-dialog-container.corner .message-dialog {
+  padding: 0.5rem;
+  max-width: 300px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.message-dialog-container.corner .message-dialog-body {
+  line-height: 1;
+}
+
+.message-dialog-title {
+  margin: 0;
+  line-height: 1;
+}
+
+.message-dialog-container.corner .message-dialog-title {
+  font-size: 14px;
+}
+
+.message-dialog-description {
+  margin: 0;
+  color: var(--bs-secondary-text-emphasis);
+  font-size: 14px;
+}
+
+.message-dialog-icon {
+  display: flex;
+  height: fit-content;
+  padding: 0.5rem;
+  border: var(--bs-border-width) solid var(--bs-danger-border-subtle);
+  border-radius: var(--bs-border-radius);
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, currentColor 20%, transparent),
+    color-mix(in srgb, currentColor 20%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 5px,
+    color-mix(in srgb, currentColor 10%, transparent) 10px
+  );
+}
+
+.message-dialog-container.corner.error .message-dialog-icon,
+.message-dialog-container.corner.warning .message-dialog-icon {
+  padding: 0.5rem;
+}
+
+.message-dialog-container.error .message-dialog-icon {
+  border-color: var(--bs-danger-border-subtle);
+  color: var(--bs-danger);
+}
+
+.message-dialog-container.warning .message-dialog-icon {
+  border-color: var(--bs-warning-border-subtle);
+  color: var(--bs-warning);
+}
+
+.message-dialog-container.info .message-dialog-icon {
+  border-color: var(--se-info-border-color);
+  color: var(--se-info);
+}
+
+.message-dialog-container.corner.warning .message-dialog-icon {
+  background: none;
+  background-color: color-mix(
+    in srgb,
+    var(--bs-warning-bg-subtle) 50%,
+    transparent
+  );
+}
+
+.message-dialog-container.corner.info .message-dialog-icon {
+  background: none;
+  background-color: color-mix(
+    in srgb,
+    var(--bs-info-bg-subtle) 50%,
+    transparent
+  );
+}

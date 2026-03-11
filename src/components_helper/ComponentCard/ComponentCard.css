@@ -1,0 +1,28 @@
+.component-card {
+  border: none;
+}
+
+.component-card > * {
+  padding-inline: 0;
+}
+
+.component-card-header {
+  border: 1px solid transparent;
+  height: 2rem;
+  width: 100%;
+  padding-block: 0;
+  justify-content: space-between;
+  align-items: center;
+
+  background-color: unset;
+
+  gap: 1rem;
+}
+
+.component-card-header h5 {
+  font-size: 1.125rem;
+}
+
+.component-card-body {
+  padding-top: 0.5rem;
+}

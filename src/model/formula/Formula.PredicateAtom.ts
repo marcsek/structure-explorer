@@ -1,6 +1,7 @@
 import Formula, { type SignedFormula, SignedFormulaType } from "./Formula";
 import Term from "../term/Term";
 import Structure, { type Valuation } from "../Structure";
+import type { Symbol } from "../Language";
 
 /**
  * Represent predicate symbol
@@ -15,7 +16,10 @@ class PredicateAtom extends Formula {
    * @param {string} name
    * @param {Term[]} terms
    */
-  constructor(public name: string, public terms: Term[] = []) {
+  constructor(
+    public name: string,
+    public terms: Term[] = [],
+  ) {
     super([], "", "");
   }
 
@@ -39,7 +43,7 @@ class PredicateAtom extends Formula {
 
     if (interpretation === undefined) {
       throw new Error(
-        `The interpretation of the predicate symbol ${this.name} is not defined`
+        `The interpretation of the predicate symbol ${this.name} is not defined`,
       );
     }
     //console.log();
@@ -70,18 +74,27 @@ class PredicateAtom extends Formula {
   }
 
   toTex(): string {
-    return this.toString();
+    const escapedName = this.name.replace(/_/g, "\\_");
+    return `\\text{${escapedName}}(${this.terms.map((t) => t.toTex()).join(", ")})`;
   }
 
   getSubFormulas(): Formula[] {
     return [];
   }
 
-  getSignedType(_: boolean): SignedFormulaType {
+  getSignedType(): SignedFormulaType {
     return SignedFormulaType.ALPHA;
   }
-  getSignedSubFormulas(_: boolean): SignedFormula[] {
+  getSignedSubFormulas(): SignedFormula[] {
     return [];
+  }
+
+  getVariables(): Set<Symbol> {
+    return new Set(this.terms.flatMap((t) => [...t.getVariables()]));
+  }
+
+  getFreeVariables(): Set<Symbol> {
+    return this.getVariables();
   }
 
   // createCopy(): PredicateAtom {

@@ -1,41 +1,88 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import App from "./App";
-import { createStore } from "./app/store";
+import { createStore, type AppStore, type RootState } from "./app/store";
 import { Provider } from "react-redux";
-import { importAppState } from "./features/import/importThunk";
+import {
+  getAppStateToExport,
+  importAppState,
+} from "./features/import/importThunk";
 import { type CellContext, LogicContext } from "./logicContext";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { parseSerializedAppStateWithDefaults } from "./features/import/validationSchema";
+import { generateInstanceId, InstanceIdContext } from "./instanceIdContext";
+import {
+  errorAlertSlice,
+  setError,
+} from "./features/errorAlert/errorAlertSlice";
+import { isAction, isAnyOf, type Middleware } from "@reduxjs/toolkit";
+import { editorToolbarSlice } from "./features/editorToolbar/editorToolbarSlice";
+import { graphManagerSlice } from "./features/graphView/graphs/graphSlice";
+import { UndoActions } from "./features/undoHistory/undoHistory";
+import { listenerShouldIgnore } from "./common/redux";
+import { formulasSlice } from "./features/formulas/formulasSlice";
+
 interface PrepareResult {
   instance: any;
   getState: (instance: any) => any;
 }
 
-export function prepare(initialState?: any): PrepareResult {
-  const store = createStore();
+const actionsToFilter = [
+  editorToolbarSlice.actions.predicateHovered,
+  editorToolbarSlice.actions.unaryFilterDomainHovered,
+  editorToolbarSlice.actions.nodeToggled,
+  editorToolbarSlice.actions.unaryFilterDomainToggled,
+  editorToolbarSlice.actions.unaryPredicateToggled,
+  editorToolbarSlice.actions.editorOpened,
+  graphManagerSlice.actions.graphDidInitialLayout,
+  graphManagerSlice.actions.warningChanged,
+  graphManagerSlice.actions.editorLocked,
+  errorAlertSlice.actions.clearError,
+  errorAlertSlice.actions.setError,
+  formulasSlice.actions.gameGoBack,
+  UndoActions.checkpoint,
+];
 
-  const instance = { store: store };
+function filterAction(action: unknown) {
+  if (typeof action === "function") return false;
+  if (isAnyOf(...actionsToFilter)(action)) return false;
+  if (isAction(action) && listenerShouldIgnore(action)) return false;
+
+  return true;
+}
+
+export function prepare(initialState?: any): PrepareResult {
+  const storeListener: Middleware<object, RootState> =
+    () => (next) => (action) => {
+      if (instance?.handleStoreChange && filterAction(action))
+        instance.handleStoreChange();
+
+      return next(action);
+    };
+
+  const store = createStore(storeListener);
+  const instance: {
+    store: AppStore;
+    handleStoreChange: (() => void) | undefined;
+  } = { store, handleStoreChange: undefined };
+
   const getState = (instance: any) => {
     const storeState = instance.store.getState();
-    return JSON.stringify(
-      {
-        formulas: storeState.formulas,
-        language: storeState.language,
-        structure: storeState.structure,
-        variables: storeState.variables,
-      },
-      null,
-      2
-    );
+    return getAppStateToExport(storeState);
   };
 
   if (initialState !== null) {
-    const obj = JSON.parse(initialState);
-    instance.store.dispatch(importAppState(obj));
+    const result = parseSerializedAppStateWithDefaults(initialState);
+
+    if (result.errors.length !== 0) {
+      console.error(result.errors);
+      store.dispatch(setError("workbookImportFailed"));
+    }
+
+    store.dispatch(importAppState(result.data));
   }
 
-  return {
-    instance: instance,
-    getState: getState,
-  };
+  return { instance, getState };
 }
 
 interface AppComponentProps {
@@ -52,30 +99,25 @@ export function AppComponent({
   context,
 }: AppComponentProps): JSX.Element {
   const appstore = instance.store;
-  console.log(onStateChange);
-  console.log(isEdited);
-  console.log("store v appcomponente:");
 
-  console.log(appstore.getState());
+  // Since some components must have a unique id across the whole document
+  // we need a way do disntiguish between identical instances.
+  // (e.g copied instances inside workbook)
+  const instanceIdRef = useRef<string>(generateInstanceId());
 
   useEffect(() => {
-    const unsubscribe = appstore.subscribe(() => {
-      onStateChange();
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [appstore, onStateChange]);
+    instance.handleStoreChange = onStateChange;
+    return () => (instance.handleStoreChange = undefined);
+  }, [instance, onStateChange]);
 
   return (
-    <>
-      <Provider store={appstore}>
+    <Provider store={appstore}>
+      <InstanceIdContext.Provider value={instanceIdRef.current}>
         <LogicContext.Provider value={context}>
-          <App />
+          <App viewOnlyMode={!isEdited} />
         </LogicContext.Provider>
-      </Provider>
-    </>
+      </InstanceIdContext.Provider>
+    </Provider>
   );
 }
 

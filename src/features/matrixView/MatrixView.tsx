@@ -1,0 +1,296 @@
+import "./TableView.css";
+
+import { Table } from "react-bootstrap";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
+import {
+  selectFilteredDomain,
+  selectHatchedDomain,
+  selectPredicatesToDisplay,
+} from "../editorToolbar/editorToolbarSlice";
+import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
+import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import {
+  generateTupleInterpretation,
+  getKeyFromDomainTuple,
+  selectMatrixValuesWithInvalid,
+  updaters,
+} from "./matrixViewSelectors";
+import { selectDomain, type TupleType } from "../structure/structureSlice";
+import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
+import { UndoActions } from "../undoHistory/undoHistory";
+import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowDownLong,
+  faArrowRightLong,
+} from "@fortawesome/free-solid-svg-icons";
+import useTableCrosshairHover from "./useTableCrosshairHover";
+
+interface MatrixViewProps {
+  tupleName: string;
+  tupleArity: number;
+  tupleType: TupleType;
+  locked: boolean;
+}
+
+export default function MatrixView({
+  tupleName,
+  tupleArity,
+  tupleType,
+  locked,
+}: MatrixViewProps) {
+  const dispatch = useAppDispatch();
+
+  const { tableRef, handleCellHover } = useTableCrosshairHover();
+
+  const { values, leftovers } = useAppSelector((state) =>
+    selectMatrixValuesWithInvalid(state, tupleName, tupleType),
+  );
+
+  const domain = useAppSelector(selectDomain).value;
+
+  const selectedDomain = useAppSelector((state) =>
+    selectFilteredDomain(state, tupleName, tupleType, true),
+  );
+
+  const hatchedDomain = useAppSelector((state) =>
+    selectHatchedDomain(state, tupleName, tupleType),
+  );
+
+  const isUnary = tupleArity === 1;
+  const getDomainTuple = (row: string, col: string) =>
+    isUnary ? [col] : [row, col];
+
+  const getEntry = (row: string, col: string) =>
+    values[getKeyFromDomainTuple(getDomainTuple(row, col))];
+
+  const getValue = (row: string, col: string) => getEntry(row, col)?.value;
+
+  const isDuplicate = (row: string, col: string) =>
+    getEntry(row, col)?.duplicate;
+
+  const isInvalid = (row: string, col: string) =>
+    leftovers.includes(col) ||
+    leftovers.includes(row) ||
+    !!isDuplicate(row, col);
+
+  const handleValueChange = (row: string, col: string, value: string) => {
+    if (locked) return;
+
+    const domainTuple = getDomainTuple(row, col);
+    const key = getKeyFromDomainTuple(domainTuple);
+    const newValues = { ...values };
+
+    const hasDuplicate = newValues[key]?.duplicate;
+    newValues[key] = {
+      ...(newValues[key] ?? { duplicate: false, domainTuple }),
+      value,
+    };
+
+    if (hasDuplicate) {
+      const duplicateKey = getKeyFromDomainTuple(domainTuple, true);
+      newValues[duplicateKey] = { ...newValues[duplicateKey], value };
+    }
+
+    const newInterpretation = generateTupleInterpretation(tupleType, newValues);
+
+    dispatch(updaters[tupleType]({ value: newInterpretation, key: tupleName }));
+
+    const isInsideLeftover = domainTuple.some((d) => leftovers.includes(d));
+    const willBeResolvedInvalid =
+      (isInsideLeftover || isDuplicate(row, col)) && value === "";
+
+    if (tupleType === "function" && willBeResolvedInvalid)
+      dispatch(UndoActions.checkpoint());
+  };
+
+  const selectedDomainWithHatched = domain.filter(
+    (d) => selectedDomain.includes(d) || hatchedDomain.includes(d),
+  );
+  const unselectedDomain = domain.filter(
+    (d) => !selectedDomainWithHatched.includes(d) && !leftovers.includes(d),
+  );
+  const domainWithLeftovers = [
+    ...selectedDomainWithHatched,
+    ...leftovers,
+    ...unselectedDomain,
+  ];
+
+  const getTableClass = (element: string) => {
+    const unselected = unselectedDomain.includes(element) ? " unselected" : "";
+    if (leftovers.includes(element) && !unselected) return "error";
+    if (hatchedDomain.includes(element)) return "hatched";
+    return unselected;
+  };
+
+  const domainWithoutUnselected = [...selectedDomainWithHatched, ...leftovers];
+  if (domainWithoutUnselected.length === 0) {
+    return (
+      <EmptyPlaceholder
+        message={"Nothing to display (selected domain is empty)"}
+      />
+    );
+  }
+
+  return (
+    <Table
+      responsive
+      className="table-bordered table-view"
+      size="sm"
+      ref={tableRef}
+    >
+      <thead>
+        <tr>
+          <TableHeadsIndicator key="col-head" headCount={tupleArity} />
+          {domainWithLeftovers.map((head) => (
+            <th className={getTableClass(head)} key={head}>
+              <PredicateIndicatorTableHead
+                predicateName={tupleName}
+                tupleType={tupleType}
+                domainId={head}
+              />
+            </th>
+          ))}
+        </tr>
+      </thead>
+
+      <tbody>
+        {(isUnary ? [""] : domainWithLeftovers).map((row, rowIdx) => (
+          <tr key={`r-${row}`} className={getTableClass(row)}>
+            {isUnary ? (
+              <td key="row-head" />
+            ) : (
+              <td key="row-head">
+                <PredicateIndicatorTableHead
+                  predicateName={tupleName}
+                  tupleType={tupleType}
+                  domainId={row}
+                />
+              </td>
+            )}
+
+            {domainWithLeftovers.map((col, colIdx) =>
+              tupleType === "predicate" ? (
+                <PredicateTableCell
+                  key={col}
+                  value={!!getValue(row, col)}
+                  onValueChange={() => {
+                    handleValueChange(row, col, getValue(row, col) ? "" : "in");
+                    dispatch(UndoActions.checkpoint());
+                  }}
+                  locked={locked}
+                  columnError={leftovers.includes(col)}
+                  invalid={isInvalid(row, col)}
+                  unselected={
+                    unselectedDomain.includes(col) ||
+                    unselectedDomain.includes(row)
+                  }
+                  hatched={
+                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
+                  }
+                  onHovered={(hovered) =>
+                    hovered
+                      ? handleCellHover(isUnary ? -1 : rowIdx, colIdx)
+                      : handleCellHover(-1, -1)
+                  }
+                />
+              ) : (
+                <FunctionTableCell
+                  key={col}
+                  value={getValue(row, col) ?? ""}
+                  columnError={leftovers.includes(col)}
+                  invalid={
+                    (getValue(row, col) &&
+                      !domain.includes(getValue(row, col))) ||
+                    isInvalid(row, col)
+                  }
+                  onValueChange={(value) => handleValueChange(row, col, value)}
+                  locked={locked}
+                  unselected={
+                    unselectedDomain.includes(col) ||
+                    unselectedDomain.includes(row)
+                  }
+                  hatched={
+                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
+                  }
+                  onBlur={() => dispatch(UndoActions.checkpoint())}
+                />
+              ),
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  );
+}
+
+interface PredicateIndicatorTableHeadProps {
+  predicateName: string;
+  tupleType: TupleType;
+  domainId: string;
+}
+
+function PredicateIndicatorTableHead({
+  predicateName,
+  tupleType,
+  domainId,
+}: PredicateIndicatorTableHeadProps) {
+  const allUnaryPreds = useAppSelector(selectUnaryPreds);
+
+  const [predsToDisplay, previewed] = useAppSelector((state) =>
+    selectPredicatesToDisplay(state, predicateName, tupleType, domainId),
+  );
+
+  const colorMap = getUnaryPredicateToColorMap(
+    predsToDisplay ?? [],
+    allUnaryPreds ?? [],
+  );
+
+  return (
+    <div className="table-view-head">
+      {domainId}
+      <RelevantPredicatesIndicator
+        predicateToColorMap={colorMap}
+        previewed={previewed}
+        size="sm"
+      />
+    </div>
+  );
+}
+
+interface TableHeadsIndicatorProps {
+  headCount: number;
+}
+
+function TableHeadsIndicator({ headCount }: TableHeadsIndicatorProps) {
+  return (
+    <th className="table-heads-indicator">
+      <div className="table-heads-indicator-item down">
+        {headCount > 1 && (
+          <>
+            <span>(</span>
+            <FontAwesomeIcon icon={faArrowDownLong} />
+          </>
+        )}
+        <span>
+          <var>m</var>
+          <sub>1</sub>
+        </span>
+      </div>
+      {headCount > 1 && (
+        <>
+          <span>,</span>
+          <div className="table-heads-indicator-item right">
+            <FontAwesomeIcon icon={faArrowRightLong} />
+            <span>
+              <var>m</var>
+              <sub>2</sub>
+            </span>
+          </div>
+          <span>)</span>
+        </>
+      )}
+    </th>
+  );
+}
