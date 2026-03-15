@@ -1,28 +1,30 @@
 import { Button } from "react-bootstrap";
 import { InlineMath } from "react-katex";
 
-interface Props {
-  id: number;
-  choices: string[];
-  type: string;
-  onclicks: (() => void)[];
+export interface ChoiceBubble {
+  value: string;
+  onClick: () => void;
 }
 
-export default function ChoiceBubble({ choices, onclicks }: Props) {
+export interface ChoiceBubblesProps {
+  id: number;
+  type: string;
+  bubbles: ChoiceBubble[];
+}
+
+export default function ChoiceBubbles({ bubbles }: ChoiceBubblesProps) {
   return (
     <>
       <div>
-        {choices.map((choice, index) => {
+        {bubbles.map(({ value, onClick }) => {
           return (
             <Button
-              key={index}
+              key={value}
               size="sm"
               variant="outline-primary d-inline m-1"
-              onClick={() => {
-                onclicks[index]();
-              }}
+              onClick={onClick}
             >
-              <InlineMath>{choice}</InlineMath>
+              <InlineMath>{value}</InlineMath>
             </Button>
           );
         })}

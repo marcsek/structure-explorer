@@ -9,7 +9,7 @@ const formulaStateSchema = z.object({
   lockedGuess: z.boolean(),
   gameChoices: z.array(
     z.object({
-      formula: z.union([z.literal(0), z.literal(1)]).optional(),
+      formula: z.number().optional(),
       element: z.string().optional(),
       type: z.enum(["alpha", "beta", "gamma", "delta"]),
     }),

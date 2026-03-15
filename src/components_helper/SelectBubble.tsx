@@ -1,27 +1,22 @@
 import type { ReactNode } from "react";
 import { Button, Dropdown, DropdownButton } from "react-bootstrap";
+import type { ChoiceBubble } from "./ChoiceBubble";
 
 interface Props {
   id: number;
   title: ReactNode;
-  choices: string[];
   type: string;
-  onclicks: (() => void)[];
+  bubbles: ChoiceBubble[];
 }
 
-export default function SelectBubble({ title, choices, onclicks }: Props) {
+export default function SelectBubble({ title, bubbles }: Props) {
   return (
     <>
       <div>
         <DropdownButton title={title} size="sm">
-          {choices.map((choice, index) => (
-            <Dropdown.Item
-              as={Button}
-              size="sm"
-              key={choice}
-              onClick={() => onclicks[index]()}
-            >
-              {choice}
+          {bubbles.map(({ value, onClick }) => (
+            <Dropdown.Item key={value} as={Button} size="sm" onClick={onClick}>
+              {value}
             </Dropdown.Item>
           ))}
         </DropdownButton>

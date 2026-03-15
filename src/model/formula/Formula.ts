@@ -67,41 +67,46 @@ abstract class Formula extends Expression {
     sign: boolean,
     structure: Structure,
     e: Valuation,
-  ): SignedFormula[] {
+  ): [SignedFormula, number][] {
     dev.time("winningSubformulas duration");
 
     const formulas = this.getSignedSubFormulas(sign);
 
     let shortest = undefined;
-    let winning: SignedFormula[] = [];
+    let winning: [SignedFormula, number][] = [];
 
+    let idx = 0;
     for (const { sign, formula } of formulas) {
       const current = { sign: sign, formula: formula };
       if (formula.eval(structure, e) !== sign) {
         if (!shortest) {
           shortest = current;
-          winning.push(shortest);
+          winning.push([shortest, idx]);
         }
 
         if (
           shortest.formula.gameDepth(shortest.sign) > formula.gameDepth(sign)
         ) {
           shortest = current;
-          winning = [shortest];
+          winning = [[shortest, idx]];
         } else if (
           shortest.formula.gameDepth(shortest.sign) === formula.gameDepth(sign)
         ) {
-          winning.push(current);
+          winning.push([current, idx]);
         }
       }
+
+      idx++;
     }
 
     if (winning.length === 0) {
       dev.timeEnd("winningSubformulas duration");
-      return formulas;
+
+      return formulas.map((f, idx) => [f, idx]);
     }
 
     dev.timeEnd("winningSubformulas duration");
+
     return winning;
   }
 

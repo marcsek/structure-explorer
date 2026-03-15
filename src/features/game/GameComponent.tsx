@@ -1,6 +1,6 @@
 import Card from "react-bootstrap/Card";
 import Formula from "../../model/formula/Formula";
-import GameControl from "./GameControls";
+import GameControls from "./GameControls";
 import GameHistory from "./GameHistory";
 
 interface Props {
@@ -24,7 +24,7 @@ export default function GameComponent({ id }: Props) {
         >
           <GameHistory id={id} />
         </Card.Body>
-        <GameControl id={id} />
+        <GameControls id={id} />
       </Card>
     </>
   );

@@ -40,25 +40,28 @@ abstract class QuantifiedFormula extends Formula {
   winningElements(
     sign: boolean,
     structure: Structure,
+    domain: string[],
     e: Valuation,
-  ): DomainElement[] {
+  ): [DomainElement, number][] {
     dev.time("winningElements duration");
 
     const signedFormula = this.getSignedSubFormulas(sign)[0];
 
     const cpy = new Map(e);
 
-    let winning: DomainElement[] = [];
+    let winning: [DomainElement, number][] = [];
 
-    for (const element of structure.domain) {
+    let idx = 0;
+    for (const element of domain) {
       cpy.set(this.variableName, element);
       if (signedFormula.formula.eval(structure, cpy) !== signedFormula.sign) {
-        winning.push(element);
+        winning.push([element, idx]);
       }
+      idx++;
     }
 
     if (winning.length === 0) {
-      winning = Array.from(structure.domain);
+      winning = domain.map((e, idx) => [e, idx]);
     }
 
     dev.timeEnd("winningElements duration");

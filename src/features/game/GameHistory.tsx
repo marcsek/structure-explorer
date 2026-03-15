@@ -1,5 +1,4 @@
 import {
-  type BubbleFormat,
   gameGoBack,
   selectFormulaChoices,
   selectHistoryData,
@@ -9,11 +8,20 @@ import { selectStructure } from "../structure/structureSlice";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import MessageBubble from "../../components_helper/MessageBubble";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
 import { InlineMath } from "react-katex";
 import { Stack } from "react-bootstrap";
+
+export type BubbleFormat = {
+  text: ReactNode;
+  sender: "game" | "player";
+  goBack?: number;
+  win?: boolean;
+  lose?: boolean;
+  fixableLoss?: boolean;
+};
 
 interface Props {
   id: number;
@@ -51,6 +59,7 @@ export default function GameHistory({ id }: Props) {
 
   const bubbles: BubbleFormat[] = [];
   let back = 0;
+  console.log("data", data);
 
   for (const { sf, valuation, type, winFormula, winElement } of data) {
     const valuationDiff = getDiffAndNew(initialValuation, valuation);

@@ -15,15 +15,16 @@ import { selectLanguage } from "../language/languageSlice";
 import {
   selectValidatedDomain,
   selectStructure,
+  selectDomain,
 } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
-import type { ReactNode } from "react";
 import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../common/logging";
 import { getFormulaFactories } from "../../common/formulas";
+import { getRandomElementIndex } from "../../common/utils";
 
 export interface FormulaState {
   name?: string;
@@ -32,7 +33,7 @@ export interface FormulaState {
   locked: boolean;
   lockedGuess: boolean;
   gameChoices: {
-    formula?: 0 | 1;
+    formula?: number;
     element?: string;
     type: "alpha" | "beta" | "gamma" | "delta";
   }[];
@@ -120,30 +121,23 @@ export const formulasSlice = createSlice({
       state,
       action: PayloadAction<{
         id: number;
-        formula: 0 | 1 | undefined;
+        formula: number | undefined;
       }>,
     ) => {
       const { id, formula } = action.payload;
 
-      state.allFormulas[id].gameChoices.push({
-        formula: formula,
-        type: "alpha",
-      });
+      state.allFormulas[id].gameChoices.push({ formula, type: "alpha" });
     },
-
     addBeta: (
       state,
       action: PayloadAction<{
         id: number;
-        formula: 0 | 1 | undefined;
+        formula: number | undefined;
       }>,
     ) => {
       const { id, formula } = action.payload;
 
-      state.allFormulas[id].gameChoices.push({
-        formula: formula,
-        type: "beta",
-      });
+      state.allFormulas[id].gameChoices.push({ formula, type: "beta" });
     },
 
     addGamma: (
@@ -155,10 +149,7 @@ export const formulasSlice = createSlice({
     ) => {
       const { id, element } = action.payload;
 
-      state.allFormulas[id].gameChoices.push({
-        element: element,
-        type: "gamma",
-      });
+      state.allFormulas[id].gameChoices.push({ element, type: "gamma" });
     },
 
     addDelta: (
@@ -170,10 +161,7 @@ export const formulasSlice = createSlice({
     ) => {
       const { id, element } = action.payload;
 
-      state.allFormulas[id].gameChoices.push({
-        element: element,
-        type: "delta",
-      });
+      state.allFormulas[id].gameChoices.push({ element, type: "delta" });
     },
 
     removeFormula: (state, action: PayloadAction<number>) => {
@@ -239,6 +227,7 @@ const evaluateFormula = (
   valuation: Map<string, string>,
 ) => {
   dev.time(`selectEvaluatedFormula duration (${formText})`);
+
   const factories = getFormulaFactories(language);
 
   try {
@@ -248,22 +237,27 @@ const evaluateFormula = (
       factories,
     );
 
-    const value = formula.eval(structure, valuation);
+    const evaluated = formula.eval(structure, valuation);
+
     dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
-    return { evaluated: value, formula: formula };
+
+    return { evaluated, formula };
   } catch (error) {
     if (error instanceof Error) {
       dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+
       return { error: error };
     }
 
     if (error instanceof SyntaxError) {
       dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+
       return { error: error };
     }
   }
 
   dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+
   return {};
 };
 
@@ -287,28 +281,22 @@ export const selectCurrentGameFormula = createSelector(
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
 
     for (const { formula, type } of choices) {
-      let newPotentialFormula: SignedFormula | undefined = undefined;
+      const subs = newFormula.formula.getSignedSubFormulas(newFormula.sign);
 
-      if (
-        newFormula.formula.getSignedSubFormulas(newFormula.sign).length === 0
-      ) {
+      if (subs.length === 0) {
         return newFormula;
       }
 
-      if (type === "alpha" || type === "beta") {
-        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
-          newFormula.sign,
-        )[formula!];
-      }
-
       if (type === "delta" || type === "gamma") {
-        newPotentialFormula = newFormula.formula.getSignedSubFormulas(
-          newFormula.sign,
-        )[0];
+        newFormula = subs[0];
+        continue;
       }
 
-      if (!newPotentialFormula) return newFormula;
-      newFormula = newPotentialFormula;
+      if (formula === undefined || formula >= subs.length) {
+        return newFormula;
+      }
+
+      newFormula = subs[formula];
     }
 
     return newFormula;
@@ -325,130 +313,148 @@ export const selectCurrentAssignment = createSelector(
   ],
   (choices, { formula }, e, userGuess, { parsed: domain }) => {
     let newFormula: SignedFormula = { sign: userGuess!, formula: formula! };
-
-    dev.time("selectCurrentAssignment duration");
-    let current = new Map(e);
+    const current = new Map(e);
 
     if (domain === undefined) {
       return current;
     }
 
     for (const { formula, element, type } of choices) {
-      if (
-        !newFormula ||
-        newFormula.formula.getSignedSubFormulas(newFormula.sign).length === 0
-      ) {
+      if (!newFormula) return current;
+
+      const subs = newFormula.formula.getSignedSubFormulas(newFormula.sign);
+
+      if (subs.length === 0) {
         continue;
       }
 
       if (type === "alpha" || type === "beta") {
-        newFormula = newFormula.formula.getSignedSubFormulas(newFormula.sign)[
-          formula!
-        ];
+        newFormula = subs[formula ?? 0];
+        continue;
       }
 
-      if (type === "delta" || type === "gamma") {
-        let f = newFormula.formula;
-        if (f instanceof QuantifiedFormula) {
-          current.set(f.getVariableName(), element!);
-          newFormula = newFormula.formula.getSignedSubFormulas(
-            newFormula.sign,
-          )[0];
-        }
+      const uFormula = newFormula.formula;
+
+      if (uFormula instanceof QuantifiedFormula && element) {
+        current.set(uFormula.getVariableName(), element);
       }
+
+      newFormula = subs[0];
     }
-    dev.timeEnd("selectCurrentAssignment duration");
+
     return current;
   },
 );
 
+// TODO: possibly redundant
 export const selectGameButtons = createSelector(
-  [
-    selectCurrentGameFormula,
-    selectValidatedDomain,
-    selectStructure,
-    selectCurrentAssignment,
-  ],
-  ({ sign, formula }, { parsed: domain }, structure, e) => {
-    dev.time("selectGameButtons duration");
-
+  [selectCurrentGameFormula, selectValidatedDomain],
+  ({ sign, formula }, { parsed: domain }) => {
     if (formula.getSignedSubFormulas(sign).length === 0) {
-      dev.timeEnd("selectGameButtons duration");
       return;
     }
 
+    const signedType = formula.getSignedType(sign);
+
     if (
-      formula.getSignedType(sign) === SignedFormulaType.DELTA &&
+      signedType === SignedFormulaType.DELTA &&
       formula instanceof QuantifiedFormula
     ) {
-      dev.timeEnd("selectGameButtons duration");
       return {
-        values: domain ?? [],
-        elements: domain ?? [],
         type: "delta",
+        elements: domain ?? [],
         variableName: formula.variableName,
-      };
+      } as const;
     }
 
-    if (formula.getSignedType(sign) === SignedFormulaType.BETA) {
-      dev.timeEnd("selectGameButtons duration");
+    if (signedType === SignedFormulaType.BETA) {
       return {
-        values: formula
-          .getSignedSubFormulas(sign)
-          .map(
-            ({ formula: f, sign: s }) =>
-              `\\mathcal{M} ${s === true ? "\\models" : "\\not\\models"} ${f.toTex()}`,
-          ),
-        subformulas: formula.getSignedSubFormulas(sign),
         type: "beta",
-      };
+        subFormulas: formula.getSignedSubFormulas(sign),
+      } as const;
     }
 
-    if (formula.getSignedType(sign) === SignedFormulaType.ALPHA) {
-      let winners = formula.winningSubformulas(sign, structure, e);
-
-      if (winners.length === 0) {
-        winners = formula.getSignedSubFormulas(sign);
-      }
-
-      dev.timeEnd("selectGameButtons duration");
-      return {
-        values: ["\\text{Continue}"],
-        subformulas: winners,
-        type: "alpha",
-      };
-    }
-
-    if (
-      formula.getSignedType(sign) === SignedFormulaType.GAMMA &&
-      formula instanceof QuantifiedFormula
-    ) {
-      let qf = formula;
-
-      let winners = qf.winningElements(sign, structure, e);
-
-      if (winners.length === 0) {
-        winners = domain ?? ["domain error"];
-      }
-
-      dev.timeEnd("selectGameButtons duration");
-      return {
-        values: ["\\text{Continue}"],
-        elements: winners,
-        type: "gamma",
-      };
-    }
+    return signedType === SignedFormulaType.ALPHA
+      ? ({ type: "alpha" } as const)
+      : ({ type: "gamma" } as const);
   },
 );
 
-export type BubbleFormat = {
-  text: ReactNode;
-  sender: "game" | "player";
-  goBack?: number;
-  win?: boolean;
-  lose?: boolean;
-  fixableLoss?: boolean;
-};
+function getStep(
+  signedFormula: SignedFormula,
+  valuation: Map<string, string>,
+  structure: Structure,
+  stableDomain: string[],
+  evaluated: boolean,
+  choiceIndex?: number,
+) {
+  const { formula, sign } = signedFormula;
+  const type = formula.getSignedType(sign);
+
+  const step: {
+    sf: SignedFormula;
+    evaluated: boolean;
+    valuation: Map<string, string>;
+    type: "alpha" | "beta" | "gamma" | "delta";
+    winFormula?: SignedFormula;
+    winElement?: string;
+    winIndex?: number;
+  } = { sf: signedFormula, evaluated, valuation, type };
+
+  const subFormulas = formula.getSignedSubFormulas(sign);
+
+  if (type === "beta" || type === "delta" || subFormulas.length === 0) {
+    return step;
+  }
+
+  step.winIndex = choiceIndex;
+
+  if (type === "alpha") {
+    const winFs = formula.winningSubformulas(sign, structure, valuation);
+
+    if (step.winIndex === undefined) {
+      const [, winFormulaIndex] = winFs[getRandomElementIndex(winFs)];
+
+      step.winIndex = winFormulaIndex;
+    } else {
+      const ws = winFs.map((f) => f[0].formula.signedFormulaToString(sign));
+      if (
+        !ws.includes(step.winFormula?.formula.signedFormulaToString(sign) ?? "")
+      ) {
+        const [, winFormulaIndex] = winFs[getRandomElementIndex(winFs)];
+
+        step.winIndex = winFormulaIndex;
+      }
+    }
+
+    step.winFormula = subFormulas[step.winIndex];
+  }
+
+  if (type === "gamma" && formula instanceof QuantifiedFormula) {
+    const winElements = formula.winningElements(
+      sign,
+      structure,
+      stableDomain,
+      valuation,
+    );
+
+    if (step.winIndex === undefined) {
+      const ww = winElements[getRandomElementIndex(winElements)];
+      step.winIndex = ww[1];
+    } else {
+      const indexes = winElements.map((e) => e[1]);
+      if (!indexes.includes(step.winIndex)) {
+        const ww = winElements[getRandomElementIndex(winElements)];
+        step.winIndex = ww[1];
+      }
+    }
+
+    step.winElement = stableDomain[step.winIndex];
+  }
+
+  dev.log("STEP", step);
+  return step;
+}
 
 export const selectHistoryData = createSelector(
   [
@@ -457,8 +463,16 @@ export const selectHistoryData = createSelector(
     selectFormulaGuess,
     selectValuation,
     selectStructure,
+    selectDomain,
   ],
-  (choices, { formula, evaluated }, initialGuess, valuation, structure) => {
+  (
+    choices,
+    { formula, evaluated },
+    initialGuess,
+    valuation,
+    structure,
+    { value: domain },
+  ) => {
     const history: {
       sf: SignedFormula;
       evaluated: boolean;
@@ -466,95 +480,85 @@ export const selectHistoryData = createSelector(
       type: "alpha" | "beta" | "gamma" | "delta";
       winFormula?: SignedFormula;
       winElement?: string;
+      winIndex?: number;
     }[] = [];
 
-    if (!formula || evaluated === undefined) return [];
+    if (!formula || evaluated === undefined || initialGuess === null) {
+      return [];
+    }
 
     dev.time("selectHistoryData duration");
 
-    let currentValuation = new Map(valuation);
-    let currentFormula: SignedFormula = {
-      sign: initialGuess!,
-      formula: formula!,
-    };
-
-    let { formula: f, sign: s } = currentFormula;
-
-    const addStep = () => {
-      const type = f.getSignedType(s);
-      const step: {
-        sf: SignedFormula;
-        evaluated: boolean;
-        valuation: Map<string, string>;
-        type: "alpha" | "beta" | "gamma" | "delta";
-        winFormula?: SignedFormula;
-        winElement?: string;
-      } = {
-        sf: currentFormula,
-        evaluated,
-        valuation: new Map(currentValuation),
-        type,
-      };
-
-      if (type === "alpha") {
-        step.winFormula = f.winningSubformulas(
-          s,
-          structure,
-          currentValuation,
-        )[0];
-      } else if (type === "gamma" && f instanceof QuantifiedFormula) {
-        step.winElement = f.winningElements(s, structure, currentValuation)[0];
+    const addHistoryStep = (
+      signedFormula: SignedFormula,
+      valuation: Map<string, string>,
+      choiceIndex?: number,
+    ) => {
+      try {
+        history.push(
+          getStep(
+            signedFormula,
+            valuation,
+            structure,
+            domain,
+            evaluated,
+            choiceIndex,
+          ),
+        );
+      } catch (error) {
+        console.error(error);
       }
-
-      history.push(step);
     };
 
-    try {
-      addStep();
-    } catch (error) {}
+    let curSignedFormula: SignedFormula = { sign: initialGuess, formula };
+    let curValuation = new Map(valuation);
 
     for (const { formula: formulaIndex, element, type } of choices) {
-      // If type doesn't match choice's type, cut-off history
-      if (f.getSignedType(s) !== type) {
+      const { formula: curFormula, sign } = curSignedFormula;
+
+      // If formula and choice type don't match, cut-off history
+      if (curFormula.getSignedType(sign) !== type) {
         if (history.length) history.pop();
         break;
       }
 
       if (type === "alpha" || type === "beta") {
-        // const subs = f.getSignedSubFormulas(s);
-        currentFormula = f.getSignedSubFormulas(s)[formulaIndex!];
+        const nextFormula =
+          curFormula.getSignedSubFormulas(sign)[formulaIndex!];
 
-        // If type matches choice's type, but the selected formula doesn't exist
-        // TODO: Is that possible?
-        if (!currentFormula) {
+        if (!nextFormula) {
           break;
         }
 
-        f = currentFormula.formula;
-        s = currentFormula.sign;
-      } else if (
-        (type === "gamma" || type === "delta") &&
-        f instanceof QuantifiedFormula
-      ) {
-        const varName = f.getVariableName();
-        currentValuation.set(varName, element!);
-        currentFormula = f.getSignedSubFormulas(s)[0];
+        addHistoryStep(curSignedFormula, new Map(curValuation), formulaIndex);
 
-        // Same as above
-        if (!currentFormula) {
+        curSignedFormula = nextFormula;
+      } else if (curFormula instanceof QuantifiedFormula) {
+        const varName = curFormula.getVariableName();
+        const nextValuation = new Map(curValuation);
+        const nextFormula = curFormula.getSignedSubFormulas(sign)[0];
+
+        nextValuation.set(varName, element!);
+
+        if (!nextFormula) {
           break;
         }
 
-        f = currentFormula.formula;
-        s = currentFormula.sign;
+        const elementIdx = domain.indexOf(element ?? "");
+        const choiceIdx = elementIdx === -1 ? undefined : elementIdx;
+
+        addHistoryStep(curSignedFormula, curValuation, choiceIdx);
+
+        curSignedFormula = nextFormula;
+        curValuation = nextValuation;
       }
-
-      try {
-        addStep();
-      } catch (error) {}
     }
 
+    addHistoryStep(curSignedFormula, curValuation);
+
+    dev.log(history);
     dev.timeEnd("selectHistoryData duration");
+
     return history;
   },
 );
@@ -570,22 +574,29 @@ export const selectIsVerifiedGame = createSelector(
     if (last === undefined || first === undefined) return undefined;
 
     dev.time("selectIsVerifiedGame duration");
+
+    const lastFormula = last.sf.formula;
+
     try {
       if (
-        last.sf.formula instanceof PredicateAtom ||
-        last.sf.formula instanceof EqualityAtom
+        lastFormula instanceof PredicateAtom ||
+        lastFormula instanceof EqualityAtom
       ) {
-        const originalGuess = first.evaluated;
+        const originallyCorrect = first.evaluated === first.sf.sign;
 
         const didWin =
-          last.sf.formula.eval(structure, last.valuation) === last.sf.sign;
+          lastFormula.eval(structure, last.valuation) === last.sf.sign;
 
         dev.timeEnd("selectIsVerifiedGame duration");
-        if (originalGuess && !didWin) return undefined;
+
+        if (originallyCorrect && !didWin) return undefined;
 
         return didWin;
       }
-    } catch (_error) {}
+    } catch (error) {
+      console.error(error);
+    }
+
     dev.timeEnd("selectIsVerifiedGame duration");
   },
 );
@@ -627,11 +638,7 @@ export const selectGameResetIndex = createSelector(
       try {
         prevWinningFormula =
           prev.type === "alpha" || prev.type === "beta"
-            ? prev.sf.formula.winningSubformulas(
-                prev.sf.sign,
-                structure,
-                prev.valuation,
-              )[0]
+            ? prev.winFormula
             : undefined;
       } catch (error) {}
 

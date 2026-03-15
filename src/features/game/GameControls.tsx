@@ -1,11 +1,12 @@
-import ChoiceBubble from "../../components_helper/ChoiceBubble";
+import ChoiceBubbles, {
+  type ChoiceBubble,
+} from "../../components_helper/ChoiceBubble";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   addAlpha,
   addBeta,
   addDelta,
   addGamma,
-  selectCurrentGameFormula,
   selectGameButtons,
   selectHistoryData,
 } from "../formulas/formulasSlice";
@@ -13,111 +14,101 @@ import SelectBubble from "../../components_helper/SelectBubble";
 import { selectValuation } from "../variables/variablesSlice";
 import { getDiffAndNew } from "./GameHistory";
 import { InlineMath } from "react-katex";
-interface Props {
+
+export interface GameControlsProps {
   id: number;
 }
 
-export default function GameControl({ id }: Props) {
-  const dispatch = useAppDispatch();
-  const current = useAppSelector((state) =>
-    selectCurrentGameFormula(state, id),
+function ControlsWrapper({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="d-flex justify-content-center mb-3 mt-3">{children}</div>
   );
-  const buttons = useAppSelector((state) => selectGameButtons(state, id));
+}
+
+export default function GameControls({ id }: GameControlsProps) {
+  const dispatch = useAppDispatch();
+  const gameButtons = useAppSelector((state) => selectGameButtons(state, id));
   const initialValuation = useAppSelector(selectValuation);
-  const data = useAppSelector((state) => selectHistoryData(state, id));
+  const history = useAppSelector((state) => selectHistoryData(state, id));
 
-  const arr = current.formula
-    .getSignedSubFormulas(current.sign)
-    .map(({ sign, formula }) => formula.signedFormulaToString(sign));
-
-  let button = undefined;
-
-  if (buttons === undefined) {
-    return (
-      <>
-        <div className="d-flex justify-content-center mb-3 mt-3">{button}</div>
-      </>
-    );
+  if (!gameButtons) {
+    return <ControlsWrapper />;
   }
 
-  if (buttons.type === "delta") {
-    button = (
-      <SelectBubble
-        id={id}
-        title={
-          <>
-            Select a domain element for{" "}
-            <InlineMath>{buttons.variableName}</InlineMath>
-          </>
-        }
-        choices={buttons.values}
-        type={buttons.type}
-        onclicks={buttons.elements!.map(
-          (element) => () => dispatch(addDelta({ id: id, element: element })),
-        )}
-      />
-    );
-  }
+  const getBubbles = (): ChoiceBubble[] => {
+    const latestHistory = history.at(-1);
 
-  if (buttons.type === "gamma") {
-    button = (
-      <ChoiceBubble
-        id={id}
-        choices={buttons.values}
-        type={buttons.type}
-        onclicks={buttons.elements!.map(
-          (element) => () => dispatch(addGamma({ id: id, element: element })),
-        )}
-      />
-    );
-  }
+    switch (gameButtons.type) {
+      case "alpha":
+        return [
+          {
+            value: "\\text{Continue}",
+            onClick: () =>
+              dispatch(addAlpha({ id, formula: latestHistory?.winIndex ?? 0 })),
+          },
+        ];
 
-  if (buttons.type === "beta") {
-    const valuationDiff = getDiffAndNew(
-      initialValuation,
-      data.at(-1)?.valuation!,
-    );
+      case "beta": {
+        const { subFormulas } = gameButtons;
 
-    const valuationText = Array.from(valuationDiff)
-      .map(([from, to]) => `(${from} / ${to})`)
-      .join(" ");
+        const valuationDiff = getDiffAndNew(
+          initialValuation,
+          latestHistory?.valuation ?? new Map(),
+        );
 
-    button = (
-      <ChoiceBubble
-        id={id}
-        choices={buttons.values.map((text) => `${text}[ e${valuationText} ]`)}
-        type={buttons.type}
-        onclicks={buttons.subformulas!.map((_, index) => {
-          if (index === 0 || index === 1) {
-            return () => dispatch(addBeta({ id: id, formula: index }));
-          }
-          return () => {};
-        })}
-      />
-    );
-  }
+        const valuationText = Array.from(valuationDiff)
+          .map(([from, to]) => `(${from} / \\text{${to.replace(/_/g, "\\_")}})`)
+          .join(" ");
 
-  if (buttons.type === "alpha") {
-    button = (
-      <ChoiceBubble
-        id={id}
-        choices={buttons.values}
-        type={buttons.type}
-        onclicks={buttons.subformulas!.map((sf) => {
-          const index = arr.indexOf(sf.formula.signedFormulaToString(sf.sign));
+        return subFormulas.map(({ formula, sign }, idx) => ({
+          value: `\\mathcal{M} ${sign === true ? "\\models" : "\\not\\models"} ${formula.toTex()}[ e${valuationText} ]`,
+          onClick: () => dispatch(addBeta({ id, formula: idx })),
+        }));
+      }
 
-          if (index === 0 || index === 1) {
-            return () => dispatch(addAlpha({ id: id, formula: index }));
-          }
-          return () => {};
-        })}
-      />
-    );
-  }
+      case "gamma": {
+        // This is a hacky way to get winElement, but recomputing can be expensive.
+        const winElement = latestHistory?.winElement ?? "";
+
+        return [
+          {
+            value: "\\text{Continue}",
+            onClick: () =>
+              winElement && dispatch(addGamma({ id, element: winElement })),
+          },
+        ];
+      }
+
+      case "delta":
+        return gameButtons.elements.map((element) => ({
+          value: element,
+          onClick: () => dispatch(addDelta({ id, element })),
+        }));
+
+      default:
+        return [];
+    }
+  };
+
+  const bubbles = getBubbles();
 
   return (
-    <>
-      <div className="d-flex justify-content-center mb-3 mt-3">{button}</div>
-    </>
+    <ControlsWrapper>
+      {gameButtons.type === "delta" ? (
+        <SelectBubble
+          id={id}
+          title={
+            <>
+              Select a domain element for{" "}
+              <InlineMath>{gameButtons.variableName}</InlineMath>
+            </>
+          }
+          type={gameButtons.type}
+          bubbles={bubbles}
+        />
+      ) : (
+        <ChoiceBubbles id={id} type={gameButtons.type} bubbles={bubbles} />
+      )}
+    </ControlsWrapper>
   );
 }
