@@ -228,6 +228,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
             />
           </Col>
         </Row>
+
         {begin &&
           guess !== null &&
           formula &&

@@ -211,6 +211,7 @@ export const selectFormulaChoices = (state: RootState, id: number) =>
 
 export const selectFormulas = (state: RootState) =>
   state.present.formulas.allFormulas;
+
 export const selectFormula = (state: RootState, id: number) =>
   state.present.formulas.allFormulas[id];
 
@@ -410,21 +411,20 @@ function getStep(
   step.winIndex = choiceIndex;
 
   if (type === "alpha") {
-    const winFs = formula.winningSubformulas(sign, structure, valuation);
+    const winFormulas = formula.winningSubformulas(sign, structure, valuation);
+    const wFormulasStrings = winFormulas.map(([{ formula }]) =>
+      formula.signedFormulaToString(sign),
+    );
 
-    if (step.winIndex === undefined) {
-      const [, winFormulaIndex] = winFs[getRandomElementIndex(winFs)];
-
+    if (
+      step.winIndex === undefined ||
+      !wFormulasStrings.includes(
+        subFormulas[step.winIndex].formula.signedFormulaToString(sign) ?? "",
+      )
+    ) {
+      const [, winFormulaIndex] =
+        winFormulas[getRandomElementIndex(winFormulas)];
       step.winIndex = winFormulaIndex;
-    } else {
-      const ws = winFs.map((f) => f[0].formula.signedFormulaToString(sign));
-      if (
-        !ws.includes(step.winFormula?.formula.signedFormulaToString(sign) ?? "")
-      ) {
-        const [, winFormulaIndex] = winFs[getRandomElementIndex(winFs)];
-
-        step.winIndex = winFormulaIndex;
-      }
     }
 
     step.winFormula = subFormulas[step.winIndex];
@@ -437,16 +437,14 @@ function getStep(
       stableDomain,
       valuation,
     );
+    const wElementsIndexes = winElements.map((e) => e[1]);
 
-    if (step.winIndex === undefined) {
-      const ww = winElements[getRandomElementIndex(winElements)];
-      step.winIndex = ww[1];
-    } else {
-      const indexes = winElements.map((e) => e[1]);
-      if (!indexes.includes(step.winIndex)) {
-        const ww = winElements[getRandomElementIndex(winElements)];
-        step.winIndex = ww[1];
-      }
+    if (
+      step.winIndex === undefined ||
+      !wElementsIndexes.includes(step.winIndex)
+    ) {
+      const [, wIndex] = winElements[getRandomElementIndex(winElements)];
+      step.winIndex = wIndex;
     }
 
     step.winElement = stableDomain[step.winIndex];
@@ -573,8 +571,6 @@ export const selectIsVerifiedGame = createSelector(
 
     if (last === undefined || first === undefined) return undefined;
 
-    dev.time("selectIsVerifiedGame duration");
-
     const lastFormula = last.sf.formula;
 
     try {
@@ -583,11 +579,8 @@ export const selectIsVerifiedGame = createSelector(
         lastFormula instanceof EqualityAtom
       ) {
         const originallyCorrect = first.evaluated === first.sf.sign;
-
         const didWin =
           lastFormula.eval(structure, last.valuation) === last.sf.sign;
-
-        dev.timeEnd("selectIsVerifiedGame duration");
 
         if (originallyCorrect && !didWin) return undefined;
 
@@ -596,8 +589,6 @@ export const selectIsVerifiedGame = createSelector(
     } catch (error) {
       console.error(error);
     }
-
-    dev.timeEnd("selectIsVerifiedGame duration");
   },
 );
 
@@ -615,7 +606,7 @@ export const selectGameResetIndex = createSelector(
     let index = 0;
 
     for (const { sf, valuation } of data) {
-      let prev = data[index - 1];
+      const prev = data[index - 1];
 
       if (prev === undefined) {
         index++;
@@ -635,40 +626,16 @@ export const selectGameResetIndex = createSelector(
 
       let prevWinningFormula = undefined;
 
-      try {
-        prevWinningFormula =
-          prev.type === "alpha" || prev.type === "beta"
-            ? prev.winFormula
-            : undefined;
-      } catch (error) {}
-
-      // const prevWinningElementValue =
-      //   (prev.type === "gamma" || prev.type === "delta") &&
-      //   prev.sf.formula instanceof QuantifiedFormula
-      //     ? prev.sf.formula.winningElements(
-      //         prev.sf.sign,
-      //         structure,
-      //         prev.valuation,
-      //       )[0]
-      //     : undefined;
+      prevWinningFormula =
+        prev.type === "alpha" || prev.type === "beta"
+          ? prev.winFormula
+          : undefined;
 
       const prevWinningElementValue =
         (prev.type === "gamma" || prev.type === "delta") &&
         prev.sf.formula instanceof QuantifiedFormula
           ? prev.winElement
           : undefined;
-
-      // const prevWinningElementValues =
-      //   (prev.type === "gamma" || prev.type === "delta") &&
-      //   prev.sf.formula instanceof QuantifiedFormula
-      //     ? prev.sf.formula.winningElements(
-      //         prev.sf.sign,
-      //         structure,
-      //         prev.valuation,
-      //       )
-      //     : undefined;
-
-      // console.log(prevWinningElementValues);
 
       const prevVariableName =
         prev.sf.formula instanceof QuantifiedFormula
@@ -680,7 +647,9 @@ export const selectGameResetIndex = createSelector(
             prevWinningFormula.sign,
           )
         : undefined;
+
       const currentFormulaStr = sf.formula.signedFormulaToString(sf.sign);
+
       if (
         prevWinningFormula &&
         prevWinningFormulaStr !== currentFormulaStr &&
@@ -704,6 +673,7 @@ export const selectGameResetIndex = createSelector(
     }
 
     dev.timeEnd("selectGameResetIndex duration");
+
     return index;
   },
 );

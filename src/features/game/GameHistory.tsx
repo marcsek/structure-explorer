@@ -13,6 +13,7 @@ import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
 import { InlineMath } from "react-katex";
 import { Stack } from "react-bootstrap";
+import { latex } from "../../common/utils";
 
 export type BubbleFormat = {
   text: ReactNode;
@@ -38,11 +39,6 @@ export function getDiffAndNew(
   );
 }
 
-const M = () => "\\mathcal{M}";
-const models = (m: boolean) => (m ? "\\models" : "\\not\\models");
-const evalVars = (vars?: string) => `e${vars ?? ""}`;
-const escape = (toEscape: string) => toEscape.replace(/_/g, "\\_");
-
 export default function GameHistory({ id }: Props) {
   const dispatch = useAppDispatch();
   const data = useAppSelector((state) => selectHistoryData(state, id));
@@ -59,13 +55,12 @@ export default function GameHistory({ id }: Props) {
 
   const bubbles: BubbleFormat[] = [];
   let back = 0;
-  console.log("data", data);
 
   for (const { sf, valuation, type, winFormula, winElement } of data) {
     const valuationDiff = getDiffAndNew(initialValuation, valuation);
 
     const valuationText = Array.from(valuationDiff)
-      .map(([from, to]) => `(${from} / \\text{${escape(to)}})`)
+      .map(([from, to]) => `(${from} / ${latex().text(to).get()})`)
       .join(" ");
 
     bubbles.push({
@@ -73,7 +68,12 @@ export default function GameHistory({ id }: Props) {
         <>
           You assume that{" "}
           <InlineMath>
-            {`${M()} ${models(sf?.sign)} ${sf.formula.toTex()}[${evalVars(valuationText)}]`}
+            {latex()
+              .M()
+              .models(sf.sign)
+              .formula(sf.formula)
+              .valuation(valuationText)
+              .get()}
           </InlineMath>
         </>
       ),
@@ -93,21 +93,25 @@ export default function GameHistory({ id }: Props) {
           <>
             <InlineMath>{"[e']"}</InlineMath>, since{" "}
             <InlineMath>
-              {`(${sf.formula.terms.map((t) => `${t.toTex()}^\\mathcal{M}[e']`).join(", ")}) = (\\text{${escape(
-                sf.formula.terms
-                  .map((t) => t.eval(structure, valuation))
-                  .join(","),
-              )}}) ${sf.sign === satisfied ? "\\in" : "\\not\\in"} i(\\text{${escape(sf.formula.name)}})`}
+              {`(${sf.formula.terms.map((t) => latex().raw(t.toTex()).sup(latex().M().get()).altValuation().get()).join(", ")}) = (${latex()
+                .text(
+                  sf.formula.terms
+                    .map((t) => t.eval(structure, valuation))
+                    .join(","),
+                )
+                .get()}) ${sf.sign === satisfied ? "\\in" : "\\not\\in"} i(${latex().text(sf.formula.name).get()})`}
             </InlineMath>{" "}
-            where <InlineMath>{`e' = ${evalVars(valuationText)}`}</InlineMath>
+            where{" "}
+            <InlineMath>{`e' = ${latex().rawValuation(valuationText).get()}`}</InlineMath>
           </>
         ) : (
           <>
             <InlineMath>{"[e']"}</InlineMath>, since{" "}
             <InlineMath>
-              {`${sf.formula.subLeft.toTex()}^\\mathcal{M}[e'] = \\text{${escape(sf.formula.subLeft.eval(structure, valuation))}} ${sf.sign === satisfied ? "=" : "\\neq"} \\text{${escape(sf.formula.subRight.eval(structure, valuation))}} = ${sf.formula.subRight.toTex()}^\\mathcal{M}[e']`}
+              {`${latex().raw(sf.formula.subLeft.toTex()).sup(latex().M().get()).altValuation().get()} = ${latex().text(sf.formula.subLeft.eval(structure, valuation)).get()} ${sf.sign === satisfied ? "=" : "\\neq"} ${latex().text(sf.formula.subRight.eval(structure, valuation)).get()} = ${latex().raw(sf.formula.subRight.toTex()).sup(latex().M().get()).altValuation().get()}`}
             </InlineMath>{" "}
-            where <InlineMath>{`e' = ${evalVars(valuationText)}`}</InlineMath>
+            where{" "}
+            <InlineMath>{`e' = ${latex().rawValuation(valuationText).get()}`}</InlineMath>
           </>
         );
 
@@ -118,7 +122,13 @@ export default function GameHistory({ id }: Props) {
         text: (
           <>
             <strong>{satisfied ? "You win" : "You lose"}</strong>, because{" "}
-            <InlineMath>{`${M()} ${models(sf.sign === satisfied)} ${sf.formula.toTex()}`}</InlineMath>
+            <InlineMath>
+              {latex()
+                .M()
+                .models(sf.sign === satisfied)
+                .formula(sf.formula)
+                .get()}
+            </InlineMath>
             {explanation}
           </>
         ),
@@ -138,7 +148,12 @@ export default function GameHistory({ id }: Props) {
             )}
             Your initial assumption that{" "}
             <InlineMath>
-              {`${M()} ${models(data[0].sf.sign)} ${data[0].sf.formula.toTex()} [${evalVars()}]`}
+              {latex()
+                .M()
+                .models(data[0].sf.sign)
+                .formula(data[0].sf.formula)
+                .valuation()
+                .get()}
             </InlineMath>{" "}
             was
             {originalGuess ? " correct." : " incorrect."}{" "}
@@ -163,7 +178,12 @@ export default function GameHistory({ id }: Props) {
           <>
             Then{" "}
             <InlineMath>
-              {`${M()} ${models(winFormula.sign)} ${winFormula.formula.toTex()} [${evalVars(valuationText)}]`}
+              {latex()
+                .M()
+                .models(winFormula.sign)
+                .formula(winFormula.formula)
+                .valuation(valuationText)
+                .get()}
             </InlineMath>
           </>
         ),
@@ -189,7 +209,14 @@ export default function GameHistory({ id }: Props) {
       subfs.forEach((s) =>
         bubbles.push({
           text: (
-            <InlineMath>{`${M()} ${models(s.sign)} ${s.formula.toTex()}[${evalVars(valuationText)}]`}</InlineMath>
+            <InlineMath>
+              {latex()
+                .M()
+                .models(s.sign)
+                .formula(s.formula)
+                .valuation(valuationText)
+                .get()}
+            </InlineMath>
           ),
           sender: "game",
         }),
@@ -200,7 +227,12 @@ export default function GameHistory({ id }: Props) {
         bubbles.push({
           text: (
             <InlineMath>
-              {`${M()} ${models(choice.sign)} ${choice.formula.toTex()}[${evalVars(valuationText)}]`}
+              {latex()
+                .M()
+                .models(choice.sign)
+                .formula(choice.formula)
+                .valuation(valuationText)
+                .get()}
             </InlineMath>
           ),
           sender: "player",
@@ -215,11 +247,20 @@ export default function GameHistory({ id }: Props) {
           <>
             Then{" "}
             <InlineMath>
-              {`${M()} ${models(sf.sign)} ${sf.formula.toTex()}[${evalVars(valuationText)}]`}
+              {latex()
+                .M()
+                .models(sf.sign)
+                .formula(sf.formula)
+                .valuation(valuationText)
+                .get()}
             </InlineMath>{" "}
             also when we assign element{" "}
-            <InlineMath>{`\\text{${escape(winElement ?? "")}}`}</InlineMath> to{" "}
-            <InlineMath>{sf.formula.variableName}</InlineMath>
+            <InlineMath>
+              {latex()
+                .text(winElement ?? "")
+                .get()}
+            </InlineMath>{" "}
+            to <InlineMath>{sf.formula.variableName}</InlineMath>
           </>
         ),
         sender: "game",
@@ -240,7 +281,12 @@ export default function GameHistory({ id }: Props) {
             Which domain element should we assign to{" "}
             <InlineMath>{sf.formula.variableName}</InlineMath> to show that{" "}
             <InlineMath>
-              {`${M()} ${models(sf.sign)} ${sf.formula.toTex()} [${evalVars(valuationText)}]`}
+              {latex()
+                .M()
+                .models(sf.sign)
+                .formula(sf.formula)
+                .valuation(valuationText)
+                .get()}
             </InlineMath>
           </>
         ),
@@ -252,7 +298,11 @@ export default function GameHistory({ id }: Props) {
           text: (
             <>
               Assign{" "}
-              <InlineMath>{`\\text{${escape(choices[back].element ?? "")}}`}</InlineMath>{" "}
+              <InlineMath>
+                {latex()
+                  .text(choices[back].element ?? "")
+                  .get()}
+              </InlineMath>{" "}
               to <InlineMath>{sf.formula.variableName}</InlineMath>
             </>
           ),
