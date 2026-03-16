@@ -8,12 +8,10 @@ import {
   addDelta,
   addGamma,
   selectGameButtons,
-  selectHistoryData,
 } from "../formulas/formulasSlice";
 import SelectBubble from "../../components_helper/SelectBubble";
-import { selectValuation } from "../variables/variablesSlice";
-import { getDiffAndNew } from "./GameHistory";
 import { InlineMath } from "react-katex";
+import { latex } from "../../common/utils";
 
 export interface GameControlsProps {
   id: number;
@@ -28,47 +26,42 @@ function ControlsWrapper({ children }: { children?: React.ReactNode }) {
 export default function GameControls({ id }: GameControlsProps) {
   const dispatch = useAppDispatch();
   const gameButtons = useAppSelector((state) => selectGameButtons(state, id));
-  const initialValuation = useAppSelector(selectValuation);
-  const history = useAppSelector((state) => selectHistoryData(state, id));
 
   if (!gameButtons) {
     return <ControlsWrapper />;
   }
 
   const getBubbles = (): ChoiceBubble[] => {
-    const latestHistory = history.at(-1);
-
     switch (gameButtons.type) {
       case "alpha":
         return [
           {
             value: "\\text{Continue}",
             onClick: () =>
-              dispatch(addAlpha({ id, formula: latestHistory?.winIndex ?? 0 })),
+              dispatch(addAlpha({ id, formula: gameButtons.winFormulaIdx })),
           },
         ];
 
       case "beta": {
-        const { subFormulas } = gameButtons;
-
-        const valuationDiff = getDiffAndNew(
-          initialValuation,
-          latestHistory?.valuation ?? new Map(),
-        );
+        const { subFormulas, valuationDiff } = gameButtons;
 
         const valuationText = Array.from(valuationDiff)
-          .map(([from, to]) => `(${from} / \\text{${to.replace(/_/g, "\\_")}})`)
+          .map(([from, to]) => `(${from} / ${latex().text(to).get()})`)
           .join(" ");
 
         return subFormulas.map(({ formula, sign }, idx) => ({
-          value: `\\mathcal{M} ${sign === true ? "\\models" : "\\not\\models"} ${formula.toTex()}[ e${valuationText} ]`,
+          value: latex()
+            .M()
+            .models(sign)
+            .formula(formula)
+            .valuation(valuationText)
+            .get(),
           onClick: () => dispatch(addBeta({ id, formula: idx })),
         }));
       }
 
       case "gamma": {
-        // This is a hacky way to get winElement, but recomputing can be expensive.
-        const winElement = latestHistory?.winElement ?? "";
+        const { winElement } = gameButtons;
 
         return [
           {

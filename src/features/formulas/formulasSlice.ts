@@ -347,60 +347,33 @@ export const selectCurrentAssignment = createSelector(
   },
 );
 
-// TODO: possibly redundant
-export const selectGameButtons = createSelector(
-  [selectCurrentGameFormula, selectValidatedDomain],
-  ({ sign, formula }, { parsed: domain }) => {
-    if (formula.getSignedSubFormulas(sign).length === 0) {
-      return;
-    }
-
-    const signedType = formula.getSignedType(sign);
-
-    if (
-      signedType === SignedFormulaType.DELTA &&
-      formula instanceof QuantifiedFormula
-    ) {
-      return {
-        type: "delta",
-        elements: domain ?? [],
-        variableName: formula.variableName,
-      } as const;
-    }
-
-    if (signedType === SignedFormulaType.BETA) {
-      return {
-        type: "beta",
-        subFormulas: formula.getSignedSubFormulas(sign),
-      } as const;
-    }
-
-    return signedType === SignedFormulaType.ALPHA
-      ? ({ type: "alpha" } as const)
-      : ({ type: "gamma" } as const);
-  },
-);
+interface HistoryStep {
+  sf: SignedFormula;
+  rootFormulaEval: boolean;
+  valuation: Map<string, string>;
+  type: "alpha" | "beta" | "gamma" | "delta";
+  winFormula?: SignedFormula;
+  winElement?: string;
+  winIndex?: number;
+}
 
 function getStep(
   signedFormula: SignedFormula,
   valuation: Map<string, string>,
   structure: Structure,
   stableDomain: string[],
-  evaluated: boolean,
+  rootFormulaEval: boolean,
   choiceIndex?: number,
 ) {
   const { formula, sign } = signedFormula;
   const type = formula.getSignedType(sign);
 
-  const step: {
-    sf: SignedFormula;
-    evaluated: boolean;
-    valuation: Map<string, string>;
-    type: "alpha" | "beta" | "gamma" | "delta";
-    winFormula?: SignedFormula;
-    winElement?: string;
-    winIndex?: number;
-  } = { sf: signedFormula, evaluated, valuation, type };
+  const step: HistoryStep = {
+    sf: signedFormula,
+    rootFormulaEval,
+    valuation,
+    type,
+  };
 
   const subFormulas = formula.getSignedSubFormulas(sign);
 
@@ -471,15 +444,7 @@ export const selectHistoryData = createSelector(
     structure,
     { value: domain },
   ) => {
-    const history: {
-      sf: SignedFormula;
-      evaluated: boolean;
-      valuation: Map<string, string>;
-      type: "alpha" | "beta" | "gamma" | "delta";
-      winFormula?: SignedFormula;
-      winElement?: string;
-      winIndex?: number;
-    }[] = [];
+    const history: HistoryStep[] = [];
 
     if (!formula || evaluated === undefined || initialGuess === null) {
       return [];
@@ -561,6 +526,76 @@ export const selectHistoryData = createSelector(
   },
 );
 
+export function getDiffAndNew(
+  a: Map<string, string>,
+  b: Map<string, string>,
+): Map<string, string> {
+  return new Map(
+    Array.from(b.entries()).filter(
+      ([key, value]) => !a.has(key) || a.get(key) !== value,
+    ),
+  );
+}
+
+export const selectGameButtons = createSelector(
+  [
+    selectCurrentGameFormula,
+    selectValidatedDomain,
+    selectHistoryData,
+    selectValuation,
+  ],
+  ({ sign, formula }, { parsed: domain }, history, initialValuation) => {
+    const latestHistory = history.at(-1);
+
+    if (formula.getSignedSubFormulas(sign).length === 0 || !latestHistory) {
+      return;
+    }
+
+    const signedType = formula.getSignedType(sign);
+
+    if (signedType === SignedFormulaType.ALPHA) {
+      return {
+        type: "alpha",
+        winFormulaIdx: latestHistory?.winIndex ?? 0,
+      } as const;
+    }
+
+    if (signedType === SignedFormulaType.BETA) {
+      const valuationDiff = getDiffAndNew(
+        initialValuation,
+        latestHistory?.valuation ?? new Map(),
+      );
+
+      return {
+        type: "beta",
+        subFormulas: formula.getSignedSubFormulas(sign),
+        valuationDiff,
+      } as const;
+    }
+
+    if (
+      signedType === SignedFormulaType.GAMMA &&
+      formula instanceof QuantifiedFormula
+    ) {
+      return {
+        type: "gamma",
+        winElement: latestHistory.winElement ?? "",
+      } as const;
+    }
+
+    if (
+      signedType === SignedFormulaType.DELTA &&
+      formula instanceof QuantifiedFormula
+    ) {
+      return {
+        type: "delta",
+        elements: domain ?? [],
+        variableName: formula.variableName,
+      } as const;
+    }
+  },
+);
+
 export const selectIsVerifiedGame = createSelector(
   [selectHistoryData, selectStructure],
   (data, structure) => {
@@ -578,7 +613,7 @@ export const selectIsVerifiedGame = createSelector(
         lastFormula instanceof PredicateAtom ||
         lastFormula instanceof EqualityAtom
       ) {
-        const originallyCorrect = first.evaluated === first.sf.sign;
+        const originallyCorrect = first.rootFormulaEval === first.sf.sign;
         const didWin =
           lastFormula.eval(structure, last.valuation) === last.sf.sign;
 
