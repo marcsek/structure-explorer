@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
 import { Button } from "react-bootstrap";
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
   sent?: boolean;
   recieved?: boolean;
   change?: boolean;
@@ -13,7 +12,7 @@ interface Props {
 }
 
 export default function MessageBubble({
-  children: message, //react children?
+  children: message,
   sent,
   change,
   win,

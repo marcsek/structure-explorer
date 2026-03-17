@@ -38,6 +38,5 @@ export const listenerShouldIgnore = (action: Action): boolean =>
   (action as any).meta?.ignore === true;
 
 const EMPTY_ARRAY: [] = [];
-
 export const fallbackToEmptyArray = <T>(array: T[] | undefined) =>
   array === undefined || array.length === 0 ? EMPTY_ARRAY : array;

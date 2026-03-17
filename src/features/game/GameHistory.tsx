@@ -7,7 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectStructure } from "../structure/structureSlice";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
-import MessageBubble from "../../components_helper/MessageBubble";
+import MessageBubble from "../../components_helper/bubbles/MessageBubble";
 import { useEffect, useRef, type ReactNode } from "react";
 import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
@@ -61,10 +61,10 @@ export default function GameHistory({ id }: Props) {
 
     bubbles.push(getAssumptionBubble(sf, valuationText));
 
-    const hasSubformulas = sf.formula.getSubFormulas().length > 0;
+    const hasSubFormulas = sf.formula.getSubFormulas().length > 0;
 
     if (
-      (!hasSubformulas && sf.formula instanceof PredicateAtom) ||
+      (!hasSubFormulas && sf.formula instanceof PredicateAtom) ||
       sf.formula instanceof EqualityAtom
     ) {
       const satisfied = sf.formula.eval(structure, valuation) === sf.sign;

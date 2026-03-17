@@ -51,7 +51,7 @@ function filterAction(action: unknown) {
   return true;
 }
 
-export function prepare(initialState?: any): PrepareResult {
+function prepare(initialState?: any): PrepareResult {
   const storeListener: Middleware<object, RootState> =
     () => (next) => (action) => {
       if (instance?.handleStoreChange && filterAction(action))

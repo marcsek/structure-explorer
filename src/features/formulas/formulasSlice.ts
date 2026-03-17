@@ -553,45 +553,38 @@ export const selectGameButtons = createSelector(
 
     const signedType = formula.getSignedType(sign);
 
-    if (signedType === SignedFormulaType.ALPHA) {
-      return {
-        type: "alpha",
-        winFormulaIdx: latestHistory?.winIndex ?? 0,
-      } as const;
-    }
+    switch (signedType) {
+      case SignedFormulaType.ALPHA:
+        return {
+          type: "alpha",
+          winFormulaIdx: latestHistory?.winIndex ?? 0,
+        } as const;
 
-    if (signedType === SignedFormulaType.BETA) {
-      const valuationDiff = getDiffAndNew(
-        initialValuation,
-        latestHistory?.valuation ?? new Map(),
-      );
+      case SignedFormulaType.BETA: {
+        const valuationDiff = getDiffAndNew(
+          initialValuation,
+          latestHistory?.valuation ?? new Map(),
+        );
 
-      return {
-        type: "beta",
-        subFormulas: formula.getSignedSubFormulas(sign),
-        valuationDiff,
-      } as const;
-    }
+        return {
+          type: "beta",
+          subFormulas: formula.getSignedSubFormulas(sign),
+          valuationDiff,
+        } as const;
+      }
 
-    if (
-      signedType === SignedFormulaType.GAMMA &&
-      formula instanceof QuantifiedFormula
-    ) {
-      return {
-        type: "gamma",
-        winElement: latestHistory.winElement ?? "",
-      } as const;
-    }
+      case SignedFormulaType.GAMMA:
+        return {
+          type: "gamma",
+          winElement: latestHistory.winElement ?? "",
+        } as const;
 
-    if (
-      signedType === SignedFormulaType.DELTA &&
-      formula instanceof QuantifiedFormula
-    ) {
-      return {
-        type: "delta",
-        elements: domain ?? [],
-        variableName: formula.variableName,
-      } as const;
+      case SignedFormulaType.DELTA:
+        return {
+          type: "delta",
+          elements: domain ?? [],
+          variableName: (formula as QuantifiedFormula).variableName,
+        } as const;
     }
   },
 );

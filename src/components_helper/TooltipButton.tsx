@@ -2,10 +2,9 @@ import { faQuestion } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { Button, OverlayTrigger, Popover } from "react-bootstrap";
-import type { ReactNode } from "react";
 
 interface TooltipButtonProps {
-  text: ReactNode;
+  text: React.ReactNode;
 }
 
 export default function TooltipButton({ text }: TooltipButtonProps) {

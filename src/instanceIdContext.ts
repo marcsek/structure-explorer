@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import { nanoid } from "@reduxjs/toolkit";
 
 export const InstanceIdContext = createContext<string>("");
 
@@ -7,5 +8,5 @@ export function useInstanceId() {
 }
 
 export function generateInstanceId() {
-  return Math.random().toString(36).slice(2, 8);
+  return nanoid();
 }

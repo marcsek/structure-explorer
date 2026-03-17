@@ -26,6 +26,7 @@ function App({ viewOnlyMode }: AppProps) {
         <Row className="g-3">
           <Header />
         </Row>
+
         <Row className="gx-4 split-pane">
           <Col xs={12} lg={6} className="vh-pane-left col-divider">
             <LanguageComponent />

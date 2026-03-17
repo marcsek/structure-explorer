@@ -1,6 +1,6 @@
 import ChoiceBubbles, {
   type ChoiceBubble,
-} from "../../components_helper/ChoiceBubble";
+} from "../../components_helper/bubbles/ChoiceBubble";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   addAlpha,
@@ -9,7 +9,7 @@ import {
   addGamma,
   selectGameButtons,
 } from "../formulas/formulasSlice";
-import SelectBubble from "../../components_helper/SelectBubble";
+import SelectBubble from "../../components_helper/bubbles/SelectBubble";
 import { InlineMath } from "react-katex";
 import { latex } from "../../common/utils";
 

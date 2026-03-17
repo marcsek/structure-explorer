@@ -265,7 +265,12 @@ export const generateExplanation = (
 
     const connective = sign === won ? "\\in" : "\\not\\in";
 
-    explanationBody = `(${termNames}) = (${termValues}) ${connective} i(${interpretation})`;
+    const equality =
+      formula.terms.length > 1
+        ? `(${termNames}) = (${termValues})`
+        : `${termNames} = ${termValues}`;
+
+    explanationBody = `${equality} ${connective} i(${interpretation})`;
   }
 
   if (formula instanceof EqualityAtom) {

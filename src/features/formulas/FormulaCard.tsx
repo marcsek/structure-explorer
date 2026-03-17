@@ -144,33 +144,30 @@ function ContextFormulasDropdown({
       >
         <FontAwesomeIcon icon={faCheckDouble} size="sm" /> Add all
       </Dropdown.Item>
-      {nonEmptyFormulasByType.length > 0 ? (
-        nonEmptyFormulasByType.map(([formulaType, formulaWithType]) => (
-          <React.Fragment key={formulaType}>
-            <Dropdown.Divider />
-            <Dropdown.ItemText className="drop-down-title-text">
-              {formulaTypeDisplayNames[formulaType]}
-            </Dropdown.ItemText>
 
-            {formulaWithType.map(({ name, formula }) => (
-              <Dropdown.Item
-                key={name}
-                as={Button}
-                size="sm"
-                disabled={presentContextFormulas.has(name)}
-                onClick={() => {
-                  dispatch(addFormulas([{ name, text: formula }]));
-                  dispatch(UndoActions.checkpoint());
-                }}
-              >
-                {name}
-              </Dropdown.Item>
-            ))}
-          </React.Fragment>
-        ))
-      ) : (
-        <Dropdown.ItemText>No formulas to add.</Dropdown.ItemText>
-      )}
+      {nonEmptyFormulasByType.map(([formulaType, formulaWithType]) => (
+        <React.Fragment key={formulaType}>
+          <Dropdown.Divider />
+          <Dropdown.ItemText className="drop-down-title-text">
+            {formulaTypeDisplayNames[formulaType]}
+          </Dropdown.ItemText>
+
+          {formulaWithType.map(({ name, formula }) => (
+            <Dropdown.Item
+              key={name}
+              as={Button}
+              size="sm"
+              disabled={presentContextFormulas.has(name)}
+              onClick={() => {
+                dispatch(addFormulas([{ name, text: formula }]));
+                dispatch(UndoActions.checkpoint());
+              }}
+            >
+              {name}
+            </Dropdown.Item>
+          ))}
+        </React.Fragment>
+      ))}
     </DropdownButton>
   );
 }
