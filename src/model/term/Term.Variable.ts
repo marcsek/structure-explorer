@@ -20,7 +20,7 @@ class Variable extends Term {
 
   /**
    * Return intepretation of variable.
-   * @param {Structure} structure
+   * @param {Structure} _
    * @param {Map} e variables valuation
    * @return {DomainElement} domain item
    */

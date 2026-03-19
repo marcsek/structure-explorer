@@ -24,7 +24,7 @@ import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../common/logging";
 import { getFormulaFactories } from "../../common/formulas";
-import { getRandomElementIndex } from "../../common/utils";
+import { getRandomElement } from "../../common/utils";
 
 export interface FormulaState {
   name?: string;
@@ -128,6 +128,7 @@ export const formulasSlice = createSlice({
 
       state.allFormulas[id].gameChoices.push({ formula, type: "alpha" });
     },
+
     addBeta: (
       state,
       action: PayloadAction<{
@@ -389,15 +390,15 @@ function getStep(
       formula.signedFormulaToString(sign),
     );
 
+    // If win index is invalid, reset it to 0. This will enable
+    // selectGameResetIndex to reset properly.
     if (
       step.winIndex === undefined ||
       !wFormulasStrings.includes(
         subFormulas[step.winIndex].formula.signedFormulaToString(sign) ?? "",
       )
     ) {
-      const [, winFormulaIndex] =
-        winFormulas[getRandomElementIndex(winFormulas)];
-      step.winIndex = winFormulaIndex;
+      step.winIndex = 0;
     }
 
     step.winFormula = subFormulas[step.winIndex];
@@ -407,17 +408,16 @@ function getStep(
     const winElements = formula.winningElements(
       sign,
       structure,
-      stableDomain,
       valuation,
+      stableDomain,
     );
-    const wElementsIndexes = winElements.map((e) => e[1]);
+    const wElementsIndexes = winElements.map(([, idx]) => idx);
 
     if (
       step.winIndex === undefined ||
       !wElementsIndexes.includes(step.winIndex)
     ) {
-      const [, wIndex] = winElements[getRandomElementIndex(winElements)];
-      step.winIndex = wIndex;
+      step.winIndex = 0;
     }
 
     step.winElement = stableDomain[step.winIndex];
@@ -555,10 +555,7 @@ export const selectGameButtons = createSelector(
 
     switch (signedType) {
       case SignedFormulaType.ALPHA:
-        return {
-          type: "alpha",
-          winFormulaIdx: latestHistory?.winIndex ?? 0,
-        } as const;
+        return { type: "alpha" } as const;
 
       case SignedFormulaType.BETA: {
         const valuationDiff = getDiffAndNew(
@@ -574,10 +571,7 @@ export const selectGameButtons = createSelector(
       }
 
       case SignedFormulaType.GAMMA:
-        return {
-          type: "gamma",
-          winElement: latestHistory.winElement ?? "",
-        } as const;
+        return { type: "gamma" } as const;
 
       case SignedFormulaType.DELTA:
         return {
@@ -727,6 +721,46 @@ export const updateFormulaText =
     }
 
     dispatch(updateText({ id, text }));
+  };
+
+export type GameChoice =
+  | { id: number; type: "alpha" }
+  | { id: number; formula: number; type: "beta" }
+  | { id: number; type: "gamma" }
+  | { id: number; element: string; type: "delta" };
+
+export const addGameChoice =
+  (gameChoice: GameChoice): AppThunk =>
+  (dispatch, getState) => {
+    const { id } = gameChoice;
+
+    if (gameChoice.type === "beta") {
+      dispatch(addBeta({ id, formula: gameChoice.formula }));
+      return;
+    } else if (gameChoice.type === "delta") {
+      dispatch(addDelta({ id, element: gameChoice.element }));
+      return;
+    }
+
+    const state = getState();
+    const { sign, formula } = selectCurrentGameFormula(state, id);
+    const struct = selectStructure(getState());
+    const valuation = selectCurrentAssignment(state, id);
+
+    if (gameChoice.type === "alpha") {
+      const winFormulas = formula.winningSubformulas(sign, struct, valuation);
+      const [, winFormulaIndex] = getRandomElement(winFormulas);
+
+      dispatch(addAlpha({ id, formula: winFormulaIndex }));
+    } else if (
+      gameChoice.type === "gamma" &&
+      formula instanceof QuantifiedFormula
+    ) {
+      const winElements = formula.winningElements(sign, struct, valuation);
+      const [wElement] = getRandomElement(winElements);
+
+      dispatch(addGamma({ id, element: wElement }));
+    }
   };
 
 export default formulasSlice.reducer;

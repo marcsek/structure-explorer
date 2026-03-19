@@ -2,13 +2,7 @@ import ChoiceBubbles, {
   type ChoiceBubble,
 } from "../../components_helper/bubbles/ChoiceBubble";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import {
-  addAlpha,
-  addBeta,
-  addDelta,
-  addGamma,
-  selectGameButtons,
-} from "../formulas/formulasSlice";
+import { addGameChoice, selectGameButtons } from "../formulas/formulasSlice";
 import SelectBubble from "../../components_helper/bubbles/SelectBubble";
 import { InlineMath } from "react-katex";
 import { latex } from "../../common/utils";
@@ -37,8 +31,7 @@ export default function GameControls({ id }: GameControlsProps) {
         return [
           {
             value: "\\text{Continue}",
-            onClick: () =>
-              dispatch(addAlpha({ id, formula: gameButtons.winFormulaIdx })),
+            onClick: () => dispatch(addGameChoice({ id, type: "alpha" })),
           },
         ];
 
@@ -56,18 +49,16 @@ export default function GameControls({ id }: GameControlsProps) {
             .formula(formula)
             .valuation(valuationText)
             .get(),
-          onClick: () => dispatch(addBeta({ id, formula: idx })),
+          onClick: () =>
+            dispatch(addGameChoice({ id, type: "beta", formula: idx })),
         }));
       }
 
       case "gamma": {
-        const { winElement } = gameButtons;
-
         return [
           {
             value: "\\text{Continue}",
-            onClick: () =>
-              winElement && dispatch(addGamma({ id, element: winElement })),
+            onClick: () => dispatch(addGameChoice({ id, type: "gamma" })),
           },
         ];
       }
@@ -75,7 +66,8 @@ export default function GameControls({ id }: GameControlsProps) {
       case "delta":
         return gameButtons.elements.map((element) => ({
           value: element,
-          onClick: () => dispatch(addDelta({ id, element })),
+          onClick: () =>
+            dispatch(addGameChoice({ id, type: "delta", element })),
         }));
 
       default:

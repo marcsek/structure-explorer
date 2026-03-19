@@ -1,7 +1,7 @@
 import type Formula from "../model/formula/Formula";
 
-export function getRandomElementIndex<T>(arr: T[]) {
-  return Math.floor(Math.random() * arr.length);
+export function getRandomElement<T>(arr: T[]) {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 export function latex(parts: string[] = []) {

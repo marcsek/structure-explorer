@@ -40,10 +40,11 @@ abstract class QuantifiedFormula extends Formula {
   winningElements(
     sign: boolean,
     structure: Structure,
-    domain: string[],
     e: Valuation,
+    stableDomain?: string[],
   ): [DomainElement, number][] {
     dev.time("winningElements duration");
+    const domain = stableDomain ?? [...structure.domain];
 
     const signedFormula = this.getSignedSubFormulas(sign)[0];
 
