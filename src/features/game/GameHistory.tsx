@@ -55,7 +55,7 @@ export default function GameHistory({ id }: Props) {
   const bubbles: BubbleFormat[] = [];
 
   let bubbleIdx = 0;
-  for (const { sf, valuation, type, winFormula, winElement } of data) {
+  for (const { sf, valuation, type, winFormula } of data) {
     const valuationDiff = getDiffAndNew(initialValuation, valuation);
     const valuationText = latex().valuationPairs(valuationDiff);
 
@@ -68,7 +68,9 @@ export default function GameHistory({ id }: Props) {
       sf.formula instanceof EqualityAtom
     ) {
       const satisfied = sf.formula.eval(structure, valuation) === sf.sign;
-      const originallyCorrect = data[0].rootFormulaEval === data[0].sf.sign;
+      const originalFormula = data[0].sf;
+      const originallyCorrect =
+        data[0].rootFormulaEval === originalFormula.sign;
 
       const explanation = generateExplanation(
         sf,
@@ -79,7 +81,13 @@ export default function GameHistory({ id }: Props) {
       );
 
       bubbles.push(
-        ...getGameResultBubble(sf, explanation, satisfied, originallyCorrect),
+        ...getGameResultBubble(
+          sf,
+          explanation,
+          satisfied,
+          originalFormula,
+          originallyCorrect,
+        ),
       );
 
       break;
@@ -88,7 +96,7 @@ export default function GameHistory({ id }: Props) {
     const isLastBubble = bubbleIdx >= choices.length;
 
     if (type === "alpha" && winFormula) {
-      bubbles.push(...getAlphaBubbles(winFormula, valuationText, isLastBubble));
+      bubbles.push(...getAlphaBubbles(sf, valuationText, isLastBubble));
     }
 
     if (type === "beta") {
@@ -104,9 +112,7 @@ export default function GameHistory({ id }: Props) {
     }
 
     if (type === "gamma") {
-      bubbles.push(
-        ...getGammaBubbles(sf, valuationText, isLastBubble, winElement ?? ""),
-      );
+      bubbles.push(...getGammaBubbles(sf, valuationText, isLastBubble));
     }
 
     if (type === "delta") {

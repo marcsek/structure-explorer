@@ -15,7 +15,7 @@ export const getAssumptionBubble = (
   return {
     text: (
       <>
-        You assume that{" "}
+        Let's assume that{" "}
         <InlineMath>
           {latex().M().models(sign).formula(formula).valuation(valuation).get()}
         </InlineMath>
@@ -31,20 +31,50 @@ export const getAlphaBubbles = (
   isLast: boolean,
 ) => {
   const bubbles: BubbleFormat[] = [];
-
   const { sign, formula } = sFormula;
+  const subFormulas = formula.getSignedSubFormulas(sign);
 
-  bubbles.push({
-    text: (
-      <>
-        Then{" "}
-        <InlineMath>
-          {latex().M().models(sign).formula(formula).valuation(valuation).get()}
-        </InlineMath>
-      </>
-    ),
-    sender: "game",
-  });
+  if (subFormulas.length > 1) {
+    bubbles.push({
+      text: <>Then simultaneously:</>,
+      sender: "game",
+    });
+
+    subFormulas.forEach((sf) =>
+      bubbles.push({
+        text: (
+          <InlineMath>
+            {latex()
+              .M()
+              .models(sf.sign)
+              .formula(sf.formula)
+              .valuation(valuation)
+              .get()}
+          </InlineMath>
+        ),
+        sender: "game",
+      }),
+    );
+  } else if (subFormulas.length === 1) {
+    const sf = subFormulas[0];
+
+    bubbles.push({
+      text: (
+        <>
+          Then{" "}
+          <InlineMath>
+            {latex()
+              .M()
+              .models(sf.sign)
+              .formula(sf.formula)
+              .valuation(valuation)
+              .get()}
+          </InlineMath>
+        </>
+      ),
+      sender: "game",
+    });
+  }
 
   if (!isLast) {
     bubbles.push({ text: <>Continue</>, sender: "player" });
@@ -111,7 +141,6 @@ export const getGammaBubbles = (
   sFormula: SignedFormula,
   valuation: string,
   isLast: boolean,
-  winElement: string,
 ) => {
   const bubbles: BubbleFormat[] = [];
   const { sign, formula } = sFormula;
@@ -125,8 +154,7 @@ export const getGammaBubbles = (
         <InlineMath>
           {latex().M().models(sign).formula(formula).valuation(valuation).get()}
         </InlineMath>{" "}
-        also when we assign element{" "}
-        <InlineMath>{latex().text(winElement).get()}</InlineMath> to{" "}
+        also when we assign any element to{" "}
         <InlineMath>{formula.variableName}</InlineMath>
       </>
     ),
@@ -185,6 +213,7 @@ export const getGameResultBubble = (
   sFormula: SignedFormula,
   explanation: JSX.Element,
   won: boolean,
+  originalFormula: SignedFormula,
   originallyCorrect: boolean,
 ) => {
   const bubbles: BubbleFormat[] = [];
@@ -222,7 +251,12 @@ export const getGameResultBubble = (
         )}
         Your initial assumption that{" "}
         <InlineMath>
-          {latex().M().models(sign).formula(formula).valuation().get()}
+          {latex()
+            .M()
+            .models(originalFormula.sign)
+            .formula(originalFormula.formula)
+            .valuation()
+            .get()}
         </InlineMath>{" "}
         was
         {originallyCorrect ? " correct." : " incorrect."}{" "}
