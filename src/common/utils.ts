@@ -16,11 +16,13 @@ export function latex(parts: string[] = []) {
     M: () => push("\\mathcal{M}"),
     models: (m: boolean) => push(m ? "\\models" : "\\not\\models"),
     formula: (f: Formula) => push(f.toTex()),
-    valuation: (vars?: string) => push(`[e${vars ?? ""}]`),
+    valuation: (vars?: string) => push(`\\;[e${vars ?? ""}]`),
     valuationPairs: (p: Map<string, string>) =>
       Array.from(p)
         .map(([from, to]) => `(${from} / ${latex().text(to).get()})`)
         .join(" "),
+    wildcardValuationPairs: (p: Map<string, string>, v: string) =>
+      latex().valuationPairs(p) + `(${v} / d)`,
     altValuation: (vars?: string) => push(`[e'${vars ?? ""}]`),
     rawValuation: (vars?: string) => push(`e${vars ?? ""}`),
     text: (s: string) => push(`\\text{${escape(s)}}`),

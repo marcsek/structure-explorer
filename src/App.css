@@ -10,6 +10,10 @@
   display: none;
 }
 
+.secondary-marker::marker {
+  color: var(--bs-tertiary-color);
+}
+
 .btn-fix-height {
   height: 31px;
 }

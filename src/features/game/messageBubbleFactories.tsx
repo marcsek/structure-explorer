@@ -36,25 +36,21 @@ export const getAlphaBubbles = (
 
   if (subFormulas.length > 1) {
     bubbles.push({
-      text: <>Then simultaneously:</>,
-      sender: "game",
-    });
-
-    subFormulas.forEach((sf) =>
-      bubbles.push({
-        text: (
-          <InlineMath>
-            {latex()
+      text: (
+        <BubbleList
+          title="Then simultaneously:"
+          items={subFormulas.map((sf) =>
+            latex()
               .M()
               .models(sf.sign)
               .formula(sf.formula)
               .valuation(valuation)
-              .get()}
-          </InlineMath>
-        ),
-        sender: "game",
-      }),
-    );
+              .get(),
+          )}
+        />
+      ),
+      sender: "game",
+    });
   } else if (subFormulas.length === 1) {
     const sf = subFormulas[0];
 
@@ -95,25 +91,21 @@ export const getBetaBubbles = (
   const subFormulas = formula.getSignedSubFormulas(sign);
 
   bubbles.push({
-    text: <>Which option is true?</>,
+    text: (
+      <BubbleList
+        title="Which option is true?"
+        items={subFormulas.map((sf) =>
+          latex()
+            .M()
+            .models(sf.sign)
+            .formula(sf.formula)
+            .valuation(valuation)
+            .get(),
+        )}
+      />
+    ),
     sender: "game",
   });
-
-  subFormulas.forEach((s) =>
-    bubbles.push({
-      text: (
-        <InlineMath>
-          {latex()
-            .M()
-            .models(s.sign)
-            .formula(s.formula)
-            .valuation(valuation)
-            .get()}
-        </InlineMath>
-      ),
-      sender: "game",
-    }),
-  );
 
   if (!isLast && choiceIdx !== undefined) {
     const { sign: chSign, formula: chFormula } = subFormulas[choiceIdx];
@@ -139,7 +131,7 @@ export const getBetaBubbles = (
 
 export const getGammaBubbles = (
   sFormula: SignedFormula,
-  valuation: string,
+  valuation: Map<string, string>,
   isLast: boolean,
 ) => {
   const bubbles: BubbleFormat[] = [];
@@ -147,15 +139,24 @@ export const getGammaBubbles = (
 
   if (!(formula instanceof QuantifiedFormula)) return bubbles;
 
+  const { sign: subSign, formula: subFormula } =
+    formula.getSignedSubFormulas(sign)[0];
+
   bubbles.push({
     text: (
       <>
         Then{" "}
         <InlineMath>
-          {latex().M().models(sign).formula(formula).valuation(valuation).get()}
+          {latex()
+            .M()
+            .models(subSign)
+            .formula(subFormula)
+            .valuation(
+              latex().wildcardValuationPairs(valuation, formula.variableName),
+            )
+            .get()}
         </InlineMath>{" "}
-        also when we assign any element to{" "}
-        <InlineMath>{formula.variableName}</InlineMath>
+        for any domain element <InlineMath>d</InlineMath>
       </>
     ),
     sender: "game",
@@ -170,7 +171,7 @@ export const getGammaBubbles = (
 
 export const getDeltaBubbles = (
   sFormula: SignedFormula,
-  valuation: string,
+  valuation: Map<string, string>,
   isLast: boolean,
   bubbleIdx: number,
   element: string,
@@ -180,14 +181,25 @@ export const getDeltaBubbles = (
 
   if (!(formula instanceof QuantifiedFormula)) return bubbles;
 
+  const { sign: subSign, formula: subFormula } =
+    formula.getSignedSubFormulas(sign)[0];
+
   bubbles.push({
     text: (
       <>
-        Which domain element should we assign to{" "}
-        <InlineMath>{formula.variableName}</InlineMath> to show that{" "}
+        Which domain element <InlineMath>d</InlineMath> should we assign to{" "}
+        <InlineMath>{formula.variableName}</InlineMath> so that{" "}
         <InlineMath>
-          {latex().M().models(sign).formula(formula).valuation(valuation).get()}
+          {latex()
+            .M()
+            .models(subSign)
+            .formula(subFormula)
+            .valuation(
+              latex().wildcardValuationPairs(valuation, formula.variableName),
+            )
+            .get()}
         </InlineMath>
+        ?
       </>
     ),
     sender: "game",
@@ -262,8 +274,8 @@ export const getGameResultBubble = (
         {originallyCorrect ? " correct." : " incorrect."}{" "}
         {couldHaveWon && (
           <>
-            Find incorrect intermediate answers and correct them! You can use{" "}
-            <strong>change button</strong> next to your answers for that.
+            Find incorrect intermediate answers and correct them! You can use
+            the <strong>Change</strong> link next to your answers for that.
           </>
         )}
       </>
@@ -333,9 +345,24 @@ export const generateExplanation = (
 
   return (
     <>
-      <InlineMath>{"[e']"}</InlineMath>, since{" "}
+      <InlineMath>{"\\;[e']"}</InlineMath>, since{" "}
       <InlineMath>{explanationBody}</InlineMath> where{" "}
       <InlineMath>{`e' = ${latex().rawValuation(valuationText).get()}`}</InlineMath>
     </>
   );
 };
+
+function BubbleList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <>
+      {title}
+      <ul className="m-0 ps-4">
+        {items.map((item) => (
+          <li className="pt-1 secondary-marker" key={item}>
+            <InlineMath>{item}</InlineMath>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}

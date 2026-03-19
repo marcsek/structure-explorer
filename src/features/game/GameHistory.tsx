@@ -112,14 +112,14 @@ export default function GameHistory({ id }: Props) {
     }
 
     if (type === "gamma") {
-      bubbles.push(...getGammaBubbles(sf, valuationText, isLastBubble));
+      bubbles.push(...getGammaBubbles(sf, valuationDiff, isLastBubble));
     }
 
     if (type === "delta") {
       bubbles.push(
         ...getDeltaBubbles(
           sf,
-          valuationText,
+          valuationDiff,
           isLastBubble,
           bubbleIdx,
           choices[bubbleIdx]?.element ?? "",
