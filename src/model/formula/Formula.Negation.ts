@@ -51,7 +51,7 @@ class Negation extends Formula {
   }
 
   getFreeVariables(): Set<Symbol> {
-    return this.getVariables();
+    return this.subFormula.getFreeVariables();
   }
 
   getSignedType(): SignedFormulaType {

@@ -239,6 +239,22 @@ const evaluateFormula = (
       factories,
     );
 
+    const freeVariables = formula.getFreeVariables();
+    const unsetFreeVars = [...freeVariables].filter((v) => !valuation.has(v));
+
+    const unsetFreeVarsLen = unsetFreeVars.length;
+    if (unsetFreeVars.length > 0) {
+      const correctPluralVars = `variable${unsetFreeVarsLen > 1 ? "s" : ""}`;
+      const correctPluralVerb = unsetFreeVarsLen > 1 ? "are" : "is";
+
+      return {
+        error: new Error(
+          `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
+but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
+        ),
+      };
+    }
+
     const evaluated = formula.eval(structure, valuation);
 
     dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
@@ -390,15 +406,17 @@ function getStep(
       formula.signedFormulaToString(sign),
     );
 
-    // If win index is invalid, reset it to 0. This will enable
+    // If win index is invalid, set it to any winIndex. This will enable
     // selectGameResetIndex to reset properly.
+    // TODO: Cut-off history here?
     if (
       step.winIndex === undefined ||
       !wFormulasStrings.includes(
         subFormulas[step.winIndex].formula.signedFormulaToString(sign) ?? "",
       )
     ) {
-      step.winIndex = 0;
+      const [, wFormulaIndex] = winFormulas[0];
+      step.winIndex = wFormulaIndex;
     }
 
     step.winFormula = subFormulas[step.winIndex];
@@ -417,7 +435,8 @@ function getStep(
       step.winIndex === undefined ||
       !wElementsIndexes.includes(step.winIndex)
     ) {
-      step.winIndex = 0;
+      const [, wElementIndex] = winElements[0];
+      step.winIndex = wElementIndex;
     }
 
     step.winElement = stableDomain[step.winIndex];

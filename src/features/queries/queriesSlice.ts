@@ -170,14 +170,30 @@ export const selectEvaluatedQuery = createSelector(
 
     if (!parsed.formula) return parsed;
 
-    // Eval to detect non-parse errors (e.g., unassigned free variables)
+    const freeVariables = parsed.formula.getFreeVariables();
+    const unsetFreeVars = [...freeVariables].filter(
+      (v) => !newValuation.has(v),
+    );
+
+    const unsetFreeVarsLen = unsetFreeVars.length;
+    if (unsetFreeVars.length > 0) {
+      const correctPluralVars = `variable${unsetFreeVarsLen > 1 ? "s" : ""}`;
+      const correctPluralVerb = unsetFreeVarsLen > 1 ? "are" : "is";
+
+      return {
+        error: new Error(
+          `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
+but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
+        ),
+      };
+    }
+
     try {
       parsed.formula.eval(structure, newValuation);
     } catch (error) {
       if (error instanceof Error) return { error };
     }
 
-    const freeVariables = parsed.formula.getFreeVariables();
     const notFree = [...queryVariables.parsed].filter(
       (v) => !freeVariables.has(v),
     );
@@ -189,7 +205,8 @@ export const selectEvaluatedQuery = createSelector(
 
       return {
         error: new Error(
-          `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} not free on the right-hand side of the query definition.`,
+          `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} 
+not free on the right-hand side of the query definition.`,
         ),
       };
     }

@@ -6,6 +6,7 @@ import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
 import type Structure from "../../model/Structure";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
+import { BubbleList } from "./BubbleList";
 
 export const getAssumptionBubble = (
   sFormula: SignedFormula,
@@ -37,17 +38,20 @@ export const getAlphaBubbles = (
   if (subFormulas.length > 1) {
     bubbles.push({
       text: (
-        <BubbleList
-          title="Then simultaneously:"
-          items={subFormulas.map((sf) =>
-            latex()
-              .M()
-              .models(sf.sign)
-              .formula(sf.formula)
-              .valuation(valuation)
-              .get(),
-          )}
-        />
+        <>
+          <BubbleList
+            title="Then simultaneously:"
+            items={subFormulas.map((sf) =>
+              latex()
+                .M()
+                .models(sf.sign)
+                .formula(sf.formula)
+                .valuation(valuation)
+                .get(),
+            )}
+          />
+          <p className="m-0 mt-1">I will choose a case that may not hold.</p>
+        </>
       ),
       sender: "game",
     });
@@ -156,7 +160,8 @@ export const getGammaBubbles = (
             )
             .get()}
         </InlineMath>{" "}
-        for any domain element <InlineMath>d</InlineMath>
+        for any domain element <InlineMath>d</InlineMath>. Let me pick a
+        possible counterexample.
       </>
     ),
     sender: "game",
@@ -351,18 +356,3 @@ export const generateExplanation = (
     </>
   );
 };
-
-function BubbleList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <>
-      {title}
-      <ul className="m-0 ps-4">
-        {items.map((item) => (
-          <li className="pt-1 secondary-marker" key={item}>
-            <InlineMath>{item}</InlineMath>
-          </li>
-        ))}
-      </ul>
-    </>
-  );
-}
