@@ -12,10 +12,10 @@ export default function getEditorControlButtons(
       text: "Text (default)",
       value: "text",
     },
-    // {
-    //   text: "Case Tree",
-    //   value: "caseTree",
-    // },
+    {
+      text: "Case Tree",
+      value: "caseTree",
+    },
   ];
 
   controlButtons.push({

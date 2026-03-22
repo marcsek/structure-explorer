@@ -19,7 +19,7 @@ import {
 } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
-import CaseTreeView from "../caseTreeView/CaseTreeView";
+import IntervalView from "../caseTreeView/IntervalView";
 
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
@@ -88,8 +88,6 @@ function DrawerEditorContent({
   const dispatch = useAppDispatch();
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
-  const [errorOverride, setErrorOverride] =
-    useState<InterpretationError | null>(null);
 
   const editorComponent = !show ? (
     <InactiveViewPlaceholder size={preservedSize} />
@@ -108,11 +106,7 @@ function DrawerEditorContent({
       locked={locked}
     />
   ) : type === "caseTree" ? (
-    <CaseTreeView
-      tupleName={tupleName}
-      tupleArity={tupleArity}
-      setErrorOverride={setErrorOverride}
-    />
+    <IntervalView tupleName={tupleName} tupleArity={tupleArity} />
   ) : (
     <GraphView
       tupleName={tupleName}
@@ -124,11 +118,9 @@ function DrawerEditorContent({
     />
   );
 
-  const finalError = errorOverride || error;
-
   return (
     <Stack
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${finalError ? "error" : ""}`}
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
@@ -162,9 +154,9 @@ function DrawerEditorContent({
           </div>
         )}
 
-        {finalError && (
+        {error && (
           <EditorError
-            error={finalError}
+            error={error}
             onRemoveInvalidClick={() => {
               dispatch(
                 removeInvalidEntries({ key: tupleName, type: tupleType }),
@@ -176,7 +168,7 @@ function DrawerEditorContent({
 
         <div
           ref={preservedSizeRef}
-          className={`drawer-editor-view-container ${finalError ? "error" : ""}`}
+          className={`drawer-editor-view-container ${error ? "error" : ""}`}
         >
           {editorComponent}
         </div>

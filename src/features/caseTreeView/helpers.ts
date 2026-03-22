@@ -1,6 +1,6 @@
 import type { CaseTreeNode } from "./caseTreeViewSlice";
 
-const variables = ["x", "y", "z", "v", "w"];
+export const intervalVariables = ["x", "y", "z", "v", "w"];
 
 export type GenerateTuplesResult =
   | { ok: true; tuples: string[][] }
@@ -12,14 +12,13 @@ export function generateTuples(
   domain: Set<string>,
   maxDepth: number,
 ) {
-  const allowedVars = variables.slice(0, maxDepth);
+  const allowedVars = intervalVariables.slice(0, maxDepth);
 
   const dfs = (
     node: CaseTreeNode,
     partialTuple: (string[] | null)[],
   ): GenerateTuplesResult => {
-    if (!node?.default || !node.variable || node.cases.length === 0)
-      return { ok: false };
+    if (!node?.default || !node.variable) return { ok: false };
     if (!allowedVars.includes(node.variable)) return { ok: false };
 
     const variableIdx = allowedVars.indexOf(node.variable);
@@ -117,165 +116,144 @@ export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
   return `n-${i}`;
 }
 
-export type CaseViewBranch =
-  | { type: "value"; value: string; error: string }
-  | { type: "ref"; switch: CaseViewSwitch };
-
-export type CaseViewCase =
+export type IntervalViewCase =
   | {
-      type: "case";
+      type: "match";
       match: string;
-      branch: CaseViewBranch;
+      caseIdx: number;
       error: string;
     }
   | {
       type: "default";
-      branch: CaseViewBranch | undefined;
-      error: string;
+      deletable: boolean;
     };
 
-export interface CaseViewSwitch {
+export interface IntervalViewNode {
   id: string;
   variable: string;
-  cases: CaseViewCase[];
-  exhausted: boolean;
-  depth: number;
-  errors: TreeSwitchError[];
+  case: IntervalViewCase;
+  errors: string[];
 }
 
-export type TreeSwitchError =
-  | { scope: "variable"; message: string }
-  | { scope: "cases"; message: string };
+export interface IntervalViewRow {
+  value: string;
+  nodes: IntervalViewNode[];
+  error: string;
+  exhausted: boolean;
+}
 
-export function getStructuredCaseView(
+export function getStructuredIntervalView(
   rootId: string,
   nodes: Record<string, CaseTreeNode>,
   domain: Set<string>,
   maxDepth: number,
 ) {
-  const allowedVars = variables.slice(0, maxDepth);
+  const allowedVars = intervalVariables.slice(0, maxDepth);
+  const rows: IntervalViewRow[] = [];
 
-  const buildSwitch = (
+  const buildRow = (
     nodeId: string,
-    seenVars: Set<string>,
-    depth: number,
-  ): CaseViewSwitch => {
+    usedVars: Set<string>,
+    currentIntervalNodes: IntervalViewNode[],
+  ) => {
     const node = nodes[nodeId];
-    const nodeErrors = getTreeNodeValidation(node, allowedVars, seenVars);
+    const nodeErrors = getTreeNodeValidation(node, allowedVars, usedVars);
 
     const cases = [
       ...node.cases.map((c) => ({ ...c, type: "case" as const })),
       { branch: node.default, type: "default" as const },
     ];
 
-    const seenVarsCpy = new Set(seenVars);
-    if (allowedVars.includes(node.variable)) seenVarsCpy.add(node.variable);
+    const usedVarsCpy = new Set(usedVars);
+    usedVarsCpy.add(node.variable);
 
     const exhausted = node.cases.length === domain.size;
 
     const matches = new Set<string>();
-    const newCases: CaseViewCase[] = [];
-    for (const nodeCase of cases) {
-      let newBranch: CaseViewBranch | undefined;
-      if (nodeCase.branch?.type === "ref") {
-        const childSwitch = buildSwitch(
-          nodeCase.branch.nodeId,
-          seenVarsCpy,
-          depth + 1,
-        );
+    for (const [idx, nodeCase] of cases.entries()) {
+      const deletable = currentIntervalNodes.length > 0 && cases.length === 1;
 
-        newBranch = { type: "ref", switch: childSwitch };
-      } else if (nodeCase.branch?.type === "value") {
+      let viewCase: IntervalViewCase | undefined;
+
+      if (nodeCase.type === "case") {
+        const match = nodeCase.match;
+
+        let matchError = "";
+        if (!domain.has(match))
+          matchError = `Match element ${match === "" ? "is empty" : `${match} is not in domain`}.`;
+        if (matches.has(match))
+          matchError = "Match branch is already specified.";
+
+        viewCase = { type: "match", match, caseIdx: idx, error: matchError };
+
+        matches.add(match);
+      } else {
+        viewCase = { type: "default", deletable };
+      }
+
+      const intervalNode: IntervalViewNode = {
+        id: nodeId,
+        variable: node.variable,
+        case: viewCase,
+        errors: nodeErrors,
+      };
+
+      const newIntervalNodes = [...currentIntervalNodes, intervalNode];
+
+      if (!nodeCase.branch) {
+        rows.push({
+          value: "",
+          nodes: newIntervalNodes,
+          error: "Value element is empty.",
+          exhausted,
+        });
+      } else if (nodeCase.branch.type === "value") {
         const value = nodeCase.branch.value;
-
-        newBranch = {
-          type: "value",
+        rows.push({
           value,
+          nodes: newIntervalNodes,
           error: !domain.has(value)
             ? `Value element ${value === "" ? "is empty" : `${value} is not in domain`}.`
             : "",
-        };
-      }
-
-      if (nodeCase.type === "case" && newBranch) {
-        const match = nodeCase.match;
-        let matchError = "";
-
-        if (!domain.has(match))
-          matchError = `Case element ${match === "" ? "is empty" : `${match} is not in domain`}.`;
-
-        if (matches.has(match))
-          matchError = "Case branch is already specified.";
-
-        newCases.push({
-          type: "case",
-          match: nodeCase.match,
-          branch: newBranch,
-          error: matchError,
+          exhausted,
         });
-
-        matches.add(match);
-      } else if (nodeCase.type === "default") {
-        newCases.push({
-          type: "default",
-          branch: newBranch,
-          error: !node.default ? "Default case must be specified." : "",
-        });
+      } else {
+        buildRow(nodeCase.branch.nodeId, usedVarsCpy, newIntervalNodes);
       }
     }
-
-    const newSwitch: CaseViewSwitch = {
-      id: nodeId,
-      variable: node.variable,
-      cases: newCases,
-      errors: nodeErrors,
-      exhausted,
-      depth,
-    };
-
-    return newSwitch;
   };
 
-  return buildSwitch(rootId, new Set(), 1);
+  buildRow(rootId, new Set(), []);
+  return rows;
 }
 
 function getTreeNodeValidation(
   node: CaseTreeNode,
   allowedVars: string[],
-  seenVars: Set<string>,
+  usedVars: Set<string>,
 ) {
-  const errors: TreeSwitchError[] = [];
+  const errors: string[] = [];
 
-  if (!node.variable)
-    errors.push({ scope: "variable", message: "Variable must be specified." });
+  if (!node.variable) errors.push("Variable must be specified.");
 
   if (!allowedVars.includes(node.variable))
-    errors.push({ scope: "variable", message: "Invalid variable name." });
+    errors.push("Invalid variable name.");
 
-  if (seenVars.has(node.variable))
-    errors.push({
-      scope: "variable",
-      message: "Variable can only appear once in the tree.",
-    });
-
-  if (node.cases.length === 0)
-    errors.push({ scope: "cases", message: "Empty switch." });
+  if (usedVars.has(node.variable))
+    errors.push("Variable can only appear once in the tree.");
 
   return errors;
 }
 
-export function getAllCaseViewErrors(root: CaseViewSwitch) {
+export function getAllIntervalViewRowErrors(row: IntervalViewRow) {
   const errors: string[] = [];
 
-  errors.push(...root.errors.map((e) => e.message).filter((m) => m !== ""));
+  errors.push(row.error);
 
-  for (const switchCase of root.cases) {
-    if (switchCase.error) errors.push(switchCase.error);
-    if (switchCase.branch?.type === "value" && switchCase.branch.error)
-      errors.push(switchCase.branch.error);
-    else if (switchCase.branch?.type === "ref")
-      errors.push(...getAllCaseViewErrors(switchCase.branch.switch));
+  for (const node of row.nodes) {
+    errors.push(...node.errors);
+    if (node.case.type === "match") errors.push(node.case.error);
   }
 
-  return errors;
+  return errors.filter((e) => e !== "");
 }

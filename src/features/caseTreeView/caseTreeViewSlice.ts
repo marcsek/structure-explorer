@@ -13,7 +13,7 @@ import { selectValidatedFunctions } from "../language/languageSlice";
 import {
   generateTuples,
   getNextNodeId,
-  getStructuredCaseView,
+  getStructuredIntervalView,
   getSubstreeNodeIds,
 } from "./helpers";
 import { dev } from "../../common/logging";
@@ -46,7 +46,33 @@ type WithCaseTreeId<T = object> = {
   tupleName: string;
 } & T;
 
-export const initialCaseTreeViewState: CaseTreeState = {};
+export const initialCaseTreeViewState: CaseTreeState = {
+  // room: {
+  //   rootId: "root",
+  //   nodes: {
+  //     root: {
+  //       variable: "x",
+  //       cases: [
+  //         { match: "A", branch: { type: "value", value: "B" } },
+  //         { match: "B", branch: { type: "ref", nodeId: "n1" } },
+  //       ],
+  //       default: { type: "value", value: "E" },
+  //     },
+  //     n1: {
+  //       variable: "y",
+  //       cases: [
+  //         { match: "D", branch: { type: "value", value: "C" } },
+  //         { match: "E", branch: { type: "value", value: "A" } },
+  //       ],
+  //       default: { type: "ref", nodeId: "n2" },
+  //     },
+  //     n2: {
+  //       variable: "z",
+  //       cases: [{ match: "D", branch: { type: "value", value: "C" } }],
+  //     },
+  //   },
+  // },
+};
 
 export const caseTreeViewSlice = createSlice({
   name: "caseTreeView",
@@ -121,10 +147,12 @@ export const caseTreeViewSlice = createSlice({
           parentId: string;
           caseType: "case" | "default";
           branchType: "value" | "ref";
+          caseIdx?: number;
         }>
       >,
     ) {
-      const { parentId, caseType, branchType, tupleName } = action.payload;
+      const { parentId, caseType, branchType, caseIdx, tupleName } =
+        action.payload;
 
       if (!state[tupleName]) return;
 
@@ -133,16 +161,27 @@ export const caseTreeViewSlice = createSlice({
           ? { type: "value", value: "" }
           : { type: "ref", nodeId: "" };
 
+      const parent = state[tupleName].nodes[parentId];
+
       if (newBranch.type === "ref") {
         const newNode: CaseTreeNode = { variable: "", cases: [] };
         const nextId = getNextNodeId(state[tupleName].nodes);
 
         newBranch.nodeId = nextId;
         state[tupleName].nodes[nextId] = newNode;
+
+        newNode.default = { type: "value", value: "" };
+
+        const previousBranch =
+          caseIdx !== undefined ? parent.cases[caseIdx].branch : parent.default;
+
+        if (previousBranch && previousBranch.type === "value")
+          newNode.default.value = previousBranch.value;
       }
 
-      const parent = state[tupleName].nodes[parentId];
-      if (caseType === "case") {
+      if (caseType === "case" && caseIdx !== undefined) {
+        parent.cases[caseIdx].branch = newBranch;
+      } else if (caseType === "case") {
         const newCase: CaseTreeCase = { match: "", branch: newBranch };
         parent.cases.push(newCase);
       } else {
@@ -155,8 +194,8 @@ export const caseTreeViewSlice = createSlice({
       action: PayloadAction<
         WithCaseTreeId<{
           parentId: string;
-          caseIdx?: number;
           caseType: "case" | "default";
+          caseIdx?: number;
         }>
       >,
     ) {
@@ -232,7 +271,7 @@ export const selectStructuredCaseView = createSelector(
   ({ value: domain }, arity, caseTree) => {
     if (!caseTree?.rootId) return undefined;
 
-    return getStructuredCaseView(
+    return getStructuredIntervalView(
       caseTree.rootId,
       caseTree.nodes,
       new Set(domain),
