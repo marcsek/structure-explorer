@@ -22,6 +22,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAdd, faTrash } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import { InlineMath } from "react-katex";
+import { latex } from "../../common/utils";
 
 export interface IntervalViewProps {
   tupleName: string;
@@ -55,19 +56,20 @@ export default function IntervalView({
       }}
     >
       <div style={{ alignSelf: "center" }}>
-        <InlineMath>{`i(f)(${intervalVariables.slice(0, tupleArity)}) = `}</InlineMath>
+        <InlineMath>{`i(${latex().text(tupleName).get()})(${intervalVariables.slice(0, tupleArity)}) = `}</InlineMath>
       </div>
+
       <CasesBrace />
+
       <Stack gap={2} style={{ height: "fit-content", alignSelf: "center" }}>
-        {intervalViewRows &&
-          intervalViewRows.map((row, idx) => (
-            <IntervalViewRow
-              tupleName={tupleName}
-              tupleArity={tupleArity}
-              row={row}
-              key={idx}
-            />
-          ))}
+        {intervalViewRows?.map((row, idx) => (
+          <IntervalViewRow
+            tupleName={tupleName}
+            tupleArity={tupleArity}
+            row={row}
+            key={idx}
+          />
+        ))}
 
         {!rootIsExhausted && (
           <Button
@@ -109,13 +111,10 @@ export function IntervalViewRow({
   const lastNode = nodes.at(-1);
   if (!lastNode) return null;
 
-  const isDeletable = (viewCase: IntervalViewCase) =>
-    viewCase.type === "match" || viewCase.deletable;
-
   const handleCaseDelete = (viewCase: IntervalViewCase, nodeIdx: number) => {
     const node = nodes[nodeIdx];
 
-    if (viewCase.type === "match") {
+    if (viewCase.type === "case") {
       dispatch(
         deleteCase({
           parentId: node.id,
@@ -132,19 +131,11 @@ export function IntervalViewRow({
 
     const { id, case: parentViewCase } = previousNode;
 
-    const caseType = parentViewCase.type === "match" ? "case" : "default";
-    const caseIdx =
-      parentViewCase.type === "match" ? parentViewCase.caseIdx : undefined;
+    const caseType = parentViewCase.type;
+    const caseIdx = caseType === "case" ? parentViewCase.caseIdx : undefined;
 
     dispatch(deleteCase({ parentId: id, tupleName, caseType, caseIdx }));
   };
-
-  const items = [
-    { text: "Condition", branchType: "ref" as const },
-    { text: "Variant", branchType: "value" as const },
-  ];
-
-  if (tupleArity <= nodes.length) items.shift();
 
   const errors = getAllIntervalViewRowErrors(row);
 
@@ -170,7 +161,7 @@ export function IntervalViewRow({
                 tupleName,
                 branch: { type: "value", value: e.target.value },
                 caseIdx:
-                  lastNode.case.type === "match"
+                  lastNode.case.type === "case"
                     ? lastNode.case.caseIdx
                     : undefined,
               }),
@@ -201,7 +192,7 @@ export function IntervalViewRow({
 
             <span>=</span>
 
-            {caseNode.type === "match" ? (
+            {caseNode.type === "case" ? (
               <FormControl
                 value={caseNode.match}
                 size="sm"
@@ -220,61 +211,17 @@ export function IntervalViewRow({
                 }
               />
             ) : (
-              <span>any other</span>
+              <span style={{ textWrap: "nowrap" }}>any other</span>
             )}
 
             {idx === nodes.length - 1 ? (
-              <>
-                <Dropdown>
-                  <Dropdown.Toggle
-                    as={Button}
-                    size="sm"
-                    className="btn-bd-light no-caret"
-                  >
-                    <FontAwesomeIcon icon={faAdd} />
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu>
-                    {items.map(({ text, branchType }) => (
-                      <Dropdown.Item
-                        key={text}
-                        as={Button}
-                        onClick={() =>
-                          dispatch(
-                            addCase({
-                              parentId: id,
-                              tupleName,
-                              caseType:
-                                branchType === "value" ||
-                                caseNode.type === "match"
-                                  ? "case"
-                                  : "default",
-                              branchType,
-                              caseIdx:
-                                branchType === "ref" &&
-                                caseNode.type === "match"
-                                  ? caseNode.caseIdx
-                                  : undefined,
-                            }),
-                          )
-                        }
-                      >
-                        {text}
-                      </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-
-                {isDeletable(caseNode) && (
-                  <Button
-                    size="sm"
-                    className="btn-bd-light"
-                    onClick={() => handleCaseDelete(caseNode, idx)}
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </Button>
-                )}
-              </>
+              <CaseButtons
+                caseNode={caseNode}
+                parentId={id}
+                tupleName={tupleName}
+                onCaseDelete={() => handleCaseDelete(caseNode, idx)}
+                maxDepthReached={tupleArity <= nodes.length}
+              />
             ) : (
               <span>,</span>
             )}
@@ -291,17 +238,89 @@ export function IntervalViewRow({
   );
 }
 
+interface CaseButtonsProps {
+  tupleName: string;
+  caseNode: IntervalViewCase;
+  parentId: string;
+  maxDepthReached: boolean;
+  onCaseDelete: () => void;
+}
+
+function CaseButtons({
+  tupleName,
+  caseNode,
+  parentId,
+  maxDepthReached,
+  onCaseDelete,
+}: CaseButtonsProps) {
+  const dispatch = useAppDispatch();
+
+  const dropdownItems = [
+    { text: "Condition", branchType: "ref" as const },
+    { text: "Variant", branchType: "value" as const },
+  ];
+
+  if (maxDepthReached) dropdownItems.shift();
+
+  const isDeletable = (viewCase: IntervalViewCase) =>
+    viewCase.type === "case" || viewCase.deletable;
+
+  return (
+    <>
+      <Dropdown>
+        <Dropdown.Toggle
+          as={Button}
+          size="sm"
+          className="btn-bd-light no-caret"
+        >
+          <FontAwesomeIcon icon={faAdd} />
+        </Dropdown.Toggle>
+
+        <Dropdown.Menu>
+          {dropdownItems.map(({ text, branchType }) => (
+            <Dropdown.Item
+              key={text}
+              as={Button}
+              onClick={() =>
+                dispatch(
+                  addCase({
+                    parentId,
+                    tupleName,
+                    caseType:
+                      branchType === "value" || caseNode.type === "case"
+                        ? "case"
+                        : "default",
+                    branchType,
+                    caseIdx:
+                      branchType === "ref" && caseNode.type === "case"
+                        ? caseNode.caseIdx
+                        : undefined,
+                  }),
+                )
+              }
+            >
+              {text}
+            </Dropdown.Item>
+          ))}
+        </Dropdown.Menu>
+      </Dropdown>
+
+      {isDeletable(caseNode) && (
+        <Button size="sm" className="btn-bd-light" onClick={onCaseDelete}>
+          <FontAwesomeIcon icon={faTrash} />
+        </Button>
+      )}
+    </>
+  );
+}
+
 function CasesBrace() {
   return (
     <svg
       width="16"
       viewBox="0 0 12 100"
       preserveAspectRatio="none"
-      style={{
-        display: "block",
-        width: "1rem",
-        flexShrink: "0",
-      }}
+      style={{ display: "block", width: "1rem", flexShrink: "0" }}
     >
       <path
         d="M11 0 Q5 0 5 10 L5 40 Q5 50 0 50 Q5 50 5 60 L5 90 Q5 100 11 100"

@@ -1,6 +1,6 @@
 import type { CaseTreeNode } from "./caseTreeViewSlice";
 
-export const intervalVariables = ["x", "y", "z", "v", "w"];
+export const intervalVariables = ["x", "y", "z", "u", "v", "w", "r", "s", "t"];
 
 export type GenerateTuplesResult =
   | { ok: true; tuples: string[][] }
@@ -118,7 +118,7 @@ export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
 
 export type IntervalViewCase =
   | {
-      type: "match";
+      type: "case";
       match: string;
       caseIdx: number;
       error: string;
@@ -184,7 +184,7 @@ export function getStructuredIntervalView(
         if (matches.has(match))
           matchError = "Match branch is already specified.";
 
-        viewCase = { type: "match", match, caseIdx: idx, error: matchError };
+        viewCase = { type: "case", match, caseIdx: idx, error: matchError };
 
         matches.add(match);
       } else {
@@ -252,7 +252,7 @@ export function getAllIntervalViewRowErrors(row: IntervalViewRow) {
 
   for (const node of row.nodes) {
     errors.push(...node.errors);
-    if (node.case.type === "match") errors.push(node.case.error);
+    if (node.case.type === "case") errors.push(node.case.error);
   }
 
   return errors.filter((e) => e !== "");
