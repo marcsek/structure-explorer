@@ -6,6 +6,7 @@ import type { QueryResult } from "./queriesSlice";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
+import { latex } from "../../common/utils";
 
 export interface QueryResultsProps {
   queryIdx: number;
@@ -23,14 +24,15 @@ export default function QueryResults({
   onResultsReset,
 }: QueryResultsProps) {
   const queryVariablesLen = queryVariables.length;
-  const altVariables = queryVariables.map((v) => `${v}_1`);
+  const queryVarsEscaped = queryVariables.map((v) => latex().escape(v).get());
+  const altVariables = queryVarsEscaped.map((v) => `${v}_1`);
 
   const correctAltVarsString =
     altVariables.length > 1 ? `(${altVariables})` : altVariables;
   const correctDomainPower =
-    queryVariables.length > 1 ? `D^${queryVariablesLen}` : "D";
-  const variablePairs = queryVariables
-    .map((v, i) => `(${v}, ${altVariables[i]})`)
+    queryVarsEscaped.length > 1 ? `D^${queryVariablesLen}` : "D";
+  const variablePairs = queryVarsEscaped
+    .map((v, i) => `(\\mathsf{${v}}/ ${altVariables[i]})`)
     .join("");
 
   const queryResultString = `\\ \\{${correctAltVarsString} \\in ${correctDomainPower} \\mid \\mathcal{M} \\models  \\psi_${queryIdx + 1}[e${variablePairs}]\\}`;

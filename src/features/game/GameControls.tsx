@@ -39,7 +39,10 @@ export default function GameControls({ id }: GameControlsProps) {
         const { subFormulas, valuationDiff } = gameButtons;
 
         const valuationText = Array.from(valuationDiff)
-          .map(([from, to]) => `(${from} / ${latex().text(to).get()})`)
+          .map(
+            ([from, to]) =>
+              `(${latex().escape(from).get()} / ${latex().text(to).get()})`,
+          )
           .join(" ");
 
         return subFormulas.map(({ formula, sign }, idx) => ({
@@ -85,7 +88,9 @@ export default function GameControls({ id }: GameControlsProps) {
           title={
             <>
               Select a domain element for{" "}
-              <InlineMath>{gameButtons.variableName}</InlineMath>
+              <InlineMath>
+                {latex().escape(gameButtons.variableName).get()}
+              </InlineMath>
             </>
           }
           type={gameButtons.type}

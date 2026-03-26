@@ -19,7 +19,7 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
 import LockButton from "../../components_helper/LockButton";
 import ErrorFeedback from "../../components_helper/ErrorFeedback";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QueryResults from "./QueryResults";
 import { selectNonFormulaValidationError } from "../../common/formulas";
 
@@ -58,6 +58,14 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     : undefined;
 
   const error = queryVariables.error || evaluatedQuery.error || nonQueryError;
+  const variablesError =
+    queryVariables.error || queryVariables.parsed.length === 0;
+
+  const serializedVars = queryVariables.parsed?.join() ?? "";
+
+  useEffect(() => {
+    setQueryResults([]);
+  }, [serializedVars]);
 
   return (
     <Stack gap={2}>
@@ -77,7 +85,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
               dispatch(updateQueryVariablesText({ idx, text: e.target.value }))
             }
             disabled={locked}
-            isInvalid={!!queryVariables.error}
+            isInvalid={!!variablesError}
             onBlur={() => dispatch(UndoActions.checkpoint())}
             style={{ maxWidth: "5rem" }}
           />

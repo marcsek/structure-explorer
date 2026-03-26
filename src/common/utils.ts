@@ -19,10 +19,10 @@ export function latex(parts: string[] = []) {
     valuation: (vars?: string) => push(`\\;[e${vars ?? ""}]`),
     valuationPairs: (p: Map<string, string>) =>
       Array.from(p)
-        .map(([from, to]) => `(${from} / ${latex().text(to).get()})`)
+        .map(([from, to]) => `(${escape(from)} / ${latex().text(to).get()})`)
         .join(" "),
     wildcardValuationPairs: (p: Map<string, string>, v: string) =>
-      latex().valuationPairs(p) + `(${v} / d)`,
+      latex().valuationPairs(p) + `(${escape(v)} / d)`,
     altValuation: (vars?: string) => push(`[e'${vars ?? ""}]`),
     rawValuation: (vars?: string) => push(`e${vars ?? ""}`),
     text: (s: string) => push(`\\text{${escape(s)}}`),

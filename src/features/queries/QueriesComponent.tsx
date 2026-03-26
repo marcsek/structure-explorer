@@ -47,5 +47,27 @@ export default function QueriesComponent() {
   );
 }
 
-/* eslint-disable */
-const help = <>You get no help!</>;
+const help = (
+  <>
+    <p>
+      Queries allow you to find all assignments that satisfy a given open
+      formula in the structure 𝓜.
+    </p>
+    <p>
+      Each query is defined by a comma-separated list of{" "}
+      <strong>query variables</strong> indicated on the left and an{" "}
+      <strong>open formula</strong> on the right. The indicated variables must
+      be <strong>free</strong> in the formula. All free variables of the formula
+      must be indicated unless they are given a value by the global assignment
+      𝑒.
+    </p>
+    <p>
+      Pressing the <strong>Query</strong> button returns all possible
+      assignments of the query variables that satisfy the formula.
+    </p>
+    <p className="mb-0">
+      The syntax of formulas follows the same rules as in the{" "}
+      <strong>Truth of formulas</strong> section (see its help for details).
+    </p>
+  </>
+);

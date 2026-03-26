@@ -193,7 +193,8 @@ export const getDeltaBubbles = (
     text: (
       <>
         Which domain element <InlineMath>d</InlineMath> should we assign to{" "}
-        <InlineMath>{formula.variableName}</InlineMath> so that{" "}
+        <InlineMath>{latex().escape(formula.variableName).get()}</InlineMath> so
+        that{" "}
         <InlineMath>
           {latex()
             .M()
@@ -215,7 +216,7 @@ export const getDeltaBubbles = (
       text: (
         <>
           Assign <InlineMath>{latex().text(element).get()}</InlineMath> to{" "}
-          <InlineMath>{formula.variableName}</InlineMath>
+          <InlineMath>{latex().escape(formula.variableName).get()}</InlineMath>
         </>
       ),
       sender: "player",

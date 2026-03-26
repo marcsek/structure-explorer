@@ -1,3 +1,4 @@
+import { latex } from "../../common/utils";
 import type { Symbol } from "../Language";
 import { Structure, type Valuation, type DomainElement } from "../Structure";
 import Term from "./Term";
@@ -42,7 +43,7 @@ class Variable extends Term {
   }
 
   toTex(): string {
-    return this.toString();
+    return latex().escape(this.name).get();
   }
 
   createCopy(): Variable {

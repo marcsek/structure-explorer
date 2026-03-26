@@ -183,7 +183,7 @@ export const selectEvaluatedQuery = createSelector(
       return {
         error: new Error(
           `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
-but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
+but ${correctPluralVerb} not listed among query variables or assigned any value by the global assignment 𝑒.`,
         ),
       };
     }
@@ -208,6 +208,12 @@ but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.
           `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} 
 not free on the right-hand side of the query definition.`,
         ),
+      };
+    }
+
+    if (queryVariables.parsed.length === 0) {
+      return {
+        error: new Error(`No query variables specified.`),
       };
     }
 
