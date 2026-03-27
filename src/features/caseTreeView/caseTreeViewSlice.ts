@@ -7,6 +7,7 @@ import {
 import type { AppThunk, RootState } from "../../app/store";
 import {
   selectDomain,
+  selectValidatedFunction,
   updateFunctionSymbols,
 } from "../structure/structureSlice";
 import { selectValidatedFunctions } from "../language/languageSlice";
@@ -15,6 +16,9 @@ import {
   getNextNodeId,
   getStructuredIntervalView,
   getSubstreeNodeIds,
+  initializeTreeFromTuples,
+  intervalVariables,
+  updateCaseTree,
 } from "./helpers";
 import { dev } from "../../common/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
@@ -46,33 +50,7 @@ type WithCaseTreeId<T = object> = {
   tupleName: string;
 } & T;
 
-export const initialCaseTreeViewState: CaseTreeState = {
-  // room: {
-  //   rootId: "root",
-  //   nodes: {
-  //     root: {
-  //       variable: "x",
-  //       cases: [
-  //         { match: "A", branch: { type: "value", value: "B" } },
-  //         { match: "B", branch: { type: "ref", nodeId: "n1" } },
-  //       ],
-  //       default: { type: "value", value: "E" },
-  //     },
-  //     n1: {
-  //       variable: "y",
-  //       cases: [
-  //         { match: "D", branch: { type: "value", value: "C" } },
-  //         { match: "E", branch: { type: "value", value: "A" } },
-  //       ],
-  //       default: { type: "ref", nodeId: "n2" },
-  //     },
-  //     n2: {
-  //       variable: "z",
-  //       cases: [{ match: "D", branch: { type: "value", value: "C" } }],
-  //     },
-  //   },
-  // },
-};
+export const initialCaseTreeViewState: CaseTreeState = {};
 
 export const caseTreeViewSlice = createSlice({
   name: "caseTreeView",
@@ -92,8 +70,19 @@ export const caseTreeViewSlice = createSlice({
 
       state[tupleName] = {
         rootId: "root",
-        nodes: { root: { variable: "", cases: [] } },
+        nodes: { root: { variable: intervalVariables[0], cases: [] } },
       };
+    },
+
+    updateTree(
+      state,
+      action: PayloadAction<WithCaseTreeId<{ tree: CaseTreeEntry }>>,
+    ) {
+      const { tupleName, tree } = action.payload;
+
+      if (tupleName in state) return;
+
+      state[tupleName] = tree;
     },
 
     updateNode(
@@ -148,23 +137,34 @@ export const caseTreeViewSlice = createSlice({
           caseType: "case" | "default";
           branchType: "value" | "ref";
           caseIdx?: number;
+          variable?: string;
+          value?: string;
+          match?: string;
         }>
       >,
     ) {
-      const { parentId, caseType, branchType, caseIdx, tupleName } =
-        action.payload;
+      const {
+        parentId,
+        caseType,
+        branchType,
+        caseIdx,
+        tupleName,
+        variable,
+        value,
+        match,
+      } = action.payload;
 
       if (!state[tupleName]) return;
 
       const newBranch: CaseTreeBranch =
         branchType === "value"
-          ? { type: "value", value: "" }
+          ? { type: "value", value: value ?? "" }
           : { type: "ref", nodeId: "" };
 
       const parent = state[tupleName].nodes[parentId];
 
       if (newBranch.type === "ref") {
-        const newNode: CaseTreeNode = { variable: "", cases: [] };
+        const newNode: CaseTreeNode = { variable: variable ?? "", cases: [] };
         const nextId = getNextNodeId(state[tupleName].nodes);
 
         newBranch.nodeId = nextId;
@@ -181,12 +181,28 @@ export const caseTreeViewSlice = createSlice({
 
       if (caseType === "case" && caseIdx !== undefined) {
         parent.cases[caseIdx].branch = newBranch;
+        if (match) parent.cases[caseIdx].match = match;
       } else if (caseType === "case") {
-        const newCase: CaseTreeCase = { match: "", branch: newBranch };
+        const newCase: CaseTreeCase = { match: match ?? "", branch: newBranch };
         parent.cases.push(newCase);
       } else {
         parent.default = newBranch;
       }
+    },
+
+    addInitialCase(
+      state,
+      action: PayloadAction<WithCaseTreeId<{ variable: string }>>,
+    ) {
+      const { tupleName, variable } = action.payload;
+
+      if (!state[tupleName]) return;
+
+      const rootId = state[tupleName].rootId;
+      const rootNode = state[tupleName].nodes[rootId];
+
+      rootNode.variable = variable;
+      rootNode.cases.push({ match: "", branch: { type: "value", value: "" } });
     },
 
     deleteCase(
@@ -222,6 +238,19 @@ export const caseTreeViewSlice = createSlice({
       nodeIdsToDelete.forEach((id) => delete caseTree.nodes[id]);
     },
   },
+
+  extraReducers(builder) {
+    builder.addCase(updateFunctionSymbols, (state, action) => {
+      const tupleName = action.payload.key;
+
+      if (action.meta.source === "caseTreeView") return;
+
+      const caseTreeEntry = state[tupleName];
+      if (!caseTreeEntry) return;
+
+      updateCaseTree(caseTreeEntry, action.payload.value);
+    });
+  },
 });
 
 export default caseTreeViewSlice.reducer;
@@ -230,9 +259,11 @@ const {
   updateNode: updateNodeAction,
   updateCase: updateCaseAction,
   updateBranch: updateBranchAction,
+  deleteCase: deleteCaseAction,
+  initializeTree: initializeTreeAction,
 } = caseTreeViewSlice.actions;
 
-export const { importCaseTreeViewState, initializeTree, addCase, deleteCase } =
+export const { importCaseTreeViewState, updateTree, addCase, addInitialCase } =
   caseTreeViewSlice.actions;
 
 const treeUpdateWrapper =
@@ -254,13 +285,34 @@ const treeUpdateWrapper =
     if (!result.ok) return;
 
     dev.log("Generated tuples", result.tuples);
-    dispatch(updateFunctionSymbols({ key: tupleName, value: result.tuples }));
+    dispatch(
+      updateFunctionSymbols(
+        { key: tupleName, value: result.tuples },
+        { source: "caseTreeView" },
+      ),
+    );
     dispatch(UndoActions.checkpoint());
   };
 
 export const updateNode = treeUpdateWrapper(updateNodeAction);
 export const updateCase = treeUpdateWrapper(updateCaseAction);
 export const updateBranch = treeUpdateWrapper(updateBranchAction);
+export const deleteCase = treeUpdateWrapper(deleteCaseAction);
+
+export const initializeTree =
+  (tupleName: string): AppThunk =>
+  (dispatch, getState) => {
+    const iF = selectValidatedFunction(getState(), tupleName);
+
+    if (iF.error || !iF.parsed || iF.parsed.length === 0) {
+      return void dispatch(initializeTreeAction({ tupleName }));
+    }
+
+    const arity = iF.parsed[0].length - 1;
+    const tree = initializeTreeFromTuples(iF.parsed, arity);
+
+    dispatch(updateTree({ tupleName, tree }));
+  };
 
 export const selectStructuredCaseView = createSelector(
   selectDomain,

@@ -20,6 +20,7 @@ import errorAlertReducer from "../features/errorAlert/errorAlertSlice.ts";
 import { graphSliceListener } from "../features/graphView/graphs/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
 import { querySliceListener } from "../features/queries/listeners.ts";
+import { caseTreeListener } from "../features/caseTreeView/listeners.ts";
 
 const rootReducer = {
   formulas: formulasReducer,
@@ -59,6 +60,7 @@ export const createStore = (extraMiddleware?: Middleware) =>
       const middlewareChain = getDefaultMiddleware().prepend(
         graphSliceListener.middleware,
         querySliceListener.middleware,
+        caseTreeListener.middleware,
       );
 
       if (extraMiddleware) return middlewareChain.prepend(extraMiddleware);

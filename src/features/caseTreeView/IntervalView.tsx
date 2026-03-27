@@ -3,6 +3,7 @@ import "./IntervalView.css";
 import { useEffect } from "react";
 import {
   addCase,
+  addInitialCase,
   deleteCase,
   initializeTree,
   selectStructuredCaseView,
@@ -39,10 +40,15 @@ export default function IntervalView({
   );
 
   useEffect(() => {
-    if (!intervalViewRows) dispatch(initializeTree({ tupleName }));
+    if (!intervalViewRows) dispatch(initializeTree(tupleName));
   }, [dispatch, intervalViewRows, tupleName]);
 
-  const rootIsExhausted = intervalViewRows?.at(-1)?.exhausted ?? false;
+  if (!intervalViewRows) return null;
+
+  const pureIntervalViewRows = intervalViewRows.filter((r) => !r.placeholder);
+  const hasSigleBranch =
+    pureIntervalViewRows.length === 1 &&
+    pureIntervalViewRows[0].nodes.length === 1;
 
   return (
     <Stack
@@ -62,35 +68,69 @@ export default function IntervalView({
       <CasesBrace />
 
       <Stack gap={2} style={{ height: "fit-content", alignSelf: "center" }}>
-        {intervalViewRows?.map((row, idx) => (
-          <IntervalViewRow
+        {hasSigleBranch ? (
+          <SingleValueIntervalInput
+            actualRow={pureIntervalViewRows[0]}
             tupleName={tupleName}
             tupleArity={tupleArity}
-            row={row}
-            key={idx}
           />
-        ))}
-
-        {!rootIsExhausted && (
-          <Button
-            size="sm"
-            className="btn-bd-light"
-            style={{ width: "fit-content" }}
-            onClick={() =>
-              dispatch(
-                addCase({
-                  parentId: "root",
-                  tupleName,
-                  caseType: "case",
-                  branchType: "value",
-                }),
-              )
-            }
-          >
-            <FontAwesomeIcon icon={faAdd} />
-          </Button>
+        ) : (
+          intervalViewRows.map((row, idx) => (
+            <IntervalViewRow
+              tupleName={tupleName}
+              tupleArity={tupleArity}
+              row={row}
+              key={idx}
+            />
+          ))
         )}
       </Stack>
+    </Stack>
+  );
+}
+
+export function SingleValueIntervalInput({
+  actualRow,
+  tupleName,
+  tupleArity,
+}: {
+  actualRow: IntervalViewRow;
+  tupleName: string;
+  tupleArity: number;
+}) {
+  const dispatch = useAppDispatch();
+
+  const { value, error, nodes } = actualRow;
+
+  const firstNode = nodes.at(0);
+  if (!firstNode) return null;
+
+  return (
+    <Stack direction="horizontal" gap={1}>
+      <FormControl
+        value={value}
+        size="sm"
+        style={{ maxWidth: "3rem", minWidth: "2rem" }}
+        isInvalid={!!error}
+        onChange={(e) =>
+          dispatch(
+            updateBranch({
+              nodeId: firstNode.id,
+              tupleName,
+              branch: { type: "value", value: e.target.value },
+            }),
+          )
+        }
+      />
+      <CaseButtons
+        caseNode={firstNode.case}
+        parentId={firstNode.id}
+        tupleName={tupleName}
+        onCaseDelete={() => {}}
+        maxDepthReached={false}
+        variables={intervalVariables.slice(0, tupleArity)}
+        initialCase
+      />
     </Stack>
   );
 }
@@ -104,12 +144,27 @@ export function IntervalViewRow({
   tupleArity: number;
   row: IntervalViewRow;
 }) {
-  const { value, nodes, error: rowError, exhausted } = row;
+  const { value, nodes: actualNodes, error: rowError, placeholder } = row;
 
   const dispatch = useAppDispatch();
 
-  const lastNode = nodes.at(-1);
+  const lastNode = actualNodes.at(-1);
   if (!lastNode) return null;
+
+  const errors = getAllIntervalViewRowErrors(row);
+
+  const nodes = [...actualNodes];
+
+  if (placeholder) {
+    nodes.pop();
+    nodes.push({
+      primary: false,
+      variable: lastNode.variable,
+      case: { type: "case", caseIdx: 0, error: "", match: "" },
+      errors: [],
+      id: "",
+    });
+  }
 
   const handleCaseDelete = (viewCase: IntervalViewCase, nodeIdx: number) => {
     const node = nodes[nodeIdx];
@@ -126,104 +181,135 @@ export function IntervalViewRow({
       return;
     }
 
-    const previousNode = nodes.at(nodeIdx - 1);
+    const previousNode = actualNodes.at(nodeIdx - 1);
     if (!previousNode) return;
 
-    const { id, case: parentViewCase } = previousNode;
+    const { id: parentId, case: parentViewCase } = previousNode;
 
     const caseType = parentViewCase.type;
     const caseIdx = caseType === "case" ? parentViewCase.caseIdx : undefined;
 
-    dispatch(deleteCase({ parentId: id, tupleName, caseType, caseIdx }));
+    dispatch(deleteCase({ parentId, tupleName, caseType, caseIdx }));
   };
 
-  const errors = getAllIntervalViewRowErrors(row);
-
-  const isExhausted = exhausted && nodes.some((n) => n.case.type === "default");
+  const usedVars = nodes.map((n) => n.variable);
+  const unusedVars = intervalVariables
+    .slice(0, tupleArity)
+    .filter((v) => !usedVars.includes(v));
 
   return (
     <div className="interval-view-row">
       <Stack
         direction="horizontal"
         gap={1}
-        style={{ opacity: isExhausted ? 0.6 : 1 }}
+        style={{ opacity: placeholder ? 0.6 : 1 }}
       >
         <FormControl
           value={value}
           size="sm"
-          disabled={isExhausted}
           style={{ maxWidth: "3rem", minWidth: "2rem" }}
           isInvalid={!!rowError}
           onChange={(e) =>
-            dispatch(
-              updateBranch({
-                nodeId: lastNode.id,
-                tupleName,
-                branch: { type: "value", value: e.target.value },
-                caseIdx:
-                  lastNode.case.type === "case"
-                    ? lastNode.case.caseIdx
-                    : undefined,
-              }),
-            )
+            placeholder
+              ? dispatch(
+                  addCase({
+                    parentId: lastNode.id,
+                    caseType: "case",
+                    branchType: "value",
+                    tupleName,
+                    value: e.target.value,
+                  }),
+                )
+              : dispatch(
+                  updateBranch({
+                    nodeId: lastNode.id,
+                    tupleName,
+                    branch: { type: "value", value: e.target.value },
+                    caseIdx:
+                      lastNode.case.type === "case"
+                        ? lastNode.case.caseIdx
+                        : undefined,
+                  }),
+                )
           }
         />
 
         <span>if</span>
 
-        {nodes.map(({ id, case: caseNode, variable, errors }, idx) => (
-          <React.Fragment key={id}>
-            <FormControl
-              value={variable}
-              size="sm"
-              disabled={isExhausted}
-              style={{ maxWidth: "3rem", minWidth: "2rem" }}
-              isInvalid={errors.length > 0}
-              onChange={(e) =>
-                dispatch(
-                  updateNode({
-                    nodeId: id,
-                    tupleName,
-                    variable: e.target.value,
-                  }),
-                )
-              }
-            />
-
-            <span>=</span>
-
+        {nodes.map(({ id, case: caseNode, variable, errors, primary }, idx) => (
+          <React.Fragment key={idx < nodes.length - 1 ? id : "last-node"}>
             {caseNode.type === "case" ? (
-              <FormControl
-                value={caseNode.match}
-                size="sm"
-                disabled={isExhausted}
-                style={{ maxWidth: "3rem", minWidth: "2rem" }}
-                isInvalid={!!caseNode.error}
-                onChange={(e) =>
-                  dispatch(
-                    updateCase({
-                      nodeId: id,
-                      tupleName,
-                      caseIdx: caseNode.caseIdx,
-                      match: e.target.value,
-                    }),
-                  )
-                }
-              />
+              <>
+                <FormControl
+                  value={variable}
+                  size="sm"
+                  disabled={!primary || placeholder}
+                  style={{ maxWidth: "3rem", minWidth: "2rem" }}
+                  isInvalid={errors.length > 0}
+                  onChange={(e) =>
+                    dispatch(
+                      updateNode({
+                        nodeId: id,
+                        tupleName,
+                        variable: e.target.value,
+                      }),
+                    )
+                  }
+                />
+
+                <span>=</span>
+
+                <FormControl
+                  value={
+                    !placeholder || idx < nodes.length - 1 ? caseNode.match : ""
+                  }
+                  size="sm"
+                  disabled={placeholder && idx < nodes.length - 1}
+                  style={{ maxWidth: "3rem", minWidth: "2rem" }}
+                  isInvalid={!!caseNode.error}
+                  onChange={(e) =>
+                    placeholder
+                      ? dispatch(
+                          addCase({
+                            parentId: lastNode.id,
+                            caseType: "case",
+                            branchType: "value",
+                            tupleName,
+                            match: e.target.value,
+                          }),
+                        )
+                      : dispatch(
+                          updateCase({
+                            nodeId: id,
+                            tupleName,
+                            caseIdx: caseNode.caseIdx,
+                            match: e.target.value,
+                          }),
+                        )
+                  }
+                />
+              </>
             ) : (
-              <span style={{ textWrap: "nowrap" }}>any other</span>
+              <span style={{ textWrap: "nowrap" }}>
+                {variable} is any other
+              </span>
             )}
 
-            {idx === nodes.length - 1 ? (
-              <CaseButtons
-                caseNode={caseNode}
-                parentId={id}
-                tupleName={tupleName}
-                onCaseDelete={() => handleCaseDelete(caseNode, idx)}
-                maxDepthReached={tupleArity <= nodes.length}
-              />
-            ) : (
-              <span>,</span>
+            {(!placeholder || idx < nodes.length - 1) && (
+              <>
+                {idx === nodes.length - 1 ? (
+                  <CaseButtons
+                    caseNode={caseNode}
+                    parentId={id}
+                    tupleName={tupleName}
+                    onCaseDelete={() => handleCaseDelete(caseNode, idx)}
+                    maxDepthReached={tupleArity <= nodes.length}
+                    variables={unusedVars}
+                  />
+                ) : (
+                  <span>,</span>
+                )}
+              </>
             )}
           </React.Fragment>
         ))}
@@ -243,7 +329,9 @@ interface CaseButtonsProps {
   caseNode: IntervalViewCase;
   parentId: string;
   maxDepthReached: boolean;
+  variables: string[];
   onCaseDelete: () => void;
+  initialCase?: boolean;
 }
 
 function CaseButtons({
@@ -251,7 +339,9 @@ function CaseButtons({
   caseNode,
   parentId,
   maxDepthReached,
+  variables,
   onCaseDelete,
+  initialCase = false,
 }: CaseButtonsProps) {
   const dispatch = useAppDispatch();
 
@@ -265,45 +355,71 @@ function CaseButtons({
   const isDeletable = (viewCase: IntervalViewCase) =>
     viewCase.type === "case" || viewCase.deletable;
 
+  const handleAddCase = (variable: string) => {
+    if (initialCase) {
+      return void dispatch(addInitialCase({ tupleName, variable }));
+    }
+
+    dispatch(
+      addCase({
+        parentId,
+        tupleName,
+        caseType: caseNode.type,
+        branchType: "ref",
+        caseIdx: caseNode.type === "case" ? caseNode.caseIdx : undefined,
+        variable,
+      }),
+    );
+  };
+
   return (
     <>
-      <Dropdown>
-        <Dropdown.Toggle
-          as={Button}
-          size="sm"
-          className="btn-bd-light no-caret"
-        >
-          <FontAwesomeIcon icon={faAdd} />
-        </Dropdown.Toggle>
+      {variables.length > 0 && (
+        <Dropdown>
+          <Dropdown.Toggle as={Button} size="sm" className="btn-bd-light">
+            <FontAwesomeIcon icon={faAdd} />
+          </Dropdown.Toggle>
 
-        <Dropdown.Menu>
-          {dropdownItems.map(({ text, branchType }) => (
-            <Dropdown.Item
-              key={text}
-              as={Button}
-              onClick={() =>
-                dispatch(
-                  addCase({
-                    parentId,
-                    tupleName,
-                    caseType:
-                      branchType === "value" || caseNode.type === "case"
-                        ? "case"
-                        : "default",
-                    branchType,
-                    caseIdx:
-                      branchType === "ref" && caseNode.type === "case"
-                        ? caseNode.caseIdx
-                        : undefined,
-                  }),
-                )
-              }
-            >
-              {text}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
+          <Dropdown.Menu>
+            {variables.map((v) => (
+              <Dropdown.Item
+                key={v}
+                as={Button}
+                onClick={() => handleAddCase(v)}
+                size="sm"
+              >
+                {v}
+              </Dropdown.Item>
+            ))}
+
+            {/* {dropdownItems.map(({ text, branchType }) => ( */}
+            {/*   <Dropdown.Item */}
+            {/*     key={text} */}
+            {/*     as={Button} */}
+            {/*     onClick={() => */}
+            {/*       dispatch( */}
+            {/*         addCase({ */}
+            {/*           parentId, */}
+            {/*           tupleName, */}
+            {/*           caseType: */}
+            {/*             branchType === "value" || caseNode.type === "case" */}
+            {/*               ? "case" */}
+            {/*               : "default", */}
+            {/*           branchType, */}
+            {/*           caseIdx: */}
+            {/*             branchType === "ref" && caseNode.type === "case" */}
+            {/*               ? caseNode.caseIdx */}
+            {/*               : undefined, */}
+            {/*         }), */}
+            {/*       ) */}
+            {/*     } */}
+            {/*   > */}
+            {/*     {text} */}
+            {/*   </Dropdown.Item> */}
+            {/* ))} */}
+          </Dropdown.Menu>
+        </Dropdown>
+      )}
 
       {isDeletable(caseNode) && (
         <Button size="sm" className="btn-bd-light" onClick={onCaseDelete}>
