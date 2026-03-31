@@ -47,7 +47,9 @@ export const queriesSlice = createSlice({
       _state,
       action: PayloadAction<SerializedQueriesState>,
     ) => {
-      return action.payload;
+      return {
+        queries: action.payload.queries.map((q) => ({ ...q, stale: false })),
+      };
     },
 
     addQuery: (state) => {
@@ -272,6 +274,13 @@ function* permutations<T>(domain: T[], n: number): Generator<T[]> {
     }
   }
 }
+
+export const getRelevantQueriesState = (
+  queriesState: QueriesState,
+): SerializedQueriesState => ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  queries: queriesState.queries.map(({ stale, ...q }) => q),
+});
 
 export const {
   importQueriesState,

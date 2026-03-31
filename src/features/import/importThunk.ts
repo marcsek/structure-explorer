@@ -31,7 +31,10 @@ import {
   getRelevantEditorToolbarState,
   importEditorToolbarState,
 } from "../editorToolbar/editorToolbarSlice";
-import { importQueriesState } from "../queries/queriesSlice";
+import {
+  getRelevantQueriesState,
+  importQueriesState,
+} from "../queries/queriesSlice";
 import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
 
 export interface ImportedAppState extends Omit<
@@ -140,7 +143,7 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
   return {
     version: SERIALIZED_STATE_VERSION,
     formulas: state.present.formulas,
-    queries: state.present.queries,
+    queries: getRelevantQueriesState(state.present.queries),
     language: state.present.language,
     variables: state.present.variables,
     teacherMode: state.present.teacherMode,

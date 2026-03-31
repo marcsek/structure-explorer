@@ -21,6 +21,7 @@ import { graphManagerSlice } from "./features/graphView/graphs/graphSlice";
 import { UndoActions } from "./features/undoHistory/undoHistory";
 import { listenerShouldIgnore } from "./common/redux";
 import { formulasSlice } from "./features/formulas/formulasSlice";
+import { queriesSlice } from "./features/queries/queriesSlice";
 
 interface PrepareResult {
   instance: any;
@@ -40,6 +41,8 @@ const actionsToFilter = [
   errorAlertSlice.actions.clearError,
   errorAlertSlice.actions.setError,
   formulasSlice.actions.gameGoBack,
+  queriesSlice.actions.allQueriesStale,
+  queriesSlice.actions.updateQueryStaleness,
   UndoActions.checkpoint,
 ];
 

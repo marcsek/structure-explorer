@@ -1,12 +1,14 @@
 import z from "zod";
 import { initialQueriesState } from "./queriesSlice.ts";
 
-const queriesStateSchema = z.object({
-  text: z.string(),
-  variablesText: z.string(),
-  stale: z.boolean().default(false),
-  locked: z.boolean(),
-});
+const queriesStateSchema = z
+  .object({
+    text: z.string(),
+    variablesText: z.string(),
+    stale: z.boolean().optional().default(false),
+    locked: z.boolean(),
+  })
+  .omit({ stale: true });
 
 export const serializedQueriesStateSchema = z
   .object({
