@@ -18,7 +18,6 @@ import {
   getSubstreeNodeIds,
   initializeTreeFromTuples,
   intervalVariables,
-  updateCaseTree,
 } from "./helpers";
 import { dev } from "../../common/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
@@ -79,8 +78,6 @@ export const caseTreeViewSlice = createSlice({
       action: PayloadAction<WithCaseTreeId<{ tree: CaseTreeEntry }>>,
     ) {
       const { tupleName, tree } = action.payload;
-
-      if (tupleName in state) return;
 
       state[tupleName] = tree;
     },
@@ -237,19 +234,6 @@ export const caseTreeViewSlice = createSlice({
 
       nodeIdsToDelete.forEach((id) => delete caseTree.nodes[id]);
     },
-  },
-
-  extraReducers(builder) {
-    builder.addCase(updateFunctionSymbols, (state, action) => {
-      const tupleName = action.payload.key;
-
-      if (action.meta.source === "caseTreeView") return;
-
-      const caseTreeEntry = state[tupleName];
-      if (!caseTreeEntry) return;
-
-      updateCaseTree(caseTreeEntry, action.payload.value);
-    });
   },
 });
 

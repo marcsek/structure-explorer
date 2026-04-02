@@ -24,6 +24,7 @@ import { faAdd, faTrash } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import { InlineMath } from "react-katex";
 import { latex } from "../../common/utils";
+import { selectIfLock } from "../structure/structureSlice";
 
 export interface IntervalViewProps {
   tupleName: string;
@@ -38,6 +39,7 @@ export default function IntervalView({
   const intervalViewRows = useAppSelector((state) =>
     selectStructuredCaseView(state, tupleName),
   );
+  const locked = useAppSelector((state) => selectIfLock(state, tupleName));
 
   useEffect(() => {
     if (!intervalViewRows) dispatch(initializeTree(tupleName));
@@ -51,34 +53,27 @@ export default function IntervalView({
     pureIntervalViewRows[0].nodes.length === 1;
 
   return (
-    <Stack
-      direction="horizontal"
-      gap={2}
-      style={{
-        overflowX: "auto",
-        padding: "1rem",
-        alignItems: "stretch",
-        minHeight: "164px",
-      }}
-    >
-      <div style={{ alignSelf: "center" }}>
+    <Stack direction="horizontal" gap={2} className="interval-view">
+      <div className="interval-view-label">
         <InlineMath>{`i(${latex().text(tupleName).get()})(${intervalVariables.slice(0, tupleArity)}) = `}</InlineMath>
       </div>
 
       <CasesBrace />
 
-      <Stack gap={2} style={{ height: "fit-content", alignSelf: "center" }}>
+      <Stack gap={2} className="interval-view-branches">
         {hasSigleBranch ? (
           <SingleValueIntervalInput
             actualRow={pureIntervalViewRows[0]}
             tupleName={tupleName}
             tupleArity={tupleArity}
+            locked={locked}
           />
         ) : (
           intervalViewRows.map((row, idx) => (
             <IntervalViewRow
               tupleName={tupleName}
               tupleArity={tupleArity}
+              locked={locked}
               row={row}
               key={idx}
             />
@@ -93,10 +88,12 @@ export function SingleValueIntervalInput({
   actualRow,
   tupleName,
   tupleArity,
+  locked,
 }: {
   actualRow: IntervalViewRow;
   tupleName: string;
   tupleArity: number;
+  locked: boolean;
 }) {
   const dispatch = useAppDispatch();
 
@@ -106,32 +103,40 @@ export function SingleValueIntervalInput({
   if (!firstNode) return null;
 
   return (
-    <Stack direction="horizontal" gap={1}>
-      <FormControl
-        value={value}
-        size="sm"
-        style={{ maxWidth: "3rem", minWidth: "2rem" }}
-        isInvalid={!!error}
-        onChange={(e) =>
-          dispatch(
-            updateBranch({
-              nodeId: firstNode.id,
-              tupleName,
-              branch: { type: "value", value: e.target.value },
-            }),
-          )
-        }
-      />
-      <CaseButtons
-        caseNode={firstNode.case}
-        parentId={firstNode.id}
-        tupleName={tupleName}
-        onCaseDelete={() => {}}
-        maxDepthReached={false}
-        variables={intervalVariables.slice(0, tupleArity)}
-        initialCase
-      />
-    </Stack>
+    <>
+      <Stack direction="horizontal" gap={1} className="single-value-interval">
+        <FormControl
+          value={value}
+          size="sm"
+          className="interval-input"
+          disabled={locked}
+          isInvalid={!!error}
+          onChange={(e) =>
+            dispatch(
+              updateBranch({
+                nodeId: firstNode.id,
+                tupleName,
+                branch: { type: "value", value: e.target.value },
+              }),
+            )
+          }
+        />
+
+        {!locked && (
+          <CaseButtons
+            caseNode={firstNode.case}
+            parentId={firstNode.id}
+            tupleName={tupleName}
+            onCaseDelete={() => {}}
+            maxDepthReached={false}
+            variables={intervalVariables.slice(0, tupleArity)}
+            initialCase
+          />
+        )}
+      </Stack>
+
+      {error && <p className="error-message text-danger m-0">{error}</p>}
+    </>
   );
 }
 
@@ -139,10 +144,12 @@ export function IntervalViewRow({
   row,
   tupleName,
   tupleArity,
+  locked,
 }: {
   tupleName: string;
   tupleArity: number;
   row: IntervalViewRow;
+  locked: boolean;
 }) {
   const { value, nodes: actualNodes, error: rowError, placeholder } = row;
 
@@ -155,12 +162,20 @@ export function IntervalViewRow({
 
   const nodes = [...actualNodes];
 
+  if (placeholder && locked) return null;
+
   if (placeholder) {
     nodes.pop();
     nodes.push({
       primary: false,
       variable: lastNode.variable,
-      case: { type: "case", caseIdx: 0, error: "", match: "" },
+      case: {
+        type: "case",
+        caseIdx: 0,
+        error: "",
+        match: "",
+        primary: false,
+      },
       errors: [],
       id: "",
     });
@@ -197,29 +212,40 @@ export function IntervalViewRow({
     .slice(0, tupleArity)
     .filter((v) => !usedVars.includes(v));
 
+  const handlePlaceholderUpdate = ({
+    type,
+    value,
+  }: {
+    type: "value" | "match";
+    value: string;
+  }) => {
+    dispatch(
+      addCase({
+        parentId: lastNode.id,
+        caseType: "case",
+        branchType: "value",
+        tupleName,
+        [type]: value,
+      }),
+    );
+  };
+
   return (
-    <div className="interval-view-row">
-      <Stack
-        direction="horizontal"
-        gap={1}
-        style={{ opacity: placeholder ? 0.6 : 1 }}
-      >
+    <div
+      className={`interval-view-row ${placeholder ? "row-placeholder" : ""}`}
+    >
+      <Stack direction="horizontal" gap={1} className="interval-view-row-stack">
         <FormControl
           value={value}
           size="sm"
-          style={{ maxWidth: "3rem", minWidth: "2rem" }}
+          disabled={locked}
           isInvalid={!!rowError}
           onChange={(e) =>
             placeholder
-              ? dispatch(
-                  addCase({
-                    parentId: lastNode.id,
-                    caseType: "case",
-                    branchType: "value",
-                    tupleName,
-                    value: e.target.value,
-                  }),
-                )
+              ? handlePlaceholderUpdate({
+                  type: "value",
+                  value: e.target.value,
+                })
               : dispatch(
                   updateBranch({
                     nodeId: lastNode.id,
@@ -243,8 +269,8 @@ export function IntervalViewRow({
                 <FormControl
                   value={variable}
                   size="sm"
-                  disabled={!primary || placeholder}
-                  style={{ maxWidth: "3rem", minWidth: "2rem" }}
+                  disabled={!primary || placeholder || locked}
+                  className="interval-input"
                   isInvalid={errors.length > 0}
                   onChange={(e) =>
                     dispatch(
@@ -264,20 +290,19 @@ export function IntervalViewRow({
                     !placeholder || idx < nodes.length - 1 ? caseNode.match : ""
                   }
                   size="sm"
-                  disabled={placeholder && idx < nodes.length - 1}
-                  style={{ maxWidth: "3rem", minWidth: "2rem" }}
+                  disabled={
+                    locked ||
+                    ((placeholder || !caseNode.primary) &&
+                      idx < nodes.length - 1)
+                  }
+                  className="interval-input"
                   isInvalid={!!caseNode.error}
                   onChange={(e) =>
                     placeholder
-                      ? dispatch(
-                          addCase({
-                            parentId: lastNode.id,
-                            caseType: "case",
-                            branchType: "value",
-                            tupleName,
-                            match: e.target.value,
-                          }),
-                        )
+                      ? handlePlaceholderUpdate({
+                          type: "match",
+                          value: e.target.value,
+                        })
                       : dispatch(
                           updateCase({
                             nodeId: id,
@@ -290,12 +315,10 @@ export function IntervalViewRow({
                 />
               </>
             ) : (
-              <span style={{ textWrap: "nowrap" }}>
-                {variable} is any other
-              </span>
+              <span className="any-other-label">{variable} is any other</span>
             )}
 
-            {(!placeholder || idx < nodes.length - 1) && (
+            {((!locked && !placeholder) || idx < nodes.length - 1) && (
               <>
                 {idx === nodes.length - 1 ? (
                   <CaseButtons
@@ -315,11 +338,7 @@ export function IntervalViewRow({
         ))}
       </Stack>
 
-      {errors.length > 0 && (
-        <p style={{ fontSize: "0.875rem" }} className="text-danger m-0">
-          {errors[0]}
-        </p>
-      )}
+      {errors.length > 0 && <p className="error-message">{errors[0]}</p>}
     </div>
   );
 }
@@ -338,19 +357,11 @@ function CaseButtons({
   tupleName,
   caseNode,
   parentId,
-  maxDepthReached,
   variables,
   onCaseDelete,
   initialCase = false,
 }: CaseButtonsProps) {
   const dispatch = useAppDispatch();
-
-  const dropdownItems = [
-    { text: "Condition", branchType: "ref" as const },
-    { text: "Variant", branchType: "value" as const },
-  ];
-
-  if (maxDepthReached) dropdownItems.shift();
 
   const isDeletable = (viewCase: IntervalViewCase) =>
     viewCase.type === "case" || viewCase.deletable;
@@ -375,7 +386,7 @@ function CaseButtons({
   return (
     <>
       {variables.length > 0 && (
-        <Dropdown>
+        <Dropdown drop="end">
           <Dropdown.Toggle as={Button} size="sm" className="btn-bd-light">
             <FontAwesomeIcon icon={faAdd} />
           </Dropdown.Toggle>
@@ -391,32 +402,6 @@ function CaseButtons({
                 {v}
               </Dropdown.Item>
             ))}
-
-            {/* {dropdownItems.map(({ text, branchType }) => ( */}
-            {/*   <Dropdown.Item */}
-            {/*     key={text} */}
-            {/*     as={Button} */}
-            {/*     onClick={() => */}
-            {/*       dispatch( */}
-            {/*         addCase({ */}
-            {/*           parentId, */}
-            {/*           tupleName, */}
-            {/*           caseType: */}
-            {/*             branchType === "value" || caseNode.type === "case" */}
-            {/*               ? "case" */}
-            {/*               : "default", */}
-            {/*           branchType, */}
-            {/*           caseIdx: */}
-            {/*             branchType === "ref" && caseNode.type === "case" */}
-            {/*               ? caseNode.caseIdx */}
-            {/*               : undefined, */}
-            {/*         }), */}
-            {/*       ) */}
-            {/*     } */}
-            {/*   > */}
-            {/*     {text} */}
-            {/*   </Dropdown.Item> */}
-            {/* ))} */}
           </Dropdown.Menu>
         </Dropdown>
       )}
@@ -436,7 +421,7 @@ function CasesBrace() {
       width="16"
       viewBox="0 0 12 100"
       preserveAspectRatio="none"
-      style={{ display: "block", width: "1rem", flexShrink: "0" }}
+      className="cases-brace"
     >
       <path
         d="M11 0 Q5 0 5 10 L5 40 Q5 50 0 50 Q5 50 5 60 L5 90 Q5 100 11 100"

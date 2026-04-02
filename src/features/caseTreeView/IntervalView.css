@@ -1,4 +1,45 @@
-.interval-view-row .form-control.is-invalid {
+.interval-view {
+  overflow-x: auto;
+  padding: 1rem;
+  align-items: stretch;
+  min-height: 164px;
+}
+
+.interval-view-label {
+  align-self: center;
+}
+
+.interval-view-branches {
+  height: fit-content;
+  align-self: center;
+}
+
+.interval-view .form-control {
+  width: 3rem;
+}
+
+.interval-view-row .form-control.is-invalid,
+.single-value-interval .form-control.is-invalid {
   background-image: none;
   padding-right: 0.5rem;
+}
+
+.interval-view-row.row-placeholder {
+  opacity: 0.6;
+}
+
+.interval-view-row .any-other-label {
+  text-wrap: nowrap;
+}
+
+.interval-view .error-message {
+  font-size: 0.875rem;
+  margin: 0;
+  color: var(--bs-danger);
+}
+
+.cases-brace {
+  display: block;
+  width: 1rem;
+  flex-shrink: 0;
 }
