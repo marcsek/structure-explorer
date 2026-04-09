@@ -6,6 +6,7 @@ import {
   addInitialCase,
   deleteCase,
   initializeTree,
+  regenerateInterpretation,
   selectStructuredCaseView,
   updateBranch,
   updateCase,
@@ -18,22 +19,39 @@ import {
   type IntervalViewCase,
   type IntervalViewRow,
 } from "./helpers";
-import { Button, Dropdown, FormControl, Stack } from "react-bootstrap";
+import {
+  Button,
+  ButtonGroup,
+  Dropdown,
+  FormControl,
+  Stack,
+} from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAdd, faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAdd,
+  faArrowsRotate,
+  faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import { InlineMath } from "react-katex";
 import { latex } from "../../common/utils";
-import { selectIfLock } from "../structure/structureSlice";
+import {
+  selectIfLock,
+  selectValidatedFunction,
+} from "../structure/structureSlice";
+import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
+import { createValidationError } from "../../common/errors";
 
 export interface IntervalViewProps {
   tupleName: string;
   tupleArity: number;
+  setErrorOverride: (value: ErrorOverride | null) => void;
 }
 
 export default function IntervalView({
   tupleName,
   tupleArity,
+  setErrorOverride,
 }: IntervalViewProps) {
   const dispatch = useAppDispatch();
   const intervalViewRows = useAppSelector((state) =>
@@ -41,9 +59,40 @@ export default function IntervalView({
   );
   const locked = useAppSelector((state) => selectIfLock(state, tupleName));
 
+  const functionIntr = useAppSelector((state) =>
+    selectValidatedFunction(state, tupleName),
+  );
+
   useEffect(() => {
     if (!intervalViewRows) dispatch(initializeTree(tupleName));
   }, [dispatch, intervalViewRows, tupleName]);
+
+  const errors =
+    intervalViewRows?.flatMap((r) => getAllIntervalViewRowErrors(r)) ?? [];
+
+  useEffect(() => {
+    if ((functionIntr.error || !functionIntr.parsed) && errors.length === 0)
+      setErrorOverride({
+        editor: "caseTree",
+        fixButton: (
+          <>
+            <FontAwesomeIcon icon={faArrowsRotate} /> Regenerate
+          </>
+        ),
+        error: createValidationError(
+          "This editor is out of sync due to errors in the interpretation. You can regenerate a valid interpretation.",
+        ),
+        onFixButtonClick: () => dispatch(regenerateInterpretation(tupleName)),
+      });
+    else setErrorOverride(null);
+  }, [
+    dispatch,
+    errors.length,
+    functionIntr.error,
+    functionIntr.parsed,
+    setErrorOverride,
+    tupleName,
+  ]);
 
   if (!intervalViewRows) return null;
 
@@ -53,34 +102,36 @@ export default function IntervalView({
     pureIntervalViewRows[0].nodes.length === 1;
 
   return (
-    <Stack direction="horizontal" gap={2} className="interval-view">
-      <div className="interval-view-label">
-        <InlineMath>{`i(${latex().text(tupleName).get()})(${intervalVariables.slice(0, tupleArity)}) = `}</InlineMath>
-      </div>
+    <div className="interval-view-wrapper">
+      <Stack direction="horizontal" gap={2} className="interval-view">
+        <div className="interval-view-label">
+          <InlineMath>{`i(${latex().text(tupleName).get()})(${intervalVariables.slice(0, tupleArity)}) = `}</InlineMath>
+        </div>
 
-      <CasesBrace />
+        <CasesBrace />
 
-      <Stack gap={2} className="interval-view-branches">
-        {hasSigleBranch ? (
-          <SingleValueIntervalInput
-            actualRow={pureIntervalViewRows[0]}
-            tupleName={tupleName}
-            tupleArity={tupleArity}
-            locked={locked}
-          />
-        ) : (
-          intervalViewRows.map((row, idx) => (
-            <IntervalViewRow
+        <Stack gap={2} className="interval-view-branches">
+          {hasSigleBranch ? (
+            <SingleValueIntervalInput
+              actualRow={pureIntervalViewRows[0]}
               tupleName={tupleName}
               tupleArity={tupleArity}
               locked={locked}
-              row={row}
-              key={idx}
             />
-          ))
-        )}
+          ) : (
+            intervalViewRows.map((row, idx) => (
+              <IntervalViewRow
+                tupleName={tupleName}
+                tupleArity={tupleArity}
+                locked={locked}
+                row={row}
+                key={idx}
+              />
+            ))
+          )}
+        </Stack>
       </Stack>
-    </Stack>
+    </div>
   );
 }
 
@@ -270,7 +321,7 @@ export function IntervalViewRow({
                   value={variable}
                   size="sm"
                   disabled={!primary || placeholder || locked}
-                  className="interval-input"
+                  className="interval-input interval-variable-input"
                   isInvalid={errors.length > 0}
                   onChange={(e) =>
                     dispatch(
@@ -315,7 +366,9 @@ export function IntervalViewRow({
                 />
               </>
             ) : (
-              <span className="any-other-label">{variable} is any other</span>
+              <span className="any-other-label">
+                <var>{variable}</var> is any other
+              </span>
             )}
 
             {((!locked && !placeholder) || idx < nodes.length - 1) && (
@@ -384,14 +437,22 @@ function CaseButtons({
   };
 
   return (
-    <>
+    <ButtonGroup size="sm" className="ms-1">
       {variables.length > 0 && (
-        <Dropdown drop="end">
-          <Dropdown.Toggle as={Button} size="sm" className="btn-bd-light">
+        <Dropdown as={ButtonGroup}>
+          <Dropdown.Toggle
+            as={Button}
+            size="sm"
+            className="btn-bd-light-outline"
+          >
             <FontAwesomeIcon icon={faAdd} />
           </Dropdown.Toggle>
 
           <Dropdown.Menu>
+            <Dropdown.ItemText className="drop-down-title-text">
+              Cases for
+            </Dropdown.ItemText>
+
             {variables.map((v) => (
               <Dropdown.Item
                 key={v}
@@ -399,7 +460,7 @@ function CaseButtons({
                 onClick={() => handleAddCase(v)}
                 size="sm"
               >
-                {v}
+                <var>{v}</var>
               </Dropdown.Item>
             ))}
           </Dropdown.Menu>
@@ -407,11 +468,15 @@ function CaseButtons({
       )}
 
       {isDeletable(caseNode) && (
-        <Button size="sm" className="btn-bd-light" onClick={onCaseDelete}>
+        <Button
+          size="sm"
+          className="btn-bd-light-outline"
+          onClick={onCaseDelete}
+        >
           <FontAwesomeIcon icon={faTrash} />
         </Button>
       )}
-    </>
+    </ButtonGroup>
   );
 }
 

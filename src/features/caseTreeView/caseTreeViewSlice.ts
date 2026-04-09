@@ -1,8 +1,10 @@
 import {
   createSelector,
   createSlice,
+  type Action,
   type PayloadAction,
   type PayloadActionCreator,
+  type ThunkDispatch,
 } from "@reduxjs/toolkit";
 import type { AppThunk, RootState } from "../../app/store";
 import {
@@ -256,27 +258,58 @@ const treeUpdateWrapper =
   (dispatch, getState) => {
     dispatch(action(args));
 
-    const tupleName = args.tupleName;
-    const state = getState().present;
-    const { rootId, nodes } = state.caseTreeView[tupleName];
-    const domain = new Set(state.structure.domain.value);
-    const arity = selectValidatedFunctions(getState()).parsed.get(tupleName);
-
-    if (!arity) return;
-
-    const result = generateTuples(rootId, nodes, domain, arity);
-
-    if (!result.ok) return;
-
-    dev.log("Generated tuples", result.tuples);
-    dispatch(
-      updateFunctionSymbols(
-        { key: tupleName, value: result.tuples },
-        { source: "caseTreeView" },
-      ),
-    );
+    updateInterpretation(dispatch, getState, args.tupleName);
+    // const tupleName = args.tupleName;
+    // const state = getState().present;
+    // const { rootId, nodes } = state.caseTreeView[tupleName];
+    // const domain = new Set(state.structure.domain.value);
+    // const arity = selectValidatedFunctions(getState()).parsed.get(tupleName);
+    //
+    // if (!arity) return;
+    //
+    // const result = generateTuples(rootId, nodes, domain, arity);
+    //
+    // if (!result.ok) return;
+    //
+    // dev.log("Generated tuples", result.tuples);
+    // dispatch(
+    //   updateFunctionSymbols(
+    //     { key: tupleName, value: result.tuples },
+    //     { source: "caseTreeView" },
+    //   ),
+    // );
     dispatch(UndoActions.checkpoint());
   };
+
+const updateInterpretation = (
+  dispatch: ThunkDispatch<RootState, unknown, Action>,
+  getState: () => RootState,
+  tupleName: string,
+) => {
+  const state = getState().present;
+  const { rootId, nodes } = state.caseTreeView[tupleName];
+  const domain = new Set(state.structure.domain.value);
+  const arity = selectValidatedFunctions(getState()).parsed.get(tupleName);
+
+  if (!arity) return;
+
+  const result = generateTuples(rootId, nodes, domain, arity);
+
+  if (!result.ok) return;
+
+  dev.log("Generated tuples", result.tuples);
+  dispatch(
+    updateFunctionSymbols(
+      { key: tupleName, value: result.tuples },
+      { source: "caseTreeView" },
+    ),
+  );
+};
+
+export const regenerateInterpretation =
+  (tupleName: string): AppThunk =>
+  (dispatch, getState) =>
+    updateInterpretation(dispatch, getState, tupleName);
 
 export const updateNode = treeUpdateWrapper(updateNodeAction);
 export const updateCase = treeUpdateWrapper(updateCaseAction);

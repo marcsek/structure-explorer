@@ -65,10 +65,17 @@ export default function DrawerEditor(props: DrawerEditorProps) {
   );
 }
 
-interface DrawerEditorContentProps extends DrawerEditorProps {
+export interface DrawerEditorContentProps extends DrawerEditorProps {
   expandedView?: boolean;
   show?: boolean;
   setExpandedView: (value: boolean) => void;
+}
+
+export interface ErrorOverride {
+  editor: DrawerEditorType;
+  error: InterpretationError;
+  fixButton: ReactNode;
+  onFixButtonClick: () => void;
 }
 
 function DrawerEditorContent({
@@ -88,6 +95,9 @@ function DrawerEditorContent({
   const dispatch = useAppDispatch();
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
+  const [errorOverride, setErrorOverride] = useState<ErrorOverride | null>(
+    null,
+  );
 
   const editorComponent = !show ? (
     <InactiveViewPlaceholder size={preservedSize} />
@@ -106,7 +116,11 @@ function DrawerEditorContent({
       locked={locked}
     />
   ) : type === "caseTree" ? (
-    <IntervalView tupleName={tupleName} tupleArity={tupleArity} />
+    <IntervalView
+      tupleName={tupleName}
+      tupleArity={tupleArity}
+      setErrorOverride={setErrorOverride}
+    />
   ) : (
     <GraphView
       tupleName={tupleName}
@@ -118,9 +132,12 @@ function DrawerEditorContent({
     />
   );
 
+  const errorShouldOverride = errorOverride?.editor === type;
+  const finalError = errorShouldOverride ? errorOverride.error : error;
+
   return (
     <Stack
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${error ? "error" : ""}`}
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${finalError ? "error" : ""}`}
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
@@ -154,21 +171,26 @@ function DrawerEditorContent({
           </div>
         )}
 
-        {error && (
+        {finalError && (
           <EditorError
-            error={error}
+            error={finalError}
             onRemoveInvalidClick={() => {
-              dispatch(
-                removeInvalidEntries({ key: tupleName, type: tupleType }),
-              );
-              dispatch(UndoActions.checkpoint());
+              if (errorShouldOverride) {
+                errorOverride.onFixButtonClick();
+              } else {
+                dispatch(
+                  removeInvalidEntries({ key: tupleName, type: tupleType }),
+                );
+                dispatch(UndoActions.checkpoint());
+              }
             }}
+            fixButton={errorShouldOverride && errorOverride.fixButton}
           />
         )}
 
         <div
           ref={preservedSizeRef}
-          className={`drawer-editor-view-container ${error ? "error" : ""}`}
+          className={`drawer-editor-view-container ${finalError ? "error" : ""}`}
         >
           {editorComponent}
         </div>
@@ -180,9 +202,14 @@ function DrawerEditorContent({
 interface EditorErrorProps {
   error: InterpretationError;
   onRemoveInvalidClick: () => void;
+  fixButton?: ReactNode;
 }
 
-function EditorError({ error, onRemoveInvalidClick }: EditorErrorProps) {
+function EditorError({
+  error,
+  onRemoveInvalidClick,
+  fixButton,
+}: EditorErrorProps) {
   return (
     <div className="drawer-editor-error-container">
       <div className="drawer-editor-error-message">
@@ -196,8 +223,14 @@ function EditorError({ error, onRemoveInvalidClick }: EditorErrorProps) {
           variant="outline-danger"
           onClick={onRemoveInvalidClick}
         >
-          <FontAwesomeIcon icon={faTrash} size="sm" />
-          Remove invalid
+          {fixButton ? (
+            fixButton
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faTrash} size="sm" />
+              Remove invalid
+            </>
+          )}
         </Button>
       )}
     </div>

@@ -163,6 +163,7 @@ export function getStructuredIntervalView(
     nodeId: string,
     usedVars: Set<string>,
     currentIntervalNodes: IntervalViewNode[],
+    parentHadError: boolean = false,
   ) => {
     const node = nodes[nodeId];
     const nodeErrors = getTreeNodeValidation(node, allowedVars, usedVars);
@@ -178,7 +179,7 @@ export function getStructuredIntervalView(
     const exhausted = node.cases.length === domain.size - 1;
 
     const matches = new Set<string>();
-    let rowHadError = nodeErrors.length > 0;
+    let rowHadError = nodeErrors.length > 0 || parentHadError;
     for (const [idx, nodeCase] of cases.entries()) {
       const deletable = currentIntervalNodes.length > 0 && cases.length === 1;
 
@@ -213,7 +214,7 @@ export function getStructuredIntervalView(
       if (!isPrimary) {
         currentIntervalNodes = currentIntervalNodes.map((n) => ({
           ...n,
-          case: { ...n.case, primary: false },
+          case: { ...n.case, primary: false, error: "" },
         }));
       }
 
@@ -270,7 +271,12 @@ export function getStructuredIntervalView(
 
         rowHadError ||= !!valueError;
       } else {
-        buildRow(nodeCase.branch.nodeId, usedVarsCpy, newIntervalNodes);
+        buildRow(
+          nodeCase.branch.nodeId,
+          usedVarsCpy,
+          newIntervalNodes,
+          rowHadError,
+        );
       }
 
       if (!rowHadError && idx === cases.length - 2 && !exhausted) {

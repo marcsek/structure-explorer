@@ -1,8 +1,16 @@
 .interval-view {
-  overflow-x: auto;
-  padding: 1rem;
   align-items: stretch;
-  min-height: 164px;
+  height: fit-content;
+  align-self: center;
+}
+
+.interval-view-wrapper {
+  overflow: auto;
+  padding: 1rem;
+  display: flex;
+  min-height: 300px;
+  width: 100%;
+  align-items: center;
 }
 
 .interval-view-label {
@@ -16,6 +24,10 @@
 
 .interval-view .form-control {
   width: 3rem;
+}
+
+.interval-view .interval-variable-input {
+  font-style: italic;
 }
 
 .interval-view-row .form-control.is-invalid,
