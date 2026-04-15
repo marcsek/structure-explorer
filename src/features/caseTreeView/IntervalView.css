@@ -37,7 +37,22 @@
 }
 
 .interval-view-row.row-placeholder {
+  color: var(--bs-secondary);
+}
+
+.interval-view-row.row-placeholder .form-control:disabled {
   opacity: 0.6;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0px,
+    transparent 8px,
+    rgba(255, 255, 255, 0.47) 8px,
+    rgba(255, 255, 255, 0.47) 16px
+  );
+}
+
+.interval-view-row.row-placeholder .form-control:not(:disabled) {
+  border-style: dashed;
 }
 
 .interval-view-row .any-other-label {
