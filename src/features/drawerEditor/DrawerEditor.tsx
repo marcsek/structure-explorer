@@ -11,7 +11,7 @@ import type { InterpretationError } from "../../common/errors";
 import MatrixView from "../matrixView/MatrixView";
 import DatabaseView from "../databaseView/DatabaseView";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch } from "../../app/hooks";
 import {
   removeInvalidEntries,
@@ -141,7 +141,11 @@ function DrawerEditorContent({
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
-          <EditorTitle base={tupleDisplayName} editor={editorDisplayName} />
+          <EditorTitle
+            base={tupleDisplayName}
+            editor={editorDisplayName}
+            locked={locked}
+          />
           <Stack
             direction="horizontal"
             className="drawer-editor-header-control-group"
@@ -240,22 +244,27 @@ function EditorError({
 export interface EditorTitleProps {
   base: string;
   editor: string;
+  locked: boolean;
 }
 
-function EditorTitle({ base, editor }: EditorTitleProps) {
+function EditorTitle({ base, editor, locked }: EditorTitleProps) {
   return (
     <Stack className="drawer-editor-title">
-      <span className="drawer-editor-title-primary fw-light">
-        <InlineMath>{base}</InlineMath>
-      </span>
-
-      <ForwardSlashIcon
-        className="drawer-editor-title-divider text-body-secondary"
-        size="0.875rem"
-      />
-      <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
-        {editor}
-      </span>
+      <Stack className="drawer-editor-breadcrumbs">
+        <span className="drawer-editor-title-primary fw-light">
+          <InlineMath>{base}</InlineMath>
+        </span>
+        <ForwardSlashIcon className="drawer-editor-title-divider text-body-secondary" />
+        <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
+          {editor}
+        </span>
+      </Stack>
+      {locked && (
+        <span className="drawer-editor-lock-badge">
+          <FontAwesomeIcon icon={faLock} size="sm" />
+          Locked
+        </span>
+      )}
     </Stack>
   );
 }

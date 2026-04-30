@@ -171,6 +171,16 @@
   padding-inline: 0.5rem;
 }
 
+.drawer-editor-breadcrumbs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  flex-shrink: 1;
+  flex-grow: 1;
+  min-width: 0;
+}
+
 .drawer-editor-title-primary {
   max-height: 1.5rem;
   flex-shrink: 0;
@@ -178,6 +188,8 @@
 
 .drawer-editor-title-divider {
   flex-shrink: 0;
+  width: 1em;
+  height: 1em;
 }
 
 .drawer-editor-title-secondary {
@@ -191,7 +203,9 @@
   background-color: unset;
   border: unset;
   border-radius: unset;
+  font-size: 1rem;
   padding: 0;
+  padding-right: 1rem;
 }
 
 .editor-controls-buttons-group button:first-of-type {
@@ -201,6 +215,18 @@
 
 .editor-controls-buttons-group:has(+ button) button:last-of-type {
   border-radius: 0;
+}
+
+.drawer-editor-lock-badge {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.25rem;
+  line-height: 1;
+  text-align: center;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--bs-danger) 65%, transparent 35%);
+  /* color: rgba(33, 37, 41, 0.5); */
 }
 
 /* Needed when overlapping with error border of .drawer-editor-error-container */

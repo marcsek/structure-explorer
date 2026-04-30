@@ -139,6 +139,11 @@
   stroke-dasharray: 5, 3;
 }
 
+.react-flow__edge.inactive {
+  cursor: not-allowed;
+  pointer-events: all;
+}
+
 .react-flow__edge-path-focus {
   opacity: 0;
   stroke-width: 6px;
