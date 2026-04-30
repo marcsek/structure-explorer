@@ -58,7 +58,12 @@ function PredicateNode({
   };
 
   const createSelfEdge = () => {
-    if (parentInfo.graphType === "bipartite" || data.leftover || data.ghost)
+    if (
+      parentInfo.graphType === "bipartite" ||
+      data.leftover ||
+      data.ghost ||
+      parentInfo.locked
+    )
       return;
 
     dispatch(

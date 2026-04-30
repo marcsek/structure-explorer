@@ -6,6 +6,7 @@ export const GraphInfoContext = createContext<{
   tupleName: string;
   tupleType: TupleType;
   graphType: GraphType;
+  locked: boolean;
 } | null>(null);
 
 export const useGraphInfo = () => {
@@ -19,6 +20,7 @@ export const useGraphInfo = () => {
       tupleName: "",
       graphType: "oriented",
       tupleType: "predicate",
+      locked: false,
     }
   );
 };
