@@ -13,6 +13,7 @@ import {
 } from "./features/structure/structureSlice";
 import { UndoActions } from "./features/undoHistory/undoHistory";
 import { addFormulas, updateGuess } from "./features/formulas/formulasSlice";
+import { unaryFilterDomainToggled } from "./features/editorToolbar/editorToolbarSlice";
 
 export default function usePreset() {
   const dispatch = useAppDispatch();
@@ -57,6 +58,83 @@ export default function usePreset() {
       dispatch(
         updateInterpretationPredicates({
           key: "teacher",
+          value: [["A"], ["B"], ["C"], ["D"], ["E"]],
+        }),
+      );
+
+      dispatch(UndoActions.clearHistory());
+    } else if (preset === "preview") {
+      dispatch(updateConstants(["Alice", "Bob", "Clark", "Dylan", "Ed"]));
+
+      dispatch(
+        updatePredicates([
+          { name: "učí", arity: 2 },
+          { name: "študent", arity: 1 },
+          { name: "školník", arity: 1 },
+          { name: "riaditeľ", arity: 1 },
+          { name: "učiteľ", arity: 1 },
+        ]),
+      );
+
+      dispatch(updateFunctions([{ name: "známka", arity: 3 }]));
+
+      dispatch(updateDomain(["A", "B", "C", "D", "E"]));
+
+      dispatch(updateInterpretationConstants({ key: "Alice", value: "A" }));
+      dispatch(updateInterpretationConstants({ key: "Bob", value: "B" }));
+      dispatch(updateInterpretationConstants({ key: "Clark", value: "C" }));
+      dispatch(updateInterpretationConstants({ key: "Dylan", value: "D" }));
+      dispatch(updateInterpretationConstants({ key: "Ed", value: "E" }));
+
+      dispatch(
+        unaryFilterDomainToggled({ tupleName: "učí", tupleType: "predicate" }),
+      );
+      dispatch(
+        unaryFilterDomainToggled({
+          tupleName: "študent",
+          tupleType: "predicate",
+        }),
+      );
+      dispatch(
+        unaryFilterDomainToggled({
+          tupleName: "školník",
+          tupleType: "predicate",
+        }),
+      );
+      dispatch(
+        unaryFilterDomainToggled({
+          tupleName: "riaditeľ",
+          tupleType: "predicate",
+        }),
+      );
+      dispatch(
+        unaryFilterDomainToggled({
+          tupleName: "učiteľ",
+          tupleType: "predicate",
+        }),
+      );
+
+      dispatch(
+        updateInterpretationPredicates({
+          key: "študent",
+          value: [["A"], ["B"]],
+        }),
+      );
+      dispatch(
+        updateInterpretationPredicates({
+          key: "školník",
+          value: [["C"], ["D"]],
+        }),
+      );
+      dispatch(
+        updateInterpretationPredicates({
+          key: "riaditeľ",
+          value: [["A"], ["C"], ["E"]],
+        }),
+      );
+      dispatch(
+        updateInterpretationPredicates({
+          key: "učiteľ",
           value: [["A"], ["B"], ["C"], ["D"], ["E"]],
         }),
       );

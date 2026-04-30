@@ -14,6 +14,8 @@ import PredicateNode, {
 } from "../graphComponents/PredicateNode";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 
+export const SNAP_GRID_SIZE = 10;
+
 export const connectionLineStyle = {
   stroke: "#b1b1b7",
 };
@@ -60,4 +62,5 @@ export const defaultFlowProps: ReactFlowProps<
   edgesReconnectable: false,
   connectOnClick: false,
   minZoom: 0.25,
+  snapGrid: [SNAP_GRID_SIZE, SNAP_GRID_SIZE],
 };

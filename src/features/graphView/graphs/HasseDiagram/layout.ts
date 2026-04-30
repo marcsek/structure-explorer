@@ -1,5 +1,6 @@
 import dagre from "@dagrejs/dagre";
 import type { Edge, Node, NodeChange } from "@xyflow/react";
+import { SNAP_GRID_SIZE } from "../common/graphOptions";
 
 export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   nodes: TNode[],
@@ -24,12 +25,15 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
 
   const nodeChanges: NodeChange<TNode>[] = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
+    const posX = nodeWithPosition.x - 120 / 2 - offsetX;
+    const posY = nodeWithPosition.y - 75 / 2 - offsetY;
+
     return {
       id: node.id,
       type: "position",
       position: {
-        x: nodeWithPosition.x - 120 / 2 - offsetX,
-        y: nodeWithPosition.y - 75 / 2 - offsetY,
+        x: Math.floor((posX ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
+        y: Math.floor((posY ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
       },
     };
   });

@@ -183,6 +183,7 @@ export default function HasseDiagram({
         nodesConnectable={!locked}
         panOnDrag={isPoset && storeNodes.length !== 0}
         zoomOnScroll={isPoset && storeNodes.length !== 0}
+        snapToGrid
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />

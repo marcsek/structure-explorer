@@ -189,6 +189,7 @@ export default function OrientedGraph({
         nodesConnectable={!locked}
         panOnDrag={nodes.length !== 0}
         zoomOnScroll={nodes.length !== 0}
+        snapToGrid
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />

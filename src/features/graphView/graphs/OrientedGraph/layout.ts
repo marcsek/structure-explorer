@@ -3,6 +3,7 @@ import ELK, {
   type ElkExtendedEdge,
   type ElkNode,
 } from "elkjs/lib/elk.bundled.js";
+import { SNAP_GRID_SIZE } from "../common/graphOptions";
 
 const elkOptions = {
   "elk.algorithm": "force",
@@ -61,7 +62,10 @@ export const computeLayoutOriented = async <
     (node) => ({
       id: node.id,
       type: "position",
-      position: { x: Math.trunc(node.x ?? 0), y: Math.trunc(node.y ?? 0) },
+      position: {
+        x: Math.floor((node.x ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
+        y: Math.floor((node.y ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
+      },
     }),
   );
 
