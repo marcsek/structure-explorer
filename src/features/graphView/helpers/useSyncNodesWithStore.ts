@@ -6,6 +6,7 @@ import { useAppDispatch } from "../../../app/hooks";
 import { onNodesChanged } from "../graphs/graphSlice";
 import type { GraphType } from "../graphs/plugins";
 import type { TupleType } from "../../structure/structureSlice";
+import { UndoActions } from "../../undoHistory/undoHistory";
 
 interface UseSyncNodesWithStoreProps<TNode extends PredicateNodeType> {
   tupleName: string;
@@ -69,6 +70,8 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
     );
     isDragging.current = false;
     setLocalNodes(null);
+
+    dispatch(UndoActions.checkpoint());
   }, [dispatch, tupleName, localNodes, tupleType, graphType]);
 
   return { nodes: localNodes ?? storeNodes, onNodesChange, syncNodesWithStore };
