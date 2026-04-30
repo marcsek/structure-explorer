@@ -36,6 +36,7 @@ const actionsToFilter = [
   editorToolbarSlice.actions.unaryPredicateToggled,
   editorToolbarSlice.actions.editorOpened,
   graphManagerSlice.actions.graphDidInitialLayout,
+  graphManagerSlice.actions.onNodesChanged,
   graphManagerSlice.actions.warningChanged,
   graphManagerSlice.actions.editorLocked,
   errorAlertSlice.actions.clearError,

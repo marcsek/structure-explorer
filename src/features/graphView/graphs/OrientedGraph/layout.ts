@@ -58,16 +58,24 @@ export const computeLayoutOriented = async <
 
   if (!layoutedGraph.children) return [];
 
-  const nodeChanges: NodeChange<TNode>[] = layoutedGraph.children.map(
-    (node) => ({
+  const nodeChanges: NodeChange<TNode>[] = [];
+  for (const lNode of layoutedGraph.children) {
+    const node = inputNodes.find((n) => n.id === lNode.id);
+    if (!node) continue;
+
+    const clampedX =
+      Math.floor((lNode.x ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+    const clampedY =
+      Math.floor((lNode.y ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+
+    if (node.position.x === clampedX && node.position.y === clampedY) continue;
+
+    nodeChanges.push({
       id: node.id,
       type: "position",
-      position: {
-        x: Math.floor((node.x ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
-        y: Math.floor((node.y ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
-      },
-    }),
-  );
+      position: { x: clampedX, y: clampedY },
+    });
+  }
 
   return nodeChanges;
 };

@@ -35,6 +35,7 @@ import {
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
+import { UndoActions } from "../../../undoHistory/undoHistory.ts";
 
 const graphType = "hasse";
 const nodeSelector = makeSelectNodes<"hasse">();
@@ -103,6 +104,8 @@ export default function HasseDiagram({
 
       if (!onlyIfNotMoved || !nodesMoved) {
         const { nodeChanges } = computeLayoutHasse(storeNodes, edges);
+        if (nodeChanges.length === 0) return;
+
         dispatch(
           onNodesChanged({
             tupleName,
@@ -111,6 +114,8 @@ export default function HasseDiagram({
             changes: nodeChanges,
           }),
         );
+
+        if (nodesMoved) dispatch(UndoActions.checkpoint());
       }
 
       if (fitAfter)

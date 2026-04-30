@@ -33,6 +33,7 @@ import {
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
+import { UndoActions } from "../../../undoHistory/undoHistory.ts";
 
 const graphType = "oriented";
 const nodeSelector = makeSelectNodes<"oriented">();
@@ -110,6 +111,7 @@ export default function OrientedGraph({
 
       if (!onlyIfNotMoved || !nodesMoved) {
         const nodeChanges = await computeLayoutOriented(storeNodes, edges);
+        if (nodeChanges.length === 0) return;
 
         dispatch(
           onNodesChanged({
@@ -119,6 +121,8 @@ export default function OrientedGraph({
             changes: nodeChanges,
           }),
         );
+
+        if (nodesMoved) dispatch(UndoActions.checkpoint());
       }
 
       if (fitAfter)

@@ -23,20 +23,22 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   const offsetX = (dagreGraph.graph().width ?? 0) / 2;
   const offsetY = (dagreGraph.graph().height ?? 0) / 2;
 
-  const nodeChanges: NodeChange<TNode>[] = nodes.map((node) => {
+  const nodeChanges: NodeChange<TNode>[] = [];
+  for (const node of nodes) {
     const nodeWithPosition = dagreGraph.node(node.id);
     const posX = nodeWithPosition.x - 120 / 2 - offsetX;
     const posY = nodeWithPosition.y - 75 / 2 - offsetY;
+    const clampedX = Math.floor((posX ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+    const clampedY = Math.floor((posY ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
 
-    return {
+    if (node.position.x === clampedX && node.position.y === clampedY) continue;
+
+    nodeChanges.push({
       id: node.id,
       type: "position",
-      position: {
-        x: Math.floor((posX ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
-        y: Math.floor((posY ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE,
-      },
-    };
-  });
+      position: { x: clampedX, y: clampedY },
+    });
+  }
 
   return { nodeChanges };
 };
