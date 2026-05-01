@@ -1,5 +1,8 @@
 .custom-bs-tooltip {
   --bs-tooltip-bg: rgba(33, 37, 41);
   --bs-tooltip-color: var(--bs-white);
+  --bs-tooltip-font-size: 12px;
+  --bs-tooltip-padding-x: 0.5rem;
+  --bs-tooltip-padding-y: 0.125rem;
   margin-bottom: 0.125rem;
 }

@@ -6,7 +6,7 @@
   pointer-events: none;
 
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
 }
 
@@ -28,6 +28,7 @@
   line-height: 1;
 
   transform: translateY(calc(-2 * (1em + 1rem)));
+  opacity: 0;
   transition:
     transform 180ms ease,
     opacity 180ms ease;
@@ -35,6 +36,7 @@
 
 .flow-container-zoom-hint-container.is-vissible .flow-container-zoom-hint {
   transform: translateY(0);
+  opacity: 1;
 }
 
 .flow-container-zoom-hint svg {

@@ -1,10 +1,11 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./FlowContainer.css";
 
-import { useState, useRef, forwardRef } from "react";
+import { useState, useRef, forwardRef, useEffect } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
-const HIDE_TIMEOUT_DURATION = 1500;
+const HIDE_TIMEOUT_DURATION = 2300;
+const THROTTLE_TIMEOUT_DURATION = 5000;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
@@ -15,6 +16,14 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
   ({ children, hintEnabled }, ref) => {
     const [showHint, setShowHint] = useState(false);
     const hideTimerRef = useRef<number | null>(null);
+    const throttleTimerRef = useRef<number | null>(null);
+
+    useEffect(() => {
+      return () => {
+        window.clearTimeout(hideTimerRef.current ?? undefined);
+        window.clearTimeout(throttleTimerRef.current ?? undefined);
+      };
+    }, []);
 
     const hideZoomHint = () => {
       setShowHint(false);
@@ -22,11 +31,13 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
       if (hideTimerRef.current) {
         window.clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
+
+        throttleHint();
       }
     };
 
     const showZoomHint = () => {
-      if (!hintEnabled) return;
+      if (!hintEnabled || throttleTimerRef.current) return;
 
       setShowHint(true);
 
@@ -37,7 +48,15 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
       hideTimerRef.current = window.setTimeout(() => {
         setShowHint(false);
         hideTimerRef.current = null;
+
+        throttleHint();
       }, HIDE_TIMEOUT_DURATION);
+    };
+
+    const throttleHint = () => {
+      throttleTimerRef.current = window.setTimeout(() => {
+        throttleTimerRef.current = null;
+      }, THROTTLE_TIMEOUT_DURATION);
     };
 
     return (
