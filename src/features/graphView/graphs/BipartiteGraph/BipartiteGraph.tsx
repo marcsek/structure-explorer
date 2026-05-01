@@ -42,6 +42,7 @@ import {
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
+import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
 
 export type OriginSet = "domain" | "range";
 
@@ -213,7 +214,7 @@ export default function BipartiteGraph({
   }, [dispatch, tupleName, tupleType]);
 
   return (
-    <div className="react-flow__container" ref={flowWrapperRef}>
+    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
       <ReactFlow
         id={id}
         nodes={groupedNodes}
@@ -226,7 +227,10 @@ export default function BipartiteGraph({
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={storeNodes.length !== 0}
-        zoomOnScroll={storeNodes.length !== 0}
+        zoomOnScroll={expandedView}
+        preventScrolling={expandedView}
+        zoomOnDoubleClick={storeNodes.length !== 0}
+        zoomOnPinch={storeNodes.length !== 0}
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
@@ -242,7 +246,7 @@ export default function BipartiteGraph({
       )}
 
       {storeNodes.length === 0 && <EmptyDomainMessageDialog />}
-    </div>
+    </FlowContainer>
   );
 }
 

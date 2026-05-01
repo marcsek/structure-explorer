@@ -74,7 +74,7 @@ export default function DomainSelector({
           <div className="domain-selector-header">
             <p>Selected Elements</p>
             <button className="select-all" onClick={() => toggleItem()}>
-              <FontAwesomeIcon icon={faCheckDouble} />
+              <FontAwesomeIcon size="sm" icon={faCheckDouble} />
               Select All
             </button>
           </div>

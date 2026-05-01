@@ -36,6 +36,7 @@ import {
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 import { UndoActions } from "../../../undoHistory/undoHistory.ts";
+import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
 
 const graphType = "hasse";
 const nodeSelector = makeSelectNodes<"hasse">();
@@ -174,7 +175,7 @@ export default function HasseDiagram({
   }, [dispatch, tupleName, tupleType]);
 
   return (
-    <div className="react-flow__container" ref={flowWrapperRef}>
+    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
       <ReactFlow
         id={id}
         nodes={isPoset ? nodes : []}
@@ -187,7 +188,10 @@ export default function HasseDiagram({
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={isPoset && storeNodes.length !== 0}
-        zoomOnScroll={isPoset && storeNodes.length !== 0}
+        zoomOnScroll={expandedView}
+        preventScrolling={expandedView}
+        zoomOnDoubleClick={isPoset && storeNodes.length !== 0}
+        zoomOnPinch={isPoset && storeNodes.length !== 0}
         snapToGrid
         {...defaultFlowProps}
       >
@@ -208,6 +212,6 @@ export default function HasseDiagram({
       )}
 
       {isPoset && storeNodes.length === 0 && <EmptyDomainMessageDialog />}
-    </div>
+    </FlowContainer>
   );
 }

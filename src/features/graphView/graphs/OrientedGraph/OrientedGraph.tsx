@@ -34,6 +34,7 @@ import {
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 import { UndoActions } from "../../../undoHistory/undoHistory.ts";
+import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
 
 const graphType = "oriented";
 const nodeSelector = makeSelectNodes<"oriented">();
@@ -179,7 +180,7 @@ export default function OrientedGraph({
   }, [dispatch, tupleName, tupleType]);
 
   return (
-    <div className="react-flow__container" ref={flowWrapperRef}>
+    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
       <ReactFlow
         id={id}
         nodes={didLayout ? nodes : []}
@@ -192,7 +193,10 @@ export default function OrientedGraph({
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={nodes.length !== 0}
-        zoomOnScroll={nodes.length !== 0}
+        zoomOnScroll={expandedView}
+        preventScrolling={expandedView}
+        zoomOnDoubleClick={nodes.length !== 0}
+        zoomOnPinch={nodes.length !== 0}
         snapToGrid
         {...defaultFlowProps}
       >
@@ -209,6 +213,6 @@ export default function OrientedGraph({
       )}
 
       {nodes.length === 0 && <EmptyDomainMessageDialog />}
-    </div>
+    </FlowContainer>
   );
 }
