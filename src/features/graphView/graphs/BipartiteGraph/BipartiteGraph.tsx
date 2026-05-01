@@ -228,7 +228,6 @@ export default function BipartiteGraph({
         nodesConnectable={!locked}
         panOnDrag={storeNodes.length !== 0}
         zoomOnScroll={expandedView}
-        preventScrolling={expandedView}
         zoomOnDoubleClick={storeNodes.length !== 0}
         zoomOnPinch={storeNodes.length !== 0}
         {...defaultFlowProps}

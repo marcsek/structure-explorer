@@ -16,6 +16,15 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
     const [showHint, setShowHint] = useState(false);
     const hideTimerRef = useRef<number | null>(null);
 
+    const hideZoomHint = () => {
+      setShowHint(false);
+
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
+        hideTimerRef.current = null;
+      }
+    };
+
     const showZoomHint = () => {
       if (!hintEnabled) return;
 
@@ -27,6 +36,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
 
       hideTimerRef.current = window.setTimeout(() => {
         setShowHint(false);
+        hideTimerRef.current = null;
       }, HIDE_TIMEOUT_DURATION);
     };
 
@@ -34,9 +44,14 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
       <div
         ref={ref}
         className="react-flow__container"
+        onPointerDownCapture={hideZoomHint}
         onWheelCapture={(e) => {
-          if (!(e.ctrlKey || e.metaKey)) showZoomHint();
+          if (e.ctrlKey || e.metaKey) return;
+
+          showZoomHint();
+          if (hintEnabled) e.stopPropagation();
         }}
+        onClick={() => setShowHint(false)}
       >
         <ZoomHint show={showHint} />
         {children}

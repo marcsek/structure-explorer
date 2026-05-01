@@ -194,7 +194,6 @@ export default function OrientedGraph({
         nodesConnectable={!locked}
         panOnDrag={nodes.length !== 0}
         zoomOnScroll={expandedView}
-        preventScrolling={expandedView}
         zoomOnDoubleClick={nodes.length !== 0}
         zoomOnPinch={nodes.length !== 0}
         snapToGrid

@@ -189,7 +189,6 @@ export default function HasseDiagram({
         nodesConnectable={!locked}
         panOnDrag={isPoset && storeNodes.length !== 0}
         zoomOnScroll={expandedView}
-        preventScrolling={expandedView}
         zoomOnDoubleClick={isPoset && storeNodes.length !== 0}
         zoomOnPinch={isPoset && storeNodes.length !== 0}
         snapToGrid
