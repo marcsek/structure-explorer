@@ -1,0 +1,5 @@
+.custom-bs-tooltip {
+  --bs-tooltip-bg: rgba(33, 37, 41);
+  --bs-tooltip-color: var(--bs-white);
+  margin-bottom: 0.125rem;
+}

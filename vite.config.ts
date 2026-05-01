@@ -14,7 +14,7 @@ export default defineConfig({
     postcss: {
       plugins: [
         prefixWrap(".structure-explorer", {
-          blacklist: ["bootstrap.min.css"],
+          blacklist: ["bootstrap.min.css", "index.css"],
           ignoredSelectors: [/\.structure-explorer.modal/],
         }),
       ],

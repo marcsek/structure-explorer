@@ -5,6 +5,7 @@ import {
   faMinus,
   faPlus,
   faUpRightAndDownLeftFromCenter,
+  type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@xyflow/react";
 import { memo } from "react";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 
 const defaultFitViewOptions: FitViewOptions = {
   padding: "50px",
@@ -57,40 +59,73 @@ function ControlsComponent({
       showZoom={false}
       onInteractiveChange={onInteractiveChange}
     >
-      <ControlButton title="Zoom In" onClick={() => zoomIn(defaultZoomOptions)}>
-        <FontAwesomeIcon icon={faPlus} fixedWidth />
-      </ControlButton>
+      <TooltipControlButton
+        title="Zoom In"
+        onClick={() => zoomIn(defaultZoomOptions)}
+        icon={faPlus}
+      />
 
-      <ControlButton
+      <TooltipControlButton
         title="Zoom Out"
         onClick={() => zoomOut(defaultZoomOptions)}
-      >
-        <FontAwesomeIcon icon={faMinus} fixedWidth />
-      </ControlButton>
+        icon={faMinus}
+      />
 
-      <ControlButton title="Fit View" onClick={() => fitView(fitViewOptions)}>
-        <FontAwesomeIcon icon={faExpand} fixedWidth />
-      </ControlButton>
-
+      <TooltipControlButton
+        title="Fit View"
+        onClick={() => fitView(fitViewOptions)}
+        icon={faExpand}
+      />
       {onLayout !== undefined && (
-        <ControlButton title="Layout" onClick={onLayout}>
-          <FontAwesomeIcon icon={faHexagonNodes} fixedWidth />
-        </ControlButton>
+        <TooltipControlButton
+          title="Layout"
+          onClick={onLayout}
+          icon={faHexagonNodes}
+        />
       )}
 
       <div className="react-flow__controls-divider" />
 
-      <ControlButton title="Expanded View" onClick={handleExpandedViewChange}>
-        <FontAwesomeIcon
-          icon={
-            expandedView
-              ? faDownLeftAndUpRightToCenter
-              : faUpRightAndDownLeftFromCenter
-          }
-          fixedWidth
-        />
-      </ControlButton>
+      <TooltipControlButton
+        title="Expanded View"
+        onClick={handleExpandedViewChange}
+        icon={
+          expandedView
+            ? faDownLeftAndUpRightToCenter
+            : faUpRightAndDownLeftFromCenter
+        }
+      />
     </XYControls>
+  );
+}
+
+interface TooltipControlButtonProps {
+  title: string;
+  onClick: () => void;
+  icon: IconDefinition;
+}
+
+function TooltipControlButton({
+  title,
+  onClick,
+  icon,
+}: TooltipControlButtonProps) {
+  return (
+    <OverlayTrigger
+      placement="top"
+      delay={{ show: 200, hide: 0 }}
+      overlay={
+        <Tooltip className="custom-bs-tooltip" id={`tooltip-${title}`}>
+          {title}
+        </Tooltip>
+      }
+    >
+      <span>
+        <ControlButton onClick={onClick}>
+          <FontAwesomeIcon icon={icon} fixedWidth />
+        </ControlButton>
+      </span>
+    </OverlayTrigger>
   );
 }
 

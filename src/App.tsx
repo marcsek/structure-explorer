@@ -1,9 +1,11 @@
+import "./App.css";
+import "./index.css";
+
 import StructureComponent from "./features/structure/StructureComponent";
 import VariablesComponent from "./features/variables/VariablesComponent";
 import { Col, Container, Row } from "react-bootstrap";
 import LanguageComponent from "./features/language/LanguageComponent";
 import FormulaCard from "./features/formulas/FormulaCard";
-import "./App.css";
 import usePreset from "./usePreset";
 import Header from "./components_helper/Header";
 import ErrorAlert from "./features/errorAlert/ErrorAlert";
