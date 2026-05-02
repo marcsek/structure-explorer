@@ -219,14 +219,15 @@
 
 .drawer-editor-lock-badge {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   gap: 0.25rem;
   line-height: 1;
-  text-align: center;
   font-weight: 500;
   color: color-mix(in srgb, var(--bs-danger) 65%, transparent 35%);
-  /* color: rgba(33, 37, 41, 0.5); */
+  color: rgba(33, 37, 41, 0.5);
+  color: var(--bs-tertiary-color);
+  color: color-mix(in srgb, var(--bs-tertiary-color) 85%, transparent 15%);
 }
 
 /* Needed when overlapping with error border of .drawer-editor-error-container */

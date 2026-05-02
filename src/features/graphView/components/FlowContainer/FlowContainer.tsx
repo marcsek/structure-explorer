@@ -4,8 +4,9 @@ import "./FlowContainer.css";
 import { useState, useRef, forwardRef, useEffect } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
-const HIDE_TIMEOUT_DURATION = 2300;
+const HIDE_TIMEOUT_DURATION = 2600;
 const THROTTLE_TIMEOUT_DURATION = 5000;
+const MAX_HINT_DISPLAYS = 2;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
@@ -25,37 +26,44 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
       };
     }, []);
 
-    const hideZoomHint = () => {
-      setShowHint(false);
-
-      if (hideTimerRef.current) {
-        window.clearTimeout(hideTimerRef.current);
-        hideTimerRef.current = null;
-
-        throttleHint();
-      }
-    };
-
     const showZoomHint = () => {
-      if (!hintEnabled || throttleTimerRef.current) return;
+      if (
+        !hintEnabled ||
+        throttleTimerRef.current ||
+        sessionStorage.getItem("zoomHintLearned") ||
+        sessionStorage.getItem("zoomHintVissible") ||
+        hasReachedMaxDisplays()
+      )
+        return;
 
       setShowHint(true);
+      sessionStorage.setItem("zoomHintVissible", "true");
 
       if (hideTimerRef.current) {
         window.clearTimeout(hideTimerRef.current);
       }
 
       hideTimerRef.current = window.setTimeout(() => {
-        setShowHint(false);
+        hideZoomHint();
+      }, HIDE_TIMEOUT_DURATION);
+    };
+
+    const hideZoomHint = () => {
+      setShowHint(false);
+
+      if (hideTimerRef.current) {
+        window.clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
+        incrementHintDisplayCount();
 
         throttleHint();
-      }, HIDE_TIMEOUT_DURATION);
+      }
     };
 
     const throttleHint = () => {
       throttleTimerRef.current = window.setTimeout(() => {
         throttleTimerRef.current = null;
+        sessionStorage.removeItem("zoomHintVissible");
       }, THROTTLE_TIMEOUT_DURATION);
     };
 
@@ -65,12 +73,16 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
         className="react-flow__container"
         onPointerDownCapture={hideZoomHint}
         onWheelCapture={(e) => {
-          if (e.ctrlKey || e.metaKey) return;
+          if (e.ctrlKey || e.metaKey) {
+            sessionStorage.setItem("zoomHintLearned", "true");
+            hideZoomHint();
+            return;
+          }
 
           showZoomHint();
           if (hintEnabled) e.stopPropagation();
         }}
-        onClick={() => setShowHint(false)}
+        onClick={() => hideZoomHint()}
       >
         <ZoomHint show={showHint} />
         {children}
@@ -91,6 +103,19 @@ function ZoomHint({ show }: { show: boolean }) {
     </div>
   );
 }
+
+const getHintDisplayCount = () => {
+  const value = sessionStorage.getItem("zoomHintDisplayCount");
+  const count = Number(value);
+  return Number.isFinite(count) ? count : 0;
+};
+
+const incrementHintDisplayCount = () => {
+  const nextCount = getHintDisplayCount() + 1;
+  sessionStorage.setItem("zoomHintDisplayCount", String(nextCount));
+};
+
+const hasReachedMaxDisplays = () => getHintDisplayCount() >= MAX_HINT_DISPLAYS;
 
 const getModifierKey = () =>
   /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘" : "Ctrl";

@@ -27,11 +27,11 @@
   gap: 0.25rem;
   line-height: 1;
 
-  transform: translateY(calc(-2 * (1em + 1rem)));
+  transform: translateY(calc(-0.75 * (1em + 1rem)));
   opacity: 0;
   transition:
-    transform 180ms ease,
-    opacity 180ms ease;
+    transform 140ms ease,
+    opacity 140ms ease;
 }
 
 .flow-container-zoom-hint-container.is-vissible .flow-container-zoom-hint {
