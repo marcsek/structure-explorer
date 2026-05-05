@@ -23,7 +23,7 @@
     "react-bootstrap": "^2.0.3"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^1.1.8",
+    "@dagrejs/dagre": "^3.0.0",
     "@fmfi-uk-1-ain-412/js-fol-parser": "^0.7.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
