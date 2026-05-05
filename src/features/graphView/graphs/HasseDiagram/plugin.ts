@@ -107,8 +107,22 @@ export const hasseDiagramPlugin: Plugin<"hasse"> = {
       ]),
     );
 
+    const generateNodeStartPosition = (): XYPosition => {
+      if (!prev.didLayout) return { x: 0, y: 0 };
+
+      const min = -150;
+      const max = 150;
+
+      const x = Math.floor(Math.random() * (max - min + 1)) + min;
+      const y = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      return { x, y };
+    };
+
     const newNodes = domain.map(
-      (element) => nodeById.get(element) ?? createNode(element),
+      (element) =>
+        nodeById.get(element) ??
+        createNode(element, undefined, generateNodeStartPosition()),
     );
 
     const connectingEdges = (nodeId: string) =>

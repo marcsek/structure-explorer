@@ -118,10 +118,26 @@ export const orientedGraphPlugin: Plugin<"oriented"> = {
       tupleType === "function" &&
       prev.edges.filter((e) => e.source === id).length !== 1;
 
+    const generateNodeStartPosition = (): XYPosition => {
+      if (!prev.didLayout) return { x: 0, y: 0 };
+
+      const min = -150;
+      const max = 150;
+
+      const x = Math.floor(Math.random() * (max - min + 1)) + min;
+      const y = Math.floor(Math.random() * (max - min + 1)) + min;
+
+      return { x, y };
+    };
+
     const newNodes = domain.map(
       (element) =>
         nodeById.get(element) ??
-        createNode(element, { error: shouldError(element) }),
+        createNode(
+          element,
+          { error: shouldError(element) },
+          generateNodeStartPosition(),
+        ),
     );
 
     const connectingEdges = (nodeId: string) =>

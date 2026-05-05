@@ -58,15 +58,33 @@ export const computeLayoutOriented = async <
 
   if (!layoutedGraph.children) return [];
 
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const n of layoutedGraph.children) {
+    if (n.x != null && n.y != null) {
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + (n.width ?? 0));
+      maxY = Math.max(maxY, n.y + (n.height ?? 0));
+    }
+  }
+
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
   const nodeChanges: NodeChange<TNode>[] = [];
   for (const lNode of layoutedGraph.children) {
     const node = inputNodes.find((n) => n.id === lNode.id);
     if (!node) continue;
 
-    const clampedX =
-      Math.floor((lNode.x ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
-    const clampedY =
-      Math.floor((lNode.y ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+    const shiftedX = (lNode.x ?? 0) - centerX;
+    const shiftedY = (lNode.y ?? 0) - centerY;
+
+    const clampedX = Math.floor(shiftedX / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
+    const clampedY = Math.floor(shiftedY / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
 
     if (node.position.x === clampedX && node.position.y === clampedY) continue;
 
