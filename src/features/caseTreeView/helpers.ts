@@ -37,18 +37,23 @@ export function generateTuples(
     ];
 
     const tuples: string[][] = [];
-    const matches = new Set<string>();
+    const seenMatches = new Set<string>();
     for (const nodeCase of cases) {
       if (nodeCase.type === "case") {
-        if (!domain.has(nodeCase.match) || matches.has(nodeCase.match))
+        const matches = parseMatch(nodeCase.match);
+
+        if (
+          !matches.some((m) => domain.has(m)) ||
+          matches.some((m) => seenMatches.has(m))
+        )
           return { ok: false };
 
-        matches.add(nodeCase.match);
+        matches.forEach((m) => seenMatches.add(m));
 
-        partialTupleCpy[variableIdx] = [nodeCase.match];
+        partialTupleCpy[variableIdx] = [...matches];
       } else {
         partialTupleCpy[variableIdx] = [...domain].filter(
-          (d) => !matches.has(d),
+          (d) => !seenMatches.has(d),
         );
       }
 
@@ -169,16 +174,23 @@ export function getStructuredIntervalView(
     const nodeErrors = getTreeNodeValidation(node, allowedVars, usedVars);
 
     const cases = [
-      ...node.cases.map((c) => ({ ...c, type: "case" as const })),
+      ...node.cases.map((c) => ({
+        ...c,
+        type: "case" as const,
+        matches: parseMatch(c.match),
+      })),
       { branch: node.default, type: "default" as const },
     ];
 
     const usedVarsCpy = new Set(usedVars);
     usedVarsCpy.add(node.variable);
 
-    const exhausted = node.cases.length === domain.size - 1;
+    const allMatches = cases.flatMap((c) =>
+      c.type === "case" ? [...c.matches] : "def",
+    );
+    const exhausted = allMatches.length === domain.size + 1;
 
-    const matches = new Set<string>();
+    const seenMatches = new Set<string>();
     let rowHadError = nodeErrors.length > 0 || parentHadError;
     for (const [idx, nodeCase] of cases.entries()) {
       const deletable = currentIntervalNodes.length > 0 && cases.length === 1;
@@ -186,25 +198,25 @@ export function getStructuredIntervalView(
       let viewCase: IntervalViewCase | undefined;
 
       if (nodeCase.type === "case") {
-        const match = nodeCase.match;
-
         let matchError = "";
-        if (!domain.has(match))
-          matchError = `Case element ${match === "" ? "is empty" : `${match} is not in domain`}.`;
-        if (matches.has(match))
-          matchError = "Case branch is already specified.";
+        for (const match of nodeCase.matches) {
+          if (!domain.has(match))
+            matchError = `Case element ${match === "" ? "is empty" : `${match} is not in domain`}.`;
+          if (seenMatches.has(match))
+            matchError = "Case branch is already specified.";
 
-        rowHadError ||= !!matchError;
+          rowHadError ||= !!matchError;
+
+          seenMatches.add(match);
+        }
 
         viewCase = {
           type: "case",
-          match,
+          match: nodeCase.match,
           caseIdx: idx,
           error: matchError,
           primary: true,
         };
-
-        matches.add(match);
       } else {
         viewCase = { type: "default", deletable };
       }
@@ -235,6 +247,10 @@ export function getStructuredIntervalView(
           }));
 
       const newIntervalNodes = [...primaryResetNodes, intervalNode];
+
+      if (intervalNode.case.type === "default" && exhausted) {
+        continue;
+      }
 
       if (!rowHadError && cases.length === 1 && !exhausted) {
         rows.push({
@@ -279,7 +295,7 @@ export function getStructuredIntervalView(
         );
       }
 
-      if (!rowHadError && idx === cases.length - 2 && !exhausted) {
+      if (!rowHadError && idx === cases.length - 2) {
         rows.push({
           value: "",
           nodes: newIntervalNodes,
@@ -388,6 +404,7 @@ export function initializeTreeFromTuples(
         cases.push({ match, branch });
       }
     } else {
+      // TODO: Possibly don't generate default here
       for (let i = 0; i < allEntries.length; i++) {
         if (i === allEntries.length - 1) {
           def = allEntries[i].branch;
@@ -417,15 +434,33 @@ export function initializeTreeFromTuples(
   return { rootId, nodes };
 }
 
-function addCaseIfPossible(
+function parseMatch(match: string) {
+  return match
+    .trim()
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s);
+}
+
+function findMatchingCase(
   node: CaseTreeNode,
-  caseNode: CaseTreeCase,
-  maxCaseLen: number,
-) {
-  if (node.cases.length >= maxCaseLen) {
-    node.default = caseNode.branch;
+  inputVal: string,
+): CaseTreeCase | undefined {
+  return node.cases.find((c) => parseMatch(c.match).includes(inputVal));
+}
+
+function splitValueFromCase(
+  node: CaseTreeNode,
+  caseItem: CaseTreeCase,
+  inputVal: string,
+): void {
+  const values = parseMatch(caseItem.match);
+  const remaining = values.filter((v) => v !== inputVal);
+
+  if (remaining.length === 0) {
+    node.cases = node.cases.filter((c) => c !== caseItem);
   } else {
-    node.cases.push(caseNode);
+    caseItem.match = remaining.join(",");
   }
 }
 
@@ -435,7 +470,6 @@ function checkPath(
   inputs: string[],
   depth: number,
   expected: string,
-  maxCaseLen: number,
   variablesLeft: string[],
 ) {
   const node = entry.nodes[nodeId];
@@ -446,10 +480,8 @@ function checkPath(
 
   const newVarsLeft = variablesLeft.filter((v) => v !== node.variable);
 
-  const maxCaseLenReached = node.cases.length >= maxCaseLen;
-
-  let existing = node.cases.find((c) => c.match === inputVal);
-  if (maxCaseLenReached) existing = { branch: node.default!, match: "" };
+  const existing = findMatchingCase(node, inputVal);
+  const isMultiMatch = existing ? parseMatch(existing.match).length > 1 : false;
 
   const branch = existing?.branch ?? node.default;
 
@@ -457,17 +489,21 @@ function checkPath(
 
   if (isLast) {
     if (existing) {
-      if (maxCaseLenReached) node.default = { type: "value", value: expected };
-      else existing.branch = { type: "value", value: expected };
+      if (!isMultiMatch) {
+        existing.branch = { type: "value", value: expected };
+        return;
+      }
+
+      splitValueFromCase(node, existing, inputVal);
+      node.cases.push({
+        match: inputVal,
+        branch: { type: "value", value: expected },
+      });
     } else {
-      addCaseIfPossible(
-        node,
-        {
-          match: inputVal,
-          branch: { type: "value", value: expected },
-        },
-        maxCaseLen,
-      );
+      node.cases.push({
+        match: inputVal,
+        branch: { type: "value", value: expected },
+      });
     }
 
     return;
@@ -475,38 +511,32 @@ function checkPath(
 
   if (branch?.type === "ref") {
     if (existing) {
-      checkPath(
-        entry,
-        branch.nodeId,
-        inputs,
-        depth + 1,
-        expected,
-        maxCaseLen,
-        newVarsLeft,
-      );
-    } else {
-      const cloneId = cloneNode(entry, branch.nodeId);
-
-      addCaseIfPossible(
-        node,
-        {
+      if (isMultiMatch) {
+        splitValueFromCase(node, existing, inputVal);
+        const cloneId = cloneNode(entry, branch.nodeId);
+        node.cases.push({
           match: inputVal,
           branch: { type: "ref", nodeId: cloneId },
-        },
-        maxCaseLen,
-      );
-
-      checkPath(
-        entry,
-        cloneId,
-        inputs,
-        depth + 1,
-        expected,
-        maxCaseLen,
-        newVarsLeft,
-      );
+        });
+        checkPath(entry, cloneId, inputs, depth + 1, expected, newVarsLeft);
+      } else {
+        checkPath(
+          entry,
+          branch.nodeId,
+          inputs,
+          depth + 1,
+          expected,
+          newVarsLeft,
+        );
+      }
+    } else {
+      const cloneId = cloneNode(entry, branch.nodeId);
+      node.cases.push({
+        match: inputVal,
+        branch: { type: "ref", nodeId: cloneId },
+      });
+      checkPath(entry, cloneId, inputs, depth + 1, expected, newVarsLeft);
     }
-
     return;
   }
 
@@ -518,20 +548,23 @@ function checkPath(
   };
 
   if (existing) {
-    if (maxCaseLenReached) node.default = { type: "ref", nodeId: newId };
-    else existing.branch = { type: "ref", nodeId: newId };
-  } else {
-    addCaseIfPossible(
-      node,
-      {
+    if (isMultiMatch) {
+      splitValueFromCase(node, existing, inputVal);
+      node.cases.push({
         match: inputVal,
         branch: { type: "ref", nodeId: newId },
-      },
-      maxCaseLen,
-    );
+      });
+    } else {
+      existing.branch = { type: "ref", nodeId: newId };
+    }
+  } else {
+    node.cases.push({
+      match: inputVal,
+      branch: { type: "ref", nodeId: newId },
+    });
   }
 
-  checkPath(entry, newId, inputs, depth + 1, expected, maxCaseLen, newVarsLeft);
+  checkPath(entry, newId, inputs, depth + 1, expected, newVarsLeft);
 }
 
 function cloneNode(entry: CaseTreeEntry, nodeId: string) {
@@ -542,6 +575,9 @@ function cloneNode(entry: CaseTreeEntry, nodeId: string) {
     b.type === "value"
       ? { ...b }
       : { type: "ref", nodeId: cloneNode(entry, b.nodeId) };
+
+  // Makes sure next node id generates correctly
+  entry.nodes[newId] = { cases: [], variable: "" };
 
   entry.nodes[newId] = {
     variable: orig.variable,
@@ -557,6 +593,7 @@ function cloneNode(entry: CaseTreeEntry, nodeId: string) {
 
 export function copyNode(node: CaseTreeNode): CaseTreeNode {
   const casesCopy = node.cases.map((c) => ({ ...c, branch: { ...c.branch } }));
+
   return {
     ...node,
     cases: casesCopy,
@@ -564,16 +601,10 @@ export function copyNode(node: CaseTreeNode): CaseTreeNode {
   };
 }
 
-export function updateCaseTree(
-  entry: CaseTreeEntry,
-  tuples: string[][],
-  maxCaseLen: number,
-) {
+export function updateCaseTree(entry: CaseTreeEntry, tuples: string[][]) {
   for (const tuple of tuples) {
     const inputs = tuple.slice(0, -1);
     const expected = tuple[tuple.length - 1];
-    checkPath(entry, entry.rootId, inputs, 0, expected, maxCaseLen, [
-      ...intervalVariables,
-    ]);
+    checkPath(entry, entry.rootId, inputs, 0, expected, [...intervalVariables]);
   }
 }

@@ -1,0 +1,17 @@
+.resize-input-wrapper {
+  display: inline-block;
+  position: relative;
+  width: fit-content;
+}
+
+.resize-input-dummy {
+  position: absolute;
+  visibility: hidden;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}

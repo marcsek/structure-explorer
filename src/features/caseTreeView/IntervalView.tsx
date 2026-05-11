@@ -41,6 +41,7 @@ import {
 } from "../structure/structureSlice";
 import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
 import { createValidationError } from "../../common/errors";
+import ResizeInput from "./ResizeInput";
 
 export interface IntervalViewProps {
   tupleName: string;
@@ -202,11 +203,18 @@ export function IntervalViewRow({
   row: IntervalViewRow;
   locked: boolean;
 }) {
-  const { value, nodes: actualNodes, error: rowError, placeholder } = row;
+  const {
+    value,
+    nodes: actualNodes,
+    error: rowError,
+    placeholder,
+    exhausted,
+  } = row;
 
   const dispatch = useAppDispatch();
 
   const lastNode = actualNodes.at(-1);
+
   if (!lastNode) return null;
 
   const errors = getAllIntervalViewRowErrors(row);
@@ -283,13 +291,13 @@ export function IntervalViewRow({
 
   return (
     <div
-      className={`interval-view-row ${placeholder ? "row-placeholder" : ""}`}
+      className={`interval-view-row ${placeholder ? "row-placeholder" : ""} ${exhausted ? "exhausted" : ""}`}
     >
       <Stack direction="horizontal" gap={1} className="interval-view-row-stack">
         <FormControl
           value={value}
           size="sm"
-          disabled={locked}
+          disabled={locked || (placeholder && exhausted)}
           isInvalid={!!rowError}
           onChange={(e) =>
             placeholder
@@ -334,36 +342,51 @@ export function IntervalViewRow({
                   }
                 />
 
-                <span>=</span>
-
-                <FormControl
-                  value={
-                    !placeholder || idx < nodes.length - 1 ? caseNode.match : ""
-                  }
-                  size="sm"
-                  disabled={
-                    locked ||
-                    ((placeholder || !caseNode.primary) &&
-                      idx < nodes.length - 1)
-                  }
-                  className="interval-input"
-                  isInvalid={!!caseNode.error}
-                  onChange={(e) =>
-                    placeholder
-                      ? handlePlaceholderUpdate({
-                          type: "match",
-                          value: e.target.value,
-                        })
-                      : dispatch(
-                          updateCase({
-                            nodeId: id,
-                            tupleName,
-                            caseIdx: caseNode.caseIdx,
-                            match: e.target.value,
-                          }),
-                        )
-                  }
-                />
+                <InlineMath>{"\\in"}</InlineMath>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    flexShrink: 0,
+                    fontSize: "",
+                    gap: "1px",
+                  }}
+                >
+                  <InlineMath>{"\\{"}</InlineMath>
+                  <ResizeInput
+                    className="interval-input interval-match-input"
+                    value={
+                      !placeholder || idx < nodes.length - 1
+                        ? caseNode.match
+                        : ""
+                    }
+                    size="sm"
+                    disabled={
+                      locked ||
+                      (placeholder && exhausted) ||
+                      ((placeholder || !caseNode.primary) &&
+                        idx < nodes.length - 1)
+                    }
+                    isInvalid={!!caseNode.error}
+                    onChange={(e) =>
+                      placeholder
+                        ? handlePlaceholderUpdate({
+                            type: "match",
+                            value: e.target.value,
+                          })
+                        : dispatch(
+                            updateCase({
+                              nodeId: id,
+                              tupleName,
+                              caseIdx: caseNode.caseIdx,
+                              match: e.target.value,
+                            }),
+                          )
+                    }
+                  />
+                  <InlineMath>{"\\}"}</InlineMath>
+                </div>
               </>
             ) : (
               <span className="any-other-label">

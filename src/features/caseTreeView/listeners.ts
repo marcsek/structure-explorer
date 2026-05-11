@@ -33,7 +33,7 @@ caseTreeListener.startListening({
       );
       const caseTreeCopy = { ...caseTreeEntry, nodes: nodesCopy };
 
-      updateCaseTree(caseTreeCopy, action.payload.value, domain.size - 1);
+      updateCaseTree(caseTreeCopy, action.payload.value);
 
       return void api.dispatch(updateTree({ tupleName, tree: caseTreeCopy }));
     }
