@@ -179,8 +179,13 @@ export default function OrientedGraph({
     );
   }, [dispatch, tupleName, tupleType]);
 
+  const dialogShown = storeNodes.length === 0;
+
   return (
-    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
+    <FlowContainer
+      ref={flowWrapperRef}
+      hintEnabled={!expandedView && !dialogShown}
+    >
       <ReactFlow
         id={id}
         nodes={didLayout ? nodes : []}
@@ -192,20 +197,20 @@ export default function OrientedGraph({
         onNodeDragStop={syncNodesWithStore}
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
-        panOnDrag={nodes.length !== 0}
+        panOnDrag={!dialogShown}
         zoomOnScroll={expandedView}
-        zoomOnDoubleClick={nodes.length !== 0}
-        zoomOnPinch={nodes.length !== 0}
+        zoomOnDoubleClick={!dialogShown}
+        zoomOnPinch={!dialogShown}
         snapToGrid
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
-        <Controls
-          expandedView={expandedView}
-          onExpandedViewChange={onExpandedViewChange}
-          onLayout={onLayout}
-        />
       </ReactFlow>
+      <Controls
+        expandedView={expandedView}
+        onExpandedViewChange={onExpandedViewChange}
+        onLayout={onLayout}
+      />
 
       {warning && (
         <ErrorMessageDialogBuilder body={warning} graphType={graphType} />

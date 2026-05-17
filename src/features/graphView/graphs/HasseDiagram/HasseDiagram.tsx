@@ -174,8 +174,13 @@ export default function HasseDiagram({
     );
   }, [dispatch, tupleName, tupleType]);
 
+  const dialogShown = !isPoset || storeNodes.length === 0;
+
   return (
-    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
+    <FlowContainer
+      ref={flowWrapperRef}
+      hintEnabled={!expandedView && !dialogShown}
+    >
       <ReactFlow
         id={id}
         nodes={isPoset ? nodes : []}
@@ -187,20 +192,21 @@ export default function HasseDiagram({
         onNodeDragStop={syncNodesWithStore}
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
-        panOnDrag={isPoset && storeNodes.length !== 0}
+        panOnDrag={!dialogShown}
         zoomOnScroll={expandedView}
-        zoomOnDoubleClick={isPoset && storeNodes.length !== 0}
-        zoomOnPinch={isPoset && storeNodes.length !== 0}
+        zoomOnDoubleClick={!dialogShown}
+        zoomOnPinch={!dialogShown}
         snapToGrid
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
-        <Controls
-          expandedView={expandedView}
-          onExpandedViewChange={onExpandedViewChange}
-          onLayout={onLayout}
-        />
       </ReactFlow>
+
+      <Controls
+        expandedView={expandedView}
+        onExpandedViewChange={onExpandedViewChange}
+        onLayout={onLayout}
+      />
 
       {(warning || !isPoset) && (
         <ErrorMessageDialogBuilder

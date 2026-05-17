@@ -213,8 +213,13 @@ export default function BipartiteGraph({
     );
   }, [dispatch, tupleName, tupleType]);
 
+  const dialogShown = storeNodes.length === 0;
+
   return (
-    <FlowContainer ref={flowWrapperRef} hintEnabled={!expandedView}>
+    <FlowContainer
+      ref={flowWrapperRef}
+      hintEnabled={!expandedView && !dialogShown}
+    >
       <ReactFlow
         id={id}
         nodes={groupedNodes}
@@ -226,19 +231,20 @@ export default function BipartiteGraph({
         onNodeDragStop={syncNodesWithStore}
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
-        panOnDrag={storeNodes.length !== 0}
+        panOnDrag={!dialogShown}
         zoomOnScroll={expandedView}
-        zoomOnDoubleClick={storeNodes.length !== 0}
-        zoomOnPinch={storeNodes.length !== 0}
+        zoomOnDoubleClick={!dialogShown}
+        zoomOnPinch={!dialogShown}
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
-        <Controls
-          expandedView={expandedView}
-          fitViewOptions={controlsFitViewOptions}
-          onExpandedViewChange={onExpandedViewChange}
-        />
       </ReactFlow>
+
+      <Controls
+        expandedView={expandedView}
+        fitViewOptions={controlsFitViewOptions}
+        onExpandedViewChange={onExpandedViewChange}
+      />
 
       {warning && (
         <ErrorMessageDialogBuilder body={warning} graphType={graphType} />

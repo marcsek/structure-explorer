@@ -5,8 +5,6 @@ import { useState, useRef, forwardRef, useEffect } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 const HIDE_TIMEOUT_DURATION = 2600;
-const THROTTLE_TIMEOUT_DURATION = 5000;
-const MAX_HINT_DISPLAYS = 2;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
@@ -17,27 +15,17 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
   ({ children, hintEnabled }, ref) => {
     const [showHint, setShowHint] = useState(false);
     const hideTimerRef = useRef<number | null>(null);
-    const throttleTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
       return () => {
         window.clearTimeout(hideTimerRef.current ?? undefined);
-        window.clearTimeout(throttleTimerRef.current ?? undefined);
       };
     }, []);
 
     const showZoomHint = () => {
-      if (
-        !hintEnabled ||
-        throttleTimerRef.current ||
-        sessionStorage.getItem("zoomHintLearned") ||
-        sessionStorage.getItem("zoomHintVissible") ||
-        hasReachedMaxDisplays()
-      )
-        return;
+      if (!hintEnabled) return;
 
       setShowHint(true);
-      sessionStorage.setItem("zoomHintVissible", "true");
 
       if (hideTimerRef.current) {
         window.clearTimeout(hideTimerRef.current);
@@ -54,17 +42,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
       if (hideTimerRef.current) {
         window.clearTimeout(hideTimerRef.current);
         hideTimerRef.current = null;
-        incrementHintDisplayCount();
-
-        throttleHint();
       }
-    };
-
-    const throttleHint = () => {
-      throttleTimerRef.current = window.setTimeout(() => {
-        throttleTimerRef.current = null;
-        sessionStorage.removeItem("zoomHintVissible");
-      }, THROTTLE_TIMEOUT_DURATION);
     };
 
     return (
@@ -74,9 +52,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
         onPointerDownCapture={hideZoomHint}
         onWheelCapture={(e) => {
           if (e.ctrlKey || e.metaKey) {
-            sessionStorage.setItem("zoomHintLearned", "true");
-            hideZoomHint();
-            return;
+            return void hideZoomHint();
           }
 
           showZoomHint();
@@ -103,19 +79,6 @@ function ZoomHint({ show }: { show: boolean }) {
     </div>
   );
 }
-
-const getHintDisplayCount = () => {
-  const value = sessionStorage.getItem("zoomHintDisplayCount");
-  const count = Number(value);
-  return Number.isFinite(count) ? count : 0;
-};
-
-const incrementHintDisplayCount = () => {
-  const nextCount = getHintDisplayCount() + 1;
-  sessionStorage.setItem("zoomHintDisplayCount", String(nextCount));
-};
-
-const hasReachedMaxDisplays = () => getHintDisplayCount() >= MAX_HINT_DISPLAYS;
 
 const getModifierKey = () =>
   /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘" : "Ctrl";
