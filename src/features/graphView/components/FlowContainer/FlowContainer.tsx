@@ -8,11 +8,12 @@ const HIDE_TIMEOUT_DURATION = 2600;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
-  hintEnabled: boolean;
+  hintEnabled?: boolean;
+  zoomEnabled?: boolean;
 }
 
 const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
-  ({ children, hintEnabled }, ref) => {
+  ({ children, hintEnabled = true, zoomEnabled = true }, ref) => {
     const [showHint, setShowHint] = useState(false);
     const hideTimerRef = useRef<number | null>(null);
 
@@ -56,7 +57,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
           }
 
           showZoomHint();
-          if (hintEnabled) e.stopPropagation();
+          if (zoomEnabled) e.stopPropagation();
         }}
         onClick={() => hideZoomHint()}
       >

@@ -180,6 +180,7 @@ export default function HasseDiagram({
     <FlowContainer
       ref={flowWrapperRef}
       hintEnabled={!expandedView && !dialogShown}
+      zoomEnabled={!expandedView}
     >
       <ReactFlow
         id={id}
@@ -193,7 +194,7 @@ export default function HasseDiagram({
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
-        zoomOnScroll={expandedView}
+        zoomOnScroll={expandedView && !dialogShown}
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
         snapToGrid

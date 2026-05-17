@@ -219,6 +219,7 @@ export default function BipartiteGraph({
     <FlowContainer
       ref={flowWrapperRef}
       hintEnabled={!expandedView && !dialogShown}
+      zoomEnabled={!expandedView}
     >
       <ReactFlow
         id={id}
@@ -232,7 +233,7 @@ export default function BipartiteGraph({
         isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
-        zoomOnScroll={expandedView}
+        zoomOnScroll={expandedView && !dialogShown}
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
         {...defaultFlowProps}
