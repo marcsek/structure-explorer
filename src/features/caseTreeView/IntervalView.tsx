@@ -24,7 +24,9 @@ import {
   ButtonGroup,
   Dropdown,
   FormControl,
+  OverlayTrigger,
   Stack,
+  Tooltip,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -100,8 +102,8 @@ export default function IntervalView({
   const pureIntervalViewRows = intervalViewRows.filter((r) => !r.placeholder);
   const hasSigleBranch =
     pureIntervalViewRows.length === 1 &&
-    pureIntervalViewRows[0].nodes.length === 1;
-
+    pureIntervalViewRows[0].nodes.length === 1 &&
+    pureIntervalViewRows[0].nodes[0].case.type === "default";
   return (
     <div className="interval-view-wrapper">
       <Stack direction="horizontal" gap={2} className="interval-view">
@@ -291,7 +293,7 @@ export function IntervalViewRow({
 
   return (
     <div
-      className={`interval-view-row ${placeholder ? "row-placeholder" : ""} ${exhausted ? "exhausted" : ""}`}
+      className={`interval-view-row ${placeholder ? "row-placeholder" : ""} ${exhausted ? "exhausted" : ""} ${locked ? "locked" : ""}`}
     >
       <Stack direction="horizontal" gap={1} className="interval-view-row-stack">
         <FormControl
@@ -329,7 +331,7 @@ export function IntervalViewRow({
                   value={variable}
                   size="sm"
                   disabled={!primary || placeholder || locked}
-                  className="interval-input interval-variable-input"
+                  className={`interval-input interval-variable-input`}
                   isInvalid={errors.length > 0}
                   onChange={(e) =>
                     dispatch(
@@ -389,9 +391,23 @@ export function IntervalViewRow({
                 </div>
               </>
             ) : (
-              <span className="any-other-label">
-                <var>{variable}</var> is any other
-              </span>
+              <OverlayTrigger
+                placement="top"
+                delay={{ show: 200, hide: 0 }}
+                overlay={
+                  <Tooltip
+                    className="custom-bs-tooltip lg"
+                    id={`tooltip-default-${id}`}
+                  >
+                    <span className="any-other-tootlip-label">{`${variable} ∈ {${caseNode.leftoverMatches.join(",")}}`}</span>
+                  </Tooltip>
+                }
+              >
+                <span className="any-other-label">
+                  <var>{variable}</var>
+                  <span>is any other</span>
+                </span>
+              </OverlayTrigger>
             )}
 
             {((!locked && !placeholder) || idx < nodes.length - 1) && (

@@ -137,6 +137,7 @@ export type IntervalViewCase =
   | {
       type: "default";
       deletable: boolean;
+      leftoverMatches: string[];
     };
 
 export interface IntervalViewNode {
@@ -218,7 +219,8 @@ export function getStructuredIntervalView(
           primary: true,
         };
       } else {
-        viewCase = { type: "default", deletable };
+        const leftoverMatches = [...domain].filter((e) => !seenMatches.has(e));
+        viewCase = { type: "default", deletable, leftoverMatches };
       }
 
       const isPrimary = idx === 0;

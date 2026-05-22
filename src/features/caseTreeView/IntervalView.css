@@ -28,6 +28,7 @@
 
 .interval-view .interval-variable-input {
   font-style: italic;
+  text-align: right;
 }
 
 .interval-view .interval-match-input {
@@ -54,15 +55,14 @@
   color: var(--bs-body-color);
 }
 
-.interval-view-row.row-placeholder .form-control:disabled {
+.interval-view-row:not(.locked) .form-control:disabled {
+  background-color: white;
+  border-color: transparent;
+  border-style: none;
+}
+
+.interval-view-row.row-placeholder:not(.locked) .form-control:disabled {
   opacity: 0.6;
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent 0px,
-    transparent 8px,
-    rgba(255, 255, 255, 0.47) 8px,
-    rgba(255, 255, 255, 0.47) 16px
-  );
 }
 
 .interval-view-row.row-placeholder:hover:not(.exhausted) .form-control:disabled,
@@ -85,6 +85,15 @@
 
 .interval-view-row .any-other-label {
   text-wrap: nowrap;
+}
+
+.interval-view-row .any-other-label span {
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-decoration-color: var(--bs-border-color);
+  text-decoration-thickness: 2px;
+  cursor: default;
+  margin-left: 4px;
 }
 
 .interval-view .error-message {

@@ -45,12 +45,12 @@
   transition: opacity 0.25s ease;
 }
 
-.flow-container-zoom-hint-container.is-vissible::after {
+.flow-container-zoom-hint-container.vissible::after {
   transition: opacity 0.1s ease;
   opacity: 0.9;
 }
 
-.flow-container-zoom-hint-container.is-vissible .flow-container-zoom-hint {
+.flow-container-zoom-hint-container.vissible .flow-container-zoom-hint {
   opacity: 1;
 }
 

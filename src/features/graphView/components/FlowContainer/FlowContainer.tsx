@@ -4,7 +4,7 @@ import "./FlowContainer.css";
 import { useState, useRef, forwardRef, useEffect } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
-const HIDE_TIMEOUT_DURATION = 2600;
+const HIDE_TIMEOUT_DURATION = 500;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
@@ -18,9 +18,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
     const hideTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
-      return () => {
-        window.clearTimeout(hideTimerRef.current ?? undefined);
-      };
+      return () => void window.clearTimeout(hideTimerRef.current ?? undefined);
     }, []);
 
     const showZoomHint = () => {
@@ -71,7 +69,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
 function ZoomHint({ show }: { show: boolean }) {
   return (
     <div
-      className={`flow-container-zoom-hint-container ${show ? "is-vissible" : "is-hidden"}`}
+      className={`flow-container-zoom-hint-container ${show ? "vissible" : "hidden"}`}
     >
       <div className="flow-container-zoom-hint">
         <FontAwesomeIcon icon={faInfoCircle} />

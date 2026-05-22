@@ -1,8 +1,22 @@
 .custom-bs-tooltip {
   --bs-tooltip-bg: rgba(33, 37, 41);
   --bs-tooltip-color: var(--bs-white);
-  --bs-tooltip-font-size: 12px;
   --bs-tooltip-padding-x: 0.5rem;
   --bs-tooltip-padding-y: 0.125rem;
+  --bs-tooltip-max-width: 500px;
+  text-wrap: nowrap;
+}
+
+.custom-bs-tooltip.sm {
+  --bs-tooltip-font-size: 12px;
+  --bs-tooltip-max-width: 500px;
+}
+
+.custom-bs-tooltip.lg {
+  --bs-tooltip-padding-x: 0.5rem;
+  --bs-tooltip-padding-y: 0.125rem;
+}
+
+.custom-bs-tooltip.mb {
   margin-bottom: 0.125rem;
 }
