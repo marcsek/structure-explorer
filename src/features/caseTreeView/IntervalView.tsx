@@ -210,7 +210,8 @@ export function IntervalViewRow({
     nodes: actualNodes,
     error: rowError,
     placeholder,
-    exhaustedVar,
+    exhaustedVars,
+    exhausted,
   } = row;
 
   const dispatch = useAppDispatch();
@@ -222,7 +223,6 @@ export function IntervalViewRow({
   const errors = getAllIntervalViewRowErrors(row);
 
   const nodes = [...actualNodes];
-  const exhausted = !!exhaustedVar;
 
   if (placeholder && (locked || exhausted)) return null;
 
@@ -435,12 +435,10 @@ export function IntervalViewRow({
       </Stack>
 
       {errors.length > 0 && <p className="error-message">{errors[0]}</p>}
-      {exhausted && (
-        <>
-          <span className="m-0">
-            exhausted on <var>{exhaustedVar}</var>{" "}
-          </span>
-        </>
+      {exhaustedVars.length > 0 && errors.length === 0 && (
+        <span className="exhaust-message">
+          exhausted on <var>{exhaustedVars.join(",")}</var>{" "}
+        </span>
       )}
     </div>
   );

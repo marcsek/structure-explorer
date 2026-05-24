@@ -102,6 +102,12 @@
   color: var(--bs-danger);
 }
 
+.interval-view .exhaust-message {
+  font-size: 0.875rem;
+  margin: 0;
+  color: var(--bs-secondary);
+}
+
 .cases-brace {
   display: block;
   width: 1rem;

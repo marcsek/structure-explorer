@@ -152,7 +152,8 @@ export interface IntervalViewRow {
   value: string;
   nodes: IntervalViewNode[];
   error: string;
-  exhaustedVar: string;
+  exhausted: boolean;
+  exhaustedVars: string[];
   placeholder: boolean;
 }
 
@@ -169,6 +170,7 @@ export function getStructuredIntervalView(
     nodeId: string,
     usedVars: Set<string>,
     currentIntervalNodes: IntervalViewNode[],
+    parentExhaustedVars: string[],
     parentHadError: boolean = false,
   ) => {
     const node = nodes[nodeId];
@@ -190,6 +192,7 @@ export function getStructuredIntervalView(
       c.type === "case" ? [...c.matches] : "def",
     );
     const casesExhausted = allMatches.length === domain.size + 1;
+    const exhaustedVars = [...parentExhaustedVars];
 
     const seenMatches = new Set<string>();
     let rowHadError = nodeErrors.length > 0 || parentHadError;
@@ -223,9 +226,12 @@ export function getStructuredIntervalView(
         viewCase = { type: "default", deletable, leftoverMatches };
       }
 
-      const isLastCase = idx === cases.length - 2;
+      const isLastCase = casesExhausted
+        ? idx === cases.length - 2
+        : idx === cases.length - 1;
       const exhausted = casesExhausted && isLastCase;
-      const exhaustedVar = exhausted ? node.variable : "";
+
+      if (exhausted) exhaustedVars.push(node.variable);
 
       const isPrimary = idx === 0;
 
@@ -263,7 +269,8 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "",
-          exhaustedVar,
+          exhausted,
+          exhaustedVars: [],
           placeholder: true,
         });
       }
@@ -273,7 +280,8 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "Value element is empty.",
-          exhaustedVar,
+          exhausted,
+          exhaustedVars: isLastCase ? exhaustedVars : [],
           placeholder: false,
         });
         rowHadError = true;
@@ -287,7 +295,8 @@ export function getStructuredIntervalView(
           value,
           nodes: newIntervalNodes,
           error: valueError,
-          exhaustedVar,
+          exhausted,
+          exhaustedVars: isLastCase ? exhaustedVars : [],
           placeholder: false,
         });
 
@@ -297,6 +306,7 @@ export function getStructuredIntervalView(
           nodeCase.branch.nodeId,
           usedVarsCpy,
           newIntervalNodes,
+          exhaustedVars,
           rowHadError,
         );
       }
@@ -306,14 +316,15 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "",
-          exhaustedVar: casesExhausted ? node.variable : "",
+          exhausted: casesExhausted,
+          exhaustedVars: isLastCase ? exhaustedVars : [],
           placeholder: true,
         });
       }
     }
   };
 
-  buildRow(rootId, new Set(), []);
+  buildRow(rootId, new Set(), [], []);
   return rows;
 }
 
