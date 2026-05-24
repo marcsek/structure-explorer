@@ -210,7 +210,7 @@ export function IntervalViewRow({
     nodes: actualNodes,
     error: rowError,
     placeholder,
-    exhausted,
+    exhaustedVar,
   } = row;
 
   const dispatch = useAppDispatch();
@@ -222,8 +222,9 @@ export function IntervalViewRow({
   const errors = getAllIntervalViewRowErrors(row);
 
   const nodes = [...actualNodes];
+  const exhausted = !!exhaustedVar;
 
-  if (placeholder && locked) return null;
+  if (placeholder && (locked || exhausted)) return null;
 
   if (placeholder) {
     nodes.pop();
@@ -399,7 +400,10 @@ export function IntervalViewRow({
                     className="custom-bs-tooltip lg"
                     id={`tooltip-default-${id}`}
                   >
-                    <span className="any-other-tootlip-label">{`${variable} ∈ {${caseNode.leftoverMatches.join(",")}}`}</span>
+                    <span className="any-other-tootlip-label">
+                      <var>{variable}</var>
+                      {` ∈ {${caseNode.leftoverMatches.join(",")}}`}
+                    </span>
                   </Tooltip>
                 }
               >
@@ -431,6 +435,13 @@ export function IntervalViewRow({
       </Stack>
 
       {errors.length > 0 && <p className="error-message">{errors[0]}</p>}
+      {exhausted && (
+        <>
+          <span className="m-0">
+            exhausted on <var>{exhaustedVar}</var>{" "}
+          </span>
+        </>
+      )}
     </div>
   );
 }

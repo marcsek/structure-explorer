@@ -91,7 +91,7 @@
   text-decoration: underline;
   text-decoration-style: dashed;
   text-decoration-color: var(--bs-border-color);
-  text-decoration-thickness: 2px;
+  text-underline-offset: 0.2em;
   cursor: default;
   margin-left: 4px;
 }

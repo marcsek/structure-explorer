@@ -152,7 +152,7 @@ export interface IntervalViewRow {
   value: string;
   nodes: IntervalViewNode[];
   error: string;
-  exhausted: boolean;
+  exhaustedVar: string;
   placeholder: boolean;
 }
 
@@ -189,7 +189,7 @@ export function getStructuredIntervalView(
     const allMatches = cases.flatMap((c) =>
       c.type === "case" ? [...c.matches] : "def",
     );
-    const exhausted = allMatches.length === domain.size + 1;
+    const casesExhausted = allMatches.length === domain.size + 1;
 
     const seenMatches = new Set<string>();
     let rowHadError = nodeErrors.length > 0 || parentHadError;
@@ -223,6 +223,10 @@ export function getStructuredIntervalView(
         viewCase = { type: "default", deletable, leftoverMatches };
       }
 
+      const isLastCase = idx === cases.length - 2;
+      const exhausted = casesExhausted && isLastCase;
+      const exhaustedVar = exhausted ? node.variable : "";
+
       const isPrimary = idx === 0;
 
       if (!isPrimary) {
@@ -250,7 +254,7 @@ export function getStructuredIntervalView(
 
       const newIntervalNodes = [...primaryResetNodes, intervalNode];
 
-      if (intervalNode.case.type === "default" && exhausted) {
+      if (intervalNode.case.type === "default" && casesExhausted) {
         continue;
       }
 
@@ -259,7 +263,7 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "",
-          exhausted,
+          exhaustedVar,
           placeholder: true,
         });
       }
@@ -269,7 +273,7 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "Value element is empty.",
-          exhausted,
+          exhaustedVar,
           placeholder: false,
         });
         rowHadError = true;
@@ -283,7 +287,7 @@ export function getStructuredIntervalView(
           value,
           nodes: newIntervalNodes,
           error: valueError,
-          exhausted,
+          exhaustedVar,
           placeholder: false,
         });
 
@@ -302,7 +306,7 @@ export function getStructuredIntervalView(
           value: "",
           nodes: newIntervalNodes,
           error: "",
-          exhausted,
+          exhaustedVar: casesExhausted ? node.variable : "",
           placeholder: true,
         });
       }
