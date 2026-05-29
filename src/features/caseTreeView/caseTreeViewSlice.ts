@@ -259,25 +259,6 @@ const treeUpdateWrapper =
     dispatch(action(args));
 
     updateInterpretation(dispatch, getState, args.tupleName);
-    // const tupleName = args.tupleName;
-    // const state = getState().present;
-    // const { rootId, nodes } = state.caseTreeView[tupleName];
-    // const domain = new Set(state.structure.domain.value);
-    // const arity = selectValidatedFunctions(getState()).parsed.get(tupleName);
-    //
-    // if (!arity) return;
-    //
-    // const result = generateTuples(rootId, nodes, domain, arity);
-    //
-    // if (!result.ok) return;
-    //
-    // dev.log("Generated tuples", result.tuples);
-    // dispatch(
-    //   updateFunctionSymbols(
-    //     { key: tupleName, value: result.tuples },
-    //     { source: "caseTreeView" },
-    //   ),
-    // );
     dispatch(UndoActions.checkpoint());
   };
 

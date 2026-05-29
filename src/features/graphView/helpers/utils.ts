@@ -2,6 +2,7 @@ import { Position, type InternalNode } from "@xyflow/react";
 
 const edgeStrokeWidth = 2.5;
 
+// https://reactflow.dev/examples/edges/floating-edges
 function getNodeIntersection(
   intersectionNode: InternalNode,
   targetNode: InternalNode,
@@ -41,6 +42,7 @@ function getNodeIntersection(
   return { x, y };
 }
 
+// https://reactflow.dev/examples/edges/floating-edges
 function getEdgePosition(
   node: InternalNode,
   intersectionPoint: { x: number; y: number },
@@ -70,6 +72,7 @@ function getEdgePosition(
   return Position.Top;
 }
 
+// https://reactflow.dev/examples/edges/floating-edges
 export function getEdgeParams(source: InternalNode, target: InternalNode) {
   const sourceIntersectionPoint = getNodeIntersection(
     source,
