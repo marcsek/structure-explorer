@@ -437,7 +437,7 @@ export function IntervalViewRow({
       {errors.length > 0 && <p className="error-message">{errors[0]}</p>}
       {exhaustedVars.length > 0 && errors.length === 0 && (
         <span className="exhaust-message">
-          exhausted on <var>{exhaustedVars.join(",")}</var>{" "}
+          all cases for <var>{exhaustedVars.join(",")}</var> covered
         </span>
       )}
     </div>

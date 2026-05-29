@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import {
   getAppStateToExport,
   importAppState,
-} from "./features/import/importThunk";
+} from "./features/import/importExportUtils.ts";
 import { type CellContext, LogicContext } from "./logicContext";
 import { useEffect, useRef } from "react";
 import { parseSerializedAppStateWithDefaults } from "./features/import/validationSchema";

@@ -4,7 +4,7 @@ import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/Form";
 import { useRef } from "react";
-import { exportAppState, importAppState } from "./importThunk";
+import { exportAppState, importAppState } from "./importExportUtils.ts";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   selectTeacherMode,

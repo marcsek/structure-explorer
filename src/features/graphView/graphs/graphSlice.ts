@@ -44,7 +44,7 @@ import {
   selectSelectedDomain,
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
-import type { RelevantSymbols } from "../../import/importThunk.ts";
+import type { RelevantSymbols } from "../../import/importExportUtils.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
 import {

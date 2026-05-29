@@ -20,7 +20,7 @@ import {
   type LockableValue,
   type Validated,
 } from "../../common/redux";
-import type { RelevantSymbols } from "../import/importThunk";
+import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
 import { dev } from "../../common/logging";
 

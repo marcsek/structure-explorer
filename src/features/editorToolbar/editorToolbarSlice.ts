@@ -9,7 +9,7 @@ import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../common/redux";
 import { updateDomain, type TupleType } from "../structure/structureSlice";
 import type { EditorType } from "../structure/InterpretationEditor";
-import type { RelevantSymbols } from "../import/importThunk";
+import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
 
 export type EditorToolbarEntry = {
