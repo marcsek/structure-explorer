@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-import { useAppDispatch } from "./app/hooks";
 import {
   updateConstants,
   updateFunctions,
@@ -14,6 +12,13 @@ import {
 import { UndoActions } from "./features/undoHistory/undoHistory";
 import { addFormulas, updateGuess } from "./features/formulas/formulasSlice";
 import { unaryFilterDomainToggled } from "./features/editorToolbar/editorToolbarSlice";
+import { useAppDispatch } from "./app/hooks";
+import { useEffect } from "react";
+import {
+  addQuery,
+  updateQueryText,
+  updateQueryVariablesText,
+} from "./features/queries/queriesSlice";
 
 export default function usePreset() {
   const dispatch = useAppDispatch();
@@ -76,7 +81,7 @@ export default function usePreset() {
         ]),
       );
 
-      dispatch(updateFunctions([{ name: "známka", arity: 3 }]));
+      dispatch(updateFunctions([{ name: "sedí_s", arity: 1 }]));
 
       dispatch(updateDomain(["A", "B", "C", "D", "E"]));
 
@@ -138,6 +143,34 @@ export default function usePreset() {
           value: [["A"], ["B"], ["C"], ["D"], ["E"]],
         }),
       );
+
+      dispatch(
+        updateFunctionSymbols({
+          key: "sedí_s",
+          value: [
+            ["A", "B"],
+            ["D", "E"],
+            ["C", "C"],
+            ["B", "A"],
+            ["E", "D"],
+          ],
+        }),
+      );
+
+      dispatch(
+        addFormulas([
+          {
+            text: "∀x∀y((učí(x,y) ∧ študent(y)) → učiteľ(x))",
+          },
+          {
+            text: "∀x(riaditeľ(x) → učiteľ(x)) ∧ ∃x(učiteľ(x) ∧ ¬riaditeľ(x))",
+          },
+        ]),
+      );
+
+      dispatch(addQuery());
+      dispatch(updateQueryText({ idx: 0, text: "riaditeľ(x) → ¬učí(x,y)" }));
+      dispatch(updateQueryVariablesText({ idx: 0, text: "x, y" }));
 
       dispatch(UndoActions.clearHistory());
     } else if (preset === "chess") {
