@@ -410,18 +410,18 @@ export function makeSelectNodes<T extends GraphType>() {
 
 export const selectEdges = createSelector(
   [
-    (_: RootState, __: string, type: GraphType) => type,
+    (_: RootState, __: string, ___: TupleType, type: GraphType) => type,
     (
       state: RootState,
       tupleName: string,
-      type: GraphType,
       tupleType: TupleType,
+      type: GraphType,
     ) => state.present.graphView[getTupleId(tupleType, tupleName)]?.state[type],
     (
       state: RootState,
       tupleName: string,
-      _,
       tupleType: TupleType,
+      _,
       includeHovered: boolean = false,
     ) =>
       selectRelevantDomainElements(state, tupleName, tupleType, includeHovered),
@@ -457,8 +457,8 @@ export const onEdgesChanged = ({
     const selectedEdges = selectEdges(
       getState(),
       tupleName,
-      graphType,
       tupleType,
+      graphType,
     );
     const tupleId = getTupleId(tupleType, tupleName);
 
@@ -519,8 +519,8 @@ export const onConnected = ({
     const selectedEdges = selectEdges(
       getState(),
       tupleName,
-      graphType,
       tupleType,
+      graphType,
     );
     const tupleId = getTupleId(tupleType, tupleName);
 
@@ -568,8 +568,8 @@ export const leftoverDeleted = ({
     const selectedEdges = selectEdges(
       getState(),
       tupleName,
-      graphType,
       tupleType,
+      graphType,
     );
     const tupleId = getTupleId(tupleType, tupleName);
 

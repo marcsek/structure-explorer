@@ -56,7 +56,7 @@ export default function HasseDiagram({
     nodeSelector(state, tupleName, tupleType, graphType),
   );
   const edges = useAppSelector((state) =>
-    selectEdges(state, tupleName, graphType, tupleType, true),
+    selectEdges(state, tupleName, tupleType, graphType, true),
   );
   const warning = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,

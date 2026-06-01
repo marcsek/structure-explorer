@@ -4,7 +4,7 @@ import "./FlowContainer.css";
 import { useState, useRef, forwardRef, useEffect } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
-const HIDE_TIMEOUT_DURATION = 500;
+const HIDE_TIMEOUT_DURATION = 750;
 
 export interface FlowContainerProps {
   children: React.ReactNode;
