@@ -146,6 +146,7 @@ export interface IntervalViewNode {
   case: IntervalViewCase;
   errors: string[];
   primary: boolean;
+  exhausted: boolean;
 }
 
 export interface IntervalViewRow {
@@ -235,8 +236,14 @@ export function getStructuredIntervalView(
 
       const isPrimary = idx === 0;
 
+      console.log(currentIntervalNodes, cases, idx);
+      let localIntervalNodes = currentIntervalNodes.map((n) => ({
+        ...n,
+        exhausted: n.exhausted && isLastCase,
+      }));
+
       if (!isPrimary) {
-        currentIntervalNodes = currentIntervalNodes.map((n) => ({
+        localIntervalNodes = localIntervalNodes.map((n) => ({
           ...n,
           case: { ...n.case, primary: false, error: "" },
         }));
@@ -248,11 +255,12 @@ export function getStructuredIntervalView(
         case: viewCase,
         errors: isPrimary ? nodeErrors : [],
         primary: isPrimary,
+        exhausted,
       };
 
       const primaryResetNodes = isPrimary
-        ? [...currentIntervalNodes]
-        : currentIntervalNodes.map((n) => ({
+        ? [...localIntervalNodes]
+        : localIntervalNodes.map((n) => ({
             ...n,
             primary: false,
             errors: [],
@@ -325,6 +333,7 @@ export function getStructuredIntervalView(
   };
 
   buildRow(rootId, new Set(), [], []);
+  console.log(rows);
   return rows;
 }
 

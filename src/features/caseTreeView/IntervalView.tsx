@@ -34,7 +34,6 @@ import {
   faArrowsRotate,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
-import React from "react";
 import { InlineMath } from "react-katex";
 import { latex } from "../../common/utils";
 import {
@@ -210,7 +209,6 @@ export function IntervalViewRow({
     nodes: actualNodes,
     error: rowError,
     placeholder,
-    exhaustedVars,
     exhausted,
   } = row;
 
@@ -220,7 +218,7 @@ export function IntervalViewRow({
 
   if (!lastNode) return null;
 
-  const errors = getAllIntervalViewRowErrors(row);
+  const rowErrors = getAllIntervalViewRowErrors(row);
 
   const nodes = [...actualNodes];
 
@@ -240,6 +238,7 @@ export function IntervalViewRow({
       },
       errors: [],
       id: "",
+      exhausted: false,
     });
   }
 
@@ -292,9 +291,12 @@ export function IntervalViewRow({
     );
   };
 
+  const hasExhaustedVar =
+    nodes.some((v) => v.exhausted) && !placeholder && rowErrors.length === 0;
+
   return (
     <div
-      className={`interval-view-row ${placeholder ? "row-placeholder" : ""} ${exhausted ? "exhausted" : ""} ${locked ? "locked" : ""}`}
+      className={`interval-view-row ${placeholder ? "row-placeholder" : ""} ${hasExhaustedVar ? "exhausted" : ""} ${locked ? "locked" : ""}`}
     >
       <Stack direction="horizontal" gap={1} className="interval-view-row-stack">
         <FormControl
@@ -324,122 +326,138 @@ export function IntervalViewRow({
 
         <span>if</span>
 
-        {nodes.map(({ id, case: caseNode, variable, errors, primary }, idx) => (
-          <React.Fragment key={idx < nodes.length - 1 ? id : "last-node"}>
-            {caseNode.type === "case" ? (
-              <>
-                <FormControl
-                  value={variable}
-                  size="sm"
-                  disabled={!primary || placeholder || locked}
-                  className={`interval-input interval-variable-input`}
-                  isInvalid={errors.length > 0}
-                  onChange={(e) =>
-                    dispatch(
-                      updateNode({
-                        nodeId: id,
-                        tupleName,
-                        variable: e.target.value,
-                      }),
-                    )
-                  }
-                />
-
-                <InlineMath>{"\\in"}</InlineMath>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    flexShrink: 0,
-                    fontSize: "",
-                    gap: "1px",
-                  }}
-                >
-                  <InlineMath>{"\\{"}</InlineMath>
-                  <ResizeInput
-                    className="interval-input interval-match-input"
-                    value={
-                      !placeholder || idx < nodes.length - 1
-                        ? caseNode.match
-                        : ""
-                    }
+        {nodes.map(
+          (
+            { id, case: caseNode, variable, errors, primary, exhausted },
+            idx,
+          ) => (
+            <Stack
+              key={idx < nodes.length - 1 ? id : "last-node"}
+              direction="horizontal"
+              className="interval-view-node-stack"
+              gap={1}
+            >
+              {caseNode.type === "case" ? (
+                <>
+                  <FormControl
+                    value={variable}
                     size="sm"
-                    disabled={
-                      locked ||
-                      (placeholder && exhausted) ||
-                      ((placeholder || !caseNode.primary) &&
-                        idx < nodes.length - 1)
-                    }
-                    isInvalid={!!caseNode.error}
+                    disabled={!primary || placeholder || locked}
+                    className={`interval-input interval-variable-input`}
+                    isInvalid={errors.length > 0}
                     onChange={(e) =>
-                      placeholder
-                        ? handlePlaceholderUpdate({
-                            type: "match",
-                            value: e.target.value,
-                          })
-                        : dispatch(
-                            updateCase({
-                              nodeId: id,
-                              tupleName,
-                              caseIdx: caseNode.caseIdx,
-                              match: e.target.value,
-                            }),
-                          )
+                      dispatch(
+                        updateNode({
+                          nodeId: id,
+                          tupleName,
+                          variable: e.target.value,
+                        }),
+                      )
                     }
                   />
-                  <InlineMath>{"\\}"}</InlineMath>
-                </div>
-              </>
-            ) : (
-              <OverlayTrigger
-                placement="top"
-                delay={{ show: 200, hide: 0 }}
-                overlay={
-                  <Tooltip
-                    className="custom-bs-tooltip lg"
-                    id={`tooltip-default-${id}`}
-                  >
-                    <span className="any-other-tootlip-label">
-                      <var>{variable}</var>
-                      {` ∈ {${caseNode.leftoverMatches.join(",")}}`}
-                    </span>
-                  </Tooltip>
-                }
-              >
-                <span className="any-other-label">
-                  <var>{variable}</var>
-                  <span>is any other</span>
-                </span>
-              </OverlayTrigger>
-            )}
 
-            {((!locked && !placeholder) || idx < nodes.length - 1) && (
-              <>
-                {idx === nodes.length - 1 ? (
-                  <CaseButtons
-                    caseNode={caseNode}
-                    parentId={id}
-                    tupleName={tupleName}
-                    onCaseDelete={() => handleCaseDelete(caseNode, idx)}
-                    maxDepthReached={tupleArity <= nodes.length}
-                    variables={unusedVars}
-                  />
-                ) : (
-                  <span>,</span>
-                )}
-              </>
-            )}
-          </React.Fragment>
-        ))}
+                  <InlineMath>{"\\in"}</InlineMath>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      flexShrink: 0,
+                      fontSize: "",
+                      gap: "1px",
+                    }}
+                  >
+                    <InlineMath>{"\\{"}</InlineMath>
+                    <ResizeInput
+                      className="interval-input interval-match-input"
+                      value={
+                        !placeholder || idx < nodes.length - 1
+                          ? caseNode.match
+                          : ""
+                      }
+                      size="sm"
+                      disabled={
+                        locked ||
+                        (placeholder && exhausted) ||
+                        ((placeholder || !caseNode.primary) &&
+                          idx < nodes.length - 1)
+                      }
+                      isInvalid={!!caseNode.error}
+                      onChange={(e) =>
+                        placeholder
+                          ? handlePlaceholderUpdate({
+                              type: "match",
+                              value: e.target.value,
+                            })
+                          : dispatch(
+                              updateCase({
+                                nodeId: id,
+                                tupleName,
+                                caseIdx: caseNode.caseIdx,
+                                match: e.target.value,
+                              }),
+                            )
+                      }
+                    />
+                    <InlineMath>{"\\}"}</InlineMath>
+                  </div>
+                </>
+              ) : (
+                <OverlayTrigger
+                  placement="top"
+                  delay={{ show: 200, hide: 0 }}
+                  overlay={
+                    <Tooltip
+                      className="custom-bs-tooltip lg"
+                      id={`tooltip-default-${id}`}
+                    >
+                      <span className="any-other-tootlip-label">
+                        <var>{variable}</var>
+                        {` ∈ {${caseNode.leftoverMatches.join(",")}}`}
+                      </span>
+                    </Tooltip>
+                  }
+                >
+                  <span className="any-other-label">
+                    <var>{variable}</var>
+                    <span>is any other</span>
+                  </span>
+                </OverlayTrigger>
+              )}
+
+              {((!locked && !placeholder) || idx < nodes.length - 1) && (
+                <>
+                  {idx === nodes.length - 1 ? (
+                    <CaseButtons
+                      caseNode={caseNode}
+                      parentId={id}
+                      tupleName={tupleName}
+                      onCaseDelete={() => handleCaseDelete(caseNode, idx)}
+                      maxDepthReached={tupleArity <= nodes.length}
+                      variables={unusedVars}
+                    />
+                  ) : (
+                    <span>,</span>
+                  )}
+                </>
+              )}
+
+              {exhausted && rowErrors.length === 0 && !placeholder && (
+                <span className="exhaust-message">
+                  all cases for <var>{variable}</var> covered
+                </span>
+              )}
+            </Stack>
+          ),
+        )}
       </Stack>
 
-      {errors.length > 0 && <p className="error-message">{errors[0]}</p>}
-      {exhaustedVars.length > 0 && errors.length === 0 && (
-        <span className="exhaust-message">
-          all cases for <var>{exhaustedVars.join(",")}</var> covered
-        </span>
-      )}
+      {rowErrors.length > 0 && <p className="error-message">{rowErrors[0]}</p>}
+      {/* {exhaustedVars.length > 0 && errors.length === 0 && ( */}
+      {/*   <span className="exhaust-message"> */}
+      {/*     all cases for <var>{exhaustedVars.join(",")}</var> covered */}
+      {/*   </span> */}
+      {/* )} */}
     </div>
   );
 }

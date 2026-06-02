@@ -192,8 +192,6 @@
   stroke: var(--set-group-border-color);
   stroke-width: 2;
   stroke-dasharray: 10 10;
-  rx: 10px;
-  ry: 10px;
   width: calc(100% - 2px);
   height: calc(100% - 2px);
 }
