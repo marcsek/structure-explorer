@@ -22,6 +22,28 @@ npm run dev
 
 Po tomto kroku bude aplikácia bežať na porte `localhost:5173`.
 
+## Build
+
+Projekt možno buildovať viacerými spôsobmi:
+
+- `npm run build` vytvorí produkčnú verziu knižnice v adresári `dist`.
+- `npm run build:demo` vytvorí v adresári `dist` *ukážkovú* verziu aplikácie.
+- `npm run build:dev-lib` pri spustení a následne pri každej zmene zdrojových súborov vytvorí *vývojovú*
+  verziu knižnice. Výstup (knižnicu) zapisuje do susedného adresára `../structure-explorer-dev-lib/dist` a
+  do jeho koreňa skopíruje aj `package.json`.
+
+Vývojovú knižnicu z `build:dev-lib` možno použiť v inom projekte cez `npm link`:
+
+```shell
+cd ../structure-explorer-dev-lib
+npm link
+cd ../iny-projekt
+npm link @fmfi-uk-1-ain-412/structure-explorer
+```
+
+Ukážkovú verziu je možné po builde spustiť lokálne príkazom `npm run preview`.
+Príkaz `npm run deploy` najprv vybuilduje *ukážkovú* aplikáciu a následne ju zverejní na GitHub Pages.
+
 ## História
 
 Aplikácia vznikla v rokoch 2017–2018 v rámci bakalárskej práce Milana Cifru
