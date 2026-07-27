@@ -34,10 +34,8 @@ Projekt možno buildovať viacerými spôsobmi:
 Vývojovú knižnicu z `build:dev-lib` možno použiť v inom projekte cez `npm link`:
 
 ```shell
-cd ../structure-explorer-dev-lib
-npm link
 cd ../iny-projekt
-npm link @fmfi-uk-1-ain-412/structure-explorer
+npm link ../structure-explorer-dev-lib
 ```
 
 > Ukážkovú verziu je možné po builde spustiť lokálne príkazom `npm run preview`.
