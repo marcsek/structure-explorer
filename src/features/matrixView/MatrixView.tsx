@@ -41,19 +41,14 @@ export default function MatrixView({
   locked,
 }: MatrixViewProps) {
   const dispatch = useAppDispatch();
-
   const { tableRef, handleCellHover } = useTableCrosshairHover();
-
   const { values, leftovers } = useAppSelector((state) =>
     selectMatrixValuesWithInvalid(state, tupleName, tupleType),
   );
-
   const domain = useAppSelector(selectDomain).value;
-
   const selectedDomain = useAppSelector((state) =>
     selectFilteredDomain(state, tupleName, tupleType, true),
   );
-
   const hatchedDomain = useAppSelector((state) =>
     selectHatchedDomain(state, tupleName, tupleType),
   );
@@ -75,7 +70,7 @@ export default function MatrixView({
     leftovers.includes(row) ||
     !!isDuplicate(row, col);
 
-  const handleValueChange = (row: string, col: string, value: string) => {
+  const updateValue = (row: string, col: string, value: string) => {
     if (locked) return;
 
     const domainTuple = getDomainTuple(row, col);
@@ -105,11 +100,33 @@ export default function MatrixView({
       dispatch(UndoActions.checkpoint());
   };
 
+  const handlePredicateToggle = (row: string, col: string) => {
+    updateValue(row, col, getValue(row, col) ? "" : "in");
+    dispatch(UndoActions.checkpoint());
+  };
+
+  const handleFunctionChange = (row: string, col: string, value: string) => {
+    updateValue(row, col, value);
+  };
+
+  const getCellState = (row: string, col: string) => {
+    const value = getValue(row, col) ?? "";
+    const columnError = leftovers.includes(col);
+    const unselected =
+      unselectedDomain.includes(col) || unselectedDomain.includes(row);
+    const hatched = hatchedDomain.includes(col) || hatchedDomain.includes(row);
+    const invalid =
+      (tupleType === "function" && !!value && !domain.includes(value)) ||
+      isInvalid(row, col);
+
+    return { value, columnError, unselected, hatched, invalid };
+  };
+
   const selectedDomainWithHatched = domain.filter(
-    (d) => selectedDomain.includes(d) || hatchedDomain.includes(d),
+    (e) => selectedDomain.includes(e) || hatchedDomain.includes(e),
   );
   const unselectedDomain = domain.filter(
-    (d) => !selectedDomainWithHatched.includes(d) && !leftovers.includes(d),
+    (e) => !selectedDomainWithHatched.includes(e) && !leftovers.includes(e),
   );
   const domainWithLeftovers = [
     ...selectedDomainWithHatched,
@@ -158,66 +175,47 @@ export default function MatrixView({
       <tbody>
         {(isUnary ? [""] : domainWithLeftovers).map((row, rowIdx) => (
           <tr key={`r-${row}`} className={getTableClass(row)}>
-            {isUnary ? (
-              <td key="row-head" />
-            ) : (
-              <td key="row-head">
+            <td key="row-head">
+              {!isUnary && (
                 <PredicateIndicatorTableHead
                   predicateName={tupleName}
                   tupleType={tupleType}
                   domainId={row}
                 />
-              </td>
-            )}
+              )}
+            </td>
 
-            {domainWithLeftovers.map((col, colIdx) =>
-              tupleType === "predicate" ? (
-                <PredicateTableCell
-                  key={col}
-                  value={!!getValue(row, col)}
-                  onValueChange={() => {
-                    handleValueChange(row, col, getValue(row, col) ? "" : "in");
-                    dispatch(UndoActions.checkpoint());
-                  }}
-                  locked={locked}
-                  columnError={leftovers.includes(col)}
-                  invalid={isInvalid(row, col)}
-                  unselected={
-                    unselectedDomain.includes(col) ||
-                    unselectedDomain.includes(row)
-                  }
-                  hatched={
-                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
-                  }
-                  onHovered={(hovered) =>
-                    hovered
-                      ? handleCellHover(isUnary ? -1 : rowIdx, colIdx)
-                      : handleCellHover(-1, -1)
-                  }
-                />
-              ) : (
+            {domainWithLeftovers.map((col, colIdx) => {
+              const cellState = getCellState(row, col);
+
+              if (tupleType === "predicate") {
+                return (
+                  <PredicateTableCell
+                    key={col}
+                    {...cellState}
+                    value={!!cellState.value}
+                    onValueChange={() => handlePredicateToggle(row, col)}
+                    locked={locked}
+                    onMouseEnter={() =>
+                      handleCellHover(isUnary ? -1 : rowIdx, colIdx)
+                    }
+                    onMouseLeave={() => handleCellHover(-1, -1)}
+                  />
+                );
+              }
+
+              return (
                 <FunctionTableCell
                   key={col}
-                  value={getValue(row, col) ?? ""}
-                  columnError={leftovers.includes(col)}
-                  invalid={
-                    (getValue(row, col) &&
-                      !domain.includes(getValue(row, col))) ||
-                    isInvalid(row, col)
+                  {...cellState}
+                  onValueChange={(value) =>
+                    handleFunctionChange(row, col, value)
                   }
-                  onValueChange={(value) => handleValueChange(row, col, value)}
                   locked={locked}
-                  unselected={
-                    unselectedDomain.includes(col) ||
-                    unselectedDomain.includes(row)
-                  }
-                  hatched={
-                    hatchedDomain.includes(col) || hatchedDomain.includes(row)
-                  }
                   onBlur={() => dispatch(UndoActions.checkpoint())}
                 />
-              ),
-            )}
+              );
+            })}
           </tr>
         ))}
       </tbody>
@@ -237,7 +235,6 @@ function PredicateIndicatorTableHead({
   domainId,
 }: PredicateIndicatorTableHeadProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
-
   const [predsToDisplay, previewed] = useAppSelector((state) =>
     selectPredicatesToDisplay(state, predicateName, tupleType, domainId),
   );

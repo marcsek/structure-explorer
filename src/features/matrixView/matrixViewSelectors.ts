@@ -24,30 +24,26 @@ export const selectMatrixValuesWithInvalid = createSelector(
     if (!interpretation) return { values: {}, leftovers: [] };
 
     const seenTuples = new Set<string>();
-    const values = Object.fromEntries(
-      interpretation.flatMap((tuple) => {
-        let entry = createTupleValueEntry(tupleType, tuple);
+    const values: MatrixViewValues = {};
+    const matrixDomain = new Set<string>();
 
-        const [entryKey] = entry;
+    for (const tuple of interpretation) {
+      const [key, value] = createTupleValueEntry(tupleType, tuple);
+      value.domainTuple.forEach((e) => matrixDomain.add(e));
 
-        const wasSeen = seenTuples.has(entryKey);
-        seenTuples.add(entryKey);
+      if (!seenTuples.has(key)) {
+        seenTuples.add(key);
+        values[key] = value;
+        continue;
+      }
 
-        if (!wasSeen) return [entry];
+      const [dupKey, dupValue] = createTupleValueEntry(tupleType, tuple, true);
+      values[key] = { ...value, duplicate: true };
+      values[dupKey] = dupValue;
+    }
 
-        const duplicateEntry = createTupleValueEntry(tupleType, tuple, true);
-        entry = [entry[0], { ...entry[1], duplicate: true }];
-
-        return [entry, duplicateEntry];
-      }),
-    );
-
-    const matrixEntryDomain = new Set(
-      Object.values(values).flatMap(({ domainTuple }) => domainTuple),
-    );
-
-    const leftovers = [...matrixEntryDomain].filter(
-      (element) => !domain.value.includes(element),
+    const leftovers = [...matrixDomain].filter(
+      (e) => !domain.value.includes(e),
     );
 
     return { values, leftovers };
@@ -79,10 +75,10 @@ export const generateTupleInterpretation = (
 ) => {
   const interpretation: string[][] = [];
   for (const { domainTuple, value } of Object.values(values)) {
-    if (value)
-      interpretation.push(
-        type === "predicate" ? domainTuple : [...domainTuple, value],
-      );
+    if (!value) continue;
+    interpretation.push(
+      type === "predicate" ? domainTuple : [...domainTuple, value],
+    );
   }
 
   return interpretation;

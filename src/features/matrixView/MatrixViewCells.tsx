@@ -8,7 +8,8 @@ type PredicateInputProps = {
   unselected: boolean;
   hatched: boolean;
   onValueChange: () => void;
-  onHovered?: (hovered: boolean) => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
 };
 
 export function PredicateTableCell({
@@ -17,7 +18,8 @@ export function PredicateTableCell({
   invalid,
   columnError,
   onValueChange,
-  onHovered,
+  onMouseEnter,
+  onMouseLeave,
   unselected,
   hatched,
 }: PredicateInputProps) {
@@ -31,8 +33,8 @@ export function PredicateTableCell({
   return (
     <td
       className={cellClass}
-      onMouseEnter={() => !unselected && onHovered?.(true)}
-      onMouseLeave={() => !unselected && onHovered?.(false)}
+      onMouseEnter={() => !unselected && onMouseEnter()}
+      onMouseLeave={() => !unselected && onMouseLeave()}
       onClick={() => !isDisabled && onValueChange()}
     >
       <Form.Check
