@@ -159,14 +159,14 @@
 }
 
 .set-group-node.origin-domain {
-  --set-group-bg: color-mix(in srgb, #ffab00, transparent 95%);
-  --set-group-border-color: color-mix(in srgb, #ffab00, transparent 50%);
+  --set-group-bg: color-mix(in srgb, #ffab00, transparent 92%);
+  --set-group-border-color: color-mix(in srgb, #ffab00, transparent 40%);
   --set-group-color: color-mix(in srgb, #ffab00, transparent 25%);
 }
 
 .set-group-node.origin-range {
-  --set-group-bg: color-mix(in srgb, #00b8d9, transparent 95%);
-  --set-group-border-color: color-mix(in srgb, #00b8d9, transparent 50%);
+  --set-group-bg: color-mix(in srgb, #00b8d9, transparent 92%);
+  --set-group-border-color: color-mix(in srgb, #00b8d9, transparent 40%);
   --set-group-color: color-mix(in srgb, #00b8d9, transparent 25%);
 }
 

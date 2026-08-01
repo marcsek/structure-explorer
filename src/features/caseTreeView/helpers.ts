@@ -8,8 +8,7 @@ import type {
 export const intervalVariables = ["x", "y", "z", "u", "v", "w", "r", "s", "t"];
 
 export type GenerateTuplesResult =
-  | { ok: true; tuples: string[][] }
-  | { ok: false };
+  { ok: true; tuples: string[][] } | { ok: false };
 
 export function generateTuples(
   rootId: string,

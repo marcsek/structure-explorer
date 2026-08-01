@@ -19,7 +19,7 @@ function App({ viewOnlyMode }: AppProps) {
   usePreset();
 
   return (
-    <div className="structure-explorer position-relative">
+    <div className="structure-explorer position-relative app-component">
       <ErrorAlert />
       <Container
         fluid

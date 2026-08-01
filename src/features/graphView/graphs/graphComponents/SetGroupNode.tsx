@@ -15,7 +15,7 @@ export default function SetGroupNode({ data }: NodeProps<SetGroupNodeType>) {
     <div className="set-group-node-body">
       <span className="set-group-node-label">{data.label}</span>
       <svg className="set-group-node-border">
-        <rect className="node-border-rect" x="1" y="1" />
+        <rect className="node-border-rect" x="1" y="1" rx="10" ry="10" />
       </svg>
     </div>
   );
