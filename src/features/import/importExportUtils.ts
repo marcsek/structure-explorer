@@ -32,10 +32,13 @@ import {
   importEditorToolbarState,
 } from "../editorToolbar/editorToolbarSlice";
 import {
-  getRelevantQueriesState,
+  getRelevantQueriesState as getQuriesStateToExport,
   importQueriesState,
 } from "../queries/queriesSlice";
-import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
+import {
+  getRelevantCaseTreeState,
+  importCaseTreeViewState,
+} from "../caseTreeView/caseTreeViewSlice";
 
 export interface ImportedAppState extends Omit<
   RootState["present"],
@@ -118,23 +121,30 @@ export type RelevantSymbols = Record<
 >;
 
 const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
-  return {
-    ...Object.fromEntries(
-      language.constants.value.map((cnst) => [cnst, { type: "constant" }]),
-    ),
-    ...Object.fromEntries(
-      language.predicates.value.map(([key, arity]) => [
-        key,
-        { type: "predicate", arity },
-      ]),
-    ),
-    ...Object.fromEntries(
-      language.functions.value.map(([key, arity]) => [
-        key,
-        { type: "function", arity },
-      ]),
-    ),
+  const symbols: RelevantSymbols = {};
+
+  // TODO: This could be handled better since now it doesn't work correctly
+  // for symbols with the same name. E.g. key could also consist of type and arity.
+  const addSymbol = (key: string, value: RelevantSymbols[string]) => {
+    if (key in symbols) {
+      console.warn(
+        `Found duplicate symbol name: "${key}" while exporting Structure Explorer State`,
+      );
+    }
+    symbols[key] = value;
   };
+
+  language.constants.value.forEach((cnst) =>
+    addSymbol(cnst, { type: "constant" }),
+  );
+  language.predicates.value.forEach(([key, arity]) =>
+    addSymbol(key, { type: "predicate", arity }),
+  );
+  language.functions.value.forEach(([key, arity]) =>
+    addSymbol(key, { type: "function", arity }),
+  );
+
+  return symbols;
 };
 
 export const getAppStateToExport = (state: RootState): SerializedAppState => {
@@ -143,7 +153,7 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
   return {
     version: SERIALIZED_STATE_VERSION,
     formulas: state.present.formulas,
-    queries: getRelevantQueriesState(state.present.queries),
+    queries: getQuriesStateToExport(state.present.queries),
     language: state.present.language,
     variables: state.present.variables,
     teacherMode: state.present.teacherMode,
@@ -156,6 +166,9 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
       state.present.editorToolbar,
       relevantSymbols,
     ),
-    caseTreeView: state.present.caseTreeView,
+    caseTreeView: getRelevantCaseTreeState(
+      state.present.caseTreeView,
+      relevantSymbols,
+    ),
   };
 };

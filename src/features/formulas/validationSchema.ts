@@ -24,5 +24,5 @@ export type SerializedFormulasState = z.infer<
   typeof serializedFormulasStateSchema
 >;
 
-export const SerializedFormulasStateDefault: SerializedFormulasState =
+export const serializedFormulasStateDefault: SerializedFormulasState =
   initialFormulasState;

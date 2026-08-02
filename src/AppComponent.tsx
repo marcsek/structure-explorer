@@ -28,7 +28,7 @@ interface PrepareResult {
   getState: (instance: any) => any;
 }
 
-const actionsToFilter = [
+const actionsToIgnore = [
   editorToolbarSlice.actions.predicateHovered,
   editorToolbarSlice.actions.unaryFilterDomainHovered,
   editorToolbarSlice.actions.nodeToggled,
@@ -47,18 +47,18 @@ const actionsToFilter = [
   UndoActions.checkpoint,
 ];
 
-function filterAction(action: unknown) {
-  if (typeof action === "function") return false;
-  if (isAnyOf(...actionsToFilter)(action)) return false;
-  if (isAction(action) && listenerShouldIgnore(action)) return false;
-
-  return true;
+function isIgnoredAction(action: unknown) {
+  return (
+    typeof action === "function" ||
+    isAnyOf(...actionsToIgnore)(action) ||
+    (isAction(action) && listenerShouldIgnore(action))
+  );
 }
 
 function prepare(initialState?: any): PrepareResult {
   const storeListener: Middleware<object, RootState> =
     () => (next) => (action) => {
-      if (instance?.handleStoreChange && filterAction(action))
+      if (instance?.handleStoreChange && !isIgnoredAction(action))
         instance.handleStoreChange();
 
       return next(action);
@@ -105,7 +105,7 @@ export function AppComponent({
   const appstore = instance.store;
 
   // Since some components must have a unique id across the whole document
-  // we need a way do disntiguish between identical instances.
+  // we need a way do distinguish between identical instances.
   // (e.g copied instances inside workbook)
   const instanceIdRef = useRef<string>(generateInstanceId());
 

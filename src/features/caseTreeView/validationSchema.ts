@@ -36,5 +36,5 @@ export type SerializedCaseTreeViewState = z.infer<
   typeof serializedCaseTreeViewStateSchema
 >;
 
-export const SerializedCaseTreeViewStateDefault: SerializedCaseTreeViewState =
+export const serializedCaseTreeViewStateDefault: SerializedCaseTreeViewState =
   initialCaseTreeViewState;

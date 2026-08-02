@@ -20,5 +20,5 @@ export type SerializedQueriesState = z.infer<
   typeof serializedQueriesStateSchema
 >;
 
-export const SerializedQueriesStateDefault: SerializedQueriesState =
+export const serializedQueriesStateDefault: SerializedQueriesState =
   initialQueriesState;

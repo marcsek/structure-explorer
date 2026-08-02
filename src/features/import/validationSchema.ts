@@ -1,6 +1,6 @@
 import z from "zod";
 import {
-  SerializedFormulasStateDefault,
+  serializedFormulasStateDefault,
   serializedFormulasStateSchema,
 } from "../formulas/validationSchema";
 import {
@@ -28,11 +28,11 @@ import {
   serializedEditorToolbarStateSchema,
 } from "../editorToolbar/validationSchema";
 import {
-  SerializedQueriesStateDefault,
+  serializedQueriesStateDefault,
   serializedQueriesStateSchema,
 } from "../queries/validationSchema";
 import {
-  SerializedCaseTreeViewStateDefault,
+  serializedCaseTreeViewStateDefault,
   serializedCaseTreeViewStateSchema,
 } from "../caseTreeView/validationSchema";
 
@@ -71,10 +71,10 @@ const schemaDefaults: SerializedAppState = {
   variables: serializedVariablesStateDefault,
   teacherMode: serializedTeacherModeStateDefault,
   graphView: serializedGraphViewStateDefault,
-  formulas: SerializedFormulasStateDefault,
-  queries: SerializedQueriesStateDefault,
+  formulas: serializedFormulasStateDefault,
+  queries: serializedQueriesStateDefault,
   editorToolbar: serializedEditorToolbarStateDefault,
-  caseTreeView: SerializedCaseTreeViewStateDefault,
+  caseTreeView: serializedCaseTreeViewStateDefault,
 };
 
 export function parseSerializedAppStateWithDefaults(data: unknown): {

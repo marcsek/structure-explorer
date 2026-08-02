@@ -550,35 +550,26 @@ export const selectStructure = createSelector(
   },
 );
 
+const filterRelevantSymbolsByType = <T>(
+  record: Record<string, T>,
+  relevantSymbols: RelevantSymbols,
+  type: RelevantSymbols[string]["type"],
+): Record<string, T> =>
+  Object.fromEntries(
+    Object.entries(record).filter(
+      ([key]) => relevantSymbols[key]?.type === type,
+    ),
+  );
+
 export const getRelevantStructureState = (
   structure: StructureState,
   relevantSymbols: RelevantSymbols,
-): StructureState => {
-  const relevantConstants = Object.fromEntries(
-    Object.entries(structure.iC).filter(
-      ([key]) => relevantSymbols[key]?.type === "constant",
-    ),
-  );
-
-  const relevantPredicateInterpretations = Object.fromEntries(
-    Object.entries(structure.iP).filter(
-      ([key]) => relevantSymbols[key]?.type === "predicate",
-    ),
-  );
-
-  const relevantFunctionInterpretation = Object.fromEntries(
-    Object.entries(structure.iF).filter(
-      ([key]) => relevantSymbols[key]?.type === "function",
-    ),
-  );
-
-  return {
-    ...structure,
-    iC: relevantConstants,
-    iP: relevantPredicateInterpretations,
-    iF: relevantFunctionInterpretation,
-  };
-};
+): StructureState => ({
+  ...structure,
+  iC: filterRelevantSymbolsByType(structure.iC, relevantSymbols, "constant"),
+  iP: filterRelevantSymbolsByType(structure.iP, relevantSymbols, "predicate"),
+  iF: filterRelevantSymbolsByType(structure.iF, relevantSymbols, "function"),
+});
 
 export const {
   updateDomain,
