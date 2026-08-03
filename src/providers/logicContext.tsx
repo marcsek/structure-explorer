@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useMemo } from "react";
 import type { SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { useAppDispatch } from "./app/hooks";
+import { useAppDispatch } from "../app/hooks";
 import {
   editModeChanged,
   updateConstants,
   updateFunctions,
   updatePredicates,
-} from "./features/language/languageSlice";
-import { UndoActions } from "./features/undoHistory/undoHistory";
-import { syncContextFormulas } from "./features/formulas/formulasSlice";
+} from "../features/language/languageSlice";
+import { UndoActions } from "../features/undoHistory/undoHistory";
+import { syncContextFormulas } from "../features/formulas/formulasSlice";
 
 export interface ContextFormula {
   name: string;

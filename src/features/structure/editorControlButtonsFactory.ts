@@ -1,5 +1,5 @@
-import type { ControlButtonsProps } from "../../components_helper/ControlButtons/ControlButtons";
-import { omitControlButtons } from "../../components_helper/ControlButtons/omitControlButtons";
+import type { ControlButtonsProps } from "../../shared/ui/ControlButtons/ControlButtons";
+import { omitControlButtons } from "../../shared/ui/ControlButtons/omitControlButtons";
 import type { EditorType } from "./InterpretationEditor";
 import type { TupleType } from "./structureSlice";
 

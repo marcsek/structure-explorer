@@ -14,15 +14,15 @@ import {
   createSemanticError,
   createValidationError,
   type ValidationError,
-} from "../../common/errors";
+} from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
   type Validated,
-} from "../../common/redux";
+} from "../../shared/core/redux";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
-import { dev } from "../../common/logging";
+import { dev } from "../../shared/core/logging";
 
 export type InterpretationType = "predicate" | "function" | "constant";
 export type TupleType = "function" | "predicate";

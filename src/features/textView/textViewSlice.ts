@@ -12,8 +12,8 @@ import {
   type StructuredOf,
   type TextViewSyncEntry,
 } from "./textViews";
-import type { SyntaxError } from "../../common/errors";
-import { dev } from "../../common/logging";
+import type { SyntaxError } from "../../shared/core/errors";
+import { dev } from "../../shared/core/logging";
 import { UndoActions } from "../undoHistory/undoHistory";
 
 export interface TextViewEntry {

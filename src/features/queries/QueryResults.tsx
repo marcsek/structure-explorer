@@ -6,7 +6,7 @@ import type { QueryResult } from "./queriesSlice";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 
 export interface QueryResultsProps {
   queryIdx: number;

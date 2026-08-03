@@ -50,8 +50,8 @@ import type { SerializedGraphViewState } from "../validationSchema.ts";
 import {
   prepareWithListenerIgnoreMeta,
   type PayloadActionListenerIgnore,
-} from "../../../common/redux.ts";
-import { dev } from "../../../common/logging.ts";
+} from "../../../shared/core/redux.ts";
+import { dev } from "../../../shared/core/logging.ts";
 
 export type GraphManagerState = Record<
   string,

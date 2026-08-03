@@ -1,5 +1,5 @@
 import z from "zod";
-import { lockable } from "../../common/validation";
+import { lockable } from "../../shared/core/validation";
 import { initialLanguageState } from "./languageSlice";
 
 const constantsRepresentationSchema = z.array(z.string());

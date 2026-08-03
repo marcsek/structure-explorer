@@ -10,7 +10,7 @@ import {
   selectTeacherMode,
   updateTeacherMode,
 } from "../teacherMode/teacherModeslice";
-import { useLogicContext } from "../../logicContext";
+import { useLogicContext } from "../../providers/logicContext";
 import { serializedAppStateSchema } from "./validationSchema";
 import { clearError, setError } from "../errorAlert/errorAlertSlice";
 

@@ -6,7 +6,7 @@ import {
 import { selectRelevantUnaryPreds } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
 import { updatePredicates } from "../language/languageSlice";
-import { fallbackToEmptyArray } from "../../common/redux";
+import { fallbackToEmptyArray } from "../../shared/core/redux";
 import { updateDomain, type TupleType } from "../structure/structureSlice";
 import type { EditorType } from "../structure/InterpretationEditor";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";

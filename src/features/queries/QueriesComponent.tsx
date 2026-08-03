@@ -1,6 +1,6 @@
 import { Button, Stack } from "react-bootstrap";
 import { InlineMath } from "react-katex";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import { useAppDispatch, useAppSelector } from "../../app/hooks.ts";
 import { UndoActions } from "../undoHistory/undoHistory.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

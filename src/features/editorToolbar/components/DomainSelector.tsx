@@ -18,7 +18,7 @@ import {
   selectSelectedDomain,
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
-import { RelevantPredicatesIndicator } from "../../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import useClickAwayListener from "./useClickAwayListener";
 
 export interface DomainSelectorProps {

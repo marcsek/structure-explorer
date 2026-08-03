@@ -1,6 +1,6 @@
 import type { ActionCreatorWithPreparedPayload } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import type { SemanticError, ValidationError } from "../../common/errors";
+import type { SemanticError, ValidationError } from "../../shared/core/errors";
 
 import {
   type LanguageTextViewTypeMap,

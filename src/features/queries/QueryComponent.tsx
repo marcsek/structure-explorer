@@ -17,11 +17,11 @@ import { UndoActions } from "../undoHistory/undoHistory";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
-import LockButton from "../../components_helper/LockButton";
-import ErrorFeedback from "../../components_helper/ErrorFeedback";
+import LockButton from "../../shared/ui/LockButton";
+import ErrorFeedback from "../../shared/ui/ErrorFeedback";
 import { useEffect, useState } from "react";
 import QueryResults from "./QueryResults";
-import { selectNonFormulaValidationError } from "../../common/formulas";
+import { selectNonFormulaValidationError } from "../../shared/core/formulas";
 
 export interface QueryComponentProps {
   idx: number;

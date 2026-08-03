@@ -7,12 +7,12 @@ import {
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectStructure } from "../structure/structureSlice";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
-import MessageBubble from "../../components_helper/bubbles/MessageBubble";
+import MessageBubble from "../../shared/ui/bubbles/MessageBubble";
 import { useEffect, useRef, type ReactNode } from "react";
 import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
 import { Stack } from "react-bootstrap";
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 import {
   generateExplanation,
   getAlphaBubbles,

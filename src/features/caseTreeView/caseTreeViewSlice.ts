@@ -21,7 +21,7 @@ import {
   initializeTreeFromTuples,
   intervalVariables,
 } from "./helpers";
-import { dev } from "../../common/logging";
+import { dev } from "../../shared/core/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
 import { UndoActions } from "../undoHistory/undoHistory";
 import type { RelevantSymbols } from "../import/importExportUtils";

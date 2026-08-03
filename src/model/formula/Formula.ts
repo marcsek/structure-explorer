@@ -1,4 +1,4 @@
-import { dev } from "../../common/logging";
+import { dev } from "../../shared/core/logging";
 import Expression from "../Expression";
 import type { Symbol } from "../Language";
 import { Structure, type Valuation } from "../Structure";

@@ -1,12 +1,12 @@
 import type { ChangeEvent, ReactNode } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import ErrorFeedback from "./ErrorFeedback";
-import { useAppSelector } from "../app/hooks";
-import { selectTeacherMode } from "../features/teacherMode/teacherModeslice";
+import { useAppSelector } from "../../app/hooks";
+import { selectTeacherMode } from "../../features/teacherMode/teacherModeslice";
 import LockButton from "./LockButton";
-import type { InterpretationError } from "../common/errors";
+import type { InterpretationError } from "../core/errors";
 import { useDispatch } from "react-redux";
-import { textViewCheckpoint } from "../features/textView/textViewSlice";
+import { textViewCheckpoint } from "../../features/textView/textViewSlice";
 
 interface Props {
   label: string;

@@ -1,5 +1,5 @@
 import { InlineMath } from "react-katex";
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 import type { BubbleFormat } from "./GameHistory";
 import type { SignedFormula } from "../../model/formula/Formula";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";

@@ -1,7 +1,7 @@
 import "./ComponentCard.css";
 
 import { Card, Stack } from "react-bootstrap";
-import TooltipButton from "../TooltipButton";
+import TooltipButton from "../../shared/ui/TooltipButton";
 import type React from "react";
 
 interface ComponentCardProps {

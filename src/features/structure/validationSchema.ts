@@ -1,5 +1,5 @@
 import z from "zod";
-import { lockable } from "../../common/validation";
+import { lockable } from "../../shared/core/validation";
 import { initialStructureState } from "./structureSlice";
 
 const domainRepresentationSchema = z.array(z.string());

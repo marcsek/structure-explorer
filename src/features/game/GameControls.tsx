@@ -1,11 +1,11 @@
 import ChoiceBubbles, {
   type ChoiceBubble,
-} from "../../components_helper/bubbles/ChoiceBubble";
+} from "../../shared/ui/bubbles/ChoiceBubble";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { addGameChoice, selectGameButtons } from "../formulas/formulasSlice";
-import SelectBubble from "../../components_helper/bubbles/SelectBubble";
+import SelectBubble from "../../shared/ui/bubbles/SelectBubble";
 import { InlineMath } from "react-katex";
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 
 export interface GameControlsProps {
   id: number;

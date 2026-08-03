@@ -12,11 +12,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectDomain, type TupleType } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
-import EmptyPlaceholder from "../../components_helper/EmptyPlaceholder/EmptyPlaceholder";
+import EmptyPlaceholder from "../../shared/ui/EmptyPlaceholder/EmptyPlaceholder";
 import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
-import { RelevantPredicatesIndicator } from "../../components_helper/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 
 interface DatabaseViewProps {
   tupleName: string;

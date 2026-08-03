@@ -11,7 +11,7 @@ import {
   type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
-import { dev } from "../../common/logging";
+import { dev } from "../../shared/core/logging";
 
 export interface DatabaseViewEntry {
   type: TupleType;

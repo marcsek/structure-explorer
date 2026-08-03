@@ -1,4 +1,4 @@
-import type { EditorType } from "../../features/structure/InterpretationEditor";
+import type { EditorType } from "../../../features/structure/InterpretationEditor";
 import type { ControlButton } from "./ControlButtons";
 
 export const omitControlButtons = (

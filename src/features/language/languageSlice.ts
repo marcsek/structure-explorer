@@ -3,12 +3,12 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import Language from "../../model/Language";
 import { type SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { createValidationError } from "../../common/errors";
+import { createValidationError } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
   type Validated,
-} from "../../common/redux";
+} from "../../shared/core/redux";
 import type { SerializedLanguageState } from "./validationSchema";
 
 export type ConstantsRepresentation = string[];

@@ -8,7 +8,7 @@ import {
   updateFunctions,
   updatePredicates,
 } from "../../language/languageSlice";
-import { dev } from "../../../common/logging";
+import { dev } from "../../../shared/core/logging";
 
 export const graphSliceListener = createListenerMiddleware<RootState>();
 

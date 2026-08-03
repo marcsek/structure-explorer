@@ -1,5 +1,5 @@
 import { Stack } from "react-bootstrap";
-import InputGroupTitle from "../../components_helper/InputGroupTitle";
+import InputGroupTitle from "../../shared/ui/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
@@ -18,7 +18,7 @@ import {
   selectValidatedPredicates,
 } from "../language/languageSlice";
 import InterpretationEditor from "./InterpretationEditor";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import {
   selectValidatedTextView,
   updateTextView,

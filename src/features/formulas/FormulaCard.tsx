@@ -11,12 +11,12 @@ import { InlineMath } from "react-katex";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faPlus } from "@fortawesome/free-solid-svg-icons";
 import PrettifyButton from "./PrettifyButton";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import { UndoActions } from "../undoHistory/undoHistory.ts";
 import {
   useSyncFormulasContext,
   type FormulaType,
-} from "../../logicContext.ts";
+} from "../../providers/logicContext";
 import { useState } from "react";
 import React from "react";
 

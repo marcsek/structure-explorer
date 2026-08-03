@@ -22,9 +22,9 @@ import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
 import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
-import { dev } from "../../common/logging";
-import { getFormulaFactories } from "../../common/formulas";
-import { getRandomElement } from "../../common/utils";
+import { dev } from "../../shared/core/logging";
+import { getFormulaFactories } from "../../shared/core/formulas";
+import { getRandomElement } from "../../shared/core/utils";
 
 export interface FormulaState {
   name?: string;

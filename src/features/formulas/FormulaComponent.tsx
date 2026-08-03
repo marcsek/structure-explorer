@@ -17,7 +17,7 @@ import {
 } from "./formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
-import ErrorFeedback from "../../components_helper/ErrorFeedback";
+import ErrorFeedback from "../../shared/ui/ErrorFeedback";
 import { Row } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -30,11 +30,11 @@ import {
 } from "../structure/structureSlice";
 import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeslice";
-import LockButton from "../../components_helper/LockButton";
+import LockButton from "../../shared/ui/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
-import { useFormulasContext } from "../../logicContext";
+import { useFormulasContext } from "../../providers/logicContext";
 import { selectLanguageErrors } from "../language/languageSlice";
-import { getErrorMessageFromValidation } from "../../common/formulas";
+import { getErrorMessageFromValidation } from "../../shared/core/formulas";
 
 interface Props {
   id: number;

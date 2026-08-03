@@ -1,6 +1,6 @@
 import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import InputGroupTitle from "../../components_helper/InputGroupTitle";
+import InputGroupTitle from "../../shared/ui/InputGroupTitle";
 import type { TextViewType } from "./textViews";
 import { selectValidatedTextView, updateTextView } from "./textViewSlice";
 import type { RootState } from "../../app/store";

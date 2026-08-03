@@ -8,7 +8,7 @@ import { selectLanguage } from "../language/languageSlice";
 import { selectStructure } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
 import { SyntaxError as ParserSyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { getFormulaFactories } from "../../common/formulas";
+import { getFormulaFactories } from "../../shared/core/formulas";
 import type Language from "../../model/Language";
 import {
   parseConstants,

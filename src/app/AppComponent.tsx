@@ -1,27 +1,30 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import App from "./App";
-import { createStore, type AppStore, type RootState } from "./app/store";
+import { createStore, type AppStore, type RootState } from "../app/store";
 import { Provider } from "react-redux";
 import {
   getAppStateToExport,
   importAppState,
-} from "./features/import/importExportUtils.ts";
-import { type CellContext, LogicContext } from "./logicContext";
+} from "../features/import/importExportUtils.ts";
+import { type CellContext, LogicContext } from "../providers/logicContext";
 import { useEffect, useRef } from "react";
-import { parseSerializedAppStateWithDefaults } from "./features/import/validationSchema";
-import { generateInstanceId, InstanceIdContext } from "./instanceIdContext";
+import { parseSerializedAppStateWithDefaults } from "../features/import/validationSchema";
+import {
+  generateInstanceId,
+  InstanceIdContext,
+} from "../providers/instanceIdContext";
 import {
   errorAlertSlice,
   setError,
-} from "./features/errorAlert/errorAlertSlice";
+} from "../features/errorAlert/errorAlertSlice";
 import { isAction, isAnyOf, type Middleware } from "@reduxjs/toolkit";
-import { editorToolbarSlice } from "./features/editorToolbar/editorToolbarSlice";
-import { graphManagerSlice } from "./features/graphView/graphs/graphSlice";
-import { UndoActions } from "./features/undoHistory/undoHistory";
-import { listenerShouldIgnore } from "./common/redux";
-import { formulasSlice } from "./features/formulas/formulasSlice";
-import { queriesSlice } from "./features/queries/queriesSlice";
+import { editorToolbarSlice } from "../features/editorToolbar/editorToolbarSlice";
+import { graphManagerSlice } from "../features/graphView/graphs/graphSlice";
+import { UndoActions } from "../features/undoHistory/undoHistory";
+import { listenerShouldIgnore } from "../shared/core/redux";
+import { formulasSlice } from "../features/formulas/formulasSlice";
+import { queriesSlice } from "../features/queries/queriesSlice";
 
 interface PrepareResult {
   instance: any;

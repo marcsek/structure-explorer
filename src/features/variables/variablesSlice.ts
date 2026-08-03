@@ -3,12 +3,12 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { type PayloadActionSource } from "../language/languageSlice";
 import { selectValidatedDomain } from "../structure/structureSlice";
-import { createValidationError } from "../../common/errors";
+import { createValidationError } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
   type Validated,
-} from "../../common/redux";
+} from "../../shared/core/redux";
 import type { SerializedVariablesState } from "./validationSchema";
 
 export type VariableRepresentation = { from: string; to: string };

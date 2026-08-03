@@ -1,5 +1,5 @@
 import { Button, Stack } from "react-bootstrap";
-import InputGroupTitle from "../../components_helper/InputGroupTitle";
+import InputGroupTitle from "../../shared/ui/InputGroupTitle";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
 import {
@@ -12,12 +12,12 @@ import {
   lockFunctions,
   editModeChanged,
 } from "./languageSlice";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import {
   selectValidatedTextView,
   updateTextView,
 } from "../textView/textViewSlice.ts";
-import { useSyncLanguageContext } from "../../logicContext.ts";
+import { useSyncLanguageContext } from "../../providers/logicContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 

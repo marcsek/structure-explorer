@@ -1,8 +1,8 @@
-import InputGroupTitle from "../../components_helper/InputGroupTitle";
+import InputGroupTitle from "../../shared/ui/InputGroupTitle";
 import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { lockVariables, selectVariablesLock } from "./variablesSlice";
-import ComponentCard from "../../components_helper/ComponentCard/ComponentCard.tsx";
+import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import {
   selectValidatedTextView,
   updateTextView,

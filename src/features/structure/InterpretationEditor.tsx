@@ -18,8 +18,8 @@ import {
   selectOpenedEditor,
 } from "../editorToolbar/editorToolbarSlice";
 import TextView from "../textView/TextViewEditor";
-import ControlButtons from "../../components_helper/ControlButtons/ControlButtons";
-import { omitControlButtons } from "../../components_helper/ControlButtons/omitControlButtons";
+import ControlButtons from "../../shared/ui/ControlButtons/ControlButtons";
+import { omitControlButtons } from "../../shared/ui/ControlButtons/omitControlButtons";
 import getEditorControlButtons from "./editorControlButtonsFactory";
 
 export type EditorType =

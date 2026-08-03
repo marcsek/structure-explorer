@@ -8,7 +8,7 @@ import BipartiteGraph from "../../graphs/BipartiteGraph/BipartiteGraph.tsx";
 import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
 import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
-import { useInstanceId } from "../../../../instanceIdContext.ts";
+import { useInstanceId } from "../../../../providers/instanceIdContext";
 import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";

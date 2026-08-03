@@ -1,15 +1,15 @@
 import "./App.css";
-import "./index.css";
+import "../index.css";
 
-import StructureComponent from "./features/structure/StructureComponent";
-import VariablesComponent from "./features/variables/VariablesComponent";
+import StructureComponent from "../features/structure/StructureComponent";
+import VariablesComponent from "../features/variables/VariablesComponent";
 import { Col, Container, Row } from "react-bootstrap";
-import LanguageComponent from "./features/language/LanguageComponent";
-import FormulaCard from "./features/formulas/FormulaCard";
-import usePreset from "./usePreset";
-import Header from "./components_helper/Header";
-import ErrorAlert from "./features/errorAlert/ErrorAlert";
-import QueriesComponent from "./features/queries/QueriesComponent";
+import LanguageComponent from "../features/language/LanguageComponent";
+import FormulaCard from "../features/formulas/FormulaCard";
+import usePreset from "../presets/usePreset";
+import Header from "../layout/Header";
+import ErrorAlert from "../features/errorAlert/ErrorAlert";
+import QueriesComponent from "../features/queries/QueriesComponent";
 
 interface AppProps {
   viewOnlyMode?: boolean;

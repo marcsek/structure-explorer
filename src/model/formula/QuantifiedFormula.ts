@@ -1,8 +1,8 @@
 import Structure, { type DomainElement, type Valuation } from "../Structure";
 import Formula, { type SignedFormula, SignedFormulaType } from "./Formula";
 import type { Symbol } from "../Language";
-import { dev } from "../../common/logging";
-import { latex } from "../../common/utils";
+import { dev } from "../../shared/core/logging";
+import { latex } from "../../shared/core/utils";
 
 abstract class QuantifiedFormula extends Formula {
   constructor(

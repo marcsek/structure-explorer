@@ -1,4 +1,4 @@
-import type Formula from "../model/formula/Formula";
+import type Formula from "../../model/formula/Formula";
 
 export function getRandomElement<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];

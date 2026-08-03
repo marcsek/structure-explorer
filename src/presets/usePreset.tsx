@@ -2,23 +2,23 @@ import {
   updateConstants,
   updateFunctions,
   updatePredicates,
-} from "./features/language/languageSlice";
+} from "../features/language/languageSlice";
 import {
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationConstants,
   updateInterpretationPredicates,
-} from "./features/structure/structureSlice";
-import { UndoActions } from "./features/undoHistory/undoHistory";
-import { addFormulas, updateGuess } from "./features/formulas/formulasSlice";
-import { unaryFilterDomainToggled } from "./features/editorToolbar/editorToolbarSlice";
-import { useAppDispatch } from "./app/hooks";
+} from "../features/structure/structureSlice";
+import { UndoActions } from "../features/undoHistory/undoHistory";
+import { addFormulas, updateGuess } from "../features/formulas/formulasSlice";
+import { unaryFilterDomainToggled } from "../features/editorToolbar/editorToolbarSlice";
+import { useAppDispatch } from "../app/hooks";
 import { useEffect } from "react";
 import {
   addQuery,
   updateQueryText,
   updateQueryVariablesText,
-} from "./features/queries/queriesSlice";
+} from "../features/queries/queriesSlice";
 
 export default function usePreset() {
   const dispatch = useAppDispatch();

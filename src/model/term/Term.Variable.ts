@@ -1,4 +1,4 @@
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 import type { Symbol } from "../Language";
 import { Structure, type Valuation, type DomainElement } from "../Structure";
 import Term from "./Term";

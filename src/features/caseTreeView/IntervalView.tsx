@@ -35,13 +35,13 @@ import {
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
-import { latex } from "../../common/utils";
+import { latex } from "../../shared/core/utils";
 import {
   selectIfLock,
   selectValidatedFunction,
 } from "../structure/structureSlice";
 import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
-import { createValidationError } from "../../common/errors";
+import { createValidationError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
 
 export interface IntervalViewProps {
