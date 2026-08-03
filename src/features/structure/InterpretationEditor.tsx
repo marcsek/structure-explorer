@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { type GraphType } from "../graphView/graphs/plugins";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
-import { selectTeacherMode } from "../teacherMode/teacherModeslice";
+import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import type { RootState } from "../../app/store";
 import type { TextViewType } from "../textView/textViews";
 import { selectValidation } from "../textView/textViewSlice";
@@ -22,6 +22,12 @@ import ControlButtons from "../../shared/ui/ControlButtons/ControlButtons";
 import { omitControlButtons } from "../../shared/ui/ControlButtons/omitControlButtons";
 import getEditorControlButtons from "./editorControlButtonsFactory";
 
+export interface TupleInfo {
+  type: TupleType;
+  name: string;
+  arity: number;
+}
+
 export type EditorType =
   | "text"
   | "matrix"
@@ -31,9 +37,7 @@ export type EditorType =
 
 interface InterpretationEditorProps {
   id: string;
-  name: string;
-  type: TupleType;
-  arity: number;
+  tupleInfo: TupleInfo;
   textViewType: TextViewType;
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   locker: () => void;
@@ -51,14 +55,14 @@ const editorTypeFullNameLookup: Record<EditorType, string> = {
 };
 
 function InterpretationEditor({
-  name,
   id,
-  type,
+  tupleInfo,
   textViewType,
   locker,
   lockSelector,
-  arity,
 }: InterpretationEditorProps) {
+  const { name, type, arity } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const openedEditor = useAppSelector((state) =>
     selectOpenedEditor(state, name, type),
@@ -108,10 +112,8 @@ function InterpretationEditor({
     />
   ) : (
     <DrawerEditor
-      tupleName={name}
-      tupleArity={arity}
+      tupleInfo={tupleInfo}
       type={openedEditor}
-      tupleType={type as TupleType}
       tupleDisplayName={prefixRawNoEnd}
       editorDisplayName={editorTypeFullNameLookup[openedEditor]}
       locker={locker}
@@ -135,9 +137,9 @@ function InterpretationEditor({
 export default memo(
   InterpretationEditor,
   (prev, next) =>
-    prev.name === next.name &&
-    prev.id === next.id &&
-    prev.type === next.type &&
+    prev.tupleInfo.name === next.tupleInfo.name &&
+    prev.tupleInfo.arity === next.tupleInfo.arity &&
+    prev.tupleInfo.type === next.tupleInfo.type &&
     prev.textViewType === next.textViewType &&
-    prev.arity === next.arity,
+    prev.id === next.id,
 );

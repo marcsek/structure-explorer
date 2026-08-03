@@ -29,7 +29,7 @@ import {
   selectStructureErrors,
 } from "../structure/structureSlice";
 import { selectValidatedVariables } from "../variables/variablesSlice";
-import { selectTeacherMode } from "../teacherMode/teacherModeslice";
+import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import LockButton from "../../shared/ui/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { useFormulasContext } from "../../providers/logicContext";

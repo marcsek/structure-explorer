@@ -26,20 +26,16 @@ import {
   faArrowRightLong,
 } from "@fortawesome/free-solid-svg-icons";
 import useTableCrosshairHover from "./useTableCrosshairHover";
+import type { TupleInfo } from "../structure/InterpretationEditor";
 
 interface MatrixViewProps {
-  tupleName: string;
-  tupleArity: number;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   locked: boolean;
 }
 
-export default function MatrixView({
-  tupleName,
-  tupleArity,
-  tupleType,
-  locked,
-}: MatrixViewProps) {
+export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
+  const { type: tupleType, name: tupleName, arity: tupleArity } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const { tableRef, handleCellHover } = useTableCrosshairHover();
   const { values, leftovers } = useAppSelector((state) =>

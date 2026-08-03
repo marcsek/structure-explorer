@@ -11,7 +11,7 @@ import {
   type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
-import { dev } from "../../shared/core/logging";
+import type { TupleInfo } from "../structure/InterpretationEditor";
 
 export interface DatabaseViewEntry {
   type: TupleType;
@@ -23,8 +23,7 @@ export type DatabaseViewState = Record<string, DatabaseViewEntry>;
 const initialState: DatabaseViewState = {};
 
 type ValueChangedPayload = {
-  tupleName: string;
-  type: TupleType;
+  tupleInfo: TupleInfo;
   domainTuple: string[][];
 };
 
@@ -33,9 +32,12 @@ export const databaseViewSlice = createSlice({
   initialState,
   reducers: {
     valueChanged(state, action: PayloadAction<ValueChangedPayload>) {
-      const { tupleName, type, domainTuple } = action.payload;
+      const {
+        tupleInfo: { name, type },
+        domainTuple,
+      } = action.payload;
 
-      syncInterpretation(tupleName, type, domainTuple, state);
+      syncInterpretation(name, type, domainTuple, state);
     },
 
     syncDatabaseView(
@@ -91,10 +93,10 @@ export const { valueChanged, syncDatabaseView } = databaseViewSlice.actions;
 export const selectDatabaseViewValues = createSelector(
   [
     selectDomain,
-    (state: RootState, key: string, type: TupleType) =>
-      state.present.databaseView[getKeyByTupleType(type, key)],
-    (_: RootState, __: string, type: TupleType) => type,
-    (_: RootState, __: string, ___: TupleType, arity: number) => arity,
+    (state: RootState, tupleId: TupleInfo) =>
+      state.present.databaseView[getKeyByTupleType(tupleId.type, tupleId.name)],
+    (_: RootState, tupleId: TupleInfo) => tupleId.type,
+    (_: RootState, tupleId: TupleInfo) => tupleId.arity,
   ],
   (domain, entry, type, arity) => {
     const values = entry?.domainTuple ?? [];
@@ -130,34 +132,30 @@ export const selectDatabaseViewValues = createSelector(
 
 export const updateDatabaseViewValue = ({
   domainTuple,
-  type,
-  tupleName,
-  arity,
+  tupleInfo,
 }: {
   domainTuple: string[][];
-  type: TupleType;
-  tupleName: string;
-  arity: number;
+  tupleInfo: TupleInfo;
 }): AppThunk => {
   return (dispatch) => {
+    const { type, name, arity } = tupleInfo;
+
     const filteredTuples = domainTuple.filter((tuple) =>
       tuple.some((element) => element !== ""),
     );
 
-    dispatch(valueChanged({ type, tupleName, domainTuple: filteredTuples }));
+    dispatch(valueChanged({ tupleInfo, domainTuple: filteredTuples }));
 
     const validTuples = domainTuple.filter((tuple) =>
       isValidTuple(tuple, arity),
     );
 
-    dev.time("Database parent state dispatch duration");
     dispatch(
       updaters[type](
-        { value: validTuples, key: tupleName },
+        { value: validTuples, key: name },
         { source: "databaseView" },
       ),
     );
-    dev.timeEnd("Database parent state dispatch duration");
   };
 };
 

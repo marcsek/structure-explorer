@@ -16,7 +16,7 @@ import { useAppDispatch, useAppSelector, useAppStore } from "../../app/hooks";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { selectTeacherMode } from "../teacherMode/teacherModeslice";
+import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import LockButton from "../../shared/ui/LockButton";
 import ErrorFeedback from "../../shared/ui/ErrorFeedback";
 import { useEffect, useState } from "react";

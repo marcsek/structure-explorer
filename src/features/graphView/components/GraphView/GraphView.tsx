@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/plugins.ts";
 import type { TupleType } from "../../../structure/structureSlice.ts";
+import type { TupleInfo } from "../../../structure/InterpretationEditor.tsx";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
@@ -35,21 +36,23 @@ const graphComponents: Record<
   bipartite: BipartiteGraph,
 };
 
-export default function GraphView({
-  tupleName,
-  tupleType,
-  locked,
-  graphType,
-  expandedView,
-  onExpandedViewChange,
-}: {
-  tupleName: string;
-  tupleType: TupleType;
+export interface GraphViewProps {
+  tupleInfo: TupleInfo;
   locked: boolean;
   graphType: GraphType;
   expandedView: boolean;
   onExpandedViewChange: OnExpandedViewChange;
-}) {
+}
+
+export default function GraphView({
+  tupleInfo,
+  locked,
+  graphType,
+  expandedView,
+  onExpandedViewChange,
+}: GraphViewProps) {
+  const { type: tupleType, name: tupleName } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const instanceId = useInstanceId();
 

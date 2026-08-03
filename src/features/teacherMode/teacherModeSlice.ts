@@ -19,7 +19,7 @@ export const teacherModeSlice = createSlice({
       _state,
       action: PayloadAction<SerializedTeacherModeState>,
     ) => {
-      return action.payload;
+      return { teacherMode: action.payload.teacherMode ?? false };
     },
 
     updateTeacherMode: (state, action: PayloadAction<boolean | undefined>) => {

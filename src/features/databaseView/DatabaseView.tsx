@@ -17,36 +17,33 @@ import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import type { TupleInfo } from "../structure/InterpretationEditor";
 
 interface DatabaseViewProps {
-  tupleName: string;
-  tupleArity: number;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   locked: boolean;
 }
 
-export default function DatabaseView({
-  tupleName,
-  tupleArity,
-  tupleType,
-  locked,
-}: DatabaseViewProps) {
+export default function DatabaseView({ tupleInfo, locked }: DatabaseViewProps) {
+  const { type: tupleType, name: tupleName, arity: tupleArity } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const checkpointOnBlurOverride = useRef<boolean | null>(null);
 
   const { values, leftovers } = useAppSelector((state) =>
-    selectDatabaseViewValues(state, tupleName, tupleType, tupleArity),
+    selectDatabaseViewValues(state, tupleInfo),
   );
+  const { value: domain } = useAppSelector(selectDomain);
 
   const duplicateTuples = useMemo(() => findDuplicateTuples(values), [values]);
-
-  const { value: domain } = useAppSelector(selectDomain);
 
   const lastTupleIsValid =
     tupleType !== "function" &&
     (values.length === 0 || isValidTuple(values.at(-1)!, tupleArity));
 
   const lastTuple = Array.from({ length: tupleArity }, () => "");
+  const correctedArity = tupleType === "function" ? tupleArity + 1 : tupleArity;
+  const correctedTupleId = { ...tupleInfo, arity: correctedArity };
 
   const handleTupleChange = (
     tupleIdx: number,
@@ -73,10 +70,8 @@ export default function DatabaseView({
 
     dispatch(
       updateDatabaseViewValue({
-        type: tupleType,
-        tupleName,
+        tupleInfo: correctedTupleId,
         domainTuple: newDomainTuple,
-        arity: correctedArity,
       }),
     );
   };
@@ -84,10 +79,8 @@ export default function DatabaseView({
   const handleTupleDelete = (tupleIdx: number) => {
     dispatch(
       updateDatabaseViewValue({
-        type: tupleType,
-        tupleName,
+        tupleInfo: correctedTupleId,
         domainTuple: values.filter((_, idx) => idx !== tupleIdx),
-        arity: correctedArity,
       }),
     );
 
@@ -113,7 +106,6 @@ export default function DatabaseView({
   };
 
   const displayTuples = lastTupleIsValid ? [...values, lastTuple] : values;
-  const correctedArity = tupleType === "function" ? tupleArity + 1 : tupleArity;
 
   if (domain.length === 0 && values.length === 0) {
     return <EmptyPlaceholder message="Nothing to display (domain is empty)" />;

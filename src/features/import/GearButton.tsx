@@ -9,7 +9,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   selectTeacherMode,
   updateTeacherMode,
-} from "../teacherMode/teacherModeslice";
+} from "../teacherMode/teacherModeSlice.ts";
 import { useLogicContext } from "../../providers/logicContext";
 import { serializedAppStateSchema } from "./validationSchema";
 import { clearError, setError } from "../errorAlert/errorAlertSlice";

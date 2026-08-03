@@ -1,7 +1,7 @@
 import InputGroupTitle from "../../shared/ui/InputGroupTitle";
 import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { lockVariables, selectVariablesLock } from "./variablesSlice";
+import { lockVariables, selectVariablesLock } from "./variablesSlice.ts";
 import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import {
   selectValidatedTextView,
@@ -19,7 +19,7 @@ export default function VariablesComponent() {
   return (
     <ComponentCard heading="Variable assignment" help={help}>
       <InputGroupTitle
-        label={"Variable assignment of individual variables"}
+        label="Variable assignment of individual variables"
         id="variables"
         text={textView.value}
         prefix={<InlineMath>{String.raw`e = \{`}</InlineMath>}

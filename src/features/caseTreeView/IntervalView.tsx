@@ -43,18 +43,19 @@ import {
 import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
 import { createValidationError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
+import type { TupleInfo } from "../structure/InterpretationEditor";
 
 export interface IntervalViewProps {
-  tupleName: string;
-  tupleArity: number;
+  tupleInfo: TupleInfo;
   setErrorOverride: (value: ErrorOverride | null) => void;
 }
 
 export default function IntervalView({
-  tupleName,
-  tupleArity,
+  tupleInfo,
   setErrorOverride,
 }: IntervalViewProps) {
+  const { name: tupleName, arity: tupleArity } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const intervalViewRows = useAppSelector((state) =>
     selectStructuredCaseView(state, tupleName),

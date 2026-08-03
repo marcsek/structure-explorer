@@ -15,7 +15,7 @@ import {
   importStructureState,
   type TupleType,
 } from "../structure/structureSlice";
-import { importTeacherMode } from "../teacherMode/teacherModeslice";
+import { importTeacherMode } from "../teacherMode/teacherModeSlice";
 import { syncTextView } from "../textView/textViewSlice";
 import { importVariablesState } from "../variables/variablesSlice";
 import type { TextViewSyncEntry } from "../textView/textViews";

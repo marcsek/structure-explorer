@@ -3,7 +3,10 @@ import "./DrawerEditor.css";
 import { Button, CloseButton, Modal, Stack } from "react-bootstrap";
 import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
-import { type EditorType } from "../structure/InterpretationEditor";
+import {
+  type EditorType,
+  type TupleInfo,
+} from "../structure/InterpretationEditor";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
@@ -13,10 +16,7 @@ import DatabaseView from "../databaseView/DatabaseView";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch } from "../../app/hooks";
-import {
-  removeInvalidEntries,
-  type TupleType,
-} from "../structure/structureSlice";
+import { removeInvalidEntries } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
 import IntervalView from "../caseTreeView/IntervalView";
@@ -24,11 +24,9 @@ import IntervalView from "../caseTreeView/IntervalView";
 export type DrawerEditorType = Exclude<EditorType, "text">;
 
 interface DrawerEditorProps {
-  tupleName: string;
+  tupleInfo: TupleInfo;
   type: DrawerEditorType;
   tupleDisplayName: string;
-  tupleArity: number;
-  tupleType: TupleType;
   editorDisplayName: string;
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
   locker: () => void;
@@ -82,9 +80,7 @@ function DrawerEditorContent({
   expandedView = false,
   show = true,
   setExpandedView,
-  tupleName,
-  tupleArity,
-  tupleType,
+  tupleInfo,
   type,
   buildControlButtons,
   tupleDisplayName,
@@ -99,32 +95,19 @@ function DrawerEditorContent({
     null,
   );
 
+  const { type: tupleType, name: tupleName } = tupleInfo;
+
   const editorComponent = !show ? (
     <InactiveViewPlaceholder size={preservedSize} />
   ) : type === "matrix" ? (
-    <MatrixView
-      tupleName={tupleName}
-      tupleArity={tupleArity}
-      tupleType={tupleType}
-      locked={locked}
-    />
+    <MatrixView tupleInfo={tupleInfo} locked={locked} />
   ) : type === "database" ? (
-    <DatabaseView
-      tupleName={tupleName}
-      tupleArity={tupleArity}
-      tupleType={tupleType}
-      locked={locked}
-    />
+    <DatabaseView tupleInfo={tupleInfo} locked={locked} />
   ) : type === "caseTree" ? (
-    <IntervalView
-      tupleName={tupleName}
-      tupleArity={tupleArity}
-      setErrorOverride={setErrorOverride}
-    />
+    <IntervalView tupleInfo={tupleInfo} setErrorOverride={setErrorOverride} />
   ) : (
     <GraphView
-      tupleName={tupleName}
-      tupleType={tupleType}
+      tupleInfo={tupleInfo}
       graphType={type}
       locked={locked}
       expandedView={expandedView}

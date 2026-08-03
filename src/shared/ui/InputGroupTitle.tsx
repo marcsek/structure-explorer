@@ -2,7 +2,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import { Form, InputGroup } from "react-bootstrap";
 import ErrorFeedback from "./ErrorFeedback";
 import { useAppSelector } from "../../app/hooks";
-import { selectTeacherMode } from "../../features/teacherMode/teacherModeslice";
+import { selectTeacherMode } from "../../features/teacherMode/teacherModeSlice";
 import LockButton from "./LockButton";
 import type { InterpretationError } from "../core/errors";
 import { useDispatch } from "react-redux";

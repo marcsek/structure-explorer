@@ -94,13 +94,11 @@ export default function StructureComponent() {
             <Stack gap={3}>
               {Array.from(predicates.parsed ?? []).map(([name, arity]) => (
                 <InterpretationEditor
-                  type="predicate"
-                  name={name}
                   id={`predicate-${name}-${arity}`}
+                  tupleInfo={{ type: "predicate", name, arity }}
                   key={`predicate-${name}`}
                   textViewType="predicate_interpretation"
                   lockSelector={selectIpLock}
-                  arity={arity}
                   locker={() =>
                     dispatch(lockInterpretationPredicates({ key: name }))
                   }
@@ -126,13 +124,11 @@ export default function StructureComponent() {
             <Stack gap={3}>
               {Array.from(functions.parsed ?? []).map(([name, arity]) => (
                 <InterpretationEditor
-                  name={name}
-                  type="function"
                   id={`function-${name}-${arity}`}
+                  tupleInfo={{ type: "function", name, arity }}
                   key={`function-${name}`}
                   textViewType="function_interpretation"
                   lockSelector={selectIfLock}
-                  arity={arity}
                   onChange={(e) => {
                     dispatch(
                       updateTextView({
