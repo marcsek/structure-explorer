@@ -26,4 +26,5 @@ export const createSemanticError = (message: string): SemanticError => {
   return { kind: "semantic", message };
 };
 
+// TODO: These could be named better
 export type InterpretationError = SyntaxError | ValidationError | SemanticError;

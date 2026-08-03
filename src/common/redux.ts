@@ -14,18 +14,12 @@ export type Validated<T> = {
 export const prepareWithSourceMeta = <P>(
   payload: P,
   meta: { source?: string } = {},
-) => ({
-  payload,
-  meta,
-});
+) => ({ payload, meta });
 
 export const prepareWithListenerIgnoreMeta = <P>(
   payload: P,
   meta: { ignore?: boolean } = {},
-) => ({
-  payload,
-  meta,
-});
+) => ({ payload, meta });
 
 export type PayloadActionListenerIgnore<P = void> = PayloadAction<
   P,

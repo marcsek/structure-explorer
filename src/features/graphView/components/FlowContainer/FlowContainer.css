@@ -56,7 +56,7 @@
 
 .flow-container-zoom-hint svg {
   margin-right: 0.125rem;
-  color: #2b7fff;
+  color: var(--se-info);
 }
 
 .kbd {

@@ -4,6 +4,8 @@ import React from "react";
 import { Button, ButtonGroup, Dropdown } from "react-bootstrap";
 import LockButton from "../LockButton";
 
+// TODO: refactor
+
 export type ControlButton<T> =
   | {
       text: React.ReactNode;

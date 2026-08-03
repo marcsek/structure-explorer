@@ -24,6 +24,7 @@ interface Props {
   createHistoryOnBlur?: boolean;
 }
 
+// TODO: Refactor
 export default function InputGroupTitle({
   label,
   id,

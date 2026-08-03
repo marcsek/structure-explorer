@@ -34,25 +34,23 @@ export default function MessageBubble({
   const rounded = sent ? "rounded-start-4" : "rounded-end-4";
 
   return (
-    <>
-      <div className={`d-flex ${float} flex-wrap-reverse`}>
-        {change && (
-          <Button
-            variant="link"
-            size="sm"
-            onClick={onClick}
-            className="flex-shrink-0"
-          >
-            Change
-          </Button>
-        )}
-        <div
-          className={`flex-shrink-1 flex-grow-1 mt-1 p-2 text-wrap rounded-bottom-4 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
-          style={{ flexBasis: "0%" }}
+    <div className={`d-flex ${float} flex-wrap-reverse`}>
+      {change && (
+        <Button
+          variant="link"
+          size="sm"
+          onClick={onClick}
+          className="flex-shrink-0"
         >
-          {message}
-        </div>
+          Change
+        </Button>
+      )}
+      <div
+        className={`flex-shrink-1 flex-grow-1 mt-1 p-2 text-wrap rounded-bottom-4 ${rounded} ${variant === "light" ? "text-bg-light" : `bg-${variant}-subtle text-${variant}-emphasis`}`}
+        style={{ flexBasis: "0%" }}
+      >
+        {message}
       </div>
-    </>
+    </div>
   );
 }

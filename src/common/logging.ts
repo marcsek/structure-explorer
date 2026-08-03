@@ -1,8 +1,13 @@
 const isDev = import.meta.env.DEV;
 
+const guard =
+  <T extends (...args: never[]) => void>(fn: T) =>
+  (...args: Parameters<T>): void =>
+    void (isDev && fn(...args));
+
 export const dev = {
-  log: (...args: unknown[]) => isDev && console.log(...args),
-  warn: (...args: unknown[]) => isDev && console.warn(...args),
-  time: (label: string) => isDev && console.time(label),
-  timeEnd: (label: string) => isDev && console.timeEnd(label),
+  log: guard(console.log),
+  warn: guard(console.warn),
+  time: guard(console.time),
+  timeEnd: guard(console.timeEnd),
 };

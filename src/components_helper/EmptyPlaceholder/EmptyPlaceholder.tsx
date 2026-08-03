@@ -10,7 +10,7 @@ export interface EmptyPlaceholderProps {
 
 export default function EmptyPlaceholder({ message }: EmptyPlaceholderProps) {
   return (
-    <Stack gap={2} className="empty-placeholder-container">
+    <Stack className="empty-placeholder-container">
       <FontAwesomeIcon icon={faCircleInfo} />
       <span className="empty-placeholder-container-text">{message}</span>
     </Stack>

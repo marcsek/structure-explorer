@@ -11,16 +11,14 @@ interface Props {
 
 export default function SelectBubble({ title, bubbles }: Props) {
   return (
-    <>
-      <div>
-        <DropdownButton title={title} size="sm">
-          {bubbles.map(({ value, onClick }) => (
-            <Dropdown.Item key={value} as={Button} size="sm" onClick={onClick}>
-              {value}
-            </Dropdown.Item>
-          ))}
-        </DropdownButton>
-      </div>
-    </>
+    <div>
+      <DropdownButton title={title} size="sm">
+        {bubbles.map(({ value, onClick }) => (
+          <Dropdown.Item key={value} as={Button} size="sm" onClick={onClick}>
+            {value}
+          </Dropdown.Item>
+        ))}
+      </DropdownButton>
+    </div>
   );
 }

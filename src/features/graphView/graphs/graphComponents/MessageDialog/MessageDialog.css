@@ -8,9 +8,6 @@
   justify-content: center;
   pointer-events: none;
   user-select: none;
-
-  --se-info: #2b7fff;
-  --se-info-border-color: #51a2ff;
 }
 
 .message-dialog-container.center {

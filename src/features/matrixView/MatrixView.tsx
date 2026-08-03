@@ -144,9 +144,7 @@ export default function MatrixView({
   const domainWithoutUnselected = [...selectedDomainWithHatched, ...leftovers];
   if (domainWithoutUnselected.length === 0) {
     return (
-      <EmptyPlaceholder
-        message={"Nothing to display (selected domain is empty)"}
-      />
+      <EmptyPlaceholder message="Nothing to display (selected domain is empty)" />
     );
   }
 

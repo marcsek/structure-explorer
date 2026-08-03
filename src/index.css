@@ -1,3 +1,8 @@
+.structure-explorer {
+  --se-info: #2b7fff;
+  --se-info-border-color: #51a2ff;
+}
+
 .custom-bs-tooltip {
   --bs-tooltip-bg: rgba(33, 37, 41);
   --bs-tooltip-color: var(--bs-white);
@@ -19,4 +24,8 @@
 
 .custom-bs-tooltip.mb {
   margin-bottom: 0.125rem;
+}
+
+.popover-bs-no-arrow .popover-arrow {
+  display: none;
 }

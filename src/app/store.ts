@@ -42,7 +42,7 @@ const historyEqualityExcludedReducers: RootReducerEntryName[] = [
   "editorToolbar",
 ];
 
-const comparator = (
+const isHistoryEquivalent = (
   prev: RootStateWithoutHistory,
   next: RootStateWithoutHistory,
 ) => {
@@ -51,7 +51,7 @@ const comparator = (
     .every((key) => prev[key] === next[key]);
 };
 
-const undoReducer = undoable(combineReducers(rootReducer), comparator);
+const undoReducer = undoable(combineReducers(rootReducer), isHistoryEquivalent);
 
 export const createStore = (extraMiddleware?: Middleware) =>
   configureStore({
@@ -64,6 +64,7 @@ export const createStore = (extraMiddleware?: Middleware) =>
       );
 
       if (extraMiddleware) return middlewareChain.prepend(extraMiddleware);
+
       return middlewareChain;
     },
   });
