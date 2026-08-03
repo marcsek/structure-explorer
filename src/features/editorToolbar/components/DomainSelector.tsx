@@ -2,10 +2,8 @@ import "./DomainSelector.css";
 
 import { useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import {
-  selectValidatedDomain,
-  type TupleType,
-} from "../../structure/structureSlice";
+import { selectValidatedDomain } from "../../structure/structureSlice";
+import type { TupleInfo } from "../../structure/InterpretationEditor";
 import {
   selectRelevantUnaryPreds,
   selectUnaryPreds,
@@ -22,14 +20,12 @@ import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicat
 import useClickAwayListener from "./useClickAwayListener";
 
 export interface DomainSelectorProps {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   disabled: boolean;
 }
 
 export default function DomainSelector({
-  tupleName,
-  tupleType,
+  tupleInfo,
   disabled,
 }: DomainSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,10 +33,10 @@ export default function DomainSelector({
   const dispatch = useAppDispatch();
   const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
   const selectedNodes = useAppSelector((state) =>
-    selectSelectedDomain(state, tupleName, tupleType),
+    selectSelectedDomain(state, tupleInfo),
   );
-  const onClickOutside = useCallback(() => setIsOpen(false), []);
 
+  const onClickOutside = useCallback(() => setIsOpen(false), []);
   const clickAwayRef = useClickAwayListener<HTMLDivElement>({
     onClickOutside,
     shouldListen: isOpen,
@@ -49,7 +45,7 @@ export default function DomainSelector({
   const activeFilters = domain.length !== selectedNodes.length;
 
   const toggleItem = (element: string = "") =>
-    dispatch(nodeToggled({ tupleName, tupleType, domain, node: element }));
+    dispatch(nodeToggled({ tupleInfo, domain, node: element }));
 
   return (
     <div

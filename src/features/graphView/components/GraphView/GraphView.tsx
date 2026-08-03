@@ -13,15 +13,13 @@ import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/plugins.ts";
-import type { TupleType } from "../../../structure/structureSlice.ts";
 import type { TupleInfo } from "../../../structure/InterpretationEditor.tsx";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
 export interface GraphComponentProps {
   id: string;
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   locked: boolean;
   expandedView: boolean;
   onExpandedViewChange?: OnExpandedViewChange;
@@ -51,14 +49,14 @@ export default function GraphView({
   expandedView,
   onExpandedViewChange,
 }: GraphViewProps) {
-  const { type: tupleType, name: tupleName } = tupleInfo;
+  const { name: tupleName } = tupleInfo;
 
   const dispatch = useAppDispatch();
   const instanceId = useInstanceId();
 
   useEffect(() => {
-    dispatch(editorLocked({ tupleName: tupleName, tupleType, locked }));
-  }, [dispatch, locked, tupleName, tupleType]);
+    dispatch(editorLocked({ tupleInfo, locked }));
+  }, [dispatch, locked, tupleInfo]);
 
   const GraphComponent = graphComponents[graphType];
 
@@ -73,14 +71,11 @@ export default function GraphView({
 
       <div className="graphViewContainer">
         <div className="graphViewItem" key={tupleName}>
-          <GraphInfoContext.Provider
-            value={{ tupleName, graphType, tupleType, locked }}
-          >
+          <GraphInfoContext.Provider value={{ tupleInfo, graphType, locked }}>
             <ReactFlowProvider>
               <GraphComponent
                 id={`${graphType}-${tupleName}-${instanceId}`}
-                tupleName={tupleName}
-                tupleType={tupleType}
+                tupleInfo={tupleInfo}
                 locked={locked}
                 expandedView={expandedView}
                 onExpandedViewChange={onExpandedViewChange}

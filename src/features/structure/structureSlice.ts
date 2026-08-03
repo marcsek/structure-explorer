@@ -22,6 +22,7 @@ import {
 } from "../../shared/core/redux";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
+import type { TupleInfo } from "./InterpretationEditor";
 import { dev } from "../../shared/core/logging";
 
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -200,13 +201,13 @@ const getInterpretationByType = <T extends keyof InterpretationMap>(
 };
 
 export const removeInvalidEntries = ({
-  key,
-  type,
+  tupleInfo,
 }: {
-  key: string;
-  type: TupleType;
+  tupleInfo: TupleInfo;
 }): AppThunk => {
   return (dispatch, getState) => {
+    const { name: key, type } = tupleInfo;
+
     const state = getState().present.structure;
 
     const entry = getInterpretationByType(state, key, type);

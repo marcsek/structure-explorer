@@ -8,7 +8,7 @@ import type { RootState } from "../../app/store";
 import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
 import { updateDomain, type TupleType } from "../structure/structureSlice";
-import type { EditorType } from "../structure/InterpretationEditor";
+import type { EditorType, TupleInfo } from "../structure/InterpretationEditor";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
 
@@ -26,8 +26,7 @@ export type EditorToolbarState = Record<string, EditorToolbarEntry>;
 export const initialEditorToolbarState: EditorToolbarState = {};
 
 type WithToolbarId<T = object> = {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
 } & T;
 
 export const editorToolbarSlice = createSlice({
@@ -50,7 +49,10 @@ export const editorToolbarSlice = createSlice({
       state,
       action: PayloadAction<WithToolbarId<{ predicate: string | string[] }>>,
     ) {
-      const { tupleName, tupleType, predicate } = action.payload;
+      const {
+        tupleInfo: { name: tupleName, type: tupleType },
+        predicate,
+      } = action.payload;
 
       const tupleId = getTupleId(tupleType, tupleName);
 
@@ -72,8 +74,7 @@ export const editorToolbarSlice = createSlice({
       action: PayloadAction<WithToolbarId<{ domain: string[]; node?: string }>>,
     ) {
       const {
-        tupleName,
-        tupleType,
+        tupleInfo: { name: tupleName, type: tupleType },
         domain,
         node: toggledNode = "",
       } = action.payload;
@@ -107,7 +108,10 @@ export const editorToolbarSlice = createSlice({
       state,
       action: PayloadAction<WithToolbarId<{ predicates: string[] }>>,
     ) {
-      const { tupleName, tupleType, predicates } = action.payload;
+      const {
+        tupleInfo: { name: tupleName, type: tupleType },
+        predicates,
+      } = action.payload;
 
       const tupleId = getTupleId(tupleType, tupleName);
 
@@ -119,7 +123,10 @@ export const editorToolbarSlice = createSlice({
       state,
       action: PayloadAction<WithToolbarId<{ hovered: boolean }>>,
     ) {
-      const { tupleName, tupleType, hovered } = action.payload;
+      const {
+        tupleInfo: { name: tupleName, type: tupleType },
+        hovered,
+      } = action.payload;
 
       const tupleId = getTupleId(tupleType, tupleName);
 
@@ -128,7 +135,9 @@ export const editorToolbarSlice = createSlice({
     },
 
     unaryFilterDomainToggled(state, action: PayloadAction<WithToolbarId>) {
-      const { tupleName, tupleType } = action.payload;
+      const {
+        tupleInfo: { name: tupleName, type: tupleType },
+      } = action.payload;
 
       const tupleId = getTupleId(tupleType, tupleName);
 
@@ -140,7 +149,10 @@ export const editorToolbarSlice = createSlice({
       state,
       action: PayloadAction<WithToolbarId<{ editor: EditorType }>>,
     ) {
-      const { tupleName, tupleType, editor } = action.payload;
+      const {
+        tupleInfo: { name: tupleName, type: tupleType },
+        editor,
+      } = action.payload;
 
       const tupleId = getTupleId(tupleType, tupleName);
 
@@ -216,7 +228,7 @@ export const selectPredicatesToDisplay = createSelector(
   [
     selectSelectedUnary,
     selectHoveredUnary,
-    (state: RootState, _: string, __: TupleType, domainId: string) =>
+    (state: RootState, _: TupleInfo, domainId: string) =>
       selectRelevantUnaryPreds(state, domainId),
   ],
   (selectedUnary, hoveredUnary, relevantUnary) => {
@@ -243,12 +255,8 @@ export const selectRelevantDomainElements = createSelector(
     selectUnaryFilterDomainHovered,
     selectUnaryFilterDomain,
     selectHoveredUnary,
-    (
-      _: RootState,
-      __: string,
-      ___: TupleType,
-      includeHovered: boolean = false,
-    ) => includeHovered,
+    (_: RootState, __: TupleInfo, includeHovered: boolean = false) =>
+      includeHovered,
   ],
   (
     iP,
@@ -390,12 +398,8 @@ const initializeStateIfNotSet = (
 function withToolbarId<R, A extends any[]>(
   selector: (state: RootState, tupleId: string, ...args: A) => R,
 ) {
-  return (
-    state: RootState,
-    tupleName: string,
-    tupleType: TupleType,
-    ...args: A
-  ): R => selector(state, getTupleId(tupleType, tupleName), ...args);
+  return (state: RootState, { name, type }: TupleInfo, ...args: A): R =>
+    selector(state, getTupleId(type, name), ...args);
 }
 
 const getTupleId = (type: TupleType, key: string) => `${type}-${key}`;

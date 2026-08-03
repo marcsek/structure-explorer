@@ -23,32 +23,30 @@ import {
   unaryPredicateToggled,
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
-import type { TupleType } from "../../structure/structureSlice";
+import type { TupleInfo } from "../../structure/InterpretationEditor";
 import type { EditorFilters } from "./EditorToolbar";
 
 export interface InterpretationFiltersProps {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   disabledFilters: EditorFilters[];
 }
 
 export default function InterpretationFilters({
-  tupleName,
-  tupleType,
+  tupleInfo,
   disabledFilters,
 }: InterpretationFiltersProps) {
   const dispatch = useAppDispatch();
   const unaryFilterDomain = useAppSelector((state) =>
-    selectUnaryFilterDomain(state, tupleName, tupleType),
+    selectUnaryFilterDomain(state, tupleInfo),
   );
   const selectedPredicates = useAppSelector((state) =>
-    selectSelectedUnary(state, tupleName, tupleType),
+    selectSelectedUnary(state, tupleInfo),
   );
 
   const unaryPredicatesCount = useAppSelector(selectUnaryPreds)?.length ?? 0;
 
   const handleDomainHover = (hovered: boolean) => {
-    dispatch(unaryFilterDomainHovered({ tupleName, tupleType, hovered }));
+    dispatch(unaryFilterDomainHovered({ tupleInfo, hovered }));
   };
 
   return (
@@ -56,9 +54,7 @@ export default function InterpretationFilters({
       <Button
         className={`domain-button editor-toolbar-button legend-button ${!unaryFilterDomain ? "active" : ""}`}
         title="Select Domain"
-        onClick={() =>
-          dispatch(unaryFilterDomainToggled({ tupleName, tupleType }))
-        }
+        onClick={() => dispatch(unaryFilterDomainToggled({ tupleInfo }))}
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
         disabled={
@@ -73,8 +69,7 @@ export default function InterpretationFilters({
 
       {unaryPredicatesCount !== 0 ? (
         <UnaryPredicatesFilter
-          tupleName={tupleName}
-          tupleType={tupleType}
+          tupleInfo={tupleInfo}
           disabled={disabledFilters.includes("intrFilters")}
         />
       ) : (
@@ -87,20 +82,20 @@ export default function InterpretationFilters({
 }
 
 interface UnaryPredicatesFilterProps {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   disabled: boolean;
 }
 
 function UnaryPredicatesFilter({
-  tupleName,
-  tupleType,
+  tupleInfo,
   disabled,
 }: UnaryPredicatesFilterProps) {
+  const { name: tupleName } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const predicates = useAppSelector(selectUnaryPreds).map(([name]) => name);
   const selectedPredicates = useAppSelector((state) =>
-    selectSelectedUnary(state, tupleName, tupleType),
+    selectSelectedUnary(state, tupleInfo),
   );
   const predicatesExcludingSelf = predicates.filter(
     (name) => name !== tupleName,
@@ -126,15 +121,14 @@ function UnaryPredicatesFilter({
   const handlePredicateHover = (hoveredPredicates: string[]) => {
     dispatch(
       predicateHovered({
-        tupleName,
-        tupleType,
+        tupleInfo,
         predicates: hoveredPredicates,
       }),
     );
   };
 
   const handlePredicateToggle = (predicate: string | string[]) => {
-    dispatch(unaryPredicateToggled({ tupleName, tupleType, predicate }));
+    dispatch(unaryPredicateToggled({ tupleInfo, predicate }));
   };
 
   return (

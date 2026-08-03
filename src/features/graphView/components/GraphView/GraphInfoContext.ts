@@ -1,10 +1,9 @@
 import { createContext, useContext } from "react";
 import type { GraphType } from "../../graphs/plugins";
-import type { TupleType } from "../../../structure/structureSlice";
+import type { TupleInfo } from "../../../structure/InterpretationEditor";
 
 export const GraphInfoContext = createContext<{
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   graphType: GraphType;
   locked: boolean;
 } | null>(null);
@@ -17,9 +16,8 @@ export const useGraphInfo = () => {
 
   return (
     useContext(GraphInfoContext) ?? {
-      tupleName: "",
-      graphType: "oriented",
-      tupleType: "predicate",
+      tupleInfo: { name: "", type: "predicate", arity: 0 } as TupleInfo,
+      graphType: "oriented" as GraphType,
       locked: false,
     }
   );

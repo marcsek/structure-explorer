@@ -41,18 +41,19 @@ const nodeSelector = makeSelectNodes<"oriented">();
 
 export default function OrientedGraph({
   id,
-  tupleName,
-  tupleType,
+  tupleInfo,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
+  const { name: tupleName, type: tupleType } = tupleInfo;
+
   const representsFunction = tupleType === "function";
   const tupleId = getTupleId(tupleType, tupleName);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, tupleType, graphType),
+    nodeSelector(state, tupleInfo, graphType),
   );
   const edges = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.edges,
@@ -65,9 +66,8 @@ export default function OrientedGraph({
   );
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    tupleName,
+    tupleInfo,
     graphType,
-    tupleType,
     storeNodes,
   });
 
@@ -82,22 +82,21 @@ export default function OrientedGraph({
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ tupleName, graphType, tupleType, changes })),
-    [dispatch, tupleName, tupleType],
+      dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
+    [dispatch, tupleInfo],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          tupleName,
+          tupleInfo,
           graphType,
-          tupleType,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [dispatch, tupleName, tupleType, representsFunction],
+    [dispatch, tupleInfo, representsFunction],
   );
 
   const onLayout = useCallback(
@@ -116,9 +115,8 @@ export default function OrientedGraph({
 
         dispatch(
           onNodesChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             changes: nodeChanges,
           }),
         );
@@ -134,14 +132,13 @@ export default function OrientedGraph({
 
       dispatch(
         graphDidInitialLayout({
-          tupleName,
+          tupleInfo,
           graphType,
-          tupleType,
           didLayout: true,
         }),
       );
     },
-    [storeNodes, fitView, dispatch, tupleName, tupleType, edges],
+    [storeNodes, fitView, dispatch, tupleInfo, edges],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -156,28 +153,26 @@ export default function OrientedGraph({
       if (duplicateEdges)
         dispatch(
           warningChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             warning: "Edge already exists.",
           }),
         );
 
       return !duplicateEdges;
     },
-    [dispatch, edges, tupleName, tupleType],
+    [dispatch, edges, tupleInfo],
   );
 
   const onConnectEnd = useCallback(() => {
     dispatch(
       warningChanged({
-        tupleName,
+        tupleInfo,
         graphType,
-        tupleType,
         warning: undefined,
       }),
     );
-  }, [dispatch, tupleName, tupleType]);
+  }, [dispatch, tupleInfo]);
 
   const dialogShown = storeNodes.length === 0;
 

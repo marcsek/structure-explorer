@@ -75,18 +75,19 @@ const nodeSelector = makeSelectNodes<"bipartite">();
 
 export default function BipartiteGraph({
   id,
-  tupleName,
-  tupleType,
+  tupleInfo,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
+  const { name: tupleName, type: tupleType } = tupleInfo;
+
   const representsFunction = tupleType === "function";
   const tupleId = getTupleId(tupleType, tupleName);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, tupleType, graphType),
+    nodeSelector(state, tupleInfo, graphType),
   );
   const edges = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.edges,
@@ -98,9 +99,8 @@ export default function BipartiteGraph({
   const nodesInitialized = useNodesInitialized();
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    tupleName,
+    tupleInfo,
     graphType,
-    tupleType,
     storeNodes,
   });
 
@@ -111,13 +111,12 @@ export default function BipartiteGraph({
   useEffect(() => {
     dispatch(
       graphDidInitialLayout({
-        tupleName,
+        tupleInfo,
         graphType,
-        tupleType,
         didLayout: true,
       }),
     );
-  }, [dispatch, tupleName, tupleType]);
+  }, [dispatch, tupleInfo]);
 
   useLayoutEffect(() => {
     if (nodesInitialized) fitView({ ...fitViewOptions });
@@ -148,22 +147,21 @@ export default function BipartiteGraph({
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ tupleName, graphType, tupleType, changes })),
-    [dispatch, tupleName, tupleType],
+      dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
+    [dispatch, tupleInfo],
   );
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
       dispatch(
         onConnected({
-          tupleName,
+          tupleInfo,
           graphType,
-          tupleType,
           connection,
           breakPrevious: representsFunction,
         }),
       ),
-    [dispatch, tupleName, tupleType, representsFunction],
+    [dispatch, tupleInfo, representsFunction],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -180,18 +178,16 @@ export default function BipartiteGraph({
       if (duplicateEdge)
         dispatch(
           warningChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             warning: "Edge already exists.",
           }),
         );
       else if (identicalOrigin) {
         dispatch(
           warningChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             warning: "Only edges from domain to range nodes are valid.",
           }),
         );
@@ -199,19 +195,18 @@ export default function BipartiteGraph({
 
       return !duplicateEdge && !identicalOrigin;
     },
-    [dispatch, edges, getNode, tupleName, tupleType],
+    [dispatch, edges, getNode, tupleInfo],
   );
 
   const onConnectEnd = useCallback(() => {
     dispatch(
       warningChanged({
-        tupleName,
+        tupleInfo,
         graphType,
-        tupleType,
         warning: undefined,
       }),
     );
-  }, [dispatch, tupleName, tupleType]);
+  }, [dispatch, tupleInfo]);
 
   const dialogShown = storeNodes.length === 0;
 

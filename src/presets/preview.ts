@@ -21,15 +21,15 @@ import type { Preset } from "./usePreset";
 const preview: Preset = (dispatch) => {
   dispatch(updateConstants(["Alice", "Bob", "Clark", "Dylan", "Ed"]));
 
-  dispatch(
-    updatePredicates([
-      { name: "učí", arity: 2 },
-      { name: "študent", arity: 1 },
-      { name: "školník", arity: 1 },
-      { name: "riaditeľ", arity: 1 },
-      { name: "učiteľ", arity: 1 },
-    ]),
-  );
+  const predicates = [
+    { name: "učí", arity: 2 },
+    { name: "študent", arity: 1 },
+    { name: "školník", arity: 1 },
+    { name: "riaditeľ", arity: 1 },
+    { name: "učiteľ", arity: 1 },
+  ];
+
+  dispatch(updatePredicates(predicates));
 
   dispatch(updateFunctions([{ name: "sedí_s", arity: 1 }]));
 
@@ -41,8 +41,12 @@ const preview: Preset = (dispatch) => {
   dispatch(updateInterpretationConstants({ key: "Dylan", value: "D" }));
   dispatch(updateInterpretationConstants({ key: "Ed", value: "E" }));
 
-  for (const tupleName of ["učí", "študent", "školník", "riaditeľ", "učiteľ"]) {
-    dispatch(unaryFilterDomainToggled({ tupleName, tupleType: "predicate" }));
+  for (const { name, arity } of predicates) {
+    dispatch(
+      unaryFilterDomainToggled({
+        tupleInfo: { name, arity, type: "predicate" },
+      }),
+    );
   }
 
   dispatch(

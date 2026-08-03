@@ -150,12 +150,7 @@ function UnaryPredicatesIndicator({ domainId }: UnaryPredicatesIndicatorProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewedPreds] = useAppSelector((state) =>
-    selectPredicatesToDisplay(
-      state,
-      parentInfo.tupleName,
-      parentInfo.tupleType,
-      domainId,
-    ),
+    selectPredicatesToDisplay(state, parentInfo.tupleInfo, domainId),
   );
 
   return (

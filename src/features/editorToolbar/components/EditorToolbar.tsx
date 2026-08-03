@@ -2,7 +2,7 @@ import "./EditorToolbar.css";
 
 import DomainSelector from "./DomainSelector";
 import InterpretationFilters from "./InterpretationFilters";
-import type { TupleType } from "../../structure/structureSlice";
+import type { TupleInfo } from "../../structure/InterpretationEditor";
 
 export type EditorFilters =
   | "intrFilters"
@@ -10,26 +10,22 @@ export type EditorFilters =
   | "unaryFilterToggle";
 
 export interface GraphToolbarProps {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   disabledFilters?: EditorFilters[];
 }
 
 export function EditorToolbar({
-  tupleName,
-  tupleType,
+  tupleInfo,
   disabledFilters = [],
 }: GraphToolbarProps) {
   return (
     <div className="editor-toolbar">
       <InterpretationFilters
-        tupleName={tupleName}
-        tupleType={tupleType}
+        tupleInfo={tupleInfo}
         disabledFilters={disabledFilters}
       />
       <DomainSelector
-        tupleName={tupleName}
-        tupleType={tupleType}
+        tupleInfo={tupleInfo}
         disabled={disabledFilters.includes("domainSelector")}
       />
     </div>

@@ -10,7 +10,7 @@ import {
 import { useMemo, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
-import { selectDomain, type TupleType } from "../structure/structureSlice";
+import { selectDomain } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../shared/ui/EmptyPlaceholder/EmptyPlaceholder";
 import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
@@ -25,7 +25,7 @@ interface DatabaseViewProps {
 }
 
 export default function DatabaseView({ tupleInfo, locked }: DatabaseViewProps) {
-  const { type: tupleType, name: tupleName, arity: tupleArity } = tupleInfo;
+  const { type: tupleType, arity: tupleArity } = tupleInfo;
 
   const dispatch = useAppDispatch();
   const checkpointOnBlurOverride = useRef<boolean | null>(null);
@@ -157,8 +157,7 @@ export default function DatabaseView({ tupleInfo, locked }: DatabaseViewProps) {
                       )}
                       {(!isLast || tupleType === "function") && (
                         <PredicateIndicatorTableData
-                          tupleType={tupleType}
-                          tupleName={tupleName}
+                          tupleInfo={tupleInfo}
                           domainId={tuple[idx]}
                         />
                       )}
@@ -201,20 +200,18 @@ const findDuplicateTuples = (tuples: string[][]) => {
 const countEmpty = (tuple: string[]) => tuple.filter((t) => t === "").length;
 
 interface PredicateIndicatorTableDataProps {
-  tupleName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   domainId: string;
 }
 
 function PredicateIndicatorTableData({
-  tupleName,
-  tupleType,
+  tupleInfo,
   domainId,
 }: PredicateIndicatorTableDataProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
 
   const [predsToDisplay, previewed] = useAppSelector((state) =>
-    selectPredicatesToDisplay(state, tupleName, tupleType, domainId),
+    selectPredicatesToDisplay(state, tupleInfo, domainId),
   );
 
   const colorMap = getUnaryPredicateToColorMap(

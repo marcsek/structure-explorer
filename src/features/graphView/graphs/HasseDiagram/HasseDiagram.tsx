@@ -43,32 +43,32 @@ const nodeSelector = makeSelectNodes<"hasse">();
 
 export default function HasseDiagram({
   id,
-  tupleName,
-  tupleType,
+  tupleInfo,
   locked,
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
+  const { name: tupleName, type: tupleType } = tupleInfo;
+
   const tupleId = getTupleId(tupleType, tupleName);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleName, tupleType, graphType),
+    nodeSelector(state, tupleInfo, graphType),
   );
   const edges = useAppSelector((state) =>
-    selectEdges(state, tupleName, tupleType, graphType, true),
+    selectEdges(state, tupleInfo, graphType, true),
   );
   const warning = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,
   );
   const isPoset = useAppSelector((state) =>
-    selectPosetValidity(state, tupleName, tupleType),
+    selectPosetValidity(state, tupleInfo),
   );
 
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    tupleName,
+    tupleInfo,
     graphType,
-    tupleType,
     storeNodes,
   });
 
@@ -83,14 +83,13 @@ export default function HasseDiagram({
 
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ tupleName, graphType, tupleType, changes })),
-    [dispatch, tupleName, tupleType],
+      dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
+    [dispatch, tupleInfo],
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) =>
-      dispatch(onConnected({ tupleName, graphType, tupleType, connection })),
-    [dispatch, tupleName, tupleType],
+    (connection) => dispatch(onConnected({ tupleInfo, graphType, connection })),
+    [dispatch, tupleInfo],
   );
 
   const onLayout = useCallback(
@@ -109,9 +108,8 @@ export default function HasseDiagram({
 
         dispatch(
           onNodesChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             changes: nodeChanges,
           }),
         );
@@ -127,14 +125,13 @@ export default function HasseDiagram({
 
       dispatch(
         graphDidInitialLayout({
-          tupleName,
+          tupleInfo,
           graphType,
-          tupleType,
           didLayout: true,
         }),
       );
     },
-    [storeNodes, fitView, dispatch, tupleName, tupleType, edges],
+    [storeNodes, fitView, dispatch, tupleInfo, edges],
   );
 
   const isValidConnection: IsValidConnection = useCallback(
@@ -151,28 +148,26 @@ export default function HasseDiagram({
       if (!ok)
         dispatch(
           warningChanged({
-            tupleName,
+            tupleInfo,
             graphType,
-            tupleType,
             warning: error,
           }),
         );
 
       return ok;
     },
-    [dispatch, edges, tupleName, tupleType],
+    [dispatch, edges, tupleInfo],
   );
 
   const onConnectEnd = useCallback(() => {
     dispatch(
       warningChanged({
-        tupleName,
+        tupleInfo,
         graphType,
-        tupleType,
         warning: undefined,
       }),
     );
-  }, [dispatch, tupleName, tupleType]);
+  }, [dispatch, tupleInfo]);
 
   const dialogShown = !isPoset || storeNodes.length === 0;
 

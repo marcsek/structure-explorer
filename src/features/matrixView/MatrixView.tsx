@@ -16,7 +16,7 @@ import {
   selectMatrixValuesWithInvalid,
   updaters,
 } from "./matrixViewSelectors";
-import { selectDomain, type TupleType } from "../structure/structureSlice";
+import { selectDomain } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../shared/ui/EmptyPlaceholder/EmptyPlaceholder";
@@ -43,10 +43,10 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
   );
   const domain = useAppSelector(selectDomain).value;
   const selectedDomain = useAppSelector((state) =>
-    selectFilteredDomain(state, tupleName, tupleType, true),
+    selectFilteredDomain(state, tupleInfo, true),
   );
   const hatchedDomain = useAppSelector((state) =>
-    selectHatchedDomain(state, tupleName, tupleType),
+    selectHatchedDomain(state, tupleInfo),
   );
 
   const isUnary = tupleArity === 1;
@@ -156,11 +156,7 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
           <TableHeadsIndicator key="col-head" headCount={tupleArity} />
           {domainWithLeftovers.map((head) => (
             <th className={getTableClass(head)} key={head}>
-              <PredicateIndicatorTableHead
-                predicateName={tupleName}
-                tupleType={tupleType}
-                domainId={head}
-              />
+              <PredicateIndicatorTableHead tupleInfo={tupleInfo} domainId={head} />
             </th>
           ))}
         </tr>
@@ -171,11 +167,7 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
           <tr key={`r-${row}`} className={getTableClass(row)}>
             <td key="row-head">
               {!isUnary && (
-                <PredicateIndicatorTableHead
-                  predicateName={tupleName}
-                  tupleType={tupleType}
-                  domainId={row}
-                />
+                <PredicateIndicatorTableHead tupleInfo={tupleInfo} domainId={row} />
               )}
             </td>
 
@@ -218,19 +210,17 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
 }
 
 interface PredicateIndicatorTableHeadProps {
-  predicateName: string;
-  tupleType: TupleType;
+  tupleInfo: TupleInfo;
   domainId: string;
 }
 
 function PredicateIndicatorTableHead({
-  predicateName,
-  tupleType,
+  tupleInfo,
   domainId,
 }: PredicateIndicatorTableHeadProps) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
   const [predsToDisplay, previewed] = useAppSelector((state) =>
-    selectPredicatesToDisplay(state, predicateName, tupleType, domainId),
+    selectPredicatesToDisplay(state, tupleInfo, domainId),
   );
 
   const colorMap = getUnaryPredicateToColorMap(

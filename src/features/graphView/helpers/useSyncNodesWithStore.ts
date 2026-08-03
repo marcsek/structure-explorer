@@ -5,20 +5,18 @@ import type { PredicateNodeType } from "../graphs/graphComponents/PredicateNode"
 import { useAppDispatch } from "../../../app/hooks";
 import { onNodesChanged } from "../graphs/graphSlice";
 import type { GraphType } from "../graphs/plugins";
-import type { TupleType } from "../../structure/structureSlice";
+import type { TupleInfo } from "../../structure/InterpretationEditor";
 import { UndoActions } from "../../undoHistory/undoHistory";
 
 interface UseSyncNodesWithStoreProps<TNode extends PredicateNodeType> {
-  tupleName: string;
+  tupleInfo: TupleInfo;
   graphType: GraphType;
-  tupleType: TupleType;
   storeNodes: TNode[];
 }
 
 export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
-  tupleName,
+  tupleInfo,
   graphType,
-  tupleType,
   storeNodes,
 }: UseSyncNodesWithStoreProps<TNode>) {
   const dispatch = useAppDispatch();
@@ -50,12 +48,12 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
       if (otherChanges.length !== 0)
         dispatch(
           onNodesChanged(
-            { tupleName, graphType, tupleType, changes },
+            { tupleInfo, graphType, changes },
             { ignore: nonUserChanges },
           ),
         );
     },
-    [dispatch, tupleName, storeNodes, tupleType, graphType],
+    [dispatch, tupleInfo, storeNodes, graphType],
   );
 
   const syncNodesWithStore = useCallback(() => {
@@ -65,14 +63,12 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
       ({ id, position }) => ({ type: "position", id, position }),
     );
 
-    dispatch(
-      onNodesChanged({ tupleName, graphType, tupleType, changes: nodeChanges }),
-    );
+    dispatch(onNodesChanged({ tupleInfo, graphType, changes: nodeChanges }));
     isDragging.current = false;
     setLocalNodes(null);
 
     dispatch(UndoActions.checkpoint());
-  }, [dispatch, tupleName, localNodes, tupleType, graphType]);
+  }, [dispatch, tupleInfo, localNodes, graphType]);
 
   return { nodes: localNodes ?? storeNodes, onNodesChange, syncNodesWithStore };
 }

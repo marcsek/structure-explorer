@@ -2,6 +2,7 @@ import {
   memo,
   useCallback,
   useLayoutEffect,
+  useMemo,
   useRef,
   type ChangeEvent,
 } from "react";
@@ -62,10 +63,16 @@ function InterpretationEditor({
   lockSelector,
 }: InterpretationEditorProps) {
   const { name, type, arity } = tupleInfo;
+  // It's important that tupleInfo reference stays stable
+  // for downstream use in e.g. useEffects.
+  const stableTupleInfo = useMemo(
+    () => ({ name, type, arity }),
+    [name, type, arity],
+  );
 
   const dispatch = useAppDispatch();
   const openedEditor = useAppSelector((state) =>
-    selectOpenedEditor(state, name, type),
+    selectOpenedEditor(state, stableTupleInfo),
   );
   const validation = useAppSelector((state) =>
     selectValidation(state, textViewType, name),
@@ -82,9 +89,9 @@ function InterpretationEditor({
 
   const handleEditorSelect = useCallback(
     (editor: EditorType) => {
-      dispatch(editorOpened({ tupleName: name, tupleType: type, editor }));
+      dispatch(editorOpened({ tupleInfo: stableTupleInfo, editor }));
     },
-    [dispatch, name, type],
+    [dispatch, stableTupleInfo],
   );
 
   useLayoutEffect(() => {
@@ -112,7 +119,7 @@ function InterpretationEditor({
     />
   ) : (
     <DrawerEditor
-      tupleInfo={tupleInfo}
+      tupleInfo={stableTupleInfo}
       type={openedEditor}
       tupleDisplayName={prefixRawNoEnd}
       editorDisplayName={editorTypeFullNameLookup[openedEditor]}

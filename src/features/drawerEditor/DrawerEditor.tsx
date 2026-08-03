@@ -95,8 +95,6 @@ function DrawerEditorContent({
     null,
   );
 
-  const { type: tupleType, name: tupleName } = tupleInfo;
-
   const editorComponent = !show ? (
     <InactiveViewPlaceholder size={preservedSize} />
   ) : type === "matrix" ? (
@@ -147,8 +145,7 @@ function DrawerEditorContent({
         {type !== "caseTree" && (
           <div className="drawer-editor-toolbar-container">
             <EditorToolbar
-              tupleName={tupleName}
-              tupleType={tupleType}
+              tupleInfo={tupleInfo}
               disabledFilters={
                 type === "database"
                   ? ["domainSelector", "unaryFilterToggle"]
@@ -165,9 +162,7 @@ function DrawerEditorContent({
               if (errorShouldOverride) {
                 errorOverride.onFixButtonClick();
               } else {
-                dispatch(
-                  removeInvalidEntries({ key: tupleName, type: tupleType }),
-                );
+                dispatch(removeInvalidEntries({ tupleInfo }));
                 dispatch(UndoActions.checkpoint());
               }
             }}
