@@ -395,8 +395,7 @@ const initializeStateIfNotSet = (
   };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function withToolbarId<R, A extends any[]>(
+function withToolbarId<R, A extends unknown[]>(
   selector: (state: RootState, tupleId: string, ...args: A) => R,
 ) {
   return (state: RootState, { name, type }: TupleInfo, ...args: A): R =>

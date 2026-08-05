@@ -2,11 +2,6 @@ import { Stack } from "react-bootstrap";
 import { InlineMath } from "react-katex";
 import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import InterpretationSection from "./InterpretationSection.tsx";
-import {
-  selectConstantSymbols,
-  selectFunctionSymbols,
-  selectPredicateSymbols,
-} from "./symbolKinds";
 import TextView from "../textView/TextViewEditor.tsx";
 import {
   lockDomain,
@@ -19,6 +14,11 @@ import {
   selectIpLock,
 } from "./structureSlice.ts";
 import TupleInterpretationEditor from "./TupleInterpretationEditor.tsx";
+import {
+  selectValidatedConstants,
+  selectValidatedFunctions,
+  selectValidatedPredicates,
+} from "../language/languageSlice.ts";
 
 export default function StructureComponent() {
   return (
@@ -44,7 +44,7 @@ export default function StructureComponent() {
 
         <InterpretationSection
           sectionTitle="Constants interpretation"
-          selectSymbols={selectConstantSymbols}
+          selectSymbols={selectValidatedConstants}
           renderSymbol={(name) => (
             <TextView
               id={`constant-${name}`}
@@ -59,8 +59,8 @@ export default function StructureComponent() {
 
         <InterpretationSection
           sectionTitle="Predicates interpretation"
-          selectSymbols={selectPredicateSymbols}
-          renderSymbol={({ name, arity }) => (
+          selectSymbols={selectValidatedPredicates}
+          renderSymbol={([name, arity]) => (
             <TupleInterpretationEditor
               id={`predicate-${name}-${arity}`}
               key={`predicate-${name}`}
@@ -74,8 +74,8 @@ export default function StructureComponent() {
 
         <InterpretationSection
           sectionTitle="Functions interpretation"
-          selectSymbols={selectFunctionSymbols}
-          renderSymbol={({ name, arity }) => (
+          selectSymbols={selectValidatedFunctions}
+          renderSymbol={([name, arity]) => (
             <TupleInterpretationEditor
               id={`function-${name}-${arity}`}
               key={`function-${name}`}

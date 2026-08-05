@@ -4,19 +4,20 @@ import { selectSymbolsClash } from "../language/languageSlice";
 import type { RootState } from "../../app/store";
 import type { Validated } from "../../shared/core/redux";
 
-interface InterpretationSectionProps<T extends unknown[]> {
+interface InterpretationSectionProps<SymbolData> {
   sectionTitle: string;
-  renderSymbol: (symbolData: T[number]) => React.ReactNode;
-  selectSymbols: (state: RootState) => Validated<T>;
+  renderSymbol: (symbolData: SymbolData) => React.ReactNode;
+  selectSymbols: (state: RootState) => Validated<Iterable<SymbolData>>;
 }
 
-export default function InterpretationSection<T extends unknown[]>({
+export default function InterpretationSection<T>({
   renderSymbol,
   sectionTitle,
   selectSymbols,
 }: InterpretationSectionProps<T>) {
   const symbolsClash = useAppSelector(selectSymbolsClash);
-  const { parsed: symbols, error } = useAppSelector(selectSymbols);
+  const { parsed, error } = useAppSelector(selectSymbols);
+  const symbols = [...parsed];
 
   if (symbolsClash || error || symbols.length === 0) return null;
 

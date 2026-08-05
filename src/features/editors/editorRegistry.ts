@@ -43,7 +43,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     displayName: "Database Table Editor",
     buttonText: "Database",
     group: "tables",
-    isAvailable: ({ type, arity }) => !(arity > 2 && type === "function"),
+    isAvailable: ({ type, arity }) => arity <= 2 || type !== "function",
   },
   oriented: {
     type: "oriented",
