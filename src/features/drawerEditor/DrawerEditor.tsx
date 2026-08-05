@@ -1,32 +1,41 @@
 import "./DrawerEditor.css";
 
-import { Button, CloseButton, Modal, Stack } from "react-bootstrap";
+import {
+  Button,
+  ButtonGroup,
+  CloseButton,
+  Modal,
+  Stack,
+} from "react-bootstrap";
 import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
-import GraphView from "../graphView/components/GraphView/GraphView";
-import type { DrawerEditorType, EditorType } from "../editors/editorTypes";
+import type { EditorType } from "../editors/editorTypes";
 import type { TupleInfo } from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
 import type { InterpretationError } from "../../shared/core/errors";
-import MatrixView from "../matrixView/MatrixView";
-import DatabaseView from "../databaseView/DatabaseView";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
-import { useAppDispatch } from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { removeInvalidEntries } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
-import IntervalView from "../caseTreeView/IntervalView";
+import type { DrawerEditorDescriptor } from "../editors/editorRegistry";
+import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
+import type { ErrorOverride } from "../editors/editorSurface";
+import LockButton from "../../shared/ui/LockButton";
+import type { UnknownAction } from "@reduxjs/toolkit";
+import type { RootState } from "../../app/store";
+import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 
 interface DrawerEditorProps {
+  id: string;
   tupleInfo: TupleInfo;
-  type: DrawerEditorType;
+  descriptor: DrawerEditorDescriptor;
   tupleDisplayName: string;
-  editorDisplayName: string;
+  lock: (name: string) => UnknownAction;
+  selectLock: (state: RootState, name: string) => boolean;
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
-  locker: () => void;
-  locked?: boolean;
   error?: InterpretationError;
 }
 
@@ -65,51 +74,44 @@ export interface DrawerEditorContentProps extends DrawerEditorProps {
   setExpandedView: (value: boolean) => void;
 }
 
-export interface ErrorOverride {
-  editor: DrawerEditorType;
-  error: InterpretationError;
-  fixButton: ReactNode;
-  onFixButtonClick: () => void;
-}
-
 function DrawerEditorContent({
+  id,
   expandedView = false,
   show = true,
   setExpandedView,
   tupleInfo,
-  type,
+  descriptor,
+  lock,
+  selectLock,
   buildControlButtons,
   tupleDisplayName,
-  editorDisplayName,
-  locked = false,
   error,
 }: DrawerEditorContentProps) {
   const dispatch = useAppDispatch();
+  const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
+  const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
   const [errorOverride, setErrorOverride] = useState<ErrorOverride | null>(
     null,
   );
 
-  const editorComponent = !show ? (
-    <InactiveViewPlaceholder size={preservedSize} />
-  ) : type === "matrix" ? (
-    <MatrixView tupleInfo={tupleInfo} locked={locked} />
-  ) : type === "database" ? (
-    <DatabaseView tupleInfo={tupleInfo} locked={locked} />
-  ) : type === "caseTree" ? (
-    <IntervalView tupleInfo={tupleInfo} setErrorOverride={setErrorOverride} />
-  ) : (
-    <GraphView
+  const EditorComponent = descriptor.component;
+
+  const editorComponent = show ? (
+    <EditorComponent
       tupleInfo={tupleInfo}
-      graphType={type}
       locked={locked}
       expandedView={expandedView}
-      onExpandedViewChange={(expanded) => setExpandedView(expanded)}
+      setExpandedView={setExpandedView}
+      setErrorOverride={setErrorOverride}
     />
+  ) : (
+    <InactiveViewPlaceholder size={preservedSize} />
   );
 
-  const errorShouldOverride = errorOverride?.editor === type;
+  const errorShouldOverride = errorOverride?.editor === descriptor.type;
   const finalError = errorShouldOverride ? errorOverride.error : error;
 
   return (
@@ -120,33 +122,30 @@ function DrawerEditorContent({
         <Stack direction="horizontal">
           <EditorTitle
             base={tupleDisplayName}
-            editor={editorDisplayName}
+            editor={descriptor.displayName}
             locked={locked}
           />
-          <Stack
-            direction="horizontal"
-            className="drawer-editor-header-control-group"
-          >
-            {buildControlButtons(
-              expandedView ? ["text", "matrix", "database"] : undefined,
+
+          <EditorControlsGroup
+            id={id}
+            expandedView={expandedView}
+            closeExpandedView={() => setExpandedView(false)}
+            controlButtons={buildControlButtons(
+              expandedView ? fullscreenOmittedEditors : undefined,
             )}
-            {expandedView && (
-              <CloseButton onClick={() => setExpandedView(false)} />
-            )}
-          </Stack>
+            locker={() => dispatch(lock(tupleInfo.name))}
+            locked={locked}
+            teacherMode={teacherMode}
+          />
         </Stack>
       </div>
 
       <Stack className="drawer-editor-container-body">
-        {type !== "caseTree" && (
+        {descriptor.toolbar && (
           <div className="drawer-editor-toolbar-container">
             <EditorToolbar
               tupleInfo={tupleInfo}
-              disabledFilters={
-                type === "database"
-                  ? ["domainSelector", "unaryFilterToggle"]
-                  : []
-              }
+              disabledFilters={descriptor.toolbar.disabledFilters}
             />
           </div>
         )}
@@ -173,6 +172,45 @@ function DrawerEditorContent({
           {editorComponent}
         </div>
       </Stack>
+    </Stack>
+  );
+}
+
+interface EditorControlsGroupProps {
+  id: string;
+  expandedView: boolean;
+  closeExpandedView: () => void;
+  teacherMode: boolean;
+  locker: () => void;
+  locked: boolean;
+  controlButtons: React.ReactNode;
+}
+
+function EditorControlsGroup({
+  id,
+  expandedView,
+  closeExpandedView,
+  teacherMode,
+  locker,
+  locked,
+  controlButtons,
+}: EditorControlsGroupProps) {
+  return (
+    <Stack
+      direction="horizontal"
+      className="drawer-editor-header-control-group"
+    >
+      <ButtonGroup
+        id={`controls-${id}`}
+        className="editor-controls-buttons-group btn-fix-height"
+        size="sm"
+      >
+        {controlButtons}
+
+        {teacherMode && <LockButton locker={locker} locked={locked} />}
+      </ButtonGroup>
+
+      {expandedView && <CloseButton onClick={() => closeExpandedView()} />}
     </Stack>
   );
 }

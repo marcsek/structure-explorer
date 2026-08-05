@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/plugins.ts";
 import type { TupleInfo } from "../../../structure/tupleInfo";
+import type { DrawerEditorProps } from "../../../editors/editorSurface";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
@@ -34,12 +35,8 @@ const graphComponents: Record<
   bipartite: BipartiteGraph,
 };
 
-export interface GraphViewProps {
-  tupleInfo: TupleInfo;
-  locked: boolean;
+export interface GraphViewProps extends DrawerEditorProps {
   graphType: GraphType;
-  expandedView: boolean;
-  onExpandedViewChange: OnExpandedViewChange;
 }
 
 export default function GraphView({
@@ -47,7 +44,7 @@ export default function GraphView({
   locked,
   graphType,
   expandedView,
-  onExpandedViewChange,
+  setExpandedView,
 }: GraphViewProps) {
   const { name: tupleName } = tupleInfo;
 
@@ -78,7 +75,7 @@ export default function GraphView({
                 tupleInfo={tupleInfo}
                 locked={locked}
                 expandedView={expandedView}
-                onExpandedViewChange={onExpandedViewChange}
+                onExpandedViewChange={setExpandedView}
               />
             </ReactFlowProvider>
           </GraphInfoContext.Provider>

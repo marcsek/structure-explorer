@@ -40,20 +40,14 @@ import {
   selectIfLock,
   selectValidatedFunction,
 } from "../structure/structureSlice";
-import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
+import type { DrawerEditorProps } from "../editors/editorSurface";
 import { createValidationError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
-import type { TupleInfo } from "../structure/tupleInfo";
-
-export interface IntervalViewProps {
-  tupleInfo: TupleInfo;
-  setErrorOverride: (value: ErrorOverride | null) => void;
-}
 
 export default function IntervalView({
   tupleInfo,
   setErrorOverride,
-}: IntervalViewProps) {
+}: DrawerEditorProps) {
   const { name: tupleName, arity: tupleArity } = tupleInfo;
 
   const dispatch = useAppDispatch();
