@@ -1,36 +1,18 @@
-import InputGroupTitle from "../../shared/ui/InputGroupTitle";
-import { InlineMath } from "react-katex";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { lockVariables, selectVariablesLock } from "./variablesSlice.ts";
 import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
-import {
-  selectValidatedTextView,
-  updateTextView,
-} from "../textView/textViewSlice.ts";
+import TextView from "../textView/TextViewEditor.tsx";
 
 export default function VariablesComponent() {
-  const dispatch = useAppDispatch();
-
-  const textView = useAppSelector((state) =>
-    selectValidatedTextView(state, "variables"),
-  );
-  const lock = useAppSelector(selectVariablesLock);
-
   return (
     <ComponentCard heading="Variable assignment" help={help}>
-      <InputGroupTitle
-        label="Variable assignment of individual variables"
+      <TextView
         id="variables"
-        text={textView.value}
-        prefix={<InlineMath>{String.raw`e = \{`}</InlineMath>}
-        suffix={<InlineMath>{String.raw`\}`}</InlineMath>}
+        name="variables"
+        textViewType="variables"
+        label="Variable assignment of individual variables"
         placeholder="assignments"
-        onChange={(e) =>
-          dispatch(updateTextView({ type: "variables", value: e.target.value }))
-        }
-        error={textView.error}
-        lockChecker={lock}
-        locker={() => dispatch(lockVariables())}
+        lock={() => lockVariables()}
+        selectLock={selectVariablesLock}
       />
     </ComponentCard>
   );

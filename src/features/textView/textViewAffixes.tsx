@@ -31,6 +31,20 @@ export const getAffixes = (
         prefix: <InlineMath>{`${tupleLatexName(name)} = \\{`}</InlineMath>,
         suffix: <InlineMath>{`\\}`}</InlineMath>,
       };
+    case "variables":
+      return {
+        prefix: <InlineMath>{"e = \\{"}</InlineMath>,
+        suffix: <InlineMath>{"\\}"}</InlineMath>,
+      };
+    case "constants":
+    case "predicates":
+    case "functions":
+      return {
+        prefix: (
+          <InlineMath>{`\\mathcal{${type.at(0)?.toUpperCase()}}_{\\mathcal{L}} = \\{`}</InlineMath>
+        ),
+        suffix: <InlineMath>{"\\}"}</InlineMath>,
+      };
     default:
       return { prefix: null, suffix: null };
   }

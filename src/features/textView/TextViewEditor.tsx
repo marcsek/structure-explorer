@@ -15,6 +15,7 @@ export interface TextViewEditorProps {
   lock: (name: string) => UnknownAction;
   selectLock: (state: RootState, name: string) => boolean;
   controlButtons?: React.ReactNode;
+  disabledOverride?: boolean;
 }
 
 export default function TextView({
@@ -26,6 +27,7 @@ export default function TextView({
   lock,
   selectLock,
   controlButtons,
+  disabledOverride = false,
 }: TextViewEditorProps) {
   const dispatch = useAppDispatch();
   const locked = useAppSelector((state) => selectLock(state, name));
@@ -53,6 +55,7 @@ export default function TextView({
       suffix={suffix}
       controlButtons={controlButtons}
       placeholder={placeholder}
+      disabledOverride={disabledOverride}
       text={textView.value}
       lockChecker={locked}
       locker={() => dispatch(lock(name))}

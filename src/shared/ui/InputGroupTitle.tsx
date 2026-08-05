@@ -26,8 +26,8 @@ interface Props {
 
 // TODO: Refactor
 export default function InputGroupTitle({
-  label,
   id,
+  label,
   prefix,
   suffix,
   controlButtons = null,
