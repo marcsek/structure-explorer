@@ -4,6 +4,7 @@ import type { InterpretationError } from "../core/errors";
 
 // TODO: better error type
 interface ErrorFeedbackProps {
+  id?: string;
   error: SyntaxError | Error | InterpretationError | undefined;
   text: string;
 }
@@ -29,7 +30,7 @@ function LocationDisplay({ text, location }: LocationDisplayProps) {
   );
 }
 
-export default function ErrorFeedback({ error, text }: ErrorFeedbackProps) {
+export default function ErrorFeedback({ id, error, text }: ErrorFeedbackProps) {
   if (!error) return null;
 
   const hasLocation =
@@ -37,7 +38,7 @@ export default function ErrorFeedback({ error, text }: ErrorFeedbackProps) {
     (!(error instanceof Error) && error.kind === "syntax");
 
   return (
-    <Form.Control.Feedback type="invalid">
+    <Form.Control.Feedback id={id} type="invalid">
       {error.message}
       {hasLocation && error.location && (
         <LocationDisplay location={error.location!} text={text} />
