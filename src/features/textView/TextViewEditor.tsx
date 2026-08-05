@@ -1,58 +1,61 @@
-import { InlineMath } from "react-katex";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import InputGroupTitle from "../../shared/ui/InputGroupTitle";
-import type { TextViewType } from "./textViews";
 import { selectValidatedTextView, updateTextView } from "./textViewSlice";
+import { getAffixes } from "./textViewAffixes";
+import type { TextViewType } from "./textViews";
 import type { RootState } from "../../app/store";
+import type { UnknownAction } from "@reduxjs/toolkit";
 
 export interface TextViewEditorProps {
   id: string;
+  label?: string;
+  placeholder?: string;
   name: string;
   textViewType: TextViewType;
-  locker: () => void;
-  lockSelector: (state: RootState, name: string) => boolean;
+  lock: (name: string) => UnknownAction;
+  selectLock: (state: RootState, name: string) => boolean;
   controlButtons?: React.ReactNode;
 }
 
 export default function TextView({
   id,
   name,
+  label = "",
+  placeholder = "",
   textViewType,
-  locker,
-  lockSelector,
+  lock,
+  selectLock,
   controlButtons,
 }: TextViewEditorProps) {
   const dispatch = useAppDispatch();
-
-  const locked = useAppSelector((state) => lockSelector(state, name));
+  const locked = useAppSelector((state) => selectLock(state, name));
   const textView = useAppSelector((state) =>
     selectValidatedTextView(state, textViewType, name),
   );
 
-  const isConstant = textViewType === "constant_interpretation";
-
-  const escapedName = name.replace(/_/g, "\\_");
-  const prefixRawNoEnd = String.raw`i(\text{\textsf{${escapedName}}})`;
-  const prefixRaw = String.raw`${prefixRawNoEnd} = ${isConstant ? "" : "\\{"}`;
-  const suffixRaw = String.raw`\}`;
+  const { prefix, suffix } = getAffixes(textViewType, name);
 
   const handleTextViewChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(
-      updateTextView({ key: name, type: textViewType, value: e.target.value }),
+      updateTextView({
+        key: name,
+        type: textViewType,
+        value: e.target.value,
+      }),
     );
   };
 
   return (
     <InputGroupTitle
-      label=""
       id={id}
-      prefix={<InlineMath>{prefixRaw}</InlineMath>}
-      suffix={isConstant ? "" : <InlineMath>{suffixRaw}</InlineMath>}
+      label={label}
+      prefix={prefix}
+      suffix={suffix}
       controlButtons={controlButtons}
-      placeholder=""
+      placeholder={placeholder}
       text={textView.value}
       lockChecker={locked}
-      locker={locker}
+      locker={() => dispatch(lock(name))}
       onChange={handleTextViewChange}
       error={textView.error}
     />

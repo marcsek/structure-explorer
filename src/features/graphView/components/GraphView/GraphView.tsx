@@ -13,7 +13,7 @@ import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/plugins.ts";
-import type { TupleInfo } from "../../../structure/InterpretationEditor.tsx";
+import type { TupleInfo } from "../../../structure/tupleInfo";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 

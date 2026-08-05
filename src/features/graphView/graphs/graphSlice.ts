@@ -36,7 +36,6 @@ import {
   updateFunctionSymbols,
   updateInterpretationPredicates,
   type StructureState,
-  type TupleType,
 } from "../../structure/structureSlice.ts";
 import {
   selectHoveredIntr,
@@ -44,7 +43,7 @@ import {
   selectSelectedDomain,
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
-import type { TupleInfo } from "../../structure/InterpretationEditor.tsx";
+import type { TupleInfo, TupleType } from "../../structure/tupleInfo";
 import type { RelevantSymbols } from "../../import/importExportUtils.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";

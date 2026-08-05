@@ -9,8 +9,8 @@ import { useDispatch } from "react-redux";
 import { textViewCheckpoint } from "../../features/textView/textViewSlice";
 
 interface Props {
-  label: string;
   id: string;
+  label: string;
   prefix: ReactNode;
   suffix: ReactNode;
   controlButtons?: ReactNode;

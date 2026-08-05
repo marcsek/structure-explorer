@@ -4,9 +4,9 @@ import {
   selectInterpretationByType,
   updateFunctionSymbols,
   updateInterpretationPredicates,
-  type TupleType,
 } from "../structure/structureSlice";
 import type { RootState } from "../../app/store";
+import type { TupleInfo, TupleType } from "../structure/tupleInfo";
 
 export type MatrixViewValues = Record<
   string,
@@ -16,9 +16,9 @@ export type MatrixViewValues = Record<
 export const selectMatrixValuesWithInvalid = createSelector(
   [
     selectDomain,
-    (state: RootState, key: string, type: TupleType) =>
-      selectInterpretationByType(state, key, type)?.value,
-    (_: RootState, __: string, type: TupleType) => type,
+    (state: RootState, { name, type }: TupleInfo) =>
+      selectInterpretationByType(state, name, type)?.value,
+    (_: RootState, { type }: TupleInfo) => type,
   ],
   (domain, interpretation, tupleType) => {
     if (!interpretation) return { values: {}, leftovers: [] };

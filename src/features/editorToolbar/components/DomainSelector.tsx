@@ -3,7 +3,7 @@ import "./DomainSelector.css";
 import { useCallback, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
-import type { TupleInfo } from "../../structure/InterpretationEditor";
+import type { TupleInfo } from "../../structure/tupleInfo";
 import {
   selectRelevantUnaryPreds,
   selectUnaryPreds,

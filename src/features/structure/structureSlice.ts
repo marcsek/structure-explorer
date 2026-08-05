@@ -22,11 +22,10 @@ import {
 } from "../../shared/core/redux";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
-import type { TupleInfo } from "./InterpretationEditor";
+import type { TupleInfo, TupleType } from "./tupleInfo";
 import { dev } from "../../shared/core/logging";
 
 export type InterpretationType = "predicate" | "function" | "constant";
-export type TupleType = "function" | "predicate";
 
 export type DomainRepresentation = string[];
 export type ConstantInterpretation = string;

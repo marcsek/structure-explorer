@@ -17,7 +17,7 @@ import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
-import type { TupleInfo } from "../structure/InterpretationEditor";
+import type { TupleInfo } from "../structure/tupleInfo";
 
 interface DatabaseViewProps {
   tupleInfo: TupleInfo;

@@ -2,7 +2,7 @@ import "./EditorToolbar.css";
 
 import DomainSelector from "./DomainSelector";
 import InterpretationFilters from "./InterpretationFilters";
-import type { TupleInfo } from "../../structure/InterpretationEditor";
+import type { TupleInfo } from "../../structure/tupleInfo";
 
 export type EditorFilters =
   | "intrFilters"

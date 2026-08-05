@@ -23,7 +23,7 @@ import {
   unaryPredicateToggled,
 } from "../../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
-import type { TupleInfo } from "../../structure/InterpretationEditor";
+import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
 
 export interface InterpretationFiltersProps {

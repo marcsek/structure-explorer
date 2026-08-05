@@ -3,10 +3,8 @@ import "./DrawerEditor.css";
 import { Button, CloseButton, Modal, Stack } from "react-bootstrap";
 import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import GraphView from "../graphView/components/GraphView/GraphView";
-import {
-  type EditorType,
-  type TupleInfo,
-} from "../structure/InterpretationEditor";
+import type { DrawerEditorType, EditorType } from "../editors/editorTypes";
+import type { TupleInfo } from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
@@ -20,8 +18,6 @@ import { removeInvalidEntries } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
 import IntervalView from "../caseTreeView/IntervalView";
-
-export type DrawerEditorType = Exclude<EditorType, "text">;
 
 interface DrawerEditorProps {
   tupleInfo: TupleInfo;

@@ -7,8 +7,9 @@ import { selectRelevantUnaryPreds } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
 import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
-import { updateDomain, type TupleType } from "../structure/structureSlice";
-import type { EditorType, TupleInfo } from "../structure/InterpretationEditor";
+import { updateDomain } from "../structure/structureSlice";
+import { getTupleId, type TupleInfo } from "../structure/tupleInfo";
+import type { EditorType } from "../editors/editorTypes";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
 
@@ -401,5 +402,3 @@ function withToolbarId<R, A extends any[]>(
   return (state: RootState, { name, type }: TupleInfo, ...args: A): R =>
     selector(state, getTupleId(type, name), ...args);
 }
-
-const getTupleId = (type: TupleType, key: string) => `${type}-${key}`;

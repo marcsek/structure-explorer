@@ -26,7 +26,7 @@ import {
   faArrowRightLong,
 } from "@fortawesome/free-solid-svg-icons";
 import useTableCrosshairHover from "./useTableCrosshairHover";
-import type { TupleInfo } from "../structure/InterpretationEditor";
+import type { TupleInfo } from "../structure/tupleInfo";
 
 interface MatrixViewProps {
   tupleInfo: TupleInfo;
@@ -39,7 +39,7 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
   const dispatch = useAppDispatch();
   const { tableRef, handleCellHover } = useTableCrosshairHover();
   const { values, leftovers } = useAppSelector((state) =>
-    selectMatrixValuesWithInvalid(state, tupleName, tupleType),
+    selectMatrixValuesWithInvalid(state, tupleInfo),
   );
   const domain = useAppSelector(selectDomain).value;
   const selectedDomain = useAppSelector((state) =>
@@ -156,7 +156,10 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
           <TableHeadsIndicator key="col-head" headCount={tupleArity} />
           {domainWithLeftovers.map((head) => (
             <th className={getTableClass(head)} key={head}>
-              <PredicateIndicatorTableHead tupleInfo={tupleInfo} domainId={head} />
+              <PredicateIndicatorTableHead
+                tupleInfo={tupleInfo}
+                domainId={head}
+              />
             </th>
           ))}
         </tr>
@@ -167,7 +170,10 @@ export default function MatrixView({ tupleInfo, locked }: MatrixViewProps) {
           <tr key={`r-${row}`} className={getTableClass(row)}>
             <td key="row-head">
               {!isUnary && (
-                <PredicateIndicatorTableHead tupleInfo={tupleInfo} domainId={row} />
+                <PredicateIndicatorTableHead
+                  tupleInfo={tupleInfo}
+                  domainId={row}
+                />
               )}
             </td>
 

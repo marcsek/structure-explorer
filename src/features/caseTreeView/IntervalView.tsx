@@ -43,7 +43,7 @@ import {
 import type { ErrorOverride } from "../drawerEditor/DrawerEditor";
 import { createValidationError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
-import type { TupleInfo } from "../structure/InterpretationEditor";
+import type { TupleInfo } from "../structure/tupleInfo";
 
 export interface IntervalViewProps {
   tupleInfo: TupleInfo;

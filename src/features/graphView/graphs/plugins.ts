@@ -11,7 +11,7 @@ import {
   orientedGraphPlugin,
   type OrientedGraphState,
 } from "./OrientedGraph/plugin";
-import type { TupleType } from "../../structure/structureSlice";
+import type { TupleType } from "../../structure/tupleInfo";
 
 export const graphTypes = ["oriented", "hasse", "bipartite"] as const;
 export type GraphType = (typeof graphTypes)[number];

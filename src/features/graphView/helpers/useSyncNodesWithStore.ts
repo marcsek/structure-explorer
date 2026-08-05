@@ -5,7 +5,7 @@ import type { PredicateNodeType } from "../graphs/graphComponents/PredicateNode"
 import { useAppDispatch } from "../../../app/hooks";
 import { onNodesChanged } from "../graphs/graphSlice";
 import type { GraphType } from "../graphs/plugins";
-import type { TupleInfo } from "../../structure/InterpretationEditor";
+import type { TupleInfo } from "../../structure/tupleInfo";
 import { UndoActions } from "../../undoHistory/undoHistory";
 
 interface UseSyncNodesWithStoreProps<TNode extends PredicateNodeType> {

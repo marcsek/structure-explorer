@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import type { GraphType } from "../../graphs/plugins";
-import type { TupleInfo } from "../../../structure/InterpretationEditor";
+import type { TupleInfo } from "../../../structure/tupleInfo";
 
 export const GraphInfoContext = createContext<{
   tupleInfo: TupleInfo;

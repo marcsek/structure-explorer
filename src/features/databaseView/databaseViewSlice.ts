@@ -8,10 +8,9 @@ import {
   updateFunctionSymbols,
   updateInterpretationPredicates,
   type StructureState,
-  type TupleType,
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
-import type { TupleInfo } from "../structure/InterpretationEditor";
+import type { TupleInfo, TupleType } from "../structure/tupleInfo";
 
 export interface DatabaseViewEntry {
   type: TupleType;

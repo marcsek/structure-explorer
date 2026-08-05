@@ -13,8 +13,8 @@ import {
 import {
   getRelevantStructureState,
   importStructureState,
-  type TupleType,
 } from "../structure/structureSlice";
+import type { TupleType } from "../structure/tupleInfo";
 import { importTeacherMode } from "../teacherMode/teacherModeSlice";
 import { syncTextView } from "../textView/textViewSlice";
 import { importVariablesState } from "../variables/variablesSlice";
