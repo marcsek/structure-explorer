@@ -1,7 +1,8 @@
 import type { ControlButton } from "../../shared/ui/ControlButtons/ControlButtons";
 import { omitControlButtons } from "../../shared/ui/ControlButtons/omitControlButtons";
 import type { TupleInfo } from "../structure/tupleInfo";
-import { editorDescriptors, type EditorGroup } from "./editorRegistry";
+import { editorDescriptors } from "./editorRegistry";
+import type { EditorGroup } from "./editorDescriptor";
 import type { EditorType } from "./editorTypes";
 
 const groupLabels: Record<EditorGroup, string> = {
@@ -24,14 +25,10 @@ const groupMembers = (group: EditorGroup) =>
     (descriptor) => descriptor.group === group,
   );
 
-export const fullscreenOmittedEditors: EditorType[] = Object.values(
-  editorDescriptors,
-)
-  .filter(
-    (descriptor) =>
-      descriptor.surface !== "drawer" || !descriptor.supportsFullscreen,
-  )
-  .map(({ type }) => type);
+export const fullscreenOmittedEditors = (): EditorType[] =>
+  Object.values(editorDescriptors)
+    .filter((descriptor) => !descriptor.supportsFullscreen)
+    .map(({ type }) => type);
 
 export const buildEditorControlButtons = (
   tuple: TupleInfo,

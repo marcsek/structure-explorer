@@ -1,13 +1,10 @@
 import { useAppSelector } from "../../app/hooks";
-import DrawerEditor from "../drawerEditor/DrawerEditor";
 import { selectHasWrongArityError } from "./structureSlice";
 import ControlButtons from "../../shared/ui/ControlButtons/ControlButtons";
 import { editorDescriptors } from "../editors/editorRegistry";
 import { buildEditorControlButtons } from "../editors/editorControlButtons";
 import type { EditorType } from "../editors/editorTypes";
 import type { TupleInfo } from "./tupleInfo";
-import { tupleLatexName } from "../textView/textViewAffixes";
-import type { TextViewType } from "../textView/textViews";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { useOpenedEditor } from "../editorToolbar/useOpenedEditor";
@@ -15,7 +12,6 @@ import { useOpenedEditor } from "../editorToolbar/useOpenedEditor";
 export interface TupleInterpretationEditorProps {
   id: string;
   tupleInfo: TupleInfo;
-  textViewType: TextViewType;
   lock: (name: string) => UnknownAction;
   selectLock: (state: RootState, name: string) => boolean;
 }
@@ -24,7 +20,6 @@ function TupleInterpretationEditor({
   id,
   lock,
   tupleInfo,
-  textViewType,
   selectLock,
 }: TupleInterpretationEditorProps) {
   const {
@@ -39,62 +34,25 @@ function TupleInterpretationEditor({
     selectHasWrongArityError(state, name, type),
   );
 
-  const sharedControlProps = {
-    id: `controls-${id}`,
-    tupleInfo: stableTupleInfo,
-    selected: openedEditor,
-    onSelected: selectEditor,
-  };
-
-  const descriptor = editorDescriptors[openedEditor];
-
-  if (descriptor.surface === "standalone") {
-    const StandaloneEditor = descriptor.component;
-
-    return (
-      <StandaloneEditor
-        id={id}
-        name={name}
-        textViewType={textViewType}
-        lock={lock}
-        selectLock={selectLock}
-        controlButtons={
-          <EditorControls {...sharedControlProps} disabled={wrongArityError} />
-        }
-      />
-    );
-  }
-
-  return (
-    <DrawerEditor
-      id={id}
-      tupleInfo={stableTupleInfo}
-      descriptor={descriptor}
-      tupleDisplayName={tupleLatexName(name)}
-      lock={lock}
-      selectLock={selectLock}
-      buildControlButtons={(omit) => (
-        <EditorControls {...sharedControlProps} omit={omit} />
-      )}
+  const getEditorControls = (omit?: EditorType[]) => (
+    <ControlButtons
+      id={`controls-${id}`}
+      buttons={buildEditorControlButtons(tupleInfo, omit)}
+      selected={openedEditor}
+      onSelected={selectEditor}
+      disabled={wrongArityError}
     />
   );
-}
 
-interface EditorControlsProps {
-  id: string;
-  tupleInfo: TupleInfo;
-  selected: EditorType;
-  onSelected: (editor: EditorType) => void;
-  omit?: EditorType[];
-  disabled?: boolean;
-}
+  const Editor = editorDescriptors[openedEditor].component;
 
-function EditorControls({ id, tupleInfo, omit, ...rest }: EditorControlsProps) {
   return (
-    <ControlButtons
+    <Editor
       id={id}
-      buttons={buildEditorControlButtons(tupleInfo, omit)}
-      {...rest}
+      tupleInfo={stableTupleInfo}
+      lock={lock}
+      selectLock={selectLock}
+      renderControlButtons={getEditorControls}
     />
   );
 }

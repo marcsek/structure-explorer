@@ -27,7 +27,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import useTableCrosshairHover from "./useTableCrosshairHover";
 import type { TupleInfo } from "../structure/tupleInfo";
-import type { DrawerEditorProps } from "../editors/editorSurface";
+import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter";
 
 export default function MatrixView({ tupleInfo, locked }: DrawerEditorProps) {
   const { type: tupleType, name: tupleName, arity: tupleArity } = tupleInfo;

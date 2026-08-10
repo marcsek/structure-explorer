@@ -14,7 +14,7 @@ import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/plugins.ts";
 import type { TupleInfo } from "../../../structure/tupleInfo";
-import type { DrawerEditorProps } from "../../../editors/editorSurface";
+import type { DrawerEditorProps } from "../../../drawerEditor/drawerEditorAdapter.tsx";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 

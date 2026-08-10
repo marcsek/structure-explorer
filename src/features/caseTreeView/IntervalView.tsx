@@ -40,9 +40,9 @@ import {
   selectIfLock,
   selectValidatedFunction,
 } from "../structure/structureSlice";
-import type { DrawerEditorProps } from "../editors/editorSurface";
 import { createValidationError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
+import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter";
 
 export default function IntervalView({
   tupleInfo,

@@ -7,12 +7,8 @@ import {
   Modal,
   Stack,
 } from "react-bootstrap";
-import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
-import type { EditorType } from "../editors/editorTypes";
-import {
-  tupleTypeToTextViewType,
-  type TupleInfo,
-} from "../structure/tupleInfo";
+import { EditorToolbar } from "../editorToolbar/components/EditorToolbar";
+import { tupleTypeToTextViewType } from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
@@ -23,26 +19,19 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { removeInvalidEntries } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
-import type { DrawerEditorDescriptor } from "../editors/editorRegistry";
 import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
-import type { ErrorOverride } from "../editors/editorSurface";
+import type { InterpretationEditorProps } from "../editors/editorDescriptor";
 import LockButton from "../../shared/ui/LockButton";
-import type { UnknownAction } from "@reduxjs/toolkit";
-import type { RootState } from "../../app/store";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import { selectValidation } from "../textView/textViewSlice";
+import { tupleLatexName } from "../textView/textViewAffixes";
+import type { DrawerEditorConfig, ErrorOverride } from "./drawerEditorAdapter";
 
-interface DrawerEditorProps {
-  id: string;
-  tupleInfo: TupleInfo;
-  descriptor: DrawerEditorDescriptor;
-  tupleDisplayName: string;
-  lock: (name: string) => UnknownAction;
-  selectLock: (state: RootState, name: string) => boolean;
-  buildControlButtons: (omit?: EditorType[]) => ReactNode;
+interface DrawerEditorWrapperProps extends InterpretationEditorProps {
+  config: DrawerEditorConfig;
 }
 
-export default function DrawerEditor(props: DrawerEditorProps) {
+export default function DrawerEditorWrapper(props: DrawerEditorWrapperProps) {
   const [expandedView, setExpandedView] = useState(false);
 
   return (
@@ -71,7 +60,7 @@ export default function DrawerEditor(props: DrawerEditorProps) {
   );
 }
 
-export interface DrawerEditorContentProps extends DrawerEditorProps {
+export interface DrawerEditorContentProps extends DrawerEditorWrapperProps {
   expandedView?: boolean;
   show?: boolean;
   setExpandedView: (value: boolean) => void;
@@ -83,11 +72,10 @@ function DrawerEditorContent({
   show = true,
   setExpandedView,
   tupleInfo,
-  descriptor,
+  config,
   lock,
   selectLock,
-  buildControlButtons,
-  tupleDisplayName,
+  renderControlButtons,
 }: DrawerEditorContentProps) {
   const dispatch = useAppDispatch();
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
@@ -104,7 +92,7 @@ function DrawerEditorContent({
     null,
   );
 
-  const EditorComponent = descriptor.component;
+  const EditorComponent = config.component;
   const editorComponent = show ? (
     <EditorComponent
       tupleInfo={tupleInfo}
@@ -117,7 +105,7 @@ function DrawerEditorContent({
     <InactiveViewPlaceholder size={preservedSize} />
   );
 
-  const shouldOverrideError = errorOverride?.editor === descriptor.type;
+  const shouldOverrideError = errorOverride?.editor === config.type;
   const finalError = shouldOverrideError ? errorOverride.error : error;
 
   const onFixButtonClick = () => {
@@ -136,8 +124,8 @@ function DrawerEditorContent({
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
           <EditorTitle
-            base={tupleDisplayName}
-            editor={descriptor.displayName}
+            base={tupleLatexName(tupleInfo.name)}
+            editor={config.displayName}
             locked={locked}
           />
 
@@ -145,8 +133,8 @@ function DrawerEditorContent({
             id={id}
             expandedView={expandedView}
             closeExpandedView={() => setExpandedView(false)}
-            controlButtons={buildControlButtons(
-              expandedView ? fullscreenOmittedEditors : undefined,
+            controlButtons={renderControlButtons(
+              expandedView ? fullscreenOmittedEditors() : undefined,
             )}
             locker={() => dispatch(lock(tupleInfo.name))}
             locked={locked}
@@ -156,11 +144,11 @@ function DrawerEditorContent({
       </div>
 
       <Stack className="drawer-editor-container-body">
-        {descriptor.toolbar && (
+        {config.toolbar && (
           <div className="drawer-editor-toolbar-container">
             <EditorToolbar
               tupleInfo={tupleInfo}
-              disabledFilters={descriptor.toolbar.disabledFilters}
+              disabledFilters={config.toolbar.disabledFilters}
             />
           </div>
         )}

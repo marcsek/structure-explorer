@@ -18,7 +18,7 @@ import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import type { TupleInfo } from "../structure/tupleInfo";
-import type { DrawerEditorProps } from "../editors/editorSurface";
+import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter";
 
 export default function DatabaseView({ tupleInfo, locked }: DrawerEditorProps) {
   const { type: tupleType, arity: tupleArity } = tupleInfo;

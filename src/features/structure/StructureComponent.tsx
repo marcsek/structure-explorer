@@ -65,7 +65,6 @@ export default function StructureComponent() {
               id={`predicate-${name}-${arity}`}
               key={`predicate-${name}`}
               tupleInfo={{ name, arity, type: "predicate" }}
-              textViewType="predicate_interpretation"
               lock={(name) => lockInterpretationPredicates({ key: name })}
               selectLock={selectIpLock}
             />
@@ -80,7 +79,6 @@ export default function StructureComponent() {
               id={`function-${name}-${arity}`}
               key={`function-${name}`}
               tupleInfo={{ name, arity, type: "function" }}
-              textViewType="function_interpretation"
               lock={(name) => lockFunctionSymbols({ key: name })}
               selectLock={selectIfLock}
             />
