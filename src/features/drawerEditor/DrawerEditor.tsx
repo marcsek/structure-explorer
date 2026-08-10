@@ -9,7 +9,10 @@ import {
 } from "react-bootstrap";
 import { EditorToolbar } from "../../features/editorToolbar/components/EditorToolbar";
 import type { EditorType } from "../editors/editorTypes";
-import type { TupleInfo } from "../structure/tupleInfo";
+import {
+  tupleTypeToTextViewType,
+  type TupleInfo,
+} from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
@@ -27,6 +30,7 @@ import LockButton from "../../shared/ui/LockButton";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
+import { selectValidation } from "../textView/textViewSlice";
 
 interface DrawerEditorProps {
   id: string;
@@ -36,7 +40,6 @@ interface DrawerEditorProps {
   lock: (name: string) => UnknownAction;
   selectLock: (state: RootState, name: string) => boolean;
   buildControlButtons: (omit?: EditorType[]) => ReactNode;
-  error?: InterpretationError;
 }
 
 export default function DrawerEditor(props: DrawerEditorProps) {
@@ -85,11 +88,15 @@ function DrawerEditorContent({
   selectLock,
   buildControlButtons,
   tupleDisplayName,
-  error,
 }: DrawerEditorContentProps) {
   const dispatch = useAppDispatch();
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
+
+  const tupleTextViewType = tupleTypeToTextViewType(tupleInfo.type);
+  const error = useAppSelector((state) =>
+    selectValidation(state, tupleTextViewType, tupleInfo.name),
+  );
 
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
@@ -98,7 +105,6 @@ function DrawerEditorContent({
   );
 
   const EditorComponent = descriptor.component;
-
   const editorComponent = show ? (
     <EditorComponent
       tupleInfo={tupleInfo}
@@ -111,8 +117,17 @@ function DrawerEditorContent({
     <InactiveViewPlaceholder size={preservedSize} />
   );
 
-  const errorShouldOverride = errorOverride?.editor === descriptor.type;
-  const finalError = errorShouldOverride ? errorOverride.error : error;
+  const shouldOverrideError = errorOverride?.editor === descriptor.type;
+  const finalError = shouldOverrideError ? errorOverride.error : error;
+
+  const onFixButtonClick = () => {
+    if (shouldOverrideError) {
+      errorOverride.onFixButtonClick();
+    } else {
+      dispatch(removeInvalidEntries({ tupleInfo }));
+      dispatch(UndoActions.checkpoint());
+    }
+  };
 
   return (
     <Stack
@@ -153,15 +168,8 @@ function DrawerEditorContent({
         {finalError && (
           <EditorError
             error={finalError}
-            onRemoveInvalidClick={() => {
-              if (errorShouldOverride) {
-                errorOverride.onFixButtonClick();
-              } else {
-                dispatch(removeInvalidEntries({ tupleInfo }));
-                dispatch(UndoActions.checkpoint());
-              }
-            }}
-            fixButton={errorShouldOverride && errorOverride.fixButton}
+            onFixButtonClick={onFixButtonClick}
+            fixButton={shouldOverrideError && errorOverride.fixButton}
           />
         )}
 
@@ -217,31 +225,26 @@ function EditorControlsGroup({
 
 interface EditorErrorProps {
   error: InterpretationError;
-  onRemoveInvalidClick: () => void;
+  onFixButtonClick: () => void;
   fixButton?: ReactNode;
 }
 
-function EditorError({
-  error,
-  onRemoveInvalidClick,
-  fixButton,
-}: EditorErrorProps) {
+function EditorError({ error, onFixButtonClick, fixButton }: EditorErrorProps) {
   return (
     <div className="drawer-editor-error-container">
       <div className="drawer-editor-error-message">
         <FontAwesomeIcon icon={faWarning} size="sm" />
         <p>{error.message}</p>
       </div>
+
       {error.kind !== "semantic" && (
         <Button
           className=""
           size="sm"
           variant="outline-danger"
-          onClick={onRemoveInvalidClick}
+          onClick={onFixButtonClick}
         >
-          {fixButton ? (
-            fixButton
-          ) : (
+          {fixButton ?? (
             <>
               <FontAwesomeIcon icon={faTrash} size="sm" />
               Remove invalid
@@ -266,11 +269,14 @@ function EditorTitle({ base, editor, locked }: EditorTitleProps) {
         <span className="drawer-editor-title-primary fw-light">
           <InlineMath>{base}</InlineMath>
         </span>
+
         <ForwardSlashIcon className="drawer-editor-title-divider text-body-secondary" />
+
         <span className="drawer-editor-title-secondary text-body-secondary text-capitalize fw-medium ">
           {editor}
         </span>
       </Stack>
+
       {locked && (
         <span className="drawer-editor-lock-badge">
           <FontAwesomeIcon icon={faLock} size="sm" />

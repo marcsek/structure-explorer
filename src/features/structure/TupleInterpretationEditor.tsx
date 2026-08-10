@@ -1,6 +1,5 @@
 import { useAppSelector } from "../../app/hooks";
 import DrawerEditor from "../drawerEditor/DrawerEditor";
-import { selectValidation } from "../textView/textViewSlice";
 import { selectHasWrongArityError } from "./structureSlice";
 import ControlButtons from "../../shared/ui/ControlButtons/ControlButtons";
 import { editorDescriptors } from "../editors/editorRegistry";
@@ -36,9 +35,6 @@ function TupleInterpretationEditor({
 
   const { name, type } = stableTupleInfo;
 
-  const validation = useAppSelector((state) =>
-    selectValidation(state, textViewType, name),
-  );
   const wrongArityError = useAppSelector((state) =>
     selectHasWrongArityError(state, name, type),
   );
@@ -77,7 +73,6 @@ function TupleInterpretationEditor({
       tupleDisplayName={tupleLatexName(name)}
       lock={lock}
       selectLock={selectLock}
-      error={validation}
       buildControlButtons={(omit) => (
         <EditorControls {...sharedControlProps} omit={omit} />
       )}
