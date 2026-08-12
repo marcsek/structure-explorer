@@ -30,8 +30,7 @@ class PredicateAtom extends Formula {
    * @return {boolean}
    */
   eval(structure: Structure, e: Valuation): boolean {
-    let translatedTerms: string[] = [];
-    translatedTerms = this.terms.map((term) => term.eval(structure, e));
+    const translatedTerms = this.terms.map((term) => term.eval(structure, e));
 
     const interpretation = structure.iP.get(this.name);
 

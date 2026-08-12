@@ -1,4 +1,12 @@
 {
-  "extends":"./tsconfig.app.json",
-  "include": ["src"]
+  "extends": "./tsconfig.app.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "src",
+    "outDir": "dist"
+  }
 }

@@ -46,7 +46,7 @@ export default function DatabaseView({ tupleInfo, locked }: DrawerEditorProps) {
     elementIdx: number,
     value: string,
   ) => {
-    let newDomainTuple: string[][] = [];
+    let newDomainTuple: string[][];
 
     if (lastTupleIsValid && tupleIdx === values.length) {
       lastTuple[elementIdx] = value;

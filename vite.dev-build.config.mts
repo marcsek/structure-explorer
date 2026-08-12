@@ -1,16 +1,19 @@
-import { defineConfig, mergeConfig, Plugin, UserConfig } from "vite";
-import baseConfig from "./vite.config";
+import { defineConfig, mergeConfig, type Plugin, type UserConfig } from "vite";
+import baseConfig from "./vite.config.mts";
 import { resolve } from "path";
 import { copyFile } from "fs/promises";
 
-const DEV_LIB_ROOT = resolve(__dirname, "../structure-explorer-dev-lib");
+const DEV_LIB_ROOT = resolve(
+  import.meta.dirname,
+  "../structure-explorer-dev-lib",
+);
 
 function copyPackageJsonPlugin(): Plugin {
   return {
     name: "copy-package-json",
     async closeBundle() {
       await copyFile(
-        resolve(__dirname, "package.json"),
+        resolve(import.meta.dirname, "package.json"),
         resolve(DEV_LIB_ROOT, "package.json"),
       );
     },

@@ -47,7 +47,7 @@ export const computeLayoutOriented = async <
     edges,
   };
 
-  let layoutedGraph = await elk.layout(graph);
+  let layoutedGraph: ElkNode;
 
   try {
     layoutedGraph = await elk.layout(graph);

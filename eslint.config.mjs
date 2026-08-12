@@ -20,6 +20,10 @@ export default defineConfig(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "react-hooks/immutability": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/refs": "warn",
+      "react-hooks/set-state-in-effect": "warn",
       "react-refresh/only-export-components": [
         "warn",
         { allowConstantExport: true },

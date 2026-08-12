@@ -132,7 +132,7 @@ export const selectQuery = (state: RootState, idx: number) =>
 export const selectParsedQueryVariables = createSelector(
   [selectQuery],
   ({ variablesText }) => {
-    let parsed: string[] = [];
+    let parsed: string[];
     try {
       parsed = parseConstants(variablesText);
     } catch (error) {

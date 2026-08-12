@@ -665,9 +665,7 @@ export const selectGameResetIndex = createSelector(
         return index - 1;
       }
 
-      let prevWinningFormula = undefined;
-
-      prevWinningFormula =
+      const prevWinningFormula =
         prev.type === "alpha" || prev.type === "beta"
           ? prev.winFormula
           : undefined;

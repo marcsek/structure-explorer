@@ -20,11 +20,11 @@ import {
 } from "../features/errorAlert/errorAlertSlice";
 import { isAction, isAnyOf, type Middleware } from "@reduxjs/toolkit";
 import { editorToolbarSlice } from "../features/editorToolbar/editorToolbarSlice";
-import { graphManagerSlice } from "../features/graphView/graphs/graphSlice";
 import { UndoActions } from "../features/undoHistory/undoHistory";
 import { listenerShouldIgnore } from "../shared/core/redux";
 import { formulasSlice } from "../features/formulas/formulasSlice";
 import { queriesSlice } from "../features/queries/queriesSlice";
+import { graphManagerSlice } from "../features/graphView/graphs/graphSlice.ts";
 
 interface PrepareResult {
   instance: any;

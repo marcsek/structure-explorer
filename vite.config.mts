@@ -7,7 +7,7 @@ import prefixWrap from "postcss-prefixwrap";
 export default defineConfig({
   plugins: [
     react(),
-    dts({ tsconfigPath: resolve(__dirname, "tsconfig.lib.json") }),
+    dts({ tsconfigPath: resolve(import.meta.dirname, "tsconfig.lib.json") }),
   ],
 
   css: {
@@ -23,7 +23,7 @@ export default defineConfig({
 
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
+      entry: resolve(import.meta.dirname, "src/index.ts"),
       formats: ["es", "umd"],
       name: "StructureExplorer",
       fileName: (format) => `structure-explorer.${format}.js`,
