@@ -1,14 +1,13 @@
-import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useCallback, useLayoutEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import type { EditorType } from "../editors/editorTypes";
 import type { TupleInfo } from "../structure/tupleInfo";
 import { editorOpened, selectOpenedEditor } from "./editorToolbarSlice";
 
-export function useOpenedEditor({ name, type, arity }: TupleInfo) {
-  const dispatch = useAppDispatch();
+export function useOpenedEditor(tupleInfo: TupleInfo) {
+  const { arity } = tupleInfo;
 
-  // The returned tuple info reference stays stable for downstream use in e.g. useEffects.
-  const tupleInfo = useMemo(() => ({ name, type, arity }), [name, type, arity]);
+  const dispatch = useAppDispatch();
 
   const openedEditor = useAppSelector((state) =>
     selectOpenedEditor(state, tupleInfo),
@@ -25,5 +24,5 @@ export function useOpenedEditor({ name, type, arity }: TupleInfo) {
     if (previousArityRef.current !== arity) selectEditor("text");
   }, [arity, selectEditor]);
 
-  return { tupleInfo, openedEditor, selectEditor };
+  return { openedEditor, selectEditor };
 }

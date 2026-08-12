@@ -18,6 +18,7 @@ const graphEditorAdapter =
 
 const correctedArity = ({ type, arity }: TupleInfo) =>
   type === "function" ? arity + 1 : arity;
+
 const isBinaryRelation = (tuple: TupleInfo) => correctedArity(tuple) === 2;
 
 export const editorDescriptors: Record<EditorType, EditorDescriptor> = {

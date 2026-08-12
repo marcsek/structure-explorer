@@ -8,6 +8,7 @@ import type { TupleInfo } from "./tupleInfo";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { useOpenedEditor } from "../editorToolbar/useOpenedEditor";
+import { useMemo } from "react";
 
 export interface TupleInterpretationEditorProps {
   id: string;
@@ -22,13 +23,14 @@ function TupleInterpretationEditor({
   tupleInfo,
   selectLock,
 }: TupleInterpretationEditorProps) {
-  const {
-    tupleInfo: stableTupleInfo,
-    openedEditor,
-    selectEditor,
-  } = useOpenedEditor(tupleInfo);
+  const { name, type, arity } = tupleInfo;
 
-  const { name, type } = stableTupleInfo;
+  const stableTupleInfo = useMemo(
+    () => ({ name, type, arity }),
+    [name, type, arity],
+  );
+
+  const { openedEditor, selectEditor } = useOpenedEditor(stableTupleInfo);
 
   const wrongArityError = useAppSelector((state) =>
     selectHasWrongArityError(state, name, type),
