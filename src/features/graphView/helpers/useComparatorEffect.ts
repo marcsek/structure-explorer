@@ -23,14 +23,14 @@ export function useComparatorEffect<T>(
   const prevDeps = useRef<React.DependencyList>();
   const initialRender = useRef<boolean>(true);
 
-  const depsChanged =
-    !prevDeps.current ||
-    deps.some(
-      ([array, comp], i) =>
-        !comparatorEqual(array, prevDeps.current?.[i][0] ?? [], comp),
-    );
-
   useEffect(() => {
+    const depsChanged =
+      !prevDeps.current ||
+      deps.some(
+        ([array, comp], i) =>
+          !comparatorEqual(array, prevDeps.current?.[i][0] ?? [], comp),
+      );
+
     if (initialRender.current) {
       prevDeps.current = deps;
       initialRender.current = false;

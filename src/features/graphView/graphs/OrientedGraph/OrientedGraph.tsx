@@ -75,11 +75,6 @@ export default function OrientedGraph({
 
   const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
-  useEffect(() => {
-    onLayout(true, true, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
       dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
@@ -173,6 +168,11 @@ export default function OrientedGraph({
       }),
     );
   }, [dispatch, tupleInfo]);
+
+  useEffect(() => {
+    onLayout(true, true, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const dialogShown = storeNodes.length === 0;
 

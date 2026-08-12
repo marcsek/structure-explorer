@@ -1,13 +1,15 @@
 import { useReactFlow } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, type RefObject } from "react";
 
 export function useAreAllNodesInView(
-  flowWrapperElement: HTMLDivElement | null,
+  flowWrapperRef: RefObject<HTMLDivElement | null>,
   margin: number = 0,
 ) {
   const reactFlow = useReactFlow();
 
   return useCallback(() => {
+    const flowWrapperElement = flowWrapperRef.current;
+
     if (!flowWrapperElement) return false;
 
     const nodes = reactFlow.getNodes();
@@ -34,5 +36,5 @@ export function useAreAllNodesInView(
 
       return withinHorizontal && withinVertical;
     });
-  }, [reactFlow, flowWrapperElement, margin]);
+  }, [reactFlow, flowWrapperRef, margin]);
 }

@@ -17,7 +17,7 @@ export default function useFitViewOnNodeAdded({
 }: UseFitViewOnNodeAddedProps) {
   const flowWrapperRef = useRef<HTMLDivElement>(null);
   const { fitView } = useReactFlow();
-  const areAllInView = useAreAllNodesInView(flowWrapperRef.current);
+  const areAllInView = useAreAllNodesInView(flowWrapperRef);
 
   useComparatorEffect(() => {
     if (!areAllInView())

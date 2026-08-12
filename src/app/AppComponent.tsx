@@ -8,7 +8,7 @@ import {
   importAppState,
 } from "../features/import/importExportUtils.ts";
 import { type CellContext, LogicContext } from "../providers/logicContext";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { parseSerializedAppStateWithDefaults } from "../features/import/validationSchema";
 import {
   generateInstanceId,
@@ -110,16 +110,17 @@ export function AppComponent({
   // Since some components must have a unique id across the whole document
   // we need a way do distinguish between identical instances.
   // (e.g copied instances inside workbook)
-  const instanceIdRef = useRef<string>(generateInstanceId());
+  const [instanceId] = useState(generateInstanceId());
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     instance.handleStoreChange = onStateChange;
     return () => (instance.handleStoreChange = undefined);
   }, [instance, onStateChange]);
 
   return (
     <Provider store={appstore}>
-      <InstanceIdContext.Provider value={instanceIdRef.current}>
+      <InstanceIdContext.Provider value={instanceId}>
         <LogicContext.Provider value={context}>
           <App viewOnlyMode={!isEdited} />
         </LogicContext.Provider>

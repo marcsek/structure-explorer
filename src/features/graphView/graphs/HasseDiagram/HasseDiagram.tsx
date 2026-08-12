@@ -76,11 +76,6 @@ export default function HasseDiagram({
 
   const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
-  useEffect(() => {
-    onLayout(true, true, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
       dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
@@ -133,6 +128,11 @@ export default function HasseDiagram({
     },
     [storeNodes, fitView, dispatch, tupleInfo, edges],
   );
+
+  useEffect(() => {
+    onLayout(true, true, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
