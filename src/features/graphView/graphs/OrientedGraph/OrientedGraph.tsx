@@ -9,7 +9,6 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect } from "react";
 import {
-  getTupleId,
   graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
@@ -17,6 +16,7 @@ import {
   onNodesChanged,
   warningChanged,
 } from "../graphSlice.ts";
+import { getTupleId } from "../../../structure/tupleInfo";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 
@@ -46,10 +46,8 @@ export default function OrientedGraph({
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const { name: tupleName, type: tupleType } = tupleInfo;
-
-  const representsFunction = tupleType === "function";
-  const tupleId = getTupleId(tupleType, tupleName);
+  const representsFunction = tupleInfo.type === "function";
+  const tupleId = getTupleId(tupleInfo);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>

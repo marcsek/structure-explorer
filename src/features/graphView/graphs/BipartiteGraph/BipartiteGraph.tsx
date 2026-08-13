@@ -17,13 +17,13 @@ import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { type PredicateNodeType } from "../graphComponents/PredicateNode";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import {
-  getTupleId,
   graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
   warningChanged,
 } from "../graphSlice.ts";
+import { getTupleId } from "../../../structure/tupleInfo";
 import {
   computeGroupContainerBounds,
   generateLayoutNodesChangesBipartite,
@@ -80,10 +80,8 @@ export default function BipartiteGraph({
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const { name: tupleName, type: tupleType } = tupleInfo;
-
-  const representsFunction = tupleType === "function";
-  const tupleId = getTupleId(tupleType, tupleName);
+  const representsFunction = tupleInfo.type === "function";
+  const tupleId = getTupleId(tupleInfo);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>

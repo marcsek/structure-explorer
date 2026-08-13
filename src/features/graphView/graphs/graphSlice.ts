@@ -43,7 +43,11 @@ import {
   selectSelectedDomain,
   selectUnaryFilterDomain,
 } from "../../editorToolbar/editorToolbarSlice.ts";
-import type { TupleInfo, TupleType } from "../../structure/tupleInfo";
+import {
+  getTupleId,
+  type TupleInfo,
+  type TupleType,
+} from "../../structure/tupleInfo";
 import type { RelevantSymbols } from "../../import/importExportUtils.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
@@ -76,13 +80,9 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        graphType,
-        nodes,
-      } = action.payload;
+      const { tupleInfo, graphType, nodes } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const tupleId = getTupleId(tupleInfo);
 
       state[tupleId].state[graphType].nodes = nodes;
     },
@@ -91,13 +91,9 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ edges: DirectEdgeType[] }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        graphType,
-        edges,
-      } = action.payload;
+      const { tupleInfo, graphType, edges } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const tupleId = getTupleId(tupleInfo);
 
       state[tupleId].state[graphType].edges = edges;
     },
@@ -106,13 +102,9 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ edge: DirectEdgeType }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        graphType,
-        edge,
-      } = action.payload;
+      const { tupleInfo, graphType, edge } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const tupleId = getTupleId(tupleInfo);
 
       state[tupleId].state[graphType].edges = [
         ...state[tupleId].state[graphType].edges,
@@ -124,13 +116,9 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ didLayout: boolean }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        graphType,
-        didLayout,
-      } = action.payload;
+      const { tupleInfo, graphType, didLayout } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const tupleId = getTupleId(tupleInfo);
 
       state[tupleId].state[graphType].didLayout = didLayout;
     },
@@ -142,13 +130,9 @@ export const graphManagerSlice = createSlice({
           WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
         >,
       ) {
-        const {
-          tupleInfo: { name: tupleName, type: tupleType },
-          graphType,
-          changes,
-        } = action.payload;
+        const { tupleInfo, graphType, changes } = action.payload;
 
-        const tupleId = getTupleId(tupleType, tupleName);
+        const tupleId = getTupleId(tupleInfo);
 
         state[tupleId].state[graphType].nodes = applyNodeChanges(
           changes,
@@ -193,7 +177,7 @@ export const graphManagerSlice = createSlice({
 
       tuples.forEach(([tupleName, arity, tupleType]) => {
         const correctedArity = tupleType === "function" ? arity + 1 : arity;
-        const tupleId = getTupleId(tupleType, tupleName);
+        const tupleId = getTupleId({ type: tupleType, name: tupleName });
 
         if (correctedArity !== 2 || tupleId in newState) return;
 
@@ -241,7 +225,7 @@ export const graphManagerSlice = createSlice({
 
         for (const tupleId in newState) {
           const isLeftover = !newTupleNames.find(
-            ({ name, kind }) => tupleId === getTupleId(kind, name),
+            ({ name, kind }) => tupleId === getTupleId({ type: kind, name }),
           );
 
           if (isLeftover) delete newState[tupleId];
@@ -255,11 +239,8 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<{ tupleInfo: TupleInfo; locked: boolean }>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        locked,
-      } = action.payload;
-      const tupleId = getTupleId(tupleType, tupleName);
+      const { tupleInfo, locked } = action.payload;
+      const tupleId = getTupleId(tupleInfo);
       const graphState = state[tupleId];
 
       if (!graphState) return;
@@ -279,13 +260,9 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ warning?: string }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        graphType,
-        warning,
-      } = action.payload;
+      const { tupleInfo, graphType, warning } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const tupleId = getTupleId(tupleInfo);
 
       if (state[tupleId]) state[tupleId].state[graphType].warning = warning;
     },
@@ -319,7 +296,7 @@ export const graphManagerSlice = createSlice({
         const { value, key: tupleName } = action.payload;
         const tupleType = tupleUpdaterToTupleType[action.type];
 
-        const tupleId = getTupleId(tupleType, tupleName);
+        const tupleId = getTupleId({ type: tupleType, name: tupleName });
 
         if (!(tupleId in state)) return;
 
@@ -374,22 +351,22 @@ export const selectRelevantUnaryPreds = createSelector(
 
 export const selectPosetValidity = createSelector(
   [
-    (state: RootState, { name, type }: TupleInfo) =>
-      state.present.graphView[getTupleId(type, name)]?.state.hasse,
+    (state: RootState, tupleInfo: TupleInfo) =>
+      state.present.graphView[getTupleId(tupleInfo)]?.state.hasse,
   ],
   (graphState) => {
     if (!graphState) return true;
 
     const nodes = graphState.nodes.map((node) => node.id);
 
-    const vissibleRelation = edgesToRelation(
+    const visibleRelation = edgesToRelation(
       graphState.edges.filter(
         ({ source, target }) =>
           nodes.includes(source) && nodes.includes(target),
       ),
     );
 
-    return isPoset(vissibleRelation);
+    return isPoset(visibleRelation);
   },
 );
 
@@ -397,9 +374,8 @@ export function makeSelectNodes<T extends GraphType>() {
   return createSelector(
     [
       (_: RootState, __: TupleInfo, type: T) => type,
-      (state: RootState, { name, type: tupleType }: TupleInfo, type: T) =>
-        state.present.graphView[getTupleId(tupleType, name)]?.state[type]
-          ?.nodes,
+      (state: RootState, tupleInfo: TupleInfo, type: T) =>
+        state.present.graphView[getTupleId(tupleInfo)]?.state[type]?.nodes,
       (state: RootState, tupleInfo: TupleInfo) =>
         selectRelevantDomainElements(state, tupleInfo, false),
       selectHoveredIntr,
@@ -433,8 +409,8 @@ export function makeSelectNodes<T extends GraphType>() {
 export const selectEdges = createSelector(
   [
     (_: RootState, __: TupleInfo, type: GraphType) => type,
-    (state: RootState, { name, type: tupleType }: TupleInfo, type: GraphType) =>
-      state.present.graphView[getTupleId(tupleType, name)]?.state[type],
+    (state: RootState, tupleInfo: TupleInfo, type: GraphType) =>
+      state.present.graphView[getTupleId(tupleInfo)]?.state[type],
     (
       state: RootState,
       tupleInfo: TupleInfo,
@@ -471,7 +447,7 @@ export const onEdgesChanged = ({
 
     const managerState = getState().present.graphView;
     const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleType, tupleName);
+    const tupleId = getTupleId(tupleInfo);
 
     const newEdges = applyEdgeChanges(
       changes,
@@ -527,7 +503,7 @@ export const onConnected = ({
 
     const managerState = getState().present.graphView;
     const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleType, tupleName);
+    const tupleId = getTupleId(tupleInfo);
 
     let newEdges = [...managerState[tupleId].state[graphType].edges];
 
@@ -571,7 +547,7 @@ export const leftoverDeleted = ({
 
     const managerState = getState().present.graphView;
     const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleType, tupleName);
+    const tupleId = getTupleId(tupleInfo);
 
     const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
       plugins[graphType],
@@ -661,7 +637,6 @@ export const getGraphViewStateToExport = (
 export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
   edges.map(({ source, target }) => [source, target]);
 
-export const getTupleId = (type: TupleType, key: string) => `${type}-${key}`;
 export const getKeyFromTupleId = (tupleId: string) =>
   tupleId.substring(tupleId.lastIndexOf("-") + 1);
 

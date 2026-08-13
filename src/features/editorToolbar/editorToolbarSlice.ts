@@ -8,7 +8,11 @@ import type { RootState } from "../../app/store";
 import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
 import { updateDomain } from "../structure/structureSlice";
-import { getTupleId, type TupleInfo } from "../structure/tupleInfo";
+import {
+  getTupleId,
+  type TupleIdentity,
+  type TupleInfo,
+} from "../structure/tupleInfo";
 import type { EditorType } from "../editors/editorTypes";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
@@ -26,7 +30,7 @@ export type EditorToolbarState = Record<string, EditorToolbarEntry>;
 
 export const initialEditorToolbarState: EditorToolbarState = {};
 
-type WithToolbarId<T = object> = {
+type WithTupleInfo<T = object> = {
   tupleInfo: TupleInfo;
 } & T;
 
@@ -48,49 +52,32 @@ export const editorToolbarSlice = createSlice({
 
     unaryPredicateToggled(
       state,
-      action: PayloadAction<WithToolbarId<{ predicate: string | string[] }>>,
+      action: PayloadAction<WithTupleInfo<{ predicate: string | string[] }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        predicate,
-      } = action.payload;
+      const { tupleInfo, predicate } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const entry = getOrCreateEntry(state, tupleInfo);
+      const selected = entry.selectedUnary;
 
-      state[tupleId] = initializeStateIfNotSet(state[tupleId]);
-
-      const toolbarState = state[tupleId];
-      const selected = toolbarState.selectedUnary;
-
-      if (Array.isArray(predicate)) toolbarState.selectedUnary = predicate;
+      if (Array.isArray(predicate)) entry.selectedUnary = [...predicate];
       else if (selected.includes(predicate))
-        toolbarState.selectedUnary = selected.filter(
-          (pred) => pred != predicate,
-        );
+        entry.selectedUnary = selected.filter((pred) => pred !== predicate);
       else selected.push(predicate);
     },
 
     nodeToggled(
       state,
-      action: PayloadAction<WithToolbarId<{ domain: string[]; node?: string }>>,
+      action: PayloadAction<WithTupleInfo<{ domain: string[]; node?: string }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        domain,
-        node: toggledNode = "",
-      } = action.payload;
+      const { tupleInfo, domain, node: toggledNode = "" } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
+      const entry = getOrCreateEntry(state, tupleInfo);
+      const selectedNodes = entry.selectedDomain ?? domain;
 
-      state[tupleId] = initializeStateIfNotSet(state[tupleId], domain);
-
-      const toolbarState = state[tupleId];
-      const selectedNodes = toolbarState.selectedDomain ?? domain;
-
-      if (toggledNode === "") toolbarState.selectedDomain = undefined;
+      if (toggledNode === "") entry.selectedDomain = undefined;
       else if (selectedNodes.includes(toggledNode))
-        toolbarState.selectedDomain = selectedNodes.filter(
-          (selectedNode) => selectedNode != toggledNode,
+        entry.selectedDomain = selectedNodes.filter(
+          (selectedNode) => selectedNode !== toggledNode,
         );
       else {
         // Done this way to preserve order
@@ -98,7 +85,7 @@ export const editorToolbarSlice = createSlice({
           [...selectedNodes, toggledNode].includes(element),
         );
 
-        toolbarState.selectedDomain =
+        entry.selectedDomain =
           newSelectedDomain.length === domain.length
             ? undefined
             : newSelectedDomain;
@@ -107,58 +94,35 @@ export const editorToolbarSlice = createSlice({
 
     predicateHovered(
       state,
-      action: PayloadAction<WithToolbarId<{ predicates: string[] }>>,
+      action: PayloadAction<WithTupleInfo<{ predicates: string[] }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        predicates,
-      } = action.payload;
+      const { tupleInfo, predicates } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
-
-      state[tupleId] = initializeStateIfNotSet(state[tupleId]);
-      state[tupleId].hoveredUnary = predicates;
+      getOrCreateEntry(state, tupleInfo).hoveredUnary = predicates;
     },
 
     unaryFilterDomainHovered(
       state,
-      action: PayloadAction<WithToolbarId<{ hovered: boolean }>>,
+      action: PayloadAction<WithTupleInfo<{ hovered: boolean }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        hovered,
-      } = action.payload;
+      const { tupleInfo, hovered } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
-
-      state[tupleId] = initializeStateIfNotSet(state[tupleId]);
-      state[tupleId].unaryFilterHovered = hovered;
+      getOrCreateEntry(state, tupleInfo).unaryFilterHovered = hovered;
     },
 
-    unaryFilterDomainToggled(state, action: PayloadAction<WithToolbarId>) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-      } = action.payload;
+    unaryFilterDomainToggled(state, action: PayloadAction<WithTupleInfo>) {
+      const entry = getOrCreateEntry(state, action.payload.tupleInfo);
 
-      const tupleId = getTupleId(tupleType, tupleName);
-
-      state[tupleId] = initializeStateIfNotSet(state[tupleId]);
-      state[tupleId].unaryFilterDomain = !state[tupleId].unaryFilterDomain;
+      entry.unaryFilterDomain = !entry.unaryFilterDomain;
     },
 
     editorOpened(
       state,
-      action: PayloadAction<WithToolbarId<{ editor: EditorType }>>,
+      action: PayloadAction<WithTupleInfo<{ editor: EditorType }>>,
     ) {
-      const {
-        tupleInfo: { name: tupleName, type: tupleType },
-        editor,
-      } = action.payload;
+      const { tupleInfo, editor } = action.payload;
 
-      const tupleId = getTupleId(tupleType, tupleName);
-
-      state[tupleId] = initializeStateIfNotSet(state[tupleId]);
-      state[tupleId].openedEditor = editor;
+      getOrCreateEntry(state, tupleInfo).openedEditor = editor;
     },
   },
 
@@ -174,51 +138,45 @@ export const editorToolbarSlice = createSlice({
         .filter(({ arity }) => arity === 1)
         .map(({ name }) => name);
 
-      for (const [tupleId, value] of Object.entries(state)) {
-        const newSelectedUnary = value.selectedUnary.filter((selectedPred) =>
+      for (const entry of Object.values(state)) {
+        entry.selectedUnary = entry.selectedUnary.filter((selectedPred) =>
           unaryPredicates.includes(selectedPred),
         );
 
-        const newHoveredUnary = value.hoveredUnary.filter((hoveredPred) =>
+        entry.hoveredUnary = entry.hoveredUnary.filter((hoveredPred) =>
           unaryPredicates.includes(hoveredPred),
         );
-
-        state[tupleId].selectedUnary = newSelectedUnary;
-        state[tupleId].hoveredUnary = newHoveredUnary;
       }
     });
   },
 });
 
-export const selectOpenedEditor = withToolbarId(
-  (state, tupleId) =>
-    state.present.editorToolbar[tupleId]?.openedEditor ?? "text",
+export const selectOpenedEditor = withTupleId(
+  (state, tupleId) => getEntry(state, tupleId).openedEditor,
 );
 
-export const selectSelectedUnary = withToolbarId((state, tupleId) =>
-  fallbackToEmptyArray(state.present.editorToolbar[tupleId]?.selectedUnary),
+export const selectSelectedUnary = withTupleId((state, tupleId) =>
+  fallbackToEmptyArray(getEntry(state, tupleId).selectedUnary),
 );
 
-export const selectHoveredUnary = withToolbarId((state, tupleId) =>
-  fallbackToEmptyArray(state.present.editorToolbar[tupleId]?.hoveredUnary),
+export const selectHoveredUnary = withTupleId((state, tupleId) =>
+  fallbackToEmptyArray(getEntry(state, tupleId).hoveredUnary),
 );
 
-export const selectUnaryFilterDomain = withToolbarId(
-  (state, tupleId) =>
-    state.present.editorToolbar[tupleId]?.unaryFilterDomain ?? false,
+export const selectUnaryFilterDomain = withTupleId(
+  (state, tupleId) => getEntry(state, tupleId).unaryFilterDomain,
 );
 
-export const selectUnaryFilterDomainHovered = withToolbarId(
-  (state, tupleId) =>
-    state.present.editorToolbar[tupleId]?.unaryFilterHovered ?? false,
+export const selectUnaryFilterDomainHovered = withTupleId(
+  (state, tupleId) => getEntry(state, tupleId).unaryFilterHovered,
 );
 
 export const selectSelectedDomain = createSelector(
   [
     (state: RootState) => state.present.structure.domain,
-    withToolbarId(
-      (state: RootState, toolbarId: string) =>
-        state.present.editorToolbar[toolbarId]?.selectedDomain,
+    withTupleId(
+      (state: RootState, tupleId: string) =>
+        getEntry(state, tupleId).selectedDomain,
     ),
   ],
   (domain, selectedNodes) =>
@@ -233,11 +191,11 @@ export const selectPredicatesToDisplay = createSelector(
       selectRelevantUnaryPreds(state, domainId),
   ],
   (selectedUnary, hoveredUnary, relevantUnary) => {
-    const vissiblePreds = [...hoveredUnary, ...selectedUnary];
+    const visiblePreds = [...hoveredUnary, ...selectedUnary];
 
-    const toDisplay =
-      relevantUnary.filter((relevant) => vissiblePreds.includes(relevant)) ??
-      [];
+    const toDisplay = relevantUnary.filter((relevant) =>
+      visiblePreds.includes(relevant),
+    );
 
     const previewed = relevantUnary.filter(
       (predicate) =>
@@ -325,16 +283,17 @@ export const selectHatchedDomain = createSelector(
     selectRelevantDomainElements,
   ],
   (hoveredIntr, unaryFilterDomain, selectedDomain, relevantDomain) => {
+    const hoveredElements = hoveredIntr?.flat() ?? [];
+
     if (
-      !hoveredIntr ||
-      hoveredIntr.flat().length === 0 ||
+      hoveredElements.length === 0 ||
       relevantDomain !== undefined ||
       !unaryFilterDomain
     )
       return [];
 
     return selectedDomain.filter(
-      (element) => !hoveredIntr.flat().includes(element),
+      (element) => !hoveredElements.includes(element),
     );
   },
 );
@@ -348,7 +307,7 @@ export const getRelevantEditorToolbarState = (
   for (const [tupleName, relevantSymbol] of Object.entries(relevantSymbols)) {
     if (relevantSymbol.type === "constant") continue;
 
-    const tupleId = getTupleId(relevantSymbol.type, tupleName);
+    const tupleId = getTupleId({ type: relevantSymbol.type, name: tupleName });
     const toolbarEntry = editorToolbar[tupleId];
 
     if (!toolbarEntry) continue;
@@ -379,25 +338,32 @@ export const {
   editorOpened,
 } = editorToolbarSlice.actions;
 
-const initializeStateIfNotSet = (
-  state: EditorToolbarEntry | undefined,
-  selectedNodes?: string[],
-): EditorToolbarEntry => {
-  if (state) return state;
-
-  return {
-    hoveredUnary: [],
-    selectedUnary: [],
-    selectedDomain: selectedNodes,
-    unaryFilterDomain: false,
-    unaryFilterHovered: false,
-    openedEditor: "text",
-  };
+const defaultEntry: EditorToolbarEntry = {
+  hoveredUnary: [],
+  selectedUnary: [],
+  selectedDomain: undefined,
+  unaryFilterDomain: false,
+  unaryFilterHovered: false,
+  openedEditor: "text",
 };
 
-function withToolbarId<R, A extends unknown[]>(
+const createEntry = (): EditorToolbarEntry => ({
+  ...defaultEntry,
+  hoveredUnary: [],
+  selectedUnary: [],
+});
+
+const getOrCreateEntry = (
+  state: EditorToolbarState,
+  tupleInfo: TupleIdentity,
+): EditorToolbarEntry => (state[getTupleId(tupleInfo)] ??= createEntry());
+
+const getEntry = (state: RootState, tupleId: string): EditorToolbarEntry =>
+  state.present.editorToolbar[tupleId] ?? defaultEntry;
+
+function withTupleId<R, A extends unknown[]>(
   selector: (state: RootState, tupleId: string, ...args: A) => R,
 ) {
-  return (state: RootState, { name, type }: TupleInfo, ...args: A): R =>
-    selector(state, getTupleId(type, name), ...args);
+  return (state: RootState, tupleInfo: TupleIdentity, ...args: A): R =>
+    selector(state, getTupleId(tupleInfo), ...args);
 }

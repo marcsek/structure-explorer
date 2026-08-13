@@ -9,7 +9,6 @@ import {
 } from "@xyflow/react";
 import { useCallback, useEffect } from "react";
 import {
-  getTupleId,
   graphDidInitialLayout,
   makeSelectNodes,
   onConnected,
@@ -19,6 +18,7 @@ import {
   selectPosetValidity,
   warningChanged,
 } from "../graphSlice.ts";
+import { getTupleId } from "../../../structure/tupleInfo";
 import { staysValidHasseWithEdge, type BinaryRelation } from "./posetHelpers";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
@@ -48,9 +48,7 @@ export default function HasseDiagram({
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const { name: tupleName, type: tupleType } = tupleInfo;
-
-  const tupleId = getTupleId(tupleType, tupleName);
+  const tupleId = getTupleId(tupleInfo);
 
   const dispatch = useAppDispatch();
   const storeNodes = useAppSelector((state) =>

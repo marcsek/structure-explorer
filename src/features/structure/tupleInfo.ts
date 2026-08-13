@@ -8,7 +8,9 @@ export interface TupleInfo {
   arity: number;
 }
 
-export const getTupleId = (type: TupleType, key: string) => `${type}-${key}`;
+export type TupleIdentity = Pick<TupleInfo, "type" | "name">;
+
+export const getTupleId = ({ type, name }: TupleIdentity) => `${type}-${name}`;
 
 export const tupleTypeToTextViewType = (type: TupleType): TextViewType => {
   switch (type) {

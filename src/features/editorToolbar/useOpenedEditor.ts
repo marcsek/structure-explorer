@@ -22,6 +22,7 @@ export function useOpenedEditor(tupleInfo: TupleInfo) {
 
   useLayoutEffect(() => {
     if (previousArityRef.current !== arity) selectEditor("text");
+    previousArityRef.current = arity;
   }, [arity, selectEditor]);
 
   return { openedEditor, selectEditor };
