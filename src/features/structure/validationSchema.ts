@@ -1,6 +1,5 @@
 import z from "zod";
 import { lockable } from "../../shared/core/validation";
-import { initialStructureState } from "./structureSlice";
 
 const domainRepresentationSchema = z.array(z.string());
 const constantInterpretationSchema = z.string();
@@ -17,5 +16,10 @@ export type SerializedStructureState = z.infer<
   typeof serializedStructureStateSchema
 >;
 
-export const serializedStructureStateDefault: SerializedStructureState =
-  initialStructureState;
+export const serializedStructureStateDefault =
+  (): SerializedStructureState => ({
+    domain: { value: [], locked: false },
+    iC: {},
+    iP: {},
+    iF: {},
+  });

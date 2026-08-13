@@ -1,6 +1,5 @@
 import z from "zod";
 import { lockable } from "../../shared/core/validation";
-import { initialLanguageState } from "./languageSlice";
 
 const constantsRepresentationSchema = z.array(z.string());
 const aritySymbolsRepresentationSchema = z.array(
@@ -18,5 +17,9 @@ export type SerializedLanguageState = z.infer<
   typeof serializedLanguageStateSchema
 >;
 
-export const serializedLanguageStateDefault: SerializedLanguageState =
-  initialLanguageState;
+export const serializedLanguageStateDefault = (): SerializedLanguageState => ({
+  constants: { value: [], locked: false },
+  predicates: { value: [], locked: false },
+  functions: { value: [], locked: false },
+  editMode: true,
+});

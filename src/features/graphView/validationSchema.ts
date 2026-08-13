@@ -13,4 +13,5 @@ export type SerializedGraphViewState = z.infer<
   typeof serializedGraphViewStateSchema
 >;
 
-export const serializedGraphViewStateDefault: SerializedGraphViewState = {};
+export const serializedGraphViewStateDefault =
+  (): SerializedGraphViewState => ({});

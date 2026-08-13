@@ -1,5 +1,4 @@
 import z from "zod";
-import { initialCaseTreeViewState } from "./caseTreeViewSlice";
 
 const CaseTreeBranchSchema = z.union([
   z.object({
@@ -30,11 +29,11 @@ const CaseTreeEntrySchema = z.object({
 
 export const serializedCaseTreeViewStateSchema = z
   .record(z.string(), CaseTreeEntrySchema)
-  .default({});
+  .default(() => ({}));
 
 export type SerializedCaseTreeViewState = z.infer<
   typeof serializedCaseTreeViewStateSchema
 >;
 
-export const serializedCaseTreeViewStateDefault: SerializedCaseTreeViewState =
-  initialCaseTreeViewState;
+export const serializedCaseTreeViewStateDefault =
+  (): SerializedCaseTreeViewState => ({});

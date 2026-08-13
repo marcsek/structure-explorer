@@ -1,5 +1,4 @@
 import z from "zod";
-import { initialFormulasState } from "./formulasSlice";
 
 const formulaStateSchema = z.object({
   name: z.string().optional(),
@@ -24,5 +23,6 @@ export type SerializedFormulasState = z.infer<
   typeof serializedFormulasStateSchema
 >;
 
-export const serializedFormulasStateDefault: SerializedFormulasState =
-  initialFormulasState;
+export const serializedFormulasStateDefault = (): SerializedFormulasState => ({
+  allFormulas: [],
+});

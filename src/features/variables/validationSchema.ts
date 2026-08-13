@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { lockable } from "../../shared/core/validation";
-import { initialVariablesState } from "./variablesSlice";
 
 const variableRepresentationSchema = z.object({
   from: z.string(),
@@ -15,5 +14,8 @@ export type SerializedVariablesState = z.infer<
   typeof serializedVariablesStateSchema
 >;
 
-export const serializedVariablesStateDefault: SerializedVariablesState =
-  initialVariablesState;
+export const serializedVariablesStateDefault =
+  (): SerializedVariablesState => ({
+    value: [],
+    locked: false,
+  });

@@ -64,18 +64,18 @@ const schemaFields = {
 export const serializedAppStateSchema = z.object(schemaFields);
 export type SerializedAppState = z.infer<typeof serializedAppStateSchema>;
 
-const schemaDefaults: SerializedAppState = {
+const createSchemaDefaults = (): SerializedAppState => ({
   version: SERIALIZED_STATE_VERSION,
-  language: serializedLanguageStateDefault,
-  structure: serializedStructureStateDefault,
-  variables: serializedVariablesStateDefault,
-  teacherMode: serializedTeacherModeStateDefault,
-  graphView: serializedGraphViewStateDefault,
-  formulas: serializedFormulasStateDefault,
-  queries: serializedQueriesStateDefault,
-  editorToolbar: serializedEditorToolbarStateDefault,
-  caseTreeView: serializedCaseTreeViewStateDefault,
-};
+  language: serializedLanguageStateDefault(),
+  structure: serializedStructureStateDefault(),
+  variables: serializedVariablesStateDefault(),
+  teacherMode: serializedTeacherModeStateDefault(),
+  graphView: serializedGraphViewStateDefault(),
+  formulas: serializedFormulasStateDefault(),
+  queries: serializedQueriesStateDefault(),
+  editorToolbar: serializedEditorToolbarStateDefault(),
+  caseTreeView: serializedCaseTreeViewStateDefault(),
+});
 
 export function parseSerializedAppStateWithDefaults(data: unknown): {
   data: SerializedAppState;
@@ -83,7 +83,7 @@ export function parseSerializedAppStateWithDefaults(data: unknown): {
 } {
   const errors: string[] = [];
   const input = (data ?? {}) as Record<string, unknown>;
-  const result = { ...schemaDefaults };
+  const result = createSchemaDefaults();
 
   for (const [field, schema] of Object.entries(schemaFields)) {
     const key = field as keyof typeof schemaFields;

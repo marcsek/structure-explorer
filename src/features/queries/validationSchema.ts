@@ -1,5 +1,4 @@
 import z from "zod";
-import { initialQueriesState } from "./queriesSlice.ts";
 
 const queriesStateSchema = z
   .object({
@@ -14,11 +13,12 @@ export const serializedQueriesStateSchema = z
   .object({
     queries: z.array(queriesStateSchema),
   })
-  .default({ queries: [] });
+  .default(() => ({ queries: [] }));
 
 export type SerializedQueriesState = z.infer<
   typeof serializedQueriesStateSchema
 >;
 
-export const serializedQueriesStateDefault: SerializedQueriesState =
-  initialQueriesState;
+export const serializedQueriesStateDefault = (): SerializedQueriesState => ({
+  queries: [],
+});
