@@ -1,9 +1,9 @@
 import "./DomainSelector.css";
 
-import { useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
-import type { TupleInfo } from "../../structure/tupleInfo";
+import { getTupleId, type TupleInfo } from "../../structure/tupleInfo";
 import {
   selectRelevantUnaryPreds,
   selectUnaryPreds,
@@ -11,10 +11,7 @@ import {
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
-import {
-  nodeToggled,
-  selectSelectedDomain,
-} from "../../editorToolbar/editorToolbarSlice";
+import { nodeToggled, selectSelectedDomain } from "../editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import useClickAwayListener from "./useClickAwayListener";
@@ -28,13 +25,17 @@ export default function DomainSelector({
   tupleInfo,
   disabled,
 }: DomainSelectorProps) {
+  const { name, type, arity } = tupleInfo;
+
   const [isOpen, setIsOpen] = useState(false);
 
   const dispatch = useAppDispatch();
-  const domain = useAppSelector(selectValidatedDomain)?.parsed ?? [];
+  const domain = useAppSelector(selectValidatedDomain).parsed;
   const selectedNodes = useAppSelector((state) =>
     selectSelectedDomain(state, tupleInfo),
   );
+
+  const bodyId = `domain-selector-body-${getTupleId(tupleInfo)}`;
 
   const onClickOutside = useCallback(() => setIsOpen(false), []);
   const clickAwayRef = useClickAwayListener<HTMLDivElement>({
@@ -42,10 +43,31 @@ export default function DomainSelector({
     shouldListen: isOpen,
   });
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsOpen(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   const activeFilters = domain.length !== selectedNodes.length;
 
-  const toggleItem = (element: string = "") =>
-    dispatch(nodeToggled({ tupleInfo, domain, node: element }));
+  const toggleItem = useCallback(
+    (element: string = "") =>
+      dispatch(
+        nodeToggled({
+          tupleInfo: { name, type, arity },
+          domain,
+          node: element,
+        }),
+      ),
+    [dispatch, name, type, arity, domain],
+  );
 
   return (
     <div
@@ -54,8 +76,9 @@ export default function DomainSelector({
     >
       <Button
         className={`domain-selector-toggle editor-toolbar-button ${activeFilters ? "active" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
+        aria-controls={bodyId}
         title="Domain Filters"
         disabled={disabled}
       >
@@ -66,7 +89,7 @@ export default function DomainSelector({
       </Button>
 
       {isOpen && (
-        <div className="domain-selector-body">
+        <div className="domain-selector-body" id={bodyId}>
           <div className="domain-selector-header">
             <p>Selected Elements</p>
             <button className="select-all" onClick={() => toggleItem()}>
@@ -95,7 +118,7 @@ export default function DomainSelector({
                   key={item}
                   element={item}
                   isSelected={selectedNodes.includes(item)}
-                  onToggle={() => toggleItem(item)}
+                  onToggle={toggleItem}
                 />
               ))}
             </ul>
@@ -106,27 +129,30 @@ export default function DomainSelector({
   );
 }
 
-function DomainSelectorItem({
+const DomainSelectorItem = memo(function DomainSelectorItem({
   element,
   isSelected,
   onToggle,
 }: {
   element: string;
   isSelected: boolean;
-  onToggle: () => void;
+  onToggle: (element: string) => void;
 }) {
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
   const relevantPreds = useAppSelector((state) =>
     selectRelevantUnaryPreds(state, element),
   );
 
-  const colorMap = getUnaryPredicateToColorMap(relevantPreds, allUnaryPreds);
+  const colorMap = useMemo(
+    () => getUnaryPredicateToColorMap(relevantPreds, allUnaryPreds),
+    [relevantPreds, allUnaryPreds],
+  );
 
   return (
-    <li key={element}>
+    <li>
       <button
         className={`domain-selector-item ${isSelected ? "active" : ""}`}
-        onClick={onToggle}
+        onClick={() => onToggle(element)}
         tabIndex={0}
         aria-pressed={isSelected}
       >
@@ -136,4 +162,4 @@ function DomainSelectorItem({
       </button>
     </li>
   );
-}
+});

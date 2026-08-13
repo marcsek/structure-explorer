@@ -5,16 +5,14 @@ import InterpretationFilters from "./InterpretationFilters";
 import type { TupleInfo } from "../../structure/tupleInfo";
 
 export type EditorFilters =
-  | "intrFilters"
-  | "domainSelector"
-  | "unaryFilterToggle";
+  "intrFilters" | "domainSelector" | "unaryFilterToggle";
 
 export interface GraphToolbarProps {
   tupleInfo: TupleInfo;
   disabledFilters?: EditorFilters[];
 }
 
-export function EditorToolbar({
+export default function EditorToolbar({
   tupleInfo,
   disabledFilters = [],
 }: GraphToolbarProps) {

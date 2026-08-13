@@ -12,14 +12,14 @@ export default function useClickAwayListener<T extends HTMLElement>({
   const ref = useRef<T | null>(null);
 
   useEffect(() => {
+    if (!shouldListen) return;
+
     function handleClickOutside(event: MouseEvent) {
       if (ref.current && !ref.current.contains(event.target as Node))
         onClickOutside();
     }
 
-    if (shouldListen)
-      document.addEventListener("pointerdown", handleClickOutside);
-    else document.removeEventListener("pointerdown", handleClickOutside);
+    document.addEventListener("pointerdown", handleClickOutside);
 
     return () =>
       document.removeEventListener("pointerdown", handleClickOutside);

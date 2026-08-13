@@ -13,7 +13,7 @@ import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import useScrollControls from "./useScrollControls";
 import { useEffect, useRef } from "react";
-import useDraggingScroll from "./useDragginScroll";
+import useDraggingScroll from "./useDraggingScroll";
 import {
   predicateHovered,
   selectSelectedUnary,
@@ -21,7 +21,7 @@ import {
   unaryFilterDomainHovered,
   unaryFilterDomainToggled,
   unaryPredicateToggled,
-} from "../../editorToolbar/editorToolbarSlice";
+} from "../editorToolbarSlice";
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
@@ -122,7 +122,7 @@ function UnaryPredicatesFilter({
     (name) => name !== tupleName,
   );
 
-  const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
+  const filtersGroupRef = useRef<HTMLDivElement>(null);
   const isHoveredRef = useRef(false);
 
   useDraggingScroll(filtersGroupRef);
@@ -180,7 +180,12 @@ function UnaryPredicatesFilter({
         </div>
       )}
 
-      <fieldset className="unary-preds-filters-group" ref={filtersGroupRef}>
+      <div
+        className="unary-preds-filters-group"
+        ref={filtersGroupRef}
+        role="group"
+        aria-label="Unary predicate filters"
+      >
         <Button
           className="legend-select-all editor-toolbar-button legend-button"
           title="Select all"
@@ -205,7 +210,6 @@ function UnaryPredicatesFilter({
             >
               <input
                 type="checkbox"
-                name="unary preds"
                 checked={isSelected}
                 onChange={() => handlePredicateToggle(predicate)}
               />
@@ -219,7 +223,7 @@ function UnaryPredicatesFilter({
             </label>
           );
         })}
-      </fieldset>
+      </div>
 
       {scrollControls.showRightControl && (
         <div className="scroll-button-background right">

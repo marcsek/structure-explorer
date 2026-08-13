@@ -17,6 +17,8 @@
   scroll-behavior: smooth;
   padding: 0.25rem;
   scrollbar-width: thin;
+
+  min-width: 0;
 }
 
 .unary-preds-filters-wrapper {

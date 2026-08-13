@@ -7,7 +7,7 @@ import {
   Modal,
   Stack,
 } from "react-bootstrap";
-import { EditorToolbar } from "../editorToolbar/components/EditorToolbar";
+import EditorToolbar from "../editorToolbar/components/EditorToolbar";
 import { tupleTypeToTextViewType } from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
