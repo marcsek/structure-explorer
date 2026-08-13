@@ -9,14 +9,12 @@ import {
 import { updateVariables } from "../variables/variablesSlice";
 import {
   allQueriesStale,
-  parseQuery,
+  selectParsedQuery,
   selectParsedQueryVariables,
-  selectQuery,
   updateQueryStaleness,
   updateQueryText,
   updateQueryVariablesText,
 } from "./queriesSlice";
-import { selectLanguage } from "../language/languageSlice";
 
 export const querySliceListener = createListenerMiddleware<RootState>();
 
@@ -47,17 +45,10 @@ querySliceListener.startListening({
   matcher: isAnyOf(...actionsThatMakeQueryStale),
   effect(action, api) {
     if (updateQueryText.match(action)) {
-      const state = api.getOriginalState();
       const queryIdx = action.payload.idx;
-      const newText = action.payload.text;
 
-      const language = selectLanguage(state);
-
-      const prevQuery = selectQuery(state, queryIdx);
-      if (!prevQuery) return;
-
-      const previous = parseQuery(language, prevQuery.text);
-      const current = parseQuery(language, newText);
+      const previous = selectParsedQuery(api.getOriginalState(), queryIdx);
+      const current = selectParsedQuery(api.getState(), queryIdx);
 
       if (
         errorsDiffer(previous.error, current.error) ||

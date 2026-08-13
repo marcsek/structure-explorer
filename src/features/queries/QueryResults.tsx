@@ -37,8 +37,6 @@ export default function QueryResults({
 
   const queryResultString = `\\ \\{${correctAltVarsString} \\in ${correctDomainPower} \\mid \\mathcal{M} \\models  \\psi_${queryIdx + 1}[e${variablePairs}]\\}`;
 
-  const correct = results.filter(({ ok }) => ok);
-
   return (
     <div className="query-result-container">
       <div className="query-result-title">
@@ -52,8 +50,7 @@ export default function QueryResults({
 
       <QueryResultTable
         stale={stale}
-        results={correct}
-        kind="correct"
+        results={results}
         variables={altVariables}
       />
     </div>
@@ -66,17 +63,21 @@ const DISPLAY_INCREMENT = 10;
 interface QueryResultTableProps {
   results: QueryResult[];
   stale: boolean;
-  kind: "correct" | "incorrect";
   variables: string[];
 }
 
 function QueryResultTable({
   results,
   stale,
-  kind,
   variables,
 }: QueryResultTableProps) {
   const [displayCount, setDisplayCount] = useState(MIN_DISPLAY_COUNT);
+  const [shownResults, setShownResults] = useState(results);
+
+  if (shownResults !== results) {
+    setShownResults(results);
+    setDisplayCount(MIN_DISPLAY_COUNT);
+  }
 
   const handleDisplayCountChange = (type: "more" | "less") => {
     const displayIncrement = DISPLAY_INCREMENT * (type === "more" ? 1 : -1);
@@ -141,9 +142,9 @@ function QueryResultTable({
             </thead>
 
             <tbody>
-              {results.slice(0, displayCount).map((r) => (
-                <tr key={r.valuation.join(",")}>
-                  {r.valuation.map((val, i) => (
+              {results.slice(0, displayCount).map((valuation) => (
+                <tr key={valuation.join(",")}>
+                  {valuation.map((val, i) => (
                     <td key={i}>{val}</td>
                   ))}
                 </tr>
@@ -154,7 +155,7 @@ function QueryResultTable({
       )}
 
       {results.length > MIN_DISPLAY_COUNT && (
-        <div className={`query-result-display-buttons ${kind}`}>
+        <div className="query-result-display-buttons">
           <DisplayCountButton
             kind="less"
             onClick={handleDisplayCountChange}

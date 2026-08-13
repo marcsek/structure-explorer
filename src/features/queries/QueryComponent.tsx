@@ -1,7 +1,7 @@
 import { Button, Form, InputGroup, Stack } from "react-bootstrap";
 import {
   getQueryResults,
-  lockQuery,
+  toggleQueryLock,
   removeQuery,
   selectEvaluatedQuery,
   selectParsedQueryVariables,
@@ -122,7 +122,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
           {teacherMode && (
             <LockButton
               locked={locked}
-              locker={() => dispatch(lockQuery({ idx }))}
+              locker={() => dispatch(toggleQueryLock({ idx }))}
             />
           )}
 

@@ -28,7 +28,7 @@ export interface QueriesState {
   queries: QueryState[];
 }
 
-type WithQueryId<T = object> = {
+type WithQueryIndex<T = object> = {
   idx: number;
 } & T;
 
@@ -59,7 +59,7 @@ export const queriesSlice = createSlice({
 
     updateQueryText: (
       state,
-      action: PayloadAction<WithQueryId<{ text: string }>>,
+      action: PayloadAction<WithQueryIndex<{ text: string }>>,
     ) => {
       const { idx, text } = action.payload;
 
@@ -68,7 +68,7 @@ export const queriesSlice = createSlice({
 
     updateQueryVariablesText: (
       state,
-      action: PayloadAction<WithQueryId<{ text: string }>>,
+      action: PayloadAction<WithQueryIndex<{ text: string }>>,
     ) => {
       const { idx, text } = action.payload;
 
@@ -81,21 +81,21 @@ export const queriesSlice = createSlice({
 
     updateQueryStaleness: (
       state,
-      action: PayloadAction<WithQueryId<{ stale: boolean }>>,
+      action: PayloadAction<WithQueryIndex<{ stale: boolean }>>,
     ) => {
       const { idx, stale } = action.payload;
 
       if (state.queries[idx]) state.queries[idx].stale = stale;
     },
 
-    lockQuery: (state, action: PayloadAction<WithQueryId>) => {
+    toggleQueryLock: (state, action: PayloadAction<WithQueryIndex>) => {
       const { idx } = action.payload;
 
       if (state.queries[idx])
         state.queries[idx].locked = !state.queries[idx].locked;
     },
 
-    removeQuery: (state, action: PayloadAction<WithQueryId>) => {
+    removeQuery: (state, action: PayloadAction<WithQueryIndex>) => {
       state.queries.splice(action.payload.idx, 1);
     },
   },
@@ -164,15 +164,20 @@ export const selectParsedQueryVariables = createSelector(
   },
 );
 
+export const selectParsedQuery = createSelector(
+  [selectLanguage, selectQuery],
+  (language, query) => (query ? parseQuery(language, query.text) : {}),
+);
+
 export const selectEvaluatedQuery = createSelector(
   [
-    selectLanguage,
     selectStructure,
     selectQuery,
+    selectParsedQuery,
     selectParsedQueryVariables,
     selectValuation,
   ],
-  (language, structure, query, queryVariables, valuation) => {
+  (structure, query, parsed, queryVariables, valuation) => {
     if (!query) return {};
 
     if (queryVariables.error)
@@ -186,8 +191,6 @@ export const selectEvaluatedQuery = createSelector(
     for (const variable of queryVariables.parsed) {
       newValuation.set(variable, "");
     }
-
-    const parsed = parseQuery(language, query.text);
 
     if (!parsed.formula) return parsed;
 
@@ -241,10 +244,7 @@ export const selectEvaluatedQuery = createSelector(
   },
 );
 
-export interface QueryResult {
-  valuation: string[];
-  ok: boolean;
-}
+export type QueryResult = string[];
 
 export const getQueryResults = createSelector(
   [
@@ -256,7 +256,7 @@ export const getQueryResults = createSelector(
   (queryVariables, query, structure, structureValuation) => {
     if (queryVariables.error || query.error || !query.formula) return [];
 
-    const result: QueryResult[] = [];
+    const satisfying: QueryResult[] = [];
 
     const variables = queryVariables.parsed;
     const valuationLen = queryVariables.parsed.length;
@@ -269,14 +269,14 @@ export const getQueryResults = createSelector(
       }
 
       try {
-        const ok = query.formula.eval(structure, enhancedValuation);
-        result.push({ valuation, ok });
+        if (query.formula.eval(structure, enhancedValuation))
+          satisfying.push(valuation);
       } catch (error) {
         console.error(error);
       }
     }
 
-    return result;
+    return satisfying;
   },
 );
 
@@ -305,7 +305,7 @@ export const {
   addQuery,
   allQueriesStale,
   updateQueryStaleness,
-  lockQuery,
+  toggleQueryLock,
   updateQueryText,
   updateQueryVariablesText,
   removeQuery,

@@ -95,16 +95,8 @@
   gap: 0.5rem;
 }
 
-.query-result-table-title span + span {
-  margin-left: 0.5rem;
-}
-
 .query-result-table-title:has(+ .query-result-table-scroll-wrapper) {
   border-bottom: 1px solid var(--bs-border-color);
-}
-
-.query-result-table-title .total-count {
-  color: var(--bs-secondary-color);
 }
 
 .query-result-table-title .description strong {
