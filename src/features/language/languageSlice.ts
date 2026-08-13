@@ -98,8 +98,8 @@ export const selectFunctionsLock = (state: RootState) =>
   state.present.language.functions.locked;
 
 export const selectValidatedConstants = createSelector(
-  [(state: RootState) => state.present.language.constants],
-  ({ value: constants }) => {
+  [(state: RootState) => state.present.language.constants.value],
+  (constants) => {
     const result: Validated<Set<string>> = { parsed: new Set(constants) };
 
     for (const element of constants) {
@@ -115,8 +115,8 @@ export const selectValidatedConstants = createSelector(
 );
 
 export const selectValidatedPredicates = createSelector(
-  [(state: RootState) => state.present.language.predicates],
-  ({ value: predicates }): Validated<Map<string, number>> => {
+  [(state: RootState) => state.present.language.predicates.value],
+  (predicates): Validated<Map<string, number>> => {
     const result: Validated<Map<string, number>> = {
       parsed: new Map(predicates),
     };
@@ -134,8 +134,8 @@ export const selectValidatedPredicates = createSelector(
 );
 
 export const selectValidatedFunctions = createSelector(
-  [(state: RootState) => state.present.language.functions],
-  ({ value: functions }): Validated<Map<string, number>> => {
+  [(state: RootState) => state.present.language.functions.value],
+  (functions): Validated<Map<string, number>> => {
     const result: Validated<Map<string, number>> = {
       parsed: new Map(functions),
     };

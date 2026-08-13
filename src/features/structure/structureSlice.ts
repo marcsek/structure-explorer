@@ -262,8 +262,8 @@ export const selectInterpretationByType = <T extends keyof InterpretationMap>(
 };
 
 export const selectValidatedDomain = createSelector(
-  [(state: RootState) => state.present.structure.domain],
-  ({ value: domain }): Validated<string[]> => {
+  [(state: RootState) => state.present.structure.domain.value],
+  (domain): Validated<string[]> => {
     const result: Validated<DomainRepresentation> = { parsed: domain };
 
     if (domain.length === 0)
