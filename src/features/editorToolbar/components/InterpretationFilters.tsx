@@ -12,7 +12,7 @@ import {
 import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import useScrollControls from "./useScrollControls";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import useDraggingScroll from "./useDragginScroll";
 import {
   predicateHovered,
@@ -35,6 +35,8 @@ export default function InterpretationFilters({
   tupleInfo,
   disabledFilters,
 }: InterpretationFiltersProps) {
+  const { name, type, arity } = tupleInfo;
+
   const dispatch = useAppDispatch();
   const unaryFilterDomain = useAppSelector((state) =>
     selectUnaryFilterDomain(state, tupleInfo),
@@ -43,11 +45,30 @@ export default function InterpretationFilters({
     selectSelectedUnary(state, tupleInfo),
   );
 
-  const unaryPredicatesCount = useAppSelector(selectUnaryPreds)?.length ?? 0;
+  const unaryPredicatesCount = useAppSelector(selectUnaryPreds).length;
+
+  const isHoveredRef = useRef(false);
 
   const handleDomainHover = (hovered: boolean) => {
+    isHoveredRef.current = hovered;
     dispatch(unaryFilterDomainHovered({ tupleInfo, hovered }));
   };
+
+  // Unhover on unmount if hovered
+  useEffect(
+    () => () => {
+      if (!isHoveredRef.current) return;
+
+      isHoveredRef.current = false;
+      dispatch(
+        unaryFilterDomainHovered({
+          tupleInfo: { name, type, arity },
+          hovered: false,
+        }),
+      );
+    },
+    [dispatch, name, type, arity],
+  );
 
   return (
     <div className="intr-filters-container">
@@ -90,7 +111,7 @@ function UnaryPredicatesFilter({
   tupleInfo,
   disabled,
 }: UnaryPredicatesFilterProps) {
-  const { name: tupleName } = tupleInfo;
+  const { name: tupleName, type, arity } = tupleInfo;
 
   const dispatch = useAppDispatch();
   const predicates = useAppSelector(selectUnaryPreds).map(([name]) => name);
@@ -102,23 +123,38 @@ function UnaryPredicatesFilter({
   );
 
   const filtersGroupRef = useRef<HTMLFieldSetElement>(null);
+  const isHoveredRef = useRef(false);
 
   useDraggingScroll(filtersGroupRef);
   const scrollControls = useScrollControls(filtersGroupRef, { edgeMargin: 40 });
 
+  useEffect(
+    () => () => {
+      if (!isHoveredRef.current) return;
+
+      isHoveredRef.current = false;
+      dispatch(
+        predicateHovered({
+          tupleInfo: { name: tupleName, type, arity },
+          predicates: [],
+        }),
+      );
+    },
+    [dispatch, tupleName, type, arity],
+  );
+
   if (disabled) return null;
 
   const handleSelectAll = () => {
-    const allSelected =
-      selectedPredicates.length === predicatesExcludingSelf.length;
-    const newSelectedPredicates = allSelected
-      ? []
-      : predicatesExcludingSelf.map((pred) => pred);
+    const allSelected = predicatesExcludingSelf.every((pred) =>
+      selectedPredicates.includes(pred),
+    );
 
-    handlePredicateToggle(newSelectedPredicates);
+    handlePredicateToggle(allSelected ? [] : predicatesExcludingSelf);
   };
 
   const handlePredicateHover = (hoveredPredicates: string[]) => {
+    isHoveredRef.current = hoveredPredicates.length > 0;
     dispatch(
       predicateHovered({
         tupleInfo,
@@ -155,43 +191,34 @@ function UnaryPredicatesFilter({
           <FontAwesomeIcon icon={faCheckDouble} />
         </Button>
 
-        {predicatesExcludingSelf.map((predicate) => (
-          <label
-            key={predicate}
-            className="unary-preds-filters-checkbox"
-            style={{
-              color: getUnaryPredicateColor(predicates.indexOf(predicate)),
-            }}
-            onMouseEnter={() => handlePredicateHover([predicate])}
-            onMouseLeave={() => handlePredicateHover([])}
-          >
-            <input
-              type="checkbox"
-              name="unary preds"
-              checked={selectedPredicates.includes(predicate)}
-              onChange={() => handlePredicateToggle(predicate)}
-            />
-            <span
-              className="unary-preds-filters-checkbox-indicator"
-              style={{
-                color: getUnaryPredicateColor(predicates.indexOf(predicate)),
-              }}
+        {predicatesExcludingSelf.map((predicate) => {
+          const color = getUnaryPredicateColor(predicates.indexOf(predicate));
+          const isSelected = selectedPredicates.includes(predicate);
+
+          return (
+            <label
+              key={predicate}
+              className="unary-preds-filters-checkbox"
+              style={{ color }}
+              onMouseEnter={() => handlePredicateHover([predicate])}
+              onMouseLeave={() => handlePredicateHover([])}
             >
-              {selectedPredicates.includes(predicate) && (
-                <FontAwesomeIcon icon={faCheck} />
-              )}
-            </span>
-            <p
-              style={{
-                color: selectedPredicates.includes(predicate)
-                  ? getUnaryPredicateColor(predicates.indexOf(predicate))
-                  : "",
-              }}
-            >
-              {predicate}
-            </p>
-          </label>
-        ))}
+              <input
+                type="checkbox"
+                name="unary preds"
+                checked={isSelected}
+                onChange={() => handlePredicateToggle(predicate)}
+              />
+              <span
+                className="unary-preds-filters-checkbox-indicator"
+                style={{ color }}
+              >
+                {isSelected && <FontAwesomeIcon icon={faCheck} />}
+              </span>
+              <p style={{ color: isSelected ? color : "" }}>{predicate}</p>
+            </label>
+          );
+        })}
       </fieldset>
 
       {scrollControls.showRightControl && (
