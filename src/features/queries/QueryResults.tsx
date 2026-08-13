@@ -114,7 +114,7 @@ function QueryResultTable({
     return "No results found.";
   };
 
-  const titleClass = stale ? "warning" : didFindResults ? "success" : "danger";
+  const titleClass = stale ? "error" : didFindResults ? "success" : "danger";
 
   return (
     <>

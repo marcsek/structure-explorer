@@ -44,14 +44,21 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
   const queryVariables = useAppSelector((state) =>
     selectParsedQueryVariables(state, idx),
   );
-  const { text: queryText, variablesText, locked } = query;
 
   const handleQueryButtonClick = () => {
     dispatch(updateQueryStaleness({ idx, stale: false }));
 
-    const queryResults = getQueryResults(store.getState(), idx);
-    setQueryResults(queryResults);
+    setQueryResults(getQueryResults(store.getState(), idx));
   };
+
+  const serializedVars = queryVariables.parsed?.join() ?? "";
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQueryResults([]);
+  }, [serializedVars]);
+
+  if (!query) return null;
 
   const nonQueryError = nonFormulaErrorMessage
     ? new Error(nonFormulaErrorMessage)
@@ -61,12 +68,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
   const variablesError =
     queryVariables.error || queryVariables.parsed.length === 0;
 
-  const serializedVars = queryVariables.parsed?.join() ?? "";
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQueryResults([]);
-  }, [serializedVars]);
+  const { text: queryText, variablesText, locked } = query;
 
   return (
     <Stack gap={2}>

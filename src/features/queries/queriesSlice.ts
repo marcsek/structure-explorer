@@ -15,6 +15,7 @@ import {
   parseFormulaWithPrecedence,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { SerializedQueriesState } from "./validationSchema";
+import { plural } from "../../shared/core/utils";
 
 export interface QueryState {
   text: string;
@@ -121,20 +122,23 @@ export const parseQuery = (language: Language, formText: string) => {
 export const selectQueries = (state: RootState) =>
   state.present.queries.queries;
 
-export const selectQueryIndexes = (state: RootState) => {
-  const length = state.present.queries.queries.length;
-  return Array.from({ length }, (_, i) => i);
-};
+export const selectQueryIndexes = createSelector([selectQueries], (queries) =>
+  Array.from({ length: queries.length }, (_, i) => i),
+);
 
-export const selectQuery = (state: RootState, idx: number) =>
-  state.present.queries.queries[idx];
+export const selectQuery = (
+  state: RootState,
+  idx: number,
+): QueryState | undefined => state.present.queries.queries[idx];
 
 export const selectParsedQueryVariables = createSelector(
   [selectQuery],
-  ({ variablesText }) => {
+  (query) => {
+    if (!query) return { parsed: [] as string[] };
+
     let parsed: string[];
     try {
-      parsed = parseConstants(variablesText);
+      parsed = parseConstants(query.variablesText);
     } catch (error) {
       if (error instanceof ParserSyntaxError) {
         const adjustedMessage = error.message.replace("constant", "variable");
@@ -142,6 +146,19 @@ export const selectParsedQueryVariables = createSelector(
       }
       throw error;
     }
+
+    const duplicates = [
+      ...new Set(parsed.filter((v, i) => parsed.indexOf(v) !== i)),
+    ];
+
+    if (duplicates.length > 0)
+      return {
+        error: new Error(
+          `Query ${plural(duplicates.length, "variable")} ${duplicates.join(", ")} ` +
+            `${duplicates.length > 1 ? "are" : "is"} listed ` +
+            `more than once. Query variables must be distinct.`,
+        ),
+      };
 
     return { parsed };
   },
@@ -156,6 +173,8 @@ export const selectEvaluatedQuery = createSelector(
     selectValuation,
   ],
   (language, structure, query, queryVariables, valuation) => {
+    if (!query) return {};
+
     if (queryVariables.error)
       return {
         error: new Error(
@@ -178,14 +197,14 @@ export const selectEvaluatedQuery = createSelector(
     );
 
     const unsetFreeVarsLen = unsetFreeVars.length;
-    if (unsetFreeVars.length > 0) {
-      const correctPluralVars = `variable${unsetFreeVarsLen > 1 ? "s" : ""}`;
-      const correctPluralVerb = unsetFreeVarsLen > 1 ? "are" : "is";
+    if (unsetFreeVarsLen > 0) {
+      const verb = unsetFreeVarsLen > 1 ? "are" : "is";
 
       return {
         error: new Error(
-          `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
-but ${correctPluralVerb} not listed among query variables or assigned any value by the global assignment 𝑒.`,
+          `The ${plural(unsetFreeVarsLen, "variable")} ${unsetFreeVars.join(", ")} ${verb} free, ` +
+            `but ${verb} not listed among query variables or assigned any value ` +
+            `by the global assignment 𝑒.`,
         ),
       };
     }
@@ -202,13 +221,12 @@ but ${correctPluralVerb} not listed among query variables or assigned any value 
 
     const notFreeLen = notFree.length;
     if (notFreeLen > 0) {
-      const correctPluralVars = `variable${notFreeLen > 1 ? "s" : ""}`;
-      const correctPluralVerb = notFreeLen > 1 ? "are" : "is";
+      const verb = notFreeLen > 1 ? "are" : "is";
 
       return {
         error: new Error(
-          `Query ${correctPluralVars} ${notFree.join(", ")} ${correctPluralVerb} 
-not free on the right-hand side of the query definition.`,
+          `Query ${plural(notFreeLen, "variable")} ${notFree.join(", ")} ${verb} ` +
+            `not free on the right-hand side of the query definition.`,
         ),
       };
     }

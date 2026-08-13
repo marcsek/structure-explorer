@@ -115,10 +115,7 @@
   color: var(--bs-success);
 }
 
-.query-result-table-title.warning .description {
-  color: var(--bs-danger);
-}
-
+.query-result-table-title.error .description,
 .query-result-table-title.danger .description {
   color: var(--bs-danger);
 }

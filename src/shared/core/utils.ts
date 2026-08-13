@@ -33,3 +33,6 @@ export function latex(parts: string[] = []) {
     get: () => parts.join(" "),
   };
 }
+
+export const plural = (count: number, noun: string) =>
+  `${noun}${count > 1 ? "s" : ""}`;
