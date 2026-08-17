@@ -201,6 +201,7 @@ export default function OrientedGraph({
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>
       <Controls
+        id={id}
         expandedView={expandedView}
         onExpandedViewChange={onExpandedViewChange}
         onLayout={onLayout}

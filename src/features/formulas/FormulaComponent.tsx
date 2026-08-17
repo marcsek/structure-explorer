@@ -96,148 +96,145 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
     isVerified === undefined ? "tbd" : isVerified ? "won" : "lost";
 
   return (
-    <>
-      <Form>
-        <Row>
-          <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
-            <InputGroup.Text>
-              <InlineMath>{`${displayName} \\equiv`}</InlineMath>
-            </InputGroup.Text>
-            <Form.Control
-              placeholder="Formula"
-              aria-label="Formula"
-              aria-describedby="basic-addon2"
-              disabled={isFromContext || locked === true}
-              value={text}
-              onChange={(e) => {
-                dispatch(updateFormulaText({ id, text: e.target.value }));
-              }}
-              isInvalid={!!error}
-              onBlur={() => dispatch(UndoActions.checkpoint())}
-            />
+    <Form>
+      <Row>
+        <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
+          <InputGroup.Text>
+            <InlineMath>{`${displayName} \\equiv`}</InlineMath>
+          </InputGroup.Text>
+          <Form.Control
+            placeholder="Formula"
+            aria-label="Formula"
+            disabled={isFromContext || locked === true}
+            value={text}
+            onChange={(e) => {
+              dispatch(updateFormulaText({ id, text: e.target.value }));
+            }}
+            isInvalid={!!error}
+            onBlur={() => dispatch(UndoActions.checkpoint())}
+          />
 
-            {!locked && (
-              <Button
-                variant="outline-danger"
-                id="button-addon2"
-                onClick={() => {
-                  dispatch(removeFormula(id));
-                  dispatch(UndoActions.checkpoint());
-                }}
-              >
-                <FontAwesomeIcon icon={faTrash} />
-              </Button>
-            )}
+          {!locked && (
+            <Button
+              variant="outline-danger"
+              aria-label="Remove formula"
+              onClick={() => {
+                dispatch(removeFormula(id));
+                dispatch(UndoActions.checkpoint());
+              }}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+            </Button>
+          )}
+
+          {teacherMode === true && (
+            <LockButton
+              locked={locked}
+              locker={() => dispatch(lockFormula(id))}
+            />
+          )}
+
+          <ErrorFeedback error={error} text={text} />
+        </InputGroup>
+      </Row>
+
+      <Row className="align-items-start mb-3 formula-select-container">
+        <Col xs="auto">
+          <InputGroup
+            hasValidation={guess !== null}
+            size="sm"
+            className="formula-select-input-group"
+          >
+            <InputGroup.Text>
+              <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
+            </InputGroup.Text>
+
+            <Form.Select
+              aria-label="Select"
+              value={
+                guess === true ? "true" : guess === false ? "false" : "null"
+              }
+              onChange={(e) => {
+                dispatch(
+                  updateGuess({
+                    id,
+                    guess:
+                      e.target.value === "true"
+                        ? true
+                        : e.target.value === "false"
+                          ? false
+                          : null,
+                  }),
+                );
+
+                dispatch(UndoActions.checkpoint());
+              }}
+              disabled={lockedGuess === true}
+              isValid={gameStatus === "won" && guess !== null}
+              isInvalid={gameStatus === "lost" && guess !== null}
+            >
+              <option value="null">⊨/⊭?</option>
+              <option value="true">⊨</option>
+              <option value="false">⊭</option>
+            </Form.Select>
+
+            <InputGroup.Text>
+              <InlineMath>{`${displayName}[e]`}</InlineMath>
+            </InputGroup.Text>
 
             {teacherMode === true && (
               <LockButton
-                locked={locked}
-                locker={() => dispatch(lockFormula(id))}
+                locked={lockedGuess}
+                locker={() => dispatch(lockFormulaGuess(id))}
               />
             )}
 
-            <ErrorFeedback error={error} text={text} />
-          </InputGroup>
-        </Row>
+            {gameStatus === "won" && (
+              <Form.Control.Feedback type="valid">
+                Verified!
+              </Form.Control.Feedback>
+            )}
 
-        <Row className="align-items-start mb-3 formula-select-container">
-          <Col xs="auto">
-            <InputGroup
-              hasValidation={guess !== null}
-              size="sm"
-              className="formula-select-input-group"
-            >
-              <InputGroup.Text>
-                <InlineMath>{String.raw`\mathcal{M}`}</InlineMath>
-              </InputGroup.Text>
+            {gameStatus === "lost" && (
+              <Form.Control.Feedback type="invalid">
+                Failed verification!
+              </Form.Control.Feedback>
+            )}
 
-              <Form.Select
-                aria-label="Select"
-                value={
-                  guess === true ? "true" : guess === false ? "false" : "null"
-                }
-                onChange={(e) => {
-                  dispatch(
-                    updateGuess({
-                      id,
-                      guess:
-                        e.target.value === "true"
-                          ? true
-                          : e.target.value === "false"
-                            ? false
-                            : null,
-                    }),
-                  );
-
-                  dispatch(UndoActions.checkpoint());
+            {guess !== null && gameStatus === "tbd" && (
+              <div
+                style={{
+                  width: "100%",
+                  marginTop: "0.25rem",
+                  fontSize: "0.875rem",
+                  color: "var(--bs-warning-text-emphasis)",
                 }}
-                disabled={lockedGuess === true}
-                isValid={gameStatus === "won" && guess !== null}
-                isInvalid={gameStatus === "lost" && guess !== null}
               >
-                <option value="null">⊨/⊭?</option>
-                <option value="true">⊨</option>
-                <option value="false">⊭</option>
-              </Form.Select>
+                Not verified.
+              </div>
+            )}
+          </InputGroup>
+        </Col>
 
-              <InputGroup.Text>
-                <InlineMath>{`${displayName}[e]`}</InlineMath>
-              </InputGroup.Text>
+        <Col xs="auto">
+          <GameVerificationButton
+            gameStatus={gameStatus}
+            gameOpened={begin}
+            didSelectGuess={guess !== null}
+            disabled={!!error || guess === null || !isPlayable}
+            onClick={() => setBegin(!begin)}
+          />
+        </Col>
+      </Row>
 
-              {teacherMode === true && (
-                <LockButton
-                  locked={lockedGuess}
-                  locker={() => dispatch(lockFormulaGuess(id))}
-                />
-              )}
-
-              {gameStatus === "won" && (
-                <Form.Control.Feedback type="valid">
-                  Verified!
-                </Form.Control.Feedback>
-              )}
-
-              {gameStatus === "lost" && (
-                <Form.Control.Feedback type="invalid">
-                  Failed verification!
-                </Form.Control.Feedback>
-              )}
-
-              {guess !== null && gameStatus === "tbd" && (
-                <div
-                  style={{
-                    width: "100%",
-                    marginTop: "0.25rem",
-                    fontSize: "0.875rem",
-                    color: "var(--bs-warning-text-emphasis)",
-                  }}
-                >
-                  Not verified.
-                </div>
-              )}
-            </InputGroup>
-          </Col>
-
-          <Col xs="auto">
-            <GameVerificationButton
-              gameStatus={gameStatus}
-              gameOpened={begin}
-              didSelectGuess={guess !== null}
-              disabled={!!error || guess === null || !isPlayable}
-              onClick={() => setBegin(!begin)}
-            />
-          </Col>
-        </Row>
-
-        {begin &&
-          guess !== null &&
-          formula &&
-          domain.error === undefined &&
-          isPlayable === true && (
-            <GameComponent id={id} guess={guess} originalFormula={formula} />
-          )}
-      </Form>
-    </>
+      {begin &&
+        guess !== null &&
+        formula &&
+        domain.error === undefined &&
+        isPlayable === true && (
+          <GameComponent id={id} guess={guess} originalFormula={formula} />
+        )}
+    </Form>
   );
 }
 

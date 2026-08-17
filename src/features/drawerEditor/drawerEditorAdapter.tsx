@@ -14,6 +14,7 @@ export interface ErrorOverride {
 }
 
 export interface DrawerEditorProps {
+  id: string;
   tupleInfo: TupleInfo;
   locked: boolean;
   expandedView: boolean;

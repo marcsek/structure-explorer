@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRotateLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { UndoActions } from "../features/undoHistory/undoHistory";
+import { useInstanceId } from "../providers/instanceIdContext";
 
 export default function Header() {
   return (
@@ -22,9 +23,10 @@ function HistoryButtons() {
   const dispatch = useDispatch();
   const canUndo = useAppSelector((state) => state.past.length > 0);
   const canRedo = useAppSelector((state) => state.future.length > 0);
+  const instanceId = useInstanceId();
 
   return (
-    <ButtonGroup>
+    <ButtonGroup id={`undo-buttons-${instanceId}`}>
       <Button
         variant="outline-secondary"
         disabled={!canUndo}

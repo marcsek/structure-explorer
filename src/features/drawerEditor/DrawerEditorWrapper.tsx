@@ -95,6 +95,7 @@ function DrawerEditorContent({
   const EditorComponent = config.component;
   const editorComponent = show ? (
     <EditorComponent
+      id={id}
       tupleInfo={tupleInfo}
       locked={locked}
       expandedView={expandedView}
@@ -147,6 +148,7 @@ function DrawerEditorContent({
         {config.toolbar && (
           <div className="drawer-editor-toolbar-container">
             <EditorToolbar
+              id={id}
               tupleInfo={tupleInfo}
               disabledFilters={config.toolbar.disabledFilters}
             />

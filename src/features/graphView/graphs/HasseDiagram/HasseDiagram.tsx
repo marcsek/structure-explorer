@@ -197,6 +197,7 @@ export default function HasseDiagram({
       </ReactFlow>
 
       <Controls
+        id={id}
         expandedView={expandedView}
         onExpandedViewChange={onExpandedViewChange}
         onLayout={onLayout}

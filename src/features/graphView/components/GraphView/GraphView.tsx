@@ -8,7 +8,6 @@ import BipartiteGraph from "../../graphs/BipartiteGraph/BipartiteGraph.tsx";
 import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
 import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
-import { useInstanceId } from "../../../../providers/instanceIdContext";
 import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
@@ -40,6 +39,7 @@ export interface GraphViewProps extends DrawerEditorProps {
 }
 
 export default function GraphView({
+  id,
   tupleInfo,
   locked,
   graphType,
@@ -49,8 +49,8 @@ export default function GraphView({
   const { name: tupleName } = tupleInfo;
 
   const dispatch = useAppDispatch();
-  const instanceId = useInstanceId();
 
+  // TODO: use listener for this
   useEffect(() => {
     dispatch(editorLocked({ tupleInfo, locked }));
   }, [dispatch, locked, tupleInfo]);
@@ -71,7 +71,7 @@ export default function GraphView({
           <GraphInfoContext.Provider value={{ tupleInfo, graphType, locked }}>
             <ReactFlowProvider>
               <GraphComponent
-                id={`${graphType}-${tupleName}-${instanceId}`}
+                id={`${graphType}-${id}`}
                 tupleInfo={tupleInfo}
                 locked={locked}
                 expandedView={expandedView}

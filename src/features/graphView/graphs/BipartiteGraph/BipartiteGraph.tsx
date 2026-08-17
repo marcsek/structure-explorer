@@ -235,6 +235,7 @@ export default function BipartiteGraph({
       </ReactFlow>
 
       <Controls
+        id={id}
         expandedView={expandedView}
         fitViewOptions={controlsFitViewOptions}
         onExpandedViewChange={onExpandedViewChange}

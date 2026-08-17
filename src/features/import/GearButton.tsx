@@ -13,12 +13,14 @@ import {
 import { useLogicContext } from "../../providers/logicContext";
 import { serializedAppStateSchema } from "./validationSchema";
 import { clearError, setError } from "../errorAlert/errorAlertSlice";
+import { useInstanceId } from "../../providers/instanceIdContext.tsx";
 
 export default function GearButton() {
   const dispatch = useAppDispatch();
   const teacherMode = useAppSelector(selectTeacherMode);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logicContext = useLogicContext();
+  const instanceId = useInstanceId();
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -50,7 +52,7 @@ export default function GearButton() {
   return (
     <>
       <DropdownButton
-        id="dropdown-item-button"
+        id={`dropdown-item-button-${instanceId}`}
         variant="secondary"
         title={<FontAwesomeIcon icon={faGear} />}
         autoClose={false}
@@ -63,10 +65,10 @@ export default function GearButton() {
         {teacherMode !== undefined && (
           <>
             <Form.Switch
+              id={`gear-switch-teachermode-${instanceId}`}
               checked={teacherMode}
               type="switch"
               className="ms-3"
-              id="custom-switch"
               label="Teacher mode"
               onChange={(e) => dispatch(updateTeacherMode(e.target.checked))}
             />

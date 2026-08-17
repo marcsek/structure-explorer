@@ -17,6 +17,7 @@ import TextView from "../textView/TextViewEditor.tsx";
 import { useSyncLanguageContext } from "../../providers/logicContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
+import { useInstanceId } from "../../providers/instanceIdContext.tsx";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -24,6 +25,8 @@ export default function LanguageComponent() {
   const symbolsClash = useAppSelector(selectSymbolsClash);
   const { hasContext } = useSyncLanguageContext();
   const editMode = useAppSelector((state) => state.present.language.editMode);
+
+  const instanceId = useInstanceId();
 
   return (
     <ComponentCard
@@ -50,7 +53,7 @@ export default function LanguageComponent() {
       {editMode ? (
         <Stack gap={3}>
           <TextView
-            id="constants"
+            id={`constants-${instanceId}`}
             name="constants"
             textViewType="constants"
             label="Individual constants"
@@ -61,7 +64,7 @@ export default function LanguageComponent() {
           />
 
           <TextView
-            id="predicates"
+            id={`predicates-${instanceId}`}
             name="predicates"
             textViewType="predicates"
             label="Predicate symbols"
@@ -72,7 +75,7 @@ export default function LanguageComponent() {
           />
 
           <TextView
-            id="functions"
+            id={`functions-${instanceId}`}
             name="functions"
             textViewType="functions"
             label="Function symbols"

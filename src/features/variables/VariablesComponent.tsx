@@ -1,12 +1,15 @@
 import { lockVariables, selectVariablesLock } from "./variablesSlice.ts";
 import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import TextView from "../textView/TextViewEditor.tsx";
+import { useInstanceId } from "../../providers/instanceIdContext.tsx";
 
 export default function VariablesComponent() {
+  const instanceId = useInstanceId();
+
   return (
     <ComponentCard heading="Variable assignment" help={help}>
       <TextView
-        id="variables"
+        id={`variables-${instanceId}`}
         name="variables"
         textViewType="variables"
         label="Variable assignment of individual variables"

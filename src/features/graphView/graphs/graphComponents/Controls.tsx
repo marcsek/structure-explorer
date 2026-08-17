@@ -29,20 +29,24 @@ const defaultZoomOptions: ViewportHelperFunctionOptions = {
   duration: 150,
 };
 
-function ControlsComponent({
-  expandedView = false,
-  fitViewOptions = defaultFitViewOptions,
-  onExpandedViewChange,
-  onInteractiveChange,
-  onLayout,
-}: {
+export interface ControlsComponentProps {
+  id: string;
   showInteractive?: boolean;
   expandedView?: boolean;
   fitViewOptions?: FitViewOptions;
   onExpandedViewChange?: OnExpandedViewChange;
   onInteractiveChange?: (change: boolean) => void;
   onLayout?: () => void;
-}) {
+}
+
+function ControlsComponent({
+  id,
+  expandedView = false,
+  fitViewOptions = defaultFitViewOptions,
+  onExpandedViewChange,
+  onInteractiveChange,
+  onLayout,
+}: ControlsComponentProps) {
   const { fitView, zoomIn, zoomOut } = useReactFlow();
 
   const handleExpandedViewChange = () => {
@@ -60,24 +64,28 @@ function ControlsComponent({
       onInteractiveChange={onInteractiveChange}
     >
       <TooltipControlButton
+        id={id}
         title="Zoom In"
         onClick={() => zoomIn(defaultZoomOptions)}
         icon={faPlus}
       />
 
       <TooltipControlButton
+        id={id}
         title="Zoom Out"
         onClick={() => zoomOut(defaultZoomOptions)}
         icon={faMinus}
       />
 
       <TooltipControlButton
+        id={id}
         title="Fit View"
         onClick={() => fitView(fitViewOptions)}
         icon={faExpand}
       />
       {onLayout !== undefined && (
         <TooltipControlButton
+          id={id}
           title="Layout"
           onClick={onLayout}
           icon={faHexagonNodes}
@@ -87,6 +95,7 @@ function ControlsComponent({
       <div className="react-flow__controls-divider" />
 
       <TooltipControlButton
+        id={id}
         title="Expanded View"
         onClick={handleExpandedViewChange}
         icon={
@@ -100,12 +109,14 @@ function ControlsComponent({
 }
 
 interface TooltipControlButtonProps {
+  id: string;
   title: string;
   onClick: () => void;
   icon: IconDefinition;
 }
 
 function TooltipControlButton({
+  id,
   title,
   onClick,
   icon,
@@ -115,7 +126,7 @@ function TooltipControlButton({
       placement="top"
       delay={{ show: 200, hide: 0 }}
       overlay={
-        <Tooltip className="custom-bs-tooltip sm mb" id={`tooltip-${title}`}>
+        <Tooltip className="custom-bs-tooltip sm mb" id={`tooltip-${id}`}>
           {title}
         </Tooltip>
       }

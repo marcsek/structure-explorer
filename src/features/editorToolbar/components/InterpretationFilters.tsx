@@ -27,6 +27,7 @@ import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
 
 export interface InterpretationFiltersProps {
+  id: string;
   tupleInfo: TupleInfo;
   disabledFilters: EditorFilters[];
 }

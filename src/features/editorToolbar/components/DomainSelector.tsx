@@ -3,7 +3,7 @@ import "./DomainSelector.css";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
-import { getTupleId, type TupleInfo } from "../../structure/tupleInfo";
+import { type TupleInfo } from "../../structure/tupleInfo";
 import {
   selectRelevantUnaryPreds,
   selectUnaryPreds,
@@ -17,11 +17,13 @@ import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicat
 import useClickAwayListener from "./useClickAwayListener";
 
 export interface DomainSelectorProps {
+  id: string;
   tupleInfo: TupleInfo;
   disabled: boolean;
 }
 
 export default function DomainSelector({
+  id,
   tupleInfo,
   disabled,
 }: DomainSelectorProps) {
@@ -35,7 +37,7 @@ export default function DomainSelector({
     selectSelectedDomain(state, tupleInfo),
   );
 
-  const bodyId = `domain-selector-body-${getTupleId(tupleInfo)}`;
+  const bodyId = `domain-selector-body-${id}`;
 
   const onClickOutside = useCallback(() => setIsOpen(false), []);
   const clickAwayRef = useClickAwayListener<HTMLDivElement>({

@@ -19,8 +19,11 @@ import {
   selectValidatedFunctions,
   selectValidatedPredicates,
 } from "../language/languageSlice.ts";
+import { useInstanceId } from "../../providers/instanceIdContext.tsx";
 
 export default function StructureComponent() {
+  const instanceId = useInstanceId();
+
   return (
     <ComponentCard
       heading={
@@ -33,7 +36,7 @@ export default function StructureComponent() {
     >
       <Stack gap={3}>
         <TextView
-          id="domain"
+          id={`domain-${instanceId}`}
           lock={() => lockDomain()}
           selectLock={selectDomainLock}
           name="domain"
@@ -47,7 +50,7 @@ export default function StructureComponent() {
           selectSymbols={selectValidatedConstants}
           renderSymbol={(name) => (
             <TextView
-              id={`constant-${name}`}
+              id={`constant-${name}-${instanceId}`}
               key={name}
               name={name}
               textViewType="constant_interpretation"
@@ -62,7 +65,7 @@ export default function StructureComponent() {
           selectSymbols={selectValidatedPredicates}
           renderSymbol={([name, arity]) => (
             <TupleInterpretationEditor
-              id={`predicate-${name}-${arity}`}
+              id={`predicate-${name}-${arity}-${instanceId}`}
               key={`predicate-${name}`}
               tupleInfo={{ name, arity, type: "predicate" }}
               lock={(name) => lockInterpretationPredicates({ key: name })}
@@ -76,7 +79,7 @@ export default function StructureComponent() {
           selectSymbols={selectValidatedFunctions}
           renderSymbol={([name, arity]) => (
             <TupleInterpretationEditor
-              id={`function-${name}-${arity}`}
+              id={`function-${name}-${arity}-${instanceId}`}
               key={`function-${name}`}
               tupleInfo={{ name, arity, type: "function" }}
               lock={(name) => lockFunctionSymbols({ key: name })}
