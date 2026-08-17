@@ -5,7 +5,7 @@
  * @class
  */
 import { type Language as ParserLanguage } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import Term from "./term/Term";
+import type Term from "./term/Term";
 export type Symbol = string;
 
 export class Language {

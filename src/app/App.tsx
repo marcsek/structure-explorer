@@ -6,7 +6,6 @@ import VariablesComponent from "../features/variables/VariablesComponent";
 import { Col, Container, Row } from "react-bootstrap";
 import LanguageComponent from "../features/language/LanguageComponent";
 import FormulaCard from "../features/formulas/FormulaCard";
-import usePreset from "../presets/usePreset";
 import Header from "../layout/Header";
 import ErrorAlert from "../features/errorAlert/ErrorAlert";
 import QueriesComponent from "../features/queries/QueriesComponent";
@@ -16,8 +15,6 @@ interface AppProps {
 }
 
 function App({ viewOnlyMode }: AppProps) {
-  usePreset();
-
   return (
     <div className="structure-explorer position-relative app-component">
       <ErrorAlert />

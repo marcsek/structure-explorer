@@ -31,7 +31,6 @@ import {
 import Controls from "../graphComponents/Controls.tsx";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import { type SetGroupNodeType } from "../graphComponents/SetGroupNode.tsx";
-import { partition } from "../../helpers/utils.ts";
 import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
 import {
   defaultFitViewDuration,
@@ -43,6 +42,7 @@ import {
 } from "../common/MessageDialogs.tsx";
 import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
+import { partition } from "../../../../shared/core/utils.ts";
 
 export type OriginSet = "domain" | "range";
 
