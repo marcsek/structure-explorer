@@ -126,7 +126,10 @@ function TooltipControlButton({
       placement="top"
       delay={{ show: 200, hide: 0 }}
       overlay={
-        <Tooltip className="custom-bs-tooltip sm mb" id={`tooltip-${id}`}>
+        <Tooltip
+          className="custom-bs-tooltip sm mb"
+          id={`tooltip-${title}-${id}`}
+        >
           {title}
         </Tooltip>
       }
