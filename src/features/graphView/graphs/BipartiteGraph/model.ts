@@ -1,7 +1,6 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { TupleType } from "../../../structure/tupleInfo";
-import type { BipartiteNodeType, OriginSet } from "./BipartiteGraph";
 import { computeLayoutBipartite } from "./layout";
 import type { Connection, Edge } from "@xyflow/react";
 import {
@@ -13,6 +12,13 @@ import {
   type NodeFlags,
   type PositionSeed,
 } from "../common/GraphModel";
+import type { PredicateNodeType } from "../graphComponents/PredicateNode";
+
+export type OriginSet = "domain" | "range";
+
+export type BipartiteNodeType = PredicateNodeType<{
+  origin: OriginSet;
+}>;
 
 export interface BipartiteGraphState extends GraphState {
   kind: "bipartite";

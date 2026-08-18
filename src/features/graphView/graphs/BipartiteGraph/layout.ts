@@ -1,12 +1,12 @@
 import { applyNodeChanges, type NodeChange } from "@xyflow/react";
-import type { BipartiteNodeType } from "./BipartiteGraph";
+import type { BipartiteNodeType } from "./model";
 
-const paddingX = 40,
-  paddingY = 20;
-const gapY = 35;
+const PADDING_X = 40;
+const PADDING_Y = 20;
+const GAP_Y = 35;
 
-const groupContainerWidth = 200;
-const groupContainerGap = 50;
+const GROUP_CONTAINER_WIDTH = 200;
+const GROUP_CONTAINER_GAP = 50;
 
 export const computeGroupContainerBounds = (nodes: BipartiteNodeType[]) => {
   const stackedHeight =
@@ -14,10 +14,10 @@ export const computeGroupContainerBounds = (nodes: BipartiteNodeType[]) => {
 
   return {
     bounds: {
-      width: groupContainerWidth,
-      height: stackedHeight + 2 * paddingY + (nodes.length / 2 - 1) * gapY,
+      width: GROUP_CONTAINER_WIDTH,
+      height: stackedHeight + 2 * PADDING_Y + (nodes.length / 2 - 1) * GAP_Y,
     },
-    offset: { x: (groupContainerGap + groupContainerWidth) / 2, y: 0 },
+    offset: { x: (GROUP_CONTAINER_GAP + GROUP_CONTAINER_WIDTH) / 2, y: 0 },
   };
 };
 
@@ -33,8 +33,8 @@ export const generateLayoutNodesChangesBipartite = (
   nodes: BipartiteNodeType[],
   draggedNodesIds?: string[],
 ) => {
-  let domainY = paddingY,
-    rangeY = paddingY;
+  let domainY = PADDING_Y,
+    rangeY = PADDING_Y;
 
   const vissible = nodes.filter((node) => !node.hidden);
   const ordered = vissible.sort((a, b) => a.position.y - b.position.y);
@@ -48,8 +48,8 @@ export const generateLayoutNodesChangesBipartite = (
 
     const x =
       origin === "domain"
-        ? groupContainerWidth - paddingX - nodeWidth
-        : paddingX;
+        ? GROUP_CONTAINER_WIDTH - PADDING_X - nodeWidth
+        : PADDING_X;
     const y = origin === "domain" ? domainY : rangeY;
 
     const newNode = node;
@@ -66,8 +66,8 @@ export const generateLayoutNodesChangesBipartite = (
         position: { x, y },
       });
 
-    domainY += origin === "domain" ? gapY + nodeHeight : 0;
-    rangeY += origin === "range" ? gapY + nodeHeight : 0;
+    domainY += origin === "domain" ? GAP_Y + nodeHeight : 0;
+    rangeY += origin === "range" ? GAP_Y + nodeHeight : 0;
 
     return newNode;
   });

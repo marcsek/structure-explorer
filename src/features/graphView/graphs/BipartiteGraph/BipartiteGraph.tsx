@@ -1,31 +1,17 @@
 import {
   Background,
   ReactFlow,
-  type Edge,
   type NodeChange,
-  type EdgeChange,
-  type OnConnect,
   applyNodeChanges,
   type NodePositionChange,
   type FitViewOptions,
   useReactFlow,
-  type IsValidConnection,
   type Node,
   useNodesInitialized,
 } from "@xyflow/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
-import { type PredicateNodeType } from "../graphComponents/PredicateNode";
-import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
-import {
-  graphDidInitialLayout,
-  makeSelectNodes,
-  onConnected,
-  onEdgesChanged,
-  selectEdges,
-  warningChanged,
-} from "../graphSlice.ts";
-import { graphs } from "../graphRegistry.ts";
-import { getTupleId } from "../../../structure/tupleInfo";
+import { useAppDispatch } from "../../../../app/hooks";
+import { graphDidInitialLayout } from "../graphSlice.ts";
 import {
   computeGroupContainerBounds,
   generateLayoutNodesChangesBipartite,
@@ -33,7 +19,7 @@ import {
 import Controls from "../graphComponents/Controls.tsx";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import { type SetGroupNodeType } from "../graphComponents/SetGroupNode.tsx";
-import useSyncNodesWithStore from "../../helpers/useSyncNodesWithStore.ts";
+import useGraph from "../../helpers/useGraph.ts";
 import {
   defaultFitViewDuration,
   defaultFlowProps,
@@ -42,15 +28,9 @@ import {
   EmptyDomainMessageDialog,
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
-import useFitViewOnNodeAdded from "../../helpers/useFitViewOnNodeAdded.ts";
 import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
 import { partition } from "../../../../shared/core/utils.ts";
-
-export type OriginSet = "domain" | "range";
-
-export type BipartiteNodeType = PredicateNodeType<{
-  origin: OriginSet;
-}>;
+import type { BipartiteNodeType, OriginSet } from "./model.ts";
 
 const groupNodeOptions = {
   selectable: false,
@@ -73,7 +53,6 @@ const controlsFitViewOptions: FitViewOptions = {
 };
 
 const graphType = "bipartite";
-const nodeSelector = makeSelectNodes<"bipartite">();
 
 export default function BipartiteGraph({
   id,
@@ -82,31 +61,20 @@ export default function BipartiteGraph({
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const representsFunction = tupleInfo.type === "function";
-  const tupleId = getTupleId(tupleInfo);
-
   const dispatch = useAppDispatch();
-  const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleInfo, graphType),
-  );
-  const edges = useAppSelector((state) =>
-    selectEdges(state, tupleInfo, graphType),
-  );
-  const warning = useAppSelector(
-    (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,
-  );
+  const {
+    storeNodes,
+    nodes,
+    edges,
+    warning,
+    flowWrapperRef,
+    onNodesChange,
+    ...graphProps
+  } = useGraph({ tupleInfo, graphType });
 
   const nodesInitialized = useNodesInitialized();
 
-  const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore({
-    tupleInfo,
-    graphType,
-    storeNodes,
-  });
-
   const { getNode, fitView } = useReactFlow();
-
-  const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
   useEffect(() => {
     dispatch(
@@ -145,50 +113,6 @@ export default function BipartiteGraph({
     [nodes, onNodesChange, getNode],
   );
 
-  const onEdgesChange = useCallback(
-    (changes: EdgeChange<Edge>[]) =>
-      dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
-    [dispatch, tupleInfo],
-  );
-
-  const onConnect: OnConnect = useCallback(
-    (connection) =>
-      dispatch(
-        onConnected({
-          tupleInfo,
-          graphType,
-          connection,
-          breakPrevious: representsFunction,
-        }),
-      ),
-    [dispatch, tupleInfo, representsFunction],
-  );
-
-  const isValidConnection: IsValidConnection = useCallback(
-    (newEdge) => {
-      const [valid, error] = graphs[graphType].validateConnection(
-        edges,
-        newEdge,
-      );
-
-      if (error)
-        dispatch(warningChanged({ tupleInfo, graphType, warning: error }));
-
-      return valid;
-    },
-    [dispatch, edges, tupleInfo],
-  );
-
-  const onConnectEnd = useCallback(() => {
-    dispatch(
-      warningChanged({
-        tupleInfo,
-        graphType,
-        warning: undefined,
-      }),
-    );
-  }, [dispatch, tupleInfo]);
-
   const dialogShown = storeNodes.length === 0;
 
   return (
@@ -202,16 +126,12 @@ export default function BipartiteGraph({
         nodes={groupedNodes}
         edges={edges}
         onNodesChange={computeLayoutChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onConnectEnd={onConnectEnd}
-        onNodeDragStop={syncNodesWithStore}
-        isValidConnection={isValidConnection}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
         zoomOnScroll={expandedView && !dialogShown}
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
+        {...graphProps}
         {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />

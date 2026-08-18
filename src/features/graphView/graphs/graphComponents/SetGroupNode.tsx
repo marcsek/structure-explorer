@@ -1,6 +1,6 @@
-import type { OriginSet } from "../BipartiteGraph/BipartiteGraph";
 import "./graphComponents.css";
 
+import type { OriginSet } from "../BipartiteGraph/model";
 import { type Node, type NodeProps } from "@xyflow/react";
 
 type SetGroupNodeData = {

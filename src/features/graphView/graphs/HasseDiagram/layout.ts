@@ -40,5 +40,5 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
     });
   }
 
-  return { nodeChanges };
+  return nodeChanges;
 };
