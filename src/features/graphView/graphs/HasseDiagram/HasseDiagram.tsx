@@ -22,8 +22,15 @@ export default function HasseDiagram({
   expandedView,
   onExpandedViewChange,
 }: GraphComponentProps) {
-  const { storeNodes, nodes, edges, warning, flowWrapperRef, ...graphProps } =
-    useGraph({ tupleInfo, graphType, includeHovered: true });
+  const {
+    storeNodes,
+    nodes,
+    edges,
+    warning,
+    flowWrapperRef,
+    syncNodesWithStore,
+    graphProps,
+  } = useGraph({ tupleInfo, graphType, includeHovered: true });
 
   const isPoset = useAppSelector((state) =>
     selectPosetValidity(state, tupleInfo),
@@ -55,6 +62,7 @@ export default function HasseDiagram({
         nodes={isPoset ? nodes : []}
         edges={isPoset ? edges : []}
         nodesConnectable={!locked}
+        onNodeDragStop={syncNodesWithStore}
         panOnDrag={!dialogShown}
         zoomOnScroll={expandedView && !dialogShown}
         zoomOnDoubleClick={!dialogShown}

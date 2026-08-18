@@ -68,8 +68,8 @@ export default function BipartiteGraph({
     edges,
     warning,
     flowWrapperRef,
-    onNodesChange,
-    ...graphProps
+    syncNodesWithStore,
+    graphProps: { onNodesChange, ...graphProps },
   } = useGraph({ tupleInfo, graphType });
 
   const nodesInitialized = useNodesInitialized();
@@ -126,6 +126,7 @@ export default function BipartiteGraph({
         nodes={groupedNodes}
         edges={edges}
         onNodesChange={computeLayoutChange}
+        onNodeDragStop={syncNodesWithStore}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
         zoomOnScroll={expandedView && !dialogShown}

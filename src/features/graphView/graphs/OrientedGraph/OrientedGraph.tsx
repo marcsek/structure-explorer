@@ -28,7 +28,8 @@ export default function OrientedGraph({
     warning,
     didLayout,
     flowWrapperRef,
-    ...graphProps
+    syncNodesWithStore,
+    graphProps,
   } = useGraph({ tupleInfo, graphType });
 
   const onLayout = useGraphLayout({
@@ -56,6 +57,7 @@ export default function OrientedGraph({
         id={id}
         nodes={didLayout ? nodes : []}
         edges={edges}
+        onNodeDragStop={syncNodesWithStore}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
         zoomOnScroll={expandedView && !dialogShown}
@@ -67,7 +69,6 @@ export default function OrientedGraph({
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>
-
       <Controls
         id={id}
         expandedView={expandedView}

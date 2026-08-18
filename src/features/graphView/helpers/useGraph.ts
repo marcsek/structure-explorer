@@ -131,12 +131,14 @@ export default function useGraph<T extends GraphType>({
     warning,
     didLayout,
     flowWrapperRef,
-    onNodesChange,
     syncNodesWithStore,
-    onEdgesChange,
-    onConnect,
-    onConnectEnd,
-    isValidConnection,
+    graphProps: {
+      onNodesChange,
+      onEdgesChange,
+      onConnect,
+      onConnectEnd,
+      isValidConnection,
+    },
   };
 }
 
