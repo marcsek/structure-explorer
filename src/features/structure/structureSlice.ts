@@ -22,7 +22,7 @@ import {
 } from "../../shared/core/redux";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
-import type { TupleInfo, TupleType } from "./tupleInfo";
+import type { TupleIdentity, TupleInfo, TupleType } from "./tupleInfo";
 import { dev } from "../../shared/core/logging";
 
 export type InterpretationType = "predicate" | "function" | "constant";
@@ -251,6 +251,11 @@ export const selectIfName = (state: RootState, name: string) =>
   state.present.structure.iF[name];
 export const selectIfLock = (state: RootState, name: string) =>
   state.present.structure.iF[name]?.locked ?? false;
+
+export const selectTupleLock = (state: RootState, tupleInfo: TupleIdentity) =>
+  tupleInfo.type === "predicate"
+    ? selectIpLock(state, tupleInfo.name)
+    : selectIfLock(state, tupleInfo.name);
 
 export const selectInterpretationByType = <T extends keyof InterpretationMap>(
   state: RootState,

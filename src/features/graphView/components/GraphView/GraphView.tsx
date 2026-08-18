@@ -8,9 +8,6 @@ import BipartiteGraph from "../../graphs/BipartiteGraph/BipartiteGraph.tsx";
 import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
 import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
-import { useAppDispatch } from "../../../../app/hooks.ts";
-import { useEffect } from "react";
-import { editorLocked } from "../../graphs/graphSlice.ts";
 import type { GraphType } from "../../graphs/graphRegistry.ts";
 import type { TupleInfo } from "../../../structure/tupleInfo";
 import type { DrawerEditorProps } from "../../../drawerEditor/drawerEditorAdapter.tsx";
@@ -47,13 +44,6 @@ export default function GraphView({
   setExpandedView,
 }: GraphViewProps) {
   const { name: tupleName } = tupleInfo;
-
-  const dispatch = useAppDispatch();
-
-  // TODO: use listener for this
-  useEffect(() => {
-    dispatch(editorLocked({ tupleInfo, locked }));
-  }, [dispatch, locked, tupleInfo]);
 
   const GraphComponent = graphComponents[graphType];
 

@@ -21,6 +21,7 @@ import {
   makeSelectNodes,
   onConnected,
   onEdgesChanged,
+  selectEdges,
   warningChanged,
 } from "../graphSlice.ts";
 import { getTupleId } from "../../../structure/tupleInfo";
@@ -87,8 +88,8 @@ export default function BipartiteGraph({
   const storeNodes = useAppSelector((state) =>
     nodeSelector(state, tupleInfo, graphType),
   );
-  const edges = useAppSelector(
-    (state) => state.present.graphView[tupleId]?.state[graphType]?.edges,
+  const edges = useAppSelector((state) =>
+    selectEdges(state, tupleInfo, graphType),
   );
   const warning = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,

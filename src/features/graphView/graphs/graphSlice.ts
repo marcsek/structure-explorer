@@ -28,6 +28,7 @@ import {
 } from "./graphRegistry.ts";
 import { type LanguageState } from "../../language/languageSlice.ts";
 import {
+  selectTupleLock,
   updateDomain,
   updateFunctionSymbols,
   updateInterpretationPredicates,
@@ -231,27 +232,6 @@ export const graphManagerSlice = createSlice({
       return newState;
     },
 
-    editorLocked(
-      state,
-      action: PayloadAction<{ tupleInfo: TupleInfo; locked: boolean }>,
-    ) {
-      const { tupleInfo, locked } = action.payload;
-      const tupleId = getTupleId(tupleInfo);
-      const graphState = state[tupleId];
-
-      if (!graphState) return;
-
-      for (const graphType of graphTypes) {
-        graphState.state[graphType].edges = graphState.state[
-          graphType
-        ].edges.map((e) => ({
-          ...e,
-          selectable: !locked,
-          selected: false,
-        }));
-      }
-    },
-
     warningChanged(
       state,
       action: PayloadAction<WithGraphId<{ warning?: string }>>,
@@ -374,13 +354,23 @@ export const selectEdges = createSelector(
       includeHovered: boolean = false,
     ) => selectRelevantDomainElements(state, tupleInfo, includeHovered),
     selectSelectedDomain,
+    (state: RootState, tupleInfo: TupleInfo) =>
+      selectTupleLock(state, tupleInfo),
   ],
-  (graphState, relevantDomain, selectedNodes): DirectEdgeType[] => {
+  (graphState, relevantDomain, selectedNodes, locked): DirectEdgeType[] => {
     if (!graphState) return [];
 
-    return readGraph(graphState, (ops, state) =>
+    const edges = readGraph(graphState, (ops, state) =>
       ops.filterEdgesToShow(state, selectedNodes, relevantDomain),
     );
+
+    if (!locked) return edges;
+
+    return edges.map((edge) => ({
+      ...edge,
+      selectable: false,
+      selected: false,
+    }));
   },
 );
 
@@ -586,7 +576,6 @@ export const {
   setEdges,
   edgeAdded,
   onNodesChanged,
-  editorLocked,
   warningChanged,
   syncGraphView,
   graphDidInitialLayout,
