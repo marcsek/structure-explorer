@@ -4,14 +4,15 @@ import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { selectValidatedDomain } from "../../structure/structureSlice";
 import { type TupleInfo } from "../../structure/tupleInfo";
-import {
-  selectRelevantUnaryPreds,
-  selectUnaryPreds,
-} from "../../graphView/graphs/graphSlice";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
-import { nodeToggled, selectSelectedDomain } from "../editorToolbarSlice";
+import {
+  nodeToggled,
+  selectRelevantUnaryPreds,
+  selectSelectedDomain,
+  selectUnaryPreds,
+} from "../editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import useClickAwayListener from "./useClickAwayListener";

@@ -3,7 +3,6 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { selectRelevantUnaryPreds } from "../graphView/graphs/graphSlice";
 import type { RootState } from "../../app/store";
 import { updatePredicates } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
@@ -181,6 +180,34 @@ export const selectSelectedDomain = createSelector(
   ],
   (domain, selectedNodes) =>
     selectedNodes ? [...selectedNodes] : [...domain.value],
+);
+
+export const selectRelevantConstants = createSelector(
+  [
+    (state: RootState) => state.present.language.constants.value,
+    (state: RootState) => state.present.structure.iC,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (constants, iC, domainElement) =>
+    constants.filter((c) => iC[c]?.value === domainElement),
+);
+
+export const selectUnaryPreds = createSelector(
+  [(state: RootState) => state.present.language.predicates.value],
+  (preds) => preds.filter(([, arity]) => arity === 1),
+);
+
+export const selectRelevantUnaryPreds = createSelector(
+  [
+    (state: RootState) => state.present.structure.iP,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (predicates, domainElements) =>
+    Object.keys(predicates).filter((p) =>
+      (predicates[p] ?? []).value.some(
+        (t) => t.length === 1 && t[0] === domainElements,
+      ),
+    ),
 );
 
 export const selectPredicatesToDisplay = createSelector(

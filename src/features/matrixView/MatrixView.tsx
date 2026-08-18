@@ -2,11 +2,11 @@ import "./TableView.css";
 
 import { Table } from "react-bootstrap";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
 import {
   selectFilteredDomain,
   selectHatchedDomain,
   selectPredicatesToDisplay,
+  selectUnaryPreds,
 } from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";

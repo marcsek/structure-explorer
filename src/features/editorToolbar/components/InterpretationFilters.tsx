@@ -1,7 +1,6 @@
 import "./InterpretationFilters.css";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { selectUnaryPreds } from "../../graphView/graphs/graphSlice";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAngleLeft,
@@ -18,6 +17,7 @@ import {
   predicateHovered,
   selectSelectedUnary,
   selectUnaryFilterDomain,
+  selectUnaryPreds,
   unaryFilterDomainHovered,
   unaryFilterDomainToggled,
   unaryPredicateToggled,

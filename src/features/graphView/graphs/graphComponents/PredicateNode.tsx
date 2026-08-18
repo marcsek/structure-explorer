@@ -8,18 +8,17 @@ import {
   type NodeProps,
 } from "@xyflow/react";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
-import {
-  leftoverDeleted,
-  onConnected,
-  selectRelevantConstants,
-  selectUnaryPreds,
-} from "../graphSlice";
+import { leftoverDeleted, onConnected } from "../graphSlice";
 import { useGraphInfo } from "../../components/GraphView/GraphInfoContext";
 import { Button, type ButtonProps } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { getUnaryPredicateColor } from "../../../drawerEditor/unaryPredicateColors";
-import { selectPredicatesToDisplay } from "../../../editorToolbar/editorToolbarSlice";
+import {
+  selectPredicatesToDisplay,
+  selectRelevantConstants,
+  selectUnaryPreds,
+} from "../../../editorToolbar/editorToolbarSlice";
 import { memo } from "react";
 
 interface PredicateNodeData extends Record<string, unknown> {

@@ -13,8 +13,10 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 import { selectDomain } from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../shared/ui/EmptyPlaceholder/EmptyPlaceholder";
-import { selectUnaryPreds } from "../graphView/graphs/graphSlice";
-import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
+import {
+  selectPredicatesToDisplay,
+  selectUnaryPreds,
+} from "../editorToolbar/editorToolbarSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import type { TupleInfo } from "../structure/tupleInfo";
