@@ -18,8 +18,8 @@ import {
   selectPosetValidity,
   warningChanged,
 } from "../graphSlice.ts";
+import { graphs } from "../graphRegistry.ts";
 import { getTupleId } from "../../../structure/tupleInfo";
-import { staysValidHasseWithEdge, type BinaryRelation } from "./posetHelpers";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { computeLayoutHasse } from "./layout.ts";
@@ -134,25 +134,15 @@ export default function HasseDiagram({
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
-      const relation: BinaryRelation<string> = edges
-        .filter((e) => !e.data?.helper)
-        .map((e) => [e.source, e.target]);
+      const [valid, error] = graphs[graphType].validateConnection(
+        edges,
+        newEdge,
+      );
 
-      const [ok, error] = staysValidHasseWithEdge(relation, [
-        newEdge.source,
-        newEdge.target,
-      ]);
+      if (error)
+        dispatch(warningChanged({ tupleInfo, graphType, warning: error }));
 
-      if (!ok)
-        dispatch(
-          warningChanged({
-            tupleInfo,
-            graphType,
-            warning: error,
-          }),
-        );
-
-      return ok;
+      return valid;
     },
     [dispatch, edges, tupleInfo],
   );

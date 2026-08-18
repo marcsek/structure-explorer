@@ -3,7 +3,9 @@ import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { TupleType } from "../../../structure/tupleInfo";
 import type { BipartiteNodeType, OriginSet } from "./BipartiteGraph";
 import { computeLayoutBipartite } from "./layout";
+import type { Connection, Edge } from "@xyflow/react";
 import {
+  type ConnectionValidity,
   edgeId,
   GraphModel,
   numberTupleToXYPosition,
@@ -28,6 +30,10 @@ export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState>
 
   protected elementOf(id: string) {
     return id.slice(prefix.domain.length);
+  }
+
+  private originOf(id: string): OriginSet {
+    return id.startsWith(prefix.domain) ? "domain" : "range";
   }
 
   protected createEdge(
@@ -92,6 +98,23 @@ export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState>
 
   filterEdgesToShow(state: BipartiteGraphState) {
     return state.edges;
+  }
+
+  validateConnection(
+    edges: DirectEdgeType[],
+    connection: Connection | Edge,
+  ): ConnectionValidity {
+    const duplicate = edges.some(
+      (edge) =>
+        connection.source === edge.source && connection.target === edge.target,
+    );
+
+    if (duplicate) return [false, "Edge already exists."];
+
+    if (this.originOf(connection.source) === this.originOf(connection.target))
+      return [false, "Only edges from domain to range nodes are valid."];
+
+    return [true];
   }
 
   edgesToRelation(

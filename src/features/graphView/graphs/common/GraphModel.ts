@@ -1,4 +1,4 @@
-import type { XYPosition } from "@xyflow/react";
+import type { Connection, Edge, XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
@@ -40,6 +40,9 @@ export type GraphState = {
 };
 
 type NodeOf<S extends GraphState> = S["nodes"][number];
+
+// Valid connection, or invalid with an optional reason to show as a warning.
+export type ConnectionValidity = [valid: boolean, error?: string];
 
 export const edgeId = (from: string, to: string, duplicate = false) =>
   `eg-${from}->${to}${duplicate ? "-duplicate" : ""}`;
@@ -84,6 +87,11 @@ export abstract class GraphModel<S extends GraphState> {
     edges: DirectEdgeType[],
     relevantEdges?: [string, string][],
   ): [BinaryRelation<string>, DirectEdgeType[]];
+
+  abstract validateConnection(
+    edges: DirectEdgeType[],
+    connection: Connection | Edge,
+  ): ConnectionValidity;
 
   init(
     domain: string[],

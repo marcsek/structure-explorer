@@ -4,9 +4,12 @@ import { edgesToRelation as convertEdgesToRelation } from "../graphSlice";
 import {
   expandReducedPoset,
   reducePosetRelations,
+  staysValidHasseWithEdge,
   type BinaryRelation,
 } from "./posetHelpers";
+import type { Connection, Edge } from "@xyflow/react";
 import {
+  type ConnectionValidity,
   edgeId,
   GraphModel,
   type NodeFlags,
@@ -106,6 +109,20 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
       }));
 
     return [...unfilteredEdges, ...helperEdges];
+  }
+
+  validateConnection(
+    edges: DirectEdgeType[],
+    connection: Connection | Edge,
+  ): ConnectionValidity {
+    const relation: BinaryRelation<string> = edges
+      .filter((edge) => !edge.data?.helper)
+      .map((edge) => [edge.source, edge.target]);
+
+    return staysValidHasseWithEdge(relation, [
+      connection.source,
+      connection.target,
+    ]);
   }
 
   edgesToRelation(

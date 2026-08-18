@@ -24,6 +24,7 @@ import {
   selectEdges,
   warningChanged,
 } from "../graphSlice.ts";
+import { graphs } from "../graphRegistry.ts";
 import { getTupleId } from "../../../structure/tupleInfo";
 import {
   computeGroupContainerBounds,
@@ -165,36 +166,17 @@ export default function BipartiteGraph({
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
-      const duplicateEdge = edges.some(
-        (edge) =>
-          newEdge.source === edge.source && newEdge.target === edge.target,
+      const [valid, error] = graphs[graphType].validateConnection(
+        edges,
+        newEdge,
       );
 
-      const identicalOrigin =
-        getNode(newEdge.source)?.data.origin ===
-        getNode(newEdge.target)?.data.origin;
+      if (error)
+        dispatch(warningChanged({ tupleInfo, graphType, warning: error }));
 
-      if (duplicateEdge)
-        dispatch(
-          warningChanged({
-            tupleInfo,
-            graphType,
-            warning: "Edge already exists.",
-          }),
-        );
-      else if (identicalOrigin) {
-        dispatch(
-          warningChanged({
-            tupleInfo,
-            graphType,
-            warning: "Only edges from domain to range nodes are valid.",
-          }),
-        );
-      }
-
-      return !duplicateEdge && !identicalOrigin;
+      return valid;
     },
-    [dispatch, edges, getNode, tupleInfo],
+    [dispatch, edges, tupleInfo],
   );
 
   const onConnectEnd = useCallback(() => {

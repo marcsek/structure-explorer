@@ -17,6 +17,7 @@ import {
   selectEdges,
   warningChanged,
 } from "../graphSlice.ts";
+import { graphs } from "../graphRegistry.ts";
 import { getTupleId } from "../../../structure/tupleInfo";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
@@ -137,23 +138,15 @@ export default function OrientedGraph({
 
   const isValidConnection: IsValidConnection = useCallback(
     (newEdge) => {
-      if (!newEdge.targetHandle) return false;
-
-      const duplicateEdges = edges.some(
-        (edge) =>
-          newEdge.source === edge.source && newEdge.target === edge.target,
+      const [valid, error] = graphs[graphType].validateConnection(
+        edges,
+        newEdge,
       );
 
-      if (duplicateEdges)
-        dispatch(
-          warningChanged({
-            tupleInfo,
-            graphType,
-            warning: "Edge already exists.",
-          }),
-        );
+      if (error)
+        dispatch(warningChanged({ tupleInfo, graphType, warning: error }));
 
-      return !duplicateEdges;
+      return valid;
     },
     [dispatch, edges, tupleInfo],
   );
