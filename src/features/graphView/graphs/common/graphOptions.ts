@@ -14,6 +14,8 @@ import PredicateNode, {
 } from "../graphComponents/PredicateNode";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 
+export const FALLBACK_NODE_HEIGHT = 75;
+export const FALLBACK_NODE_WIDTH = 120;
 export const SNAP_GRID_SIZE = 10;
 
 export const nodeTypes: NodeTypes = {

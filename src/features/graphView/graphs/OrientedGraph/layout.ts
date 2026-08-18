@@ -3,7 +3,11 @@ import ELK, {
   type ElkExtendedEdge,
   type ElkNode,
 } from "elkjs/lib/elk.bundled.js";
-import { SNAP_GRID_SIZE } from "../common/graphOptions";
+import {
+  FALLBACK_NODE_HEIGHT,
+  FALLBACK_NODE_WIDTH,
+  SNAP_GRID_SIZE,
+} from "../common/graphOptions";
 
 const elkOptions = {
   "elk.algorithm": "force",
@@ -28,10 +32,10 @@ export const computeLayoutOriented = async <
       nodeIds.includes(source) && nodeIds.includes(target),
   );
 
-  const children: ElkNode[] = nodeIds.map((id) => ({
-    id,
-    width: 120,
-    height: 75,
+  const children: ElkNode[] = inputNodes.map((node) => ({
+    id: node.id,
+    width: node.measured?.width ?? FALLBACK_NODE_WIDTH,
+    height: node.measured?.height ?? FALLBACK_NODE_HEIGHT,
   }));
 
   const edges: ElkExtendedEdge[] = filteredEdges.map((e) => ({

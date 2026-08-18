@@ -1,4 +1,9 @@
-import { Position, type InternalNode } from "@xyflow/react";
+import {
+  Position,
+  type Edge,
+  type InternalNode,
+  type Node,
+} from "@xyflow/react";
 
 const edgeStrokeWidth = 2.5;
 
@@ -97,4 +102,12 @@ export function getEdgeParams(source: InternalNode, target: InternalNode) {
     sourcePos,
     targetPos,
   };
+}
+
+export function makeNodeInvisible<T extends Node>(node: T) {
+  return { ...node, style: { ...node.style, visibility: "hidden" } };
+}
+
+export function makeEdgeHidden<T extends Edge>(edge: T) {
+  return { ...edge, hidden: true };
 }

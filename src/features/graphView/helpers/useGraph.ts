@@ -1,5 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
+  useNodesInitialized,
   useReactFlow,
   type Edge,
   type EdgeChange,
@@ -32,6 +33,7 @@ import {
 import type { DirectEdgeType } from "../graphs/graphComponents/DirectEdge";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
+import { makeEdgeHidden, makeNodeInvisible } from "./utils";
 
 type NodesOf<T extends GraphType> = GraphStates[T]["nodes"];
 type NodeOf<T extends GraphType> = NodesOf<T>[number];
@@ -84,6 +86,16 @@ export default function useGraph<T extends GraphType>({
 
   const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 
+  const flowNodes = useMemo(
+    () => (didLayout ? nodes : nodes.map(makeNodeInvisible)),
+    [nodes, didLayout],
+  );
+
+  const flowEdges = useMemo(
+    () => (didLayout ? edges : edges.map(makeEdgeHidden)),
+    [edges, didLayout],
+  );
+
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
       dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
@@ -128,8 +140,10 @@ export default function useGraph<T extends GraphType>({
     storeNodes,
     nodes,
     edges,
-    warning,
+    flowNodes,
+    flowEdges,
     didLayout,
+    warning,
     flowWrapperRef,
     syncNodesWithStore,
     graphProps: {
@@ -164,24 +178,22 @@ export function useGraphLayout<T extends GraphType>({
 }: UseGraphLayoutProps<T>) {
   const dispatch = useAppDispatch();
   const { fitView } = useReactFlow();
+  const tupleId = getTupleId(tupleInfo);
 
-  return useCallback(
-    async (
-      fitAfter: boolean = true,
-      instant: boolean = false,
-      onlyIfNotMoved: boolean = false,
-    ) => {
-      const nodesMoved = !storeNodes.every(
-        ({ position }) => position.x === 0 && position.y === 0,
-      );
+  const didLayout = useAppSelector(
+    (state) => state.present.graphView[tupleId]?.state[graphType]?.didLayout,
+  );
 
-      if (!onlyIfNotMoved || !nodesMoved) {
-        const changes = await computeLayout(storeNodes, edges);
-        if (changes.length === 0) return;
+  const onLayout = useCallback(
+    async (fitAfter: boolean = true, instant: boolean = false) => {
+      const changes = await computeLayout(storeNodes, edges);
 
+      if (changes.length !== 0) {
         dispatch(onNodesChanged({ tupleInfo, graphType, changes }));
 
-        if (nodesMoved) dispatch(UndoActions.checkpoint());
+        // TODO: ??
+        // The initial layout is not something the user can undo.
+        if (didLayout) dispatch(UndoActions.checkpoint());
       }
 
       if (fitAfter)
@@ -190,10 +202,32 @@ export function useGraphLayout<T extends GraphType>({
           duration: instant ? 0 : defaultFitViewDuration,
         });
 
-      dispatch(
-        graphDidInitialLayout({ tupleInfo, graphType, didLayout: true }),
-      );
+      if (!didLayout)
+        dispatch(
+          graphDidInitialLayout({ tupleInfo, graphType, didLayout: true }),
+        );
     },
-    [storeNodes, edges, computeLayout, fitView, dispatch, tupleInfo, graphType],
+    [
+      storeNodes,
+      edges,
+      computeLayout,
+      fitView,
+      dispatch,
+      tupleInfo,
+      graphType,
+      didLayout,
+    ],
   );
+
+  const nodesInitialized = useNodesInitialized();
+  const didTryInitialLayout = useRef(false);
+
+  useEffect(() => {
+    if (!nodesInitialized || didTryInitialLayout.current) return;
+
+    didTryInitialLayout.current = true;
+    if (!didLayout) onLayout(true, true);
+  }, [nodesInitialized, didLayout, onLayout]);
+
+  return onLayout;
 }

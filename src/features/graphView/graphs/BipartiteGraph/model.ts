@@ -1,7 +1,6 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { TupleType } from "../../../structure/tupleInfo";
-import { computeLayoutBipartite } from "./layout";
 import type { Connection, Edge } from "@xyflow/react";
 import {
   type ConnectionValidity,
@@ -28,8 +27,6 @@ export interface BipartiteGraphState extends GraphState {
 const prefix = { domain: "d-", range: "r-" } as const;
 
 export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState> {
-  protected readonly persistentLayout = computeLayoutBipartite;
-
   protected empty(): BipartiteGraphState {
     return { kind: "bipartite", nodes: [], edges: [] };
   }

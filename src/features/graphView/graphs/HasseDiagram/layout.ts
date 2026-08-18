@@ -1,6 +1,10 @@
 import dagre from "@dagrejs/dagre";
 import type { Edge, Node, NodeChange } from "@xyflow/react";
-import { SNAP_GRID_SIZE } from "../common/graphOptions";
+import {
+  FALLBACK_NODE_HEIGHT,
+  FALLBACK_NODE_WIDTH,
+  SNAP_GRID_SIZE,
+} from "../common/graphOptions";
 
 export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   nodes: TNode[],
@@ -15,7 +19,13 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
       nodeIds.includes(source) && nodeIds.includes(target),
   );
 
-  nodes.forEach((n) => dagreGraph.setNode(n.id, { width: 120, height: 75 }));
+  nodes.forEach((n) =>
+    dagreGraph.setNode(n.id, {
+      width: n.measured?.width ?? FALLBACK_NODE_WIDTH,
+      height: n.measured?.height ?? FALLBACK_NODE_HEIGHT,
+    }),
+  );
+
   filteredEdges.forEach((e) => dagreGraph.setEdge(e.source, e.target));
 
   dagre.layout(dagreGraph);
@@ -26,8 +36,10 @@ export const computeLayoutHasse = <TNode extends Node, TEdge extends Edge>(
   const nodeChanges: NodeChange<TNode>[] = [];
   for (const node of nodes) {
     const nodeWithPosition = dagreGraph.node(node.id);
-    const posX = nodeWithPosition.x - 120 / 2 - offsetX;
-    const posY = nodeWithPosition.y - 75 / 2 - offsetY;
+    const width = node.measured?.width ?? FALLBACK_NODE_WIDTH;
+    const height = node.measured?.height ?? FALLBACK_NODE_HEIGHT;
+    const posX = nodeWithPosition.x - width / 2 - offsetX;
+    const posY = nodeWithPosition.y - height / 2 - offsetY;
     const clampedX = Math.floor((posX ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
     const clampedY = Math.floor((posY ?? 0) / SNAP_GRID_SIZE) * SNAP_GRID_SIZE;
 

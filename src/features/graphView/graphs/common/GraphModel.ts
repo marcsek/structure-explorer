@@ -49,10 +49,6 @@ export const edgeId = (from: string, to: string, duplicate = false) =>
 
 export abstract class GraphModel<S extends GraphState> {
   protected readonly representsFunctions: boolean = true;
-  protected readonly persistentLayout?: (
-    nodes: NodeOf<S>[],
-    dragging?: string[],
-  ) => NodeOf<S>[];
 
   protected abstract empty(): S;
 
@@ -70,10 +66,6 @@ export abstract class GraphModel<S extends GraphState> {
 
   protected elementOf(id: string): string {
     return id;
-  }
-
-  private laidOut(nodes: NodeOf<S>[], dragging?: string[]): NodeOf<S>[] {
-    return this.persistentLayout?.(nodes, dragging) ?? nodes;
   }
 
   abstract filterEdgesToShow(
@@ -126,8 +118,6 @@ export abstract class GraphModel<S extends GraphState> {
       ),
     );
 
-    graph.nodes = this.laidOut(graph.nodes);
-
     return graph;
   }
 
@@ -161,7 +151,7 @@ export abstract class GraphModel<S extends GraphState> {
       )
       .map((node) => ({ ...node, data: { ...node.data, leftover: true } }));
 
-    return { ...prev, nodes: this.laidOut([...newNodes, ...leftoverNodes]) };
+    return { ...prev, nodes: [...newNodes, ...leftoverNodes] };
   }
 
   syncPredIntr(
@@ -243,25 +233,18 @@ export abstract class GraphModel<S extends GraphState> {
       hovered &&
       !hovered.includes(elementOf(node));
 
-    const dragging = nodes
-      .filter((node) => node.dragging)
-      .map((node) => node.id);
+    return filteredNodes.map((node) => {
+      let nodeData = node.data;
+      if (isGhost(node)) nodeData = { ...nodeData, ghost: true };
+      else if (isHatched(node)) nodeData = { ...nodeData, hatched: true };
 
-    return this.laidOut(
-      filteredNodes.map((node) => {
-        let nodeData = node.data;
-        if (isGhost(node)) nodeData = { ...nodeData, ghost: true };
-        else if (isHatched(node)) nodeData = { ...nodeData, hatched: true };
-
-        return {
-          ...node,
-          data: nodeData,
-          selectable:
-            nodeData.ghost || nodeData.hatched ? false : node.selectable,
-        };
-      }),
-      dragging,
-    );
+      return {
+        ...node,
+        data: nodeData,
+        selectable:
+          nodeData.ghost || nodeData.hatched ? false : node.selectable,
+      };
+    });
   }
 
   deleteLeftover(

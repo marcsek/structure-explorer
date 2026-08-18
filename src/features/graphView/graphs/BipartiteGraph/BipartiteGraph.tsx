@@ -2,8 +2,6 @@ import {
   Background,
   ReactFlow,
   type NodeChange,
-  applyNodeChanges,
-  type NodePositionChange,
   type FitViewOptions,
   useReactFlow,
   type Node,
@@ -12,13 +10,9 @@ import {
 import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { useAppDispatch } from "../../../../app/hooks";
 import { graphDidInitialLayout } from "../graphSlice.ts";
-import {
-  computeGroupContainerBounds,
-  generateLayoutNodesChangesBipartite,
-} from "./layout.ts";
+import { addGroupNodes, generateNodeChangesWithLayout } from "./groupNodes.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
-import { type SetGroupNodeType } from "../graphComponents/SetGroupNode.tsx";
 import useGraph from "../../helpers/useGraph.ts";
 import {
   defaultFitViewDuration,
@@ -29,17 +23,7 @@ import {
   ErrorMessageDialogBuilder,
 } from "../common/MessageDialogs.tsx";
 import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
-import { partition } from "../../../../shared/core/utils.ts";
-import type { BipartiteNodeType, OriginSet } from "./model.ts";
-
-const groupNodeOptions = {
-  selectable: false,
-  focusable: false,
-  draggable: false,
-  deletable: false,
-  connectable: false,
-  type: "setGroup",
-} satisfies Partial<Node>;
+import type { BipartiteNodeType } from "./model.ts";
 
 const fitViewOptions: FitViewOptions = {
   padding: "35px",
@@ -66,6 +50,7 @@ export default function BipartiteGraph({
     storeNodes,
     nodes,
     edges,
+    didLayout,
     warning,
     flowWrapperRef,
     syncNodesWithStore,
@@ -77,20 +62,26 @@ export default function BipartiteGraph({
   const { getNode, fitView } = useReactFlow();
 
   useEffect(() => {
-    dispatch(
-      graphDidInitialLayout({
-        tupleInfo,
-        graphType,
-        didLayout: true,
-      }),
-    );
-  }, [dispatch, tupleInfo]);
+    if (nodesInitialized && !didLayout)
+      dispatch(
+        graphDidInitialLayout({
+          tupleInfo,
+          graphType,
+          didLayout: true,
+        }),
+      );
+  }, [didLayout, dispatch, nodesInitialized, tupleInfo]);
 
   useLayoutEffect(() => {
-    if (nodesInitialized) fitView({ ...fitViewOptions });
-  }, [fitView, nodesInitialized]);
+    if (nodesInitialized && !didLayout) fitView({ ...fitViewOptions });
+  }, [didLayout, fitView, nodesInitialized]);
 
-  const groupedNodes = useMemo(() => addGroupNodes(nodes), [nodes]);
+  const keepPositions = !nodesInitialized && !!didLayout;
+
+  const groupedNodes = useMemo(
+    () => addGroupNodes(nodes, keepPositions),
+    [nodes, keepPositions],
+  );
 
   const computeLayoutChange = useCallback(
     (changes: NodeChange<BipartiteNodeType | Node>[]) => {
@@ -99,16 +90,16 @@ export default function BipartiteGraph({
           ch.type === "add" || getNode(ch.id)?.type !== "setGroup",
       );
 
-      const onlyDimensionChanges = changes.every(
-        (ch) => ch.type === "dimensions",
+      const layoutChanges = generateNodeChangesWithLayout(
+        bipartiteNodeChanges,
+        nodes,
       );
 
-      // No need to layout on only dimension changes
-      const layoutChanges = onlyDimensionChanges
-        ? []
-        : generateNodeChangesWithLayout(bipartiteNodeChanges, nodes);
+      const nonPositionChanges = bipartiteNodeChanges.filter(
+        (ch) => ch.type !== "position",
+      );
 
-      onNodesChange([...bipartiteNodeChanges, ...layoutChanges]);
+      onNodesChange([...nonPositionChanges, ...layoutChanges]);
     },
     [nodes, onNodesChange, getNode],
   );
@@ -134,6 +125,7 @@ export default function BipartiteGraph({
         zoomOnPinch={!dialogShown}
         {...graphProps}
         {...defaultFlowProps}
+        fitViewOptions={fitViewOptions}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>
@@ -153,60 +145,3 @@ export default function BipartiteGraph({
     </FlowContainer>
   );
 }
-
-const createGroupNode = (
-  originSet: OriginSet,
-  size: { width: number; height: number },
-  offset: { x: number; y: number },
-): SetGroupNodeType => {
-  return {
-    id: `${originSet}-group`,
-    position: offset,
-    ...size,
-    measured: size,
-    data: { label: originSet, origin: originSet },
-    className: `set-group-node origin-${originSet}`,
-    ...groupNodeOptions,
-  };
-};
-
-const generateNodeChangesWithLayout = (
-  changes: NodeChange<BipartiteNodeType>[],
-  nodes: BipartiteNodeType[],
-) => {
-  const newNodes = applyNodeChanges(changes, nodes);
-
-  const draggedNodeIds = changes
-    .filter(
-      (change): change is NodePositionChange =>
-        change.type === "position" && !!change.dragging,
-    )
-    .map((change) => change.id);
-
-  return generateLayoutNodesChangesBipartite(newNodes, draggedNodeIds);
-};
-
-const addGroupNodes = (nodes: BipartiteNodeType[]) => {
-  const { bounds, offset } = computeGroupContainerBounds(nodes);
-
-  if (nodes.length === 0) return [];
-
-  const domainGroup = createGroupNode("domain", bounds, {
-    ...offset,
-    x: -offset.x,
-  });
-  const rangeGroup = createGroupNode("range", bounds, offset);
-
-  const childNodes: BipartiteNodeType[] = nodes.map((node) => ({
-    ...node,
-    parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
-    extent: "parent",
-  }));
-
-  const [childrenDomain, childrenRange] = partition(
-    childNodes,
-    (n) => n.data.origin === "domain",
-  );
-
-  return [domainGroup, ...childrenDomain, rangeGroup, ...childrenRange];
-};

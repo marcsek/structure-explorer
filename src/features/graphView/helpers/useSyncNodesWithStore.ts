@@ -6,7 +6,6 @@ import { onNodesChanged } from "../graphs/graphSlice";
 import type { GraphType } from "../graphs/graphRegistry";
 import type { TupleInfo } from "../../structure/tupleInfo";
 import { UndoActions } from "../../undoHistory/undoHistory";
-import { partition } from "../../../shared/core/utils";
 
 interface UseSyncNodesWithStoreProps<TNode extends PredicateNodeType> {
   tupleInfo: TupleInfo;
@@ -23,52 +22,58 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
   const [localNodes, setLocalNodes] = useState<TNode[] | null>(null);
   const isDragging = useRef<boolean>(false);
 
+  const latestNodes = useRef<TNode[] | null>(null);
+
+  const setNodes = useCallback((nodes: TNode[] | null) => {
+    latestNodes.current = nodes;
+    setLocalNodes(nodes);
+  }, []);
+
   useLayoutEffect(() => {
-    if (!isDragging.current) setLocalNodes(null);
-  }, [storeNodes]);
+    if (!isDragging.current) setNodes(null);
+  }, [storeNodes, setNodes]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange<TNode>[]) => {
-      const [positionChanges, otherChanges] = partition(
-        changes,
-        (ch) => ch.type === "position",
+      isDragging.current ||= changes.some(
+        (ch) => ch.type === "position" && ch.dragging,
       );
 
-      if (positionChanges.length !== 0) {
-        isDragging.current = true;
-        setLocalNodes((nodes) =>
-          applyNodeChanges(positionChanges, nodes ?? storeNodes),
-        );
+      if (isDragging.current) {
+        setNodes(applyNodeChanges(changes, latestNodes.current ?? storeNodes));
+        return;
       }
 
-      const nonUserChanges = otherChanges.every(
+      const nonUserChanges = changes.every(
         ({ type }) => type === "dimensions" || type === "replace",
       );
 
-      if (otherChanges.length !== 0)
-        dispatch(
-          onNodesChanged(
-            { tupleInfo, graphType, changes },
-            { ignore: nonUserChanges },
-          ),
-        );
+      dispatch(
+        onNodesChanged(
+          { tupleInfo, graphType, changes },
+          { ignore: nonUserChanges },
+        ),
+      );
     },
-    [dispatch, tupleInfo, storeNodes, graphType],
+    [dispatch, tupleInfo, storeNodes, graphType, setNodes],
   );
 
   const syncNodesWithStore = useCallback(() => {
-    if (!isDragging.current || !localNodes) return;
+    if (!isDragging.current || !latestNodes.current) return;
 
-    const nodeChanges: NodeChange<PredicateNodeType>[] = localNodes.map(
-      ({ id, position }) => ({ type: "position", id, position }),
-    );
+    const nodeChanges: NodeChange<PredicateNodeType>[] =
+      latestNodes.current.map((item) => ({
+        type: "replace",
+        id: item.id,
+        item,
+      }));
 
     dispatch(onNodesChanged({ tupleInfo, graphType, changes: nodeChanges }));
     isDragging.current = false;
-    setLocalNodes(null);
+    setNodes(null);
 
     dispatch(UndoActions.checkpoint());
-  }, [dispatch, tupleInfo, localNodes, graphType]);
+  }, [dispatch, tupleInfo, graphType, setNodes]);
 
   return { nodes: localNodes ?? storeNodes, onNodesChange, syncNodesWithStore };
 }

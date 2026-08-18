@@ -1,5 +1,4 @@
 import { Background, ReactFlow } from "@xyflow/react";
-import { useEffect } from "react";
 import { selectPosetValidity } from "../graphSlice.ts";
 import { useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
@@ -24,8 +23,9 @@ export default function HasseDiagram({
 }: GraphComponentProps) {
   const {
     storeNodes,
-    nodes,
     edges,
+    flowNodes,
+    flowEdges,
     warning,
     flowWrapperRef,
     syncNodesWithStore,
@@ -44,11 +44,6 @@ export default function HasseDiagram({
     computeLayout: computeLayoutHasse,
   });
 
-  useEffect(() => {
-    onLayout(true, true, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const dialogShown = !isPoset || storeNodes.length === 0;
 
   return (
@@ -59,8 +54,8 @@ export default function HasseDiagram({
     >
       <ReactFlow
         id={id}
-        nodes={isPoset ? nodes : []}
-        edges={isPoset ? edges : []}
+        nodes={isPoset ? flowNodes : []}
+        edges={isPoset ? flowEdges : []}
         nodesConnectable={!locked}
         onNodeDragStop={syncNodesWithStore}
         panOnDrag={!dialogShown}

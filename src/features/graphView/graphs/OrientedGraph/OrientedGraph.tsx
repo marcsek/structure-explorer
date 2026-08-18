@@ -1,5 +1,4 @@
 import { Background, ReactFlow } from "@xyflow/react";
-import { useEffect } from "react";
 import Controls from "../graphComponents/Controls.tsx";
 
 import { computeLayoutOriented } from "./layout.ts";
@@ -25,8 +24,9 @@ export default function OrientedGraph({
     storeNodes,
     nodes,
     edges,
+    flowNodes,
+    flowEdges,
     warning,
-    didLayout,
     flowWrapperRef,
     syncNodesWithStore,
     graphProps,
@@ -40,11 +40,6 @@ export default function OrientedGraph({
     computeLayout: computeLayoutOriented,
   });
 
-  useEffect(() => {
-    onLayout(true, true, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const dialogShown = storeNodes.length === 0;
 
   return (
@@ -55,8 +50,8 @@ export default function OrientedGraph({
     >
       <ReactFlow
         id={id}
-        nodes={didLayout ? nodes : []}
-        edges={edges}
+        nodes={flowNodes}
+        edges={flowEdges}
         onNodeDragStop={syncNodesWithStore}
         nodesConnectable={!locked}
         panOnDrag={!dialogShown}
@@ -69,6 +64,7 @@ export default function OrientedGraph({
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>
+
       <Controls
         id={id}
         expandedView={expandedView}

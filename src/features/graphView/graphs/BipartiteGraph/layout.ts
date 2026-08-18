@@ -1,5 +1,9 @@
 import { applyNodeChanges, type NodeChange } from "@xyflow/react";
 import type { BipartiteNodeType } from "./model";
+import {
+  FALLBACK_NODE_HEIGHT,
+  FALLBACK_NODE_WIDTH,
+} from "../common/graphOptions";
 
 const PADDING_X = 40;
 const PADDING_Y = 20;
@@ -10,7 +14,10 @@ const GROUP_CONTAINER_GAP = 50;
 
 export const computeGroupContainerBounds = (nodes: BipartiteNodeType[]) => {
   const stackedHeight =
-    nodes.reduce((sum, n) => sum + (n.measured?.height ?? 0), 0) / 2;
+    nodes.reduce(
+      (sum, n) => sum + (n.measured?.height ?? FALLBACK_NODE_HEIGHT),
+      0,
+    ) / 2;
 
   return {
     bounds: {
@@ -43,8 +50,8 @@ export const generateLayoutNodesChangesBipartite = (
   ordered.forEach((node) => {
     const origin = node.data.origin;
 
-    const nodeHeight = node.measured?.height ?? 0;
-    const nodeWidth = node.measured?.width ?? 0;
+    const nodeHeight = node.measured?.height ?? FALLBACK_NODE_HEIGHT;
+    const nodeWidth = node.measured?.width ?? FALLBACK_NODE_WIDTH;
 
     const x =
       origin === "domain"
@@ -58,6 +65,7 @@ export const generateLayoutNodesChangesBipartite = (
         id: node.id,
         type: "position",
         position: { x, y: node.position.y },
+        dragging: true,
       });
     else if (newNode.position.x !== x || newNode.position.y !== y)
       changes.push({
