@@ -3,7 +3,8 @@ import Controls from "../graphComponents/Controls.tsx";
 
 import { computeLayoutOriented } from "./layout.ts";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
-import useGraph, { useGraphLayout } from "../../helpers/useGraph.ts";
+import useGraph from "../../helpers/useGraph.ts";
+import { useGraphLayout } from "../../helpers/useGraphLayout.ts";
 import { defaultFlowProps } from "../common/graphOptions.ts";
 import {
   EmptyDomainMessageDialog,
@@ -21,7 +22,6 @@ export default function OrientedGraph({
   onExpandedViewChange,
 }: GraphComponentProps) {
   const {
-    storeNodes,
     nodes,
     edges,
     flowNodes,
@@ -35,12 +35,12 @@ export default function OrientedGraph({
   const onLayout = useGraphLayout({
     tupleInfo,
     graphType,
-    storeNodes,
+    nodes,
     edges,
     computeLayout: computeLayoutOriented,
   });
 
-  const dialogShown = storeNodes.length === 0;
+  const dialogShown = nodes.length === 0;
 
   return (
     <FlowContainer

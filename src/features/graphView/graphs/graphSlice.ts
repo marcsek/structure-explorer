@@ -81,6 +81,8 @@ export const graphManagerSlice = createSlice({
 
       const tupleId = getTupleId(tupleInfo);
 
+      if (!state[tupleId]) return;
+
       state[tupleId].state[graphType].nodes = nodes;
     },
 
@@ -92,6 +94,8 @@ export const graphManagerSlice = createSlice({
 
       const tupleId = getTupleId(tupleInfo);
 
+      if (!state[tupleId]) return;
+
       state[tupleId].state[graphType].edges = edges;
     },
 
@@ -102,6 +106,8 @@ export const graphManagerSlice = createSlice({
       const { tupleInfo, graphType, edge } = action.payload;
 
       const tupleId = getTupleId(tupleInfo);
+
+      if (!state[tupleId]) return;
 
       state[tupleId].state[graphType].edges = [
         ...state[tupleId].state[graphType].edges,
@@ -117,6 +123,8 @@ export const graphManagerSlice = createSlice({
 
       const tupleId = getTupleId(tupleInfo);
 
+      if (!state[tupleId]) return;
+
       state[tupleId].state[graphType].didLayout = didLayout;
     },
 
@@ -130,6 +138,8 @@ export const graphManagerSlice = createSlice({
         const { tupleInfo, graphType, changes } = action.payload;
 
         const tupleId = getTupleId(tupleInfo);
+
+        if (!state[tupleId]) return;
 
         state[tupleId].state[graphType].nodes = applyNodeChanges(
           changes,

@@ -4,7 +4,8 @@ import { useAppSelector } from "../../../../app/hooks.ts";
 import Controls from "../graphComponents/Controls.tsx";
 import { computeLayoutHasse } from "./layout.ts";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
-import useGraph, { useGraphLayout } from "../../helpers/useGraph.ts";
+import useGraph from "../../helpers/useGraph.ts";
+import { useGraphLayout } from "../../helpers/useGraphLayout.ts";
 import { defaultFlowProps } from "../common/graphOptions.ts";
 import {
   EmptyDomainMessageDialog,
@@ -22,7 +23,7 @@ export default function HasseDiagram({
   onExpandedViewChange,
 }: GraphComponentProps) {
   const {
-    storeNodes,
+    nodes,
     edges,
     flowNodes,
     flowEdges,
@@ -39,12 +40,12 @@ export default function HasseDiagram({
   const onLayout = useGraphLayout({
     tupleInfo,
     graphType,
-    storeNodes,
+    nodes,
     edges,
     computeLayout: computeLayoutHasse,
   });
 
-  const dialogShown = !isPoset || storeNodes.length === 0;
+  const dialogShown = !isPoset || nodes.length === 0;
 
   return (
     <FlowContainer
@@ -84,7 +85,7 @@ export default function HasseDiagram({
         />
       )}
 
-      {isPoset && storeNodes.length === 0 && <EmptyDomainMessageDialog />}
+      {isPoset && nodes.length === 0 && <EmptyDomainMessageDialog />}
     </FlowContainer>
   );
 }

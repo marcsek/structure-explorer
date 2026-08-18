@@ -59,7 +59,7 @@ export default function GraphView({
       <div className="graphViewContainer">
         <div className="graphViewItem" key={tupleName}>
           <GraphInfoContext.Provider value={{ tupleInfo, graphType, locked }}>
-            <ReactFlowProvider>
+            <ReactFlowProvider key={graphType}>
               <GraphComponent
                 id={`${graphType}-${id}`}
                 tupleInfo={tupleInfo}

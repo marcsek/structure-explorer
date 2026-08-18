@@ -35,6 +35,8 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
 
   const onNodesChange = useCallback(
     (changes: NodeChange<TNode>[]) => {
+      if (changes.length === 0) return;
+
       isDragging.current ||= changes.some(
         (ch) => ch.type === "position" && ch.dragging,
       );
