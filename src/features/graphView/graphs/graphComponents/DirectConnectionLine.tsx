@@ -39,18 +39,11 @@ export default function CustomConnectionLine({
   }, [connection.toHandle?.id, connection.isValid, dispatch, parentInfo]);
 
   return (
-    <g>
-      <path
-        className="animated connection"
-        style={{
-          ...connectionLineStyle,
-          stroke: connection.isValid ? "#22C55E99" : "red",
-          strokeWidth: 2,
-        }}
-        fill="none"
-        d={edgePath}
-        markerEnd={marker}
-      />
-    </g>
+    <path
+      className={`animated connection ${connection.isValid ? "valid" : "invalid"}`}
+      style={connectionLineStyle}
+      d={edgePath}
+      markerEnd={marker}
+    />
   );
 }

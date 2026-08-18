@@ -159,7 +159,7 @@ function DrawerEditorContent({
           <EditorError
             error={finalError}
             onFixButtonClick={onFixButtonClick}
-            fixButton={shouldOverrideError && errorOverride.fixButton}
+            fixButton={shouldOverrideError ? errorOverride.fixButton : null}
           />
         )}
 

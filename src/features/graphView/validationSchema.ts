@@ -1,5 +1,5 @@
 import z from "zod";
-import { graphTypes } from "./graphs/plugins";
+import { graphTypes } from "./graphs/graphRegistry";
 
 export const serializedGraphViewStateSchema = z.record(
   z.string(),

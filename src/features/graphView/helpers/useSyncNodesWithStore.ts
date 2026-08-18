@@ -3,7 +3,7 @@ import { applyNodeChanges, type NodeChange } from "@xyflow/react";
 import type { PredicateNodeType } from "../graphs/graphComponents/PredicateNode";
 import { useAppDispatch } from "../../../app/hooks";
 import { onNodesChanged } from "../graphs/graphSlice";
-import type { GraphType } from "../graphs/plugins";
+import type { GraphType } from "../graphs/graphRegistry";
 import type { TupleInfo } from "../../structure/tupleInfo";
 import { UndoActions } from "../../undoHistory/undoHistory";
 import { partition } from "../../../shared/core/utils";

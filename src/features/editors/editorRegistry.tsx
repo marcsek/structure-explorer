@@ -5,7 +5,7 @@ import {
   type DrawerEditorComponent,
 } from "../drawerEditor/drawerEditorAdapter";
 import GraphView from "../graphView/components/GraphView/GraphView";
-import type { GraphType } from "../graphView/graphs/plugins";
+import type { GraphType } from "../graphView/graphs/graphRegistry";
 import MatrixView from "../matrixView/MatrixView";
 import type { TupleInfo } from "../structure/tupleInfo";
 import { textEditorAdapter } from "../textView/textEditorAdapter";

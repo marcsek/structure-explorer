@@ -5,7 +5,7 @@ import {
   getGraphViewStateToExport,
   syncGraphView,
 } from "../graphView/graphs/graphSlice";
-import type { GraphType } from "../graphView/graphs/plugins";
+import type { GraphType } from "../graphView/graphs/graphRegistry";
 import {
   importLanguageState,
   type LanguageState,

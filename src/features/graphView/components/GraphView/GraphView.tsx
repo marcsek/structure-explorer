@@ -11,7 +11,7 @@ import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
 import { useAppDispatch } from "../../../../app/hooks.ts";
 import { useEffect } from "react";
 import { editorLocked } from "../../graphs/graphSlice.ts";
-import type { GraphType } from "../../graphs/plugins.ts";
+import type { GraphType } from "../../graphs/graphRegistry.ts";
 import type { TupleInfo } from "../../../structure/tupleInfo";
 import type { DrawerEditorProps } from "../../../drawerEditor/drawerEditorAdapter.tsx";
 

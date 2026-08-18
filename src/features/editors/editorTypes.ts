@@ -1,4 +1,4 @@
-import type { GraphType } from "../graphView/graphs/plugins";
+import type { GraphType } from "../graphView/graphs/graphRegistry";
 
 export type EditorType =
   | "text"

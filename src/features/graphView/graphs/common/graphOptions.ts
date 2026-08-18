@@ -16,10 +16,6 @@ import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
 
 export const SNAP_GRID_SIZE = 10;
 
-export const connectionLineStyle = {
-  stroke: "#b1b1b7",
-};
-
 export const nodeTypes: NodeTypes = {
   predicate: PredicateNode,
   setGroup: SetGroupNode,
@@ -55,7 +51,6 @@ export const defaultFlowProps: ReactFlowProps<
   fitView: true,
   fitViewOptions: defaultFitViewOptions,
   connectionLineComponent: CustomConnectionLine,
-  connectionLineStyle,
   proOptions: { hideAttribution: true },
   nodesFocusable: false,
   edgesFocusable: false,

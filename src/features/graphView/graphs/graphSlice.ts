@@ -18,18 +18,14 @@ import {
 } from "@xyflow/react";
 import { isPoset, type BinaryRelation } from "./HasseDiagram/posetHelpers";
 import {
+  graphs,
   graphTypes,
-  plugins,
-  processDeleteLeftover,
-  processEdgesToRelation,
-  processFilterEdgesToShow,
-  processFilterNodesToShow,
-  processSyncNodes,
-  processSyncPredIntr,
-  type GraphState,
+  readGraph,
+  updateGraph,
+  type GraphModelFor,
+  type GraphStates,
   type GraphType,
-  type Plugin,
-} from "./plugins.ts";
+} from "./graphRegistry.ts";
 import { type LanguageState } from "../../language/languageSlice.ts";
 import {
   updateDomain,
@@ -61,7 +57,7 @@ export type GraphManagerState = Record<
   string,
   {
     tupleType: TupleType;
-    state: GraphState;
+    state: GraphStates;
   }
 >;
 
@@ -193,19 +189,19 @@ export const graphManagerSlice = createSlice({
         newState[tupleId] = {
           tupleType: tupleType,
           state: {
-            oriented: plugins.oriented.init(
+            oriented: graphs.oriented.init(
               domain,
               tuple,
               tupleType,
               graphPositions?.["oriented"],
             ),
-            hasse: plugins.hasse.init(
+            hasse: graphs.hasse.init(
               domain,
               tuple,
               tupleType,
               graphPositions?.["hasse"],
             ),
-            bipartite: plugins.bipartite.init(
+            bipartite: graphs.bipartite.init(
               domain,
               tuple,
               tupleType,
@@ -271,20 +267,13 @@ export const graphManagerSlice = createSlice({
   extraReducers(builder) {
     builder.addCase(updateDomain, (state, action) => {
       dev.time("Graph domain update duration");
-      for (const [, graphs] of Object.entries(state)) {
+      const domain = action.payload;
+
+      for (const [, entry] of Object.entries(state)) {
         for (const graphType of graphTypes) {
-          const graphState = graphs.state[graphType];
-          const plugin = plugins[graphType];
-          const domain = action.payload;
-
-          const newState = processSyncNodes(
-            plugin,
-            graphState,
-            domain,
-            graphs.tupleType,
+          updateGraph(entry.state, graphType, (ops, graphState) =>
+            ops.syncNodes(graphState, domain, entry.tupleType),
           );
-
-          (graphs.state[graphType] as GraphState[typeof graphType]) = newState;
         }
       }
       dev.timeEnd("Graph domain update duration");
@@ -301,18 +290,15 @@ export const graphManagerSlice = createSlice({
         if (!(tupleId in state)) return;
 
         dev.time("Graph interpretation update duration");
-        const graphs = state[tupleId];
+        const entry = state[tupleId];
         for (const graphType of graphTypes) {
-          const graphState = graphs.state[graphType];
-          const plugin = plugins[graphType];
-
-          (graphs.state[graphType] as GraphState[typeof graphType]) =
-            processSyncPredIntr(
-              plugin,
+          updateGraph(entry.state, graphType, (ops, graphState) =>
+            ops.syncPredIntr(
               graphState,
               value as BinaryRelation<string>,
-              graphs.tupleType,
-            );
+              entry.tupleType,
+            ),
+          );
         }
 
         dev.timeEnd("Graph interpretation update duration");
@@ -389,13 +375,12 @@ export function makeSelectNodes<T extends GraphType>() {
       hoveredPredicateIntr,
       selectedNodes,
       unaryFilterDomain,
-    ): GraphState[T]["nodes"] => {
-      const plugin = plugins[type] as Plugin<T>;
+    ): GraphStates[T]["nodes"] => {
+      const graph = graphs[type] as GraphModelFor<T>;
 
       if (!nodes) return [];
 
-      return processFilterNodesToShow(
-        plugin,
+      return graph.filterNodesToShow(
         nodes,
         unaryFilterDomain,
         selectedNodes,
@@ -408,7 +393,6 @@ export function makeSelectNodes<T extends GraphType>() {
 
 export const selectEdges = createSelector(
   [
-    (_: RootState, __: TupleInfo, type: GraphType) => type,
     (state: RootState, tupleInfo: TupleInfo, type: GraphType) =>
       state.present.graphView[getTupleId(tupleInfo)]?.state[type],
     (
@@ -419,16 +403,11 @@ export const selectEdges = createSelector(
     ) => selectRelevantDomainElements(state, tupleInfo, includeHovered),
     selectSelectedDomain,
   ],
-  (type, graphState, relevantDomain, selectedNodes) => {
-    const plugin = plugins[type];
+  (graphState, relevantDomain, selectedNodes): DirectEdgeType[] => {
+    if (!graphState) return [];
 
-    if (!graphState) return [] as GraphState[typeof type]["edges"];
-
-    return processFilterEdgesToShow(
-      plugin,
-      graphState,
-      selectedNodes,
-      relevantDomain,
+    return readGraph(graphState, (ops, state) =>
+      ops.filterEdgesToShow(state, selectedNodes, relevantDomain),
     );
   },
 );
@@ -461,13 +440,9 @@ export const onEdgesChanged = ({
     const relevantEdges = edgesToRelation(selectedEdges);
 
     //TODO: Questionable use-case for this function
-    const [relation, relationSyncedEdges] = processEdgesToRelation(
-      plugins[graphType],
-      {
-        ...managerState[tupleId].state[graphType],
-        edges: newEdges,
-      },
-      relevantEdges,
+    const [relation, relationSyncedEdges] = readGraph(
+      managerState[tupleId].state[graphType],
+      (ops, state) => ops.edgesToRelation(state, newEdges, relevantEdges),
     );
 
     const creator =
@@ -517,13 +492,9 @@ export const onConnected = ({
       [connection.source, connection.target],
     ] as [string, string][];
 
-    const [relation] = processEdgesToRelation(
-      plugins[graphType],
-      {
-        ...managerState[tupleId].state[graphType],
-        edges: newEdges,
-      },
-      relevantEdges,
+    const [relation] = readGraph(
+      managerState[tupleId].state[graphType],
+      (ops, state) => ops.edgesToRelation(state, newEdges, relevantEdges),
     );
 
     const updater = interpretationUpdaters[tupleType];
@@ -549,30 +520,23 @@ export const leftoverDeleted = ({
     const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
     const tupleId = getTupleId(tupleInfo);
 
-    const { nodes: newNodes, edges: newEdges } = processDeleteLeftover(
-      plugins[graphType],
+    const { newNodes, relation } = readGraph(
       managerState[tupleId].state[graphType],
-      deletedNode,
-    );
+      (ops, state) => {
+        const { nodes, edges } = ops.deleteLeftover(state, deletedNode);
+        const [relation] = ops.edgesToRelation(
+          state,
+          edges,
+          edgesToRelation(selectedEdges),
+        );
 
-    const [relation] = processEdgesToRelation(
-      plugins[graphType],
-      {
-        ...managerState[tupleId].state[graphType],
-        edges: newEdges,
+        return { newNodes: nodes, relation };
       },
-      edgesToRelation(selectedEdges),
     );
 
     const updater = interpretationUpdaters[tupleType];
 
-    dispatch(
-      setNodes({
-        tupleInfo,
-        graphType,
-        nodes: newNodes,
-      }),
-    );
+    dispatch(setNodes({ tupleInfo, graphType, nodes: newNodes }));
     dispatch(updater({ key: tupleName, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
