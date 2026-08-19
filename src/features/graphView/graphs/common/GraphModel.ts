@@ -41,7 +41,6 @@ export type GraphState = {
 
 type NodeOf<S extends GraphState> = S["nodes"][number];
 
-// Valid connection, or invalid with an optional reason to show as a warning.
 export type ConnectionValidity = [valid: boolean, error?: string];
 
 export const edgeId = (from: string, to: string, duplicate = false) =>
@@ -74,11 +73,12 @@ export abstract class GraphModel<S extends GraphState> {
     relevantNodes?: string[],
   ): DirectEdgeType[];
 
-  abstract edgesToRelation(
-    state: S,
-    edges: DirectEdgeType[],
-    relevantEdges?: [string, string][],
-  ): [BinaryRelation<string>, DirectEdgeType[]];
+  visibleEdgesToRelation(
+    _state: S,
+    visibleEdges: DirectEdgeType[],
+  ): BinaryRelation<string> {
+    return this.relationOf(visibleEdges);
+  }
 
   abstract validateConnection(
     edges: DirectEdgeType[],
@@ -247,20 +247,27 @@ export abstract class GraphModel<S extends GraphState> {
     });
   }
 
-  deleteLeftover(
-    state: S,
-    deleted: string,
-  ): { nodes: S["nodes"]; edges: DirectEdgeType[] } {
+  nodesWithout(state: S, deleted: string): S["nodes"] {
     const element = this.elementOf(deleted);
 
-    return {
-      nodes: state.nodes.filter((node) => this.elementOf(node.id) !== element),
-      edges: state.edges.filter(
-        ({ source, target }) =>
-          this.elementOf(source) !== element &&
-          this.elementOf(target) !== element,
-      ),
-    };
+    return state.nodes.filter((node) => this.elementOf(node.id) !== element);
+  }
+
+  edgesWithout(edges: DirectEdgeType[], deleted: string): DirectEdgeType[] {
+    const element = this.elementOf(deleted);
+
+    return edges.filter(
+      ({ source, target }) =>
+        this.elementOf(source) !== element &&
+        this.elementOf(target) !== element,
+    );
+  }
+
+  protected relationOf(edges: DirectEdgeType[]): BinaryRelation<string> {
+    return edges.map(({ source, target }) => [
+      this.elementOf(source),
+      this.elementOf(target),
+    ]);
   }
 
   protected buildEdges(

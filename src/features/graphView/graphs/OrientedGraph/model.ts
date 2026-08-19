@@ -1,6 +1,5 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
-import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
 import type { Connection, Edge } from "@xyflow/react";
 import {
   type ConnectionValidity,
@@ -69,17 +68,5 @@ export default class OrientedGraphModel extends GraphModel<OrientedGraphState> {
     if (duplicate) return [false, "Edge already exists."];
 
     return [true];
-  }
-
-  edgesToRelation(
-    _state: OrientedGraphState,
-    edges: DirectEdgeType[],
-  ): [BinaryRelation<string>, DirectEdgeType[]] {
-    const relation = edges.map(({ source, target }) => [
-      source,
-      target,
-    ]) as BinaryRelation<string>;
-
-    return [relation, edges];
   }
 }

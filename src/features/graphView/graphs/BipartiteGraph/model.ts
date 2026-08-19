@@ -119,16 +119,4 @@ export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState>
 
     return [true];
   }
-
-  edgesToRelation(
-    _state: BipartiteGraphState,
-    edges: DirectEdgeType[],
-  ): [BinaryRelation<string>, DirectEdgeType[]] {
-    const relation = edges.map(({ source, target }) => [
-      this.elementOf(source),
-      this.elementOf(target),
-    ]) as BinaryRelation<string>;
-
-    return [relation, edges];
-  }
 }

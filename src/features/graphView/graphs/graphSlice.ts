@@ -22,10 +22,12 @@ import {
   graphTypes,
   readGraph,
   updateGraph,
+  type AnyGraphState,
   type GraphModelFor,
   type GraphStates,
   type GraphType,
 } from "./graphRegistry.ts";
+import type { GraphModel, GraphState } from "./common/GraphModel.ts";
 import { type LanguageState } from "../../language/languageSlice.ts";
 import {
   selectTupleLock,
@@ -394,43 +396,33 @@ export const onEdgesChanged = ({
   changes: EdgeChange<DirectEdgeType>[];
 }): AppThunk => {
   return (dispatch, getState) => {
-    const { name: tupleName, type: tupleType } = tupleInfo;
+    const state = getState();
+    const graphState =
+      state.present.graphView[getTupleId(tupleInfo)]?.state[graphType];
 
-    const managerState = getState().present.graphView;
-    const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleInfo);
-
-    const newEdges = applyEdgeChanges(
-      changes,
-      managerState[tupleId].state[graphType].edges,
-    );
-
-    const containedRemoveChange = changes.some(
-      (change) => change.type === "remove",
-    );
-
-    const relevantEdges = edgesToRelation(selectedEdges);
-
-    //TODO: Questionable use-case for this function
-    const [relation, relationSyncedEdges] = readGraph(
-      managerState[tupleId].state[graphType],
-      (ops, state) => ops.edgesToRelation(state, newEdges, relevantEdges),
-    );
-
-    const creator =
-      tupleType === "predicate"
-        ? updateInterpretationPredicates
-        : updateFunctionSymbols;
+    if (!graphState) return;
 
     dispatch(
       setEdges({
         tupleInfo,
         graphType,
-        edges: relationSyncedEdges,
+        edges: applyEdgeChanges(changes, graphState.edges),
       }),
     );
-    dispatch(creator({ key: tupleName, value: relation }));
-    if (containedRemoveChange) dispatch(UndoActions.checkpoint());
+
+    if (!changes.some((change) => change.type === "remove")) return;
+
+    const visibleEdges = applyEdgeChanges(
+      changes,
+      selectEdges(state, tupleInfo, graphType),
+    );
+
+    dispatch(
+      updateInterpretation(tupleInfo, graphState, (ops, graph) =>
+        ops.visibleEdgesToRelation(graph, visibleEdges),
+      ),
+    );
+    dispatch(UndoActions.checkpoint());
   };
 };
 
@@ -446,32 +438,24 @@ export const onConnected = ({
   breakPrevious?: boolean;
 }): AppThunk => {
   return (dispatch, getState) => {
-    const { name: tupleName, type: tupleType } = tupleInfo;
+    const state = getState();
+    const graphState =
+      state.present.graphView[getTupleId(tupleInfo)]?.state[graphType];
 
-    const managerState = getState().present.graphView;
-    const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleInfo);
+    if (!graphState) return;
 
-    let newEdges = [...managerState[tupleId].state[graphType].edges];
+    let visibleEdges = selectEdges(state, tupleInfo, graphType);
 
     if (breakPrevious)
-      newEdges = newEdges.filter((e) => e.source !== connection.source);
+      visibleEdges = visibleEdges.filter((e) => e.source !== connection.source);
 
-    newEdges = addEdge(connection, newEdges);
+    visibleEdges = addEdge(connection, visibleEdges);
 
-    const relevantEdges = [
-      ...edgesToRelation(selectedEdges),
-      [connection.source, connection.target],
-    ] as [string, string][];
-
-    const [relation] = readGraph(
-      managerState[tupleId].state[graphType],
-      (ops, state) => ops.edgesToRelation(state, newEdges, relevantEdges),
+    dispatch(
+      updateInterpretation(tupleInfo, graphState, (ops, graph) =>
+        ops.visibleEdgesToRelation(graph, visibleEdges),
+      ),
     );
-
-    const updater = interpretationUpdaters[tupleType];
-
-    dispatch(updater({ key: tupleName, value: relation }));
     dispatch(UndoActions.checkpoint());
   };
 };
@@ -486,33 +470,43 @@ export const leftoverDeleted = ({
   deletedNode: string;
 }): AppThunk => {
   return (dispatch, getState) => {
-    const { name: tupleName, type: tupleType } = tupleInfo;
+    const state = getState();
+    const graphState =
+      state.present.graphView[getTupleId(tupleInfo)]?.state[graphType];
 
-    const managerState = getState().present.graphView;
-    const selectedEdges = selectEdges(getState(), tupleInfo, graphType);
-    const tupleId = getTupleId(tupleInfo);
+    if (!graphState) return;
 
-    const { newNodes, relation } = readGraph(
-      managerState[tupleId].state[graphType],
-      (ops, state) => {
-        const { nodes, edges } = ops.deleteLeftover(state, deletedNode);
-        const [relation] = ops.edgesToRelation(
-          state,
-          edges,
-          edgesToRelation(selectedEdges),
-        );
+    const visibleEdges = selectEdges(state, tupleInfo, graphType);
 
-        return { newNodes: nodes, relation };
-      },
+    const nodes = readGraph(graphState, (ops, graph) =>
+      ops.nodesWithout(graph, deletedNode),
     );
 
-    const updater = interpretationUpdaters[tupleType];
-
-    dispatch(setNodes({ tupleInfo, graphType, nodes: newNodes }));
-    dispatch(updater({ key: tupleName, value: relation }));
+    dispatch(setNodes({ tupleInfo, graphType, nodes }));
+    dispatch(
+      updateInterpretation(tupleInfo, graphState, (ops, graph) =>
+        ops.visibleEdgesToRelation(
+          graph,
+          ops.edgesWithout(visibleEdges, deletedNode),
+        ),
+      ),
+    );
     dispatch(UndoActions.checkpoint());
   };
 };
+
+const updateInterpretation = (
+  tupleInfo: TupleInfo,
+  graphState: AnyGraphState,
+  toRelation: <S extends GraphState>(
+    ops: GraphModel<S>,
+    graph: S,
+  ) => BinaryRelation<string>,
+) =>
+  interpretationUpdaters[tupleInfo.type]({
+    key: tupleInfo.name,
+    value: readGraph(graphState, toRelation),
+  });
 
 const interpretationUpdaters = {
   predicate: updateInterpretationPredicates,

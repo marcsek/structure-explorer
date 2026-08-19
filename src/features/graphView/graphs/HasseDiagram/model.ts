@@ -1,6 +1,5 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
-import { edgesToRelation as convertEdgesToRelation } from "../graphSlice";
 import {
   expandReducedPoset,
   reducePosetRelations,
@@ -73,7 +72,7 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
       )
       .map((node) => node.id);
 
-    const filteredRelation = convertEdgesToRelation(
+    const filteredRelation = this.relationOf(
       state.edges.filter(
         ({ source, target }) =>
           visibleNodes.includes(source) && visibleNodes.includes(target),
@@ -82,7 +81,7 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
 
     const reducedRelation = reducePosetRelations(filteredRelation);
     const unfilteredReducedRelation = reducePosetRelations(
-      convertEdgesToRelation(state.edges),
+      this.relationOf(state.edges),
     );
 
     const inUnfiltered = (source: string, target: string) =>
@@ -115,9 +114,9 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
     edges: DirectEdgeType[],
     connection: Connection | Edge,
   ): ConnectionValidity {
-    const relation: BinaryRelation<string> = edges
-      .filter((edge) => !edge.data?.helper)
-      .map((edge) => [edge.source, edge.target]);
+    const relation = this.relationOf(
+      edges.filter((edge) => !edge.data?.helper),
+    );
 
     return staysValidHasseWithEdge(relation, [
       connection.source,
@@ -125,34 +124,17 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
     ]);
   }
 
-  edgesToRelation(
+  visibleEdgesToRelation(
     state: HasseDiagramState,
-    edges: DirectEdgeType[],
-    relevantEdges?: [string, string][],
-  ): [BinaryRelation<string>, DirectEdgeType[]] {
-    const relevantRelation = convertEdgesToRelation(
-      edges.filter(
-        ({ source, target, data }) =>
-          relevantEdges?.some(
-            ([from, to]) => source === from && target === to,
-          ) && !data?.helper,
-      ),
-    );
-
+    visibleEdges: DirectEdgeType[],
+  ): BinaryRelation<string> {
     const domain = new Set(state.nodes.map((node) => node.id));
-    const expanded = expandReducedPoset(relevantRelation, domain);
+    const expanded = expandReducedPoset(this.relationOf(visibleEdges), domain);
 
-    const relationSyncedEdges = edges.filter(
-      ({ source, target, data }) =>
-        expanded.some(([from, to]) => source === from && target === to) ||
-        data?.helper ||
-        data?.duplicate,
+    const duplicates = this.relationOf(
+      visibleEdges.filter(({ data }) => data?.duplicate),
     );
 
-    const duplicates = edges
-      .filter(({ data }) => data?.duplicate)
-      .map(({ source, target }) => [source, target]) as BinaryRelation<string>;
-
-    return [[...expanded, ...duplicates], relationSyncedEdges];
+    return [...expanded, ...duplicates];
   }
 }
