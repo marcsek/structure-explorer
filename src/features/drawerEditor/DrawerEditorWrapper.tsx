@@ -92,16 +92,15 @@ function DrawerEditorContent({
     null,
   );
 
-  const EditorComponent = config.component;
   const editorComponent = show ? (
-    <EditorComponent
-      id={id}
-      tupleInfo={tupleInfo}
-      locked={locked}
-      expandedView={expandedView}
-      setExpandedView={setExpandedView}
-      setErrorOverride={setErrorOverride}
-    />
+    config.render({
+      id,
+      tupleInfo,
+      locked,
+      expandedView,
+      setExpandedView,
+      setErrorOverride,
+    })
   ) : (
     <InactiveViewPlaceholder size={preservedSize} />
   );

@@ -1,4 +1,4 @@
-import type { ReactNode, ComponentType } from "react";
+import type { ReactNode, ReactElement } from "react";
 import type { InterpretationError } from "../../shared/core/errors";
 import type { EditorFilters } from "../editorToolbar/components/EditorToolbar";
 import type { EditorDescriptor } from "../editors/editorDescriptor";
@@ -22,20 +22,20 @@ export interface DrawerEditorProps {
   setErrorOverride: (value: ErrorOverride | null) => void;
 }
 
-export type DrawerEditorComponent = ComponentType<DrawerEditorProps>;
+export type RenderDrawerEditor = (props: DrawerEditorProps) => ReactElement;
 
 export interface DrawerEditorConfig {
   type: DrawerEditorType;
   displayName: string;
   toolbar: false | { disabledFilters?: EditorFilters[] };
-  component: DrawerEditorComponent;
+  render: RenderDrawerEditor;
 }
 
 export interface DrawerEditorDescriptor
   extends Omit<EditorDescriptor, "type" | "render">, DrawerEditorConfig {}
 
 export const drawerEditorAdapter = ({
-  component,
+  render,
   toolbar,
   ...shared
 }: DrawerEditorDescriptor): EditorDescriptor => {
@@ -43,7 +43,7 @@ export const drawerEditorAdapter = ({
     type: shared.type,
     displayName: shared.displayName,
     toolbar,
-    component,
+    render,
   };
 
   return {

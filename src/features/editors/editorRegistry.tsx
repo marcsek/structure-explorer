@@ -2,7 +2,7 @@ import IntervalView from "../caseTreeView/IntervalView";
 import DatabaseView from "../databaseView/DatabaseView";
 import {
   drawerEditorAdapter,
-  type DrawerEditorComponent,
+  type RenderDrawerEditor,
 } from "../drawerEditor/drawerEditorAdapter";
 import GraphView from "../graphView/components/GraphView/GraphView";
 import type { GraphType } from "../graphView/graphs/graphRegistry";
@@ -12,8 +12,8 @@ import { textEditorAdapter } from "../textView/textEditorAdapter";
 import type { EditorDescriptor } from "./editorDescriptor";
 import type { EditorType } from "./editorTypes";
 
-const graphEditorAdapter =
-  (type: GraphType): DrawerEditorComponent =>
+const renderGraphEditor =
+  (type: GraphType): RenderDrawerEditor =>
   (props) => <GraphView {...props} graphType={type} />;
 
 const correctedArity = ({ type, arity }: TupleInfo) =>
@@ -35,7 +35,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ type }) => type === "function",
     supportsFullscreen: false,
     toolbar: false,
-    component: IntervalView,
+    render: (props) => <IntervalView {...props} />,
   }),
   matrix: drawerEditorAdapter({
     type: "matrix",
@@ -45,7 +45,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ arity }) => arity <= 2,
     supportsFullscreen: false,
     toolbar: {},
-    component: MatrixView,
+    render: (props) => <MatrixView {...props} />,
   }),
   database: drawerEditorAdapter({
     type: "database",
@@ -55,7 +55,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ type, arity }) => arity <= 2 || type !== "function",
     supportsFullscreen: false,
     toolbar: { disabledFilters: ["domainSelector", "unaryFilterToggle"] },
-    component: DatabaseView,
+    render: (props) => <DatabaseView {...props} />,
   }),
   oriented: drawerEditorAdapter({
     type: "oriented",
@@ -65,7 +65,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
     toolbar: {},
-    component: graphEditorAdapter("oriented"),
+    render: renderGraphEditor("oriented"),
   }),
   hasse: drawerEditorAdapter({
     type: "hasse",
@@ -76,7 +76,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
       isBinaryRelation(tuple) && tuple.type !== "function",
     supportsFullscreen: true,
     toolbar: {},
-    component: graphEditorAdapter("hasse"),
+    render: renderGraphEditor("hasse"),
   }),
   bipartite: drawerEditorAdapter({
     type: "bipartite",
@@ -86,6 +86,6 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
     toolbar: {},
-    component: graphEditorAdapter("bipartite"),
+    render: renderGraphEditor("bipartite"),
   }),
 };
