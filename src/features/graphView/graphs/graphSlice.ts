@@ -263,9 +263,10 @@ export const graphManagerSlice = createSlice({
 
       for (const [, entry] of Object.entries(state)) {
         for (const graphType of graphTypes) {
-          updateGraph(entry.state, graphType, (ops, graphState) =>
-            ops.syncNodes(graphState, domain, entry.tupleType),
-          );
+          if (graphs[graphType].isCompatible(entry.tupleType))
+            updateGraph(entry.state, graphType, (ops, graphState) =>
+              ops.syncNodes(graphState, domain, entry.tupleType),
+            );
         }
       }
       dev.timeEnd("Graph domain update duration");
@@ -284,13 +285,14 @@ export const graphManagerSlice = createSlice({
         dev.time("Graph interpretation update duration");
         const entry = state[tupleId];
         for (const graphType of graphTypes) {
-          updateGraph(entry.state, graphType, (ops, graphState) =>
-            ops.syncPredIntr(
-              graphState,
-              value as BinaryRelation<string>,
-              entry.tupleType,
-            ),
-          );
+          if (graphs[graphType].isCompatible(entry.tupleType))
+            updateGraph(entry.state, graphType, (ops, graphState) =>
+              ops.syncPredIntr(
+                graphState,
+                value as BinaryRelation<string>,
+                entry.tupleType,
+              ),
+            );
         }
 
         dev.timeEnd("Graph interpretation update duration");

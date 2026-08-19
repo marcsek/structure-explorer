@@ -47,7 +47,9 @@ export const edgeId = (from: string, to: string, duplicate = false) =>
   `eg-${from}->${to}${duplicate ? "-duplicate" : ""}`;
 
 export abstract class GraphModel<S extends GraphState> {
-  protected readonly representsFunctions: boolean = true;
+  isCompatible(_tupleType: TupleType): boolean {
+    return true;
+  }
 
   protected abstract empty(): S;
 
@@ -94,7 +96,7 @@ export abstract class GraphModel<S extends GraphState> {
     const relation = predicate.intr;
     const graph: S = { ...this.empty(), didLayout: !!positions };
 
-    if (tupleType === "function" && !this.representsFunctions) return graph;
+    if (!this.isCompatible(tupleType)) return graph;
 
     const seed: PositionSeed = { positions };
 
@@ -181,7 +183,7 @@ export abstract class GraphModel<S extends GraphState> {
         this.hasConnection(newEdges, this.elementOf(node.id)),
     );
 
-    if (tupleType === "function" && this.representsFunctions) {
+    if (tupleType === "function" && this.isCompatible("function")) {
       const invalid = (element: string) =>
         relation.filter(([from]) => from === element).length !== 1;
 
@@ -285,8 +287,8 @@ export abstract class GraphModel<S extends GraphState> {
         present.add(id);
 
         const error =
-          this.representsFunctions &&
           tupleType === "function" &&
+          this.isCompatible("function") &&
           relation.filter(([f]) => f === from).length > 1;
 
         if (!existing) {

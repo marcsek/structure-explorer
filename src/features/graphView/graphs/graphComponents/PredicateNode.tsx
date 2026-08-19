@@ -68,6 +68,7 @@ function PredicateNode({
     dispatch(
       onConnected({
         ...parentInfo,
+        breakPrevious: parentInfo.tupleInfo.type === "function",
         connection: {
           source: id,
           target: id,

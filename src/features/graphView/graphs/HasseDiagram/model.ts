@@ -16,13 +16,16 @@ import {
   type GraphState,
   type PositionSeed,
 } from "../common/GraphModel";
+import type { TupleType } from "../../../structure/tupleInfo";
 
 export interface HasseDiagramState extends GraphState {
   kind: "hasse";
 }
 
 export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
-  protected readonly representsFunctions = false;
+  isCompatible(tupleType: TupleType): boolean {
+    return tupleType === "predicate";
+  }
 
   protected empty(): HasseDiagramState {
     return { kind: "hasse", nodes: [], edges: [] };
