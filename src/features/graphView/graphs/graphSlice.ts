@@ -539,10 +539,14 @@ export const getGraphViewStateToExport = (
   ): [string, [number, number]][] => {
     const changedNodes = didLayout ? nodes : [];
 
-    return changedNodes.map(({ id, position: { x, y } }) => [
-      id,
-      [x ?? 0, y ?? 0].map(Math.trunc) as [number, number],
-    ]);
+    return changedNodes
+      .filter(
+        ({ position: { x, y } }) => Number.isFinite(x) && Number.isFinite(y),
+      )
+      .map(({ id, position: { x, y } }) => [
+        id,
+        [x, y].map(Math.trunc) as [number, number],
+      ]);
   };
 
   const serializedState: SerializedGraphViewState = {};

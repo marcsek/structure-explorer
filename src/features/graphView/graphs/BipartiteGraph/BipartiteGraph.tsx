@@ -95,11 +95,7 @@ export default function BipartiteGraph({
         nodes,
       );
 
-      const nonPositionChanges = bipartiteNodeChanges.filter(
-        (ch) => ch.type !== "position",
-      );
-
-      onNodesChange([...nonPositionChanges, ...layoutChanges]);
+      onNodesChange([...bipartiteNodeChanges, ...layoutChanges]);
     },
     [nodes, onNodesChange, getNode],
   );
