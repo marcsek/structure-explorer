@@ -109,6 +109,8 @@ export default function BipartiteGraph({
       zoomEnabled={!expandedView}
     >
       <ReactFlow
+        {...defaultFlowProps}
+        {...graphProps}
         id={id}
         nodes={groupedNodes}
         edges={edges}
@@ -119,10 +121,6 @@ export default function BipartiteGraph({
         zoomOnScroll={expandedView && !dialogShown}
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
-        {...graphProps}
-        {...defaultFlowProps}
-        fitViewOptions={fitViewOptions}
-        fitView={false}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>

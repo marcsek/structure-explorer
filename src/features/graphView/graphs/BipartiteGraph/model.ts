@@ -1,5 +1,5 @@
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
-import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
+import type { BinaryRelation } from "../common/relations";
 import type { TupleType } from "../../../structure/tupleInfo";
 import type { Connection, Edge } from "@xyflow/react";
 import {

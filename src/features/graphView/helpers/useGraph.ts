@@ -25,7 +25,10 @@ import type { RootState } from "../../../app/store";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
 import { makeEdgeHidden, makeNodeInvisible } from "./utils";
-import { defaultFitViewOptions } from "../graphs/common/graphOptions";
+import {
+  defaultFitViewDuration,
+  defaultFitViewOptions,
+} from "../graphs/common/graphOptions";
 
 type NodesOf<T extends GraphType> = GraphStates[T]["nodes"];
 type NodeOf<T extends GraphType> = NodesOf<T>[number];
@@ -88,7 +91,11 @@ export default function useGraph<T extends GraphType>({
     requestAnimationFrame(() => fitView({ ...fitViewOptions }));
   }, [fitView, fitViewOptions]);
 
-  const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
+  const flowWrapperRef = useFitViewOnNodeAdded({
+    nodes: storeNodes,
+    fitViewOptions,
+    fitViewDuration: defaultFitViewDuration,
+  });
 
   const flowNodes = useMemo(
     () => (didLayout ? nodes : nodes.map(makeNodeInvisible)),

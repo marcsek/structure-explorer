@@ -1,4 +1,4 @@
-export type BinaryRelation<T> = [T, T][];
+import type { BinaryRelation } from "../common/relations";
 
 export function isPoset<T>(relation: BinaryRelation<T>) {
   const succMap = buildSuccessorMap(relation);

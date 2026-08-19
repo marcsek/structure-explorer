@@ -4,8 +4,8 @@ import {
   expandReducedPoset,
   reducePosetRelations,
   staysValidHasseWithEdge,
-  type BinaryRelation,
 } from "./posetHelpers";
+import type { BinaryRelation } from "../common/relations";
 import type { Connection, Edge } from "@xyflow/react";
 import {
   type ConnectionValidity,

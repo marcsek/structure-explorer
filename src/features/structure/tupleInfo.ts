@@ -12,6 +12,9 @@ export type TupleIdentity = Pick<TupleInfo, "type" | "name">;
 
 export const getTupleId = ({ type, name }: TupleIdentity) => `${type}-${name}`;
 
+export const getKeyFromTupleId = (tupleId: string) =>
+  tupleId.substring(tupleId.lastIndexOf("-") + 1);
+
 export const tupleTypeToTextViewType = (type: TupleType): TextViewType => {
   switch (type) {
     case "predicate":

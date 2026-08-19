@@ -1,7 +1,7 @@
 import type { Connection, Edge, XYPosition } from "@xyflow/react";
 import type { DirectEdgeType } from "../graphComponents/DirectEdge";
 import type { PredicateNodeType } from "../graphComponents/PredicateNode";
-import type { BinaryRelation } from "../HasseDiagram/posetHelpers";
+import type { BinaryRelation } from "./relations";
 import type { TupleType } from "../../../structure/tupleInfo";
 
 export const numberTupleToXYPosition = ([x, y]: [

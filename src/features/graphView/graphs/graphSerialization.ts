@@ -1,8 +1,8 @@
 import type { RootState } from "../../../app/store.ts";
 import type { RelevantSymbols } from "../../import/importExportUtils.ts";
+import { getKeyFromTupleId } from "../../structure/tupleInfo.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
 import type { PredicateNodeType } from "./graphComponents/PredicateNode";
-import { getKeyFromTupleId } from "./graphSlice.ts";
 import type { GraphType } from "./graphRegistry.ts";
 
 export const getGraphViewStateToExport = (

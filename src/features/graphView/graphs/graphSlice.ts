@@ -12,11 +12,11 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
   type Connection,
-  type Edge,
   type EdgeChange,
   type NodeChange,
 } from "@xyflow/react";
-import { isPoset, type BinaryRelation } from "./HasseDiagram/posetHelpers";
+import { isPoset } from "./HasseDiagram/posetHelpers";
+import { edgesToRelation, type BinaryRelation } from "./common/relations.ts";
 import {
   graphs,
   graphTypes,
@@ -184,26 +184,17 @@ export const graphManagerSlice = createSlice({
 
         newState[tupleId] = {
           tupleType: tupleType,
-          state: {
-            oriented: graphs.oriented.init(
-              domain,
-              tuple,
-              tupleType,
-              graphPositions?.["oriented"],
-            ),
-            hasse: graphs.hasse.init(
-              domain,
-              tuple,
-              tupleType,
-              graphPositions?.["hasse"],
-            ),
-            bipartite: graphs.bipartite.init(
-              domain,
-              tuple,
-              tupleType,
-              graphPositions?.["bipartite"],
-            ),
-          },
+          state: Object.fromEntries(
+            graphTypes.map((graphType) => [
+              graphType,
+              graphs[graphType].init(
+                domain,
+                tuple,
+                tupleType,
+                graphPositions?.[graphType],
+              ),
+            ]),
+          ) as GraphStates,
         };
       });
 
@@ -497,12 +488,6 @@ const interpretationUpdaters = {
   predicate: updateInterpretationPredicates,
   function: updateFunctionSymbols,
 } as const;
-
-export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
-  edges.map(({ source, target }) => [source, target]);
-
-export const getKeyFromTupleId = (tupleId: string) =>
-  tupleId.substring(tupleId.lastIndexOf("-") + 1);
 
 const tupleUpdaterToTupleType = {
   [updateInterpretationPredicates.type]: "predicate",
