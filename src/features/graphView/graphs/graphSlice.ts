@@ -47,7 +47,6 @@ import {
   type TupleInfo,
   type TupleType,
 } from "../../structure/tupleInfo";
-import type { RelevantSymbols } from "../../import/importExportUtils.ts";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
 import {
@@ -99,22 +98,6 @@ export const graphManagerSlice = createSlice({
       if (!state[tupleId]) return;
 
       state[tupleId].state[graphType].edges = edges;
-    },
-
-    edgeAdded(
-      state,
-      action: PayloadAction<WithGraphId<{ edge: DirectEdgeType }>>,
-    ) {
-      const { tupleInfo, graphType, edge } = action.payload;
-
-      const tupleId = getTupleId(tupleInfo);
-
-      if (!state[tupleId]) return;
-
-      state[tupleId].state[graphType].edges = [
-        ...state[tupleId].state[graphType].edges,
-        edge,
-      ];
     },
 
     graphDidInitialLayout(
@@ -515,61 +498,6 @@ const interpretationUpdaters = {
   function: updateFunctionSymbols,
 } as const;
 
-export const getGraphViewStateToExport = (
-  state: RootState,
-  relevantSymbols: RelevantSymbols,
-): SerializedGraphViewState => {
-  const relevantEntries = Object.entries(state.present.graphView).filter(
-    ([tupleId, { tupleType }]) => {
-      const tupleName = getKeyFromTupleId(tupleId);
-      const relevantEntry = relevantSymbols[tupleName];
-
-      if (!relevantEntry || relevantEntry.type === "constant") return false;
-      return relevantEntry.arity === (tupleType === "function" ? 1 : 2);
-    },
-  );
-
-  const getNodesToExport = (
-    nodes: PredicateNodeType[],
-    didLayout: boolean,
-  ): [string, [number, number]][] => {
-    const changedNodes = didLayout ? nodes : [];
-
-    return changedNodes
-      .filter(
-        ({ position: { x, y } }) => Number.isFinite(x) && Number.isFinite(y),
-      )
-      .map(({ id, position: { x, y } }) => [
-        id,
-        [x, y].map(Math.trunc) as [number, number],
-      ]);
-  };
-
-  const serializedState: SerializedGraphViewState = {};
-
-  for (const [tupleId, { state }] of relevantEntries) {
-    const graphEntries: [GraphType, Record<string, [number, number]>][] = [];
-    for (const graphType in state) {
-      const { nodes, didLayout } = state[graphType as GraphType];
-      const positions = getNodesToExport(nodes, !!didLayout);
-
-      if (positions.length === 0) continue;
-
-      graphEntries.push([
-        graphType as GraphType,
-        Object.fromEntries(positions),
-      ]);
-    }
-
-    if (graphEntries.length === 0) continue;
-    serializedState[tupleId] = Object.fromEntries(
-      graphEntries,
-    ) as SerializedGraphViewState[string];
-  }
-
-  return serializedState;
-};
-
 export const edgesToRelation = (edges: Edge[]): BinaryRelation<string> =>
   edges.map(({ source, target }) => [source, target]);
 
@@ -584,7 +512,6 @@ const tupleUpdaterToTupleType = {
 export const {
   setNodes,
   setEdges,
-  edgeAdded,
   onNodesChanged,
   warningChanged,
   syncGraphView,

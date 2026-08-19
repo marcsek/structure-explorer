@@ -293,13 +293,6 @@ function* permutations<T>(domain: T[], n: number): Generator<T[]> {
   }
 }
 
-export const getRelevantQueriesState = (
-  queriesState: QueriesState,
-): SerializedQueriesState => ({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  queries: queriesState.queries.map(({ stale, ...q }) => q),
-});
-
 export const {
   importQueriesState,
   addQuery,

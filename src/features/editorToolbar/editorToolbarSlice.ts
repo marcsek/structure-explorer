@@ -13,7 +13,6 @@ import {
   type TupleInfo,
 } from "../structure/tupleInfo";
 import type { EditorType } from "../editors/editorTypes";
-import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
 
 export type EditorToolbarEntry = {
@@ -324,34 +323,6 @@ export const selectHatchedDomain = createSelector(
     );
   },
 );
-
-export const getRelevantEditorToolbarState = (
-  editorToolbar: SerializedEditorToolbarState,
-  relevantSymbols: RelevantSymbols,
-): SerializedEditorToolbarState => {
-  const stateToExport: SerializedEditorToolbarState = {};
-
-  for (const [tupleName, relevantSymbol] of Object.entries(relevantSymbols)) {
-    if (relevantSymbol.type === "constant") continue;
-
-    const tupleId = getTupleId({ type: relevantSymbol.type, name: tupleName });
-    const toolbarEntry = editorToolbar[tupleId];
-
-    if (!toolbarEntry) continue;
-
-    const { openedEditor, selectedUnary, unaryFilterDomain, selectedDomain } =
-      toolbarEntry;
-
-    stateToExport[tupleId] = {
-      openedEditor,
-      selectedUnary,
-      unaryFilterDomain,
-      selectedDomain,
-    };
-  }
-
-  return stateToExport;
-};
 
 export default editorToolbarSlice.reducer;
 

@@ -1,0 +1,31 @@
+import type { RelevantSymbols } from "../import/importExportUtils.ts";
+import { getTupleId } from "../structure/tupleInfo";
+import type { SerializedEditorToolbarState } from "./validationSchema";
+
+export const getRelevantEditorToolbarState = (
+  editorToolbar: SerializedEditorToolbarState,
+  relevantSymbols: RelevantSymbols,
+): SerializedEditorToolbarState => {
+  const stateToExport: SerializedEditorToolbarState = {};
+
+  for (const [tupleName, relevantSymbol] of Object.entries(relevantSymbols)) {
+    if (relevantSymbol.type === "constant") continue;
+
+    const tupleId = getTupleId({ type: relevantSymbol.type, name: tupleName });
+    const toolbarEntry = editorToolbar[tupleId];
+
+    if (!toolbarEntry) continue;
+
+    const { openedEditor, selectedUnary, unaryFilterDomain, selectedDomain } =
+      toolbarEntry;
+
+    stateToExport[tupleId] = {
+      openedEditor,
+      selectedUnary,
+      unaryFilterDomain,
+      selectedDomain,
+    };
+  }
+
+  return stateToExport;
+};

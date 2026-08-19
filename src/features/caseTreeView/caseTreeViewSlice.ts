@@ -24,7 +24,6 @@ import {
 import { dev } from "../../shared/core/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
 import { UndoActions } from "../undoHistory/undoHistory";
-import type { RelevantSymbols } from "../import/importExportUtils";
 
 export type CaseTreeBranch =
   | { type: "value"; value: string }
@@ -330,14 +329,3 @@ export const selectStructuredCaseView = createSelector(
     );
   },
 );
-
-export const getRelevantCaseTreeState = (
-  state: CaseTreeState,
-  relevantSymbols: RelevantSymbols,
-) => {
-  return Object.fromEntries(
-    Object.entries(state).filter(
-      ([key]) => relevantSymbols[key]?.type === "function",
-    ),
-  );
-};

@@ -1,19 +1,15 @@
 import type { AppDispatch, AppThunk, RootState } from "../../app/store";
 import { syncDatabaseView } from "../databaseView/databaseViewSlice";
 import { importFormulasState } from "../formulas/formulasSlice";
-import {
-  getGraphViewStateToExport,
-  syncGraphView,
-} from "../graphView/graphs/graphSlice";
+import { syncGraphView } from "../graphView/graphs/graphSlice";
+import { getGraphViewStateToExport } from "../graphView/graphs/graphSerialization";
 import type { GraphType } from "../graphView/graphs/graphRegistry";
 import {
   importLanguageState,
   type LanguageState,
 } from "../language/languageSlice";
-import {
-  getRelevantStructureState,
-  importStructureState,
-} from "../structure/structureSlice";
+import { importStructureState } from "../structure/structureSlice";
+import { getRelevantStructureState } from "../structure/structureSerialization";
 import type { TupleType } from "../structure/tupleInfo";
 import { importTeacherMode } from "../teacherMode/teacherModeSlice";
 import { syncTextView } from "../textView/textViewSlice";
@@ -27,18 +23,12 @@ import {
   SERIALIZED_STATE_VERSION,
   type SerializedAppState,
 } from "./validationSchema";
-import {
-  getRelevantEditorToolbarState,
-  importEditorToolbarState,
-} from "../editorToolbar/editorToolbarSlice";
-import {
-  getRelevantQueriesState as getQuriesStateToExport,
-  importQueriesState,
-} from "../queries/queriesSlice";
-import {
-  getRelevantCaseTreeState,
-  importCaseTreeViewState,
-} from "../caseTreeView/caseTreeViewSlice";
+import { importEditorToolbarState } from "../editorToolbar/editorToolbarSlice";
+import { getRelevantEditorToolbarState } from "../editorToolbar/editorToolbarSerialization";
+import { importQueriesState } from "../queries/queriesSlice";
+import { getRelevantQueriesState as getQuriesStateToExport } from "../queries/queriesSerialization";
+import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
+import { getRelevantCaseTreeState } from "../caseTreeView/caseTreeViewSerialization";
 
 export interface ImportedAppState extends Omit<
   RootState["present"],

@@ -20,7 +20,6 @@ import {
   type LockableValue,
   type Validated,
 } from "../../shared/core/redux";
-import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import type { SerializedStructureState } from "./validationSchema";
 import type { TupleIdentity, TupleInfo, TupleType } from "./tupleInfo";
 import { dev } from "../../shared/core/logging";
@@ -554,27 +553,6 @@ export const selectStructure = createSelector(
     );
   },
 );
-
-const filterRelevantSymbolsByType = <T>(
-  record: Record<string, T>,
-  relevantSymbols: RelevantSymbols,
-  type: RelevantSymbols[string]["type"],
-): Record<string, T> =>
-  Object.fromEntries(
-    Object.entries(record).filter(
-      ([key]) => relevantSymbols[key]?.type === type,
-    ),
-  );
-
-export const getRelevantStructureState = (
-  structure: StructureState,
-  relevantSymbols: RelevantSymbols,
-): StructureState => ({
-  ...structure,
-  iC: filterRelevantSymbolsByType(structure.iC, relevantSymbols, "constant"),
-  iP: filterRelevantSymbolsByType(structure.iP, relevantSymbols, "predicate"),
-  iF: filterRelevantSymbolsByType(structure.iF, relevantSymbols, "function"),
-});
 
 export const {
   updateDomain,
