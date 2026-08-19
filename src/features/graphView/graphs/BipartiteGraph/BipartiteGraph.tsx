@@ -55,7 +55,7 @@ export default function BipartiteGraph({
     flowWrapperRef,
     syncNodesWithStore,
     graphProps: { onNodesChange, ...graphProps },
-  } = useGraph({ tupleInfo, graphType });
+  } = useGraph({ tupleInfo, graphType, fitViewOptions });
 
   const nodesInitialized = useNodesInitialized();
 
@@ -122,6 +122,7 @@ export default function BipartiteGraph({
         {...graphProps}
         {...defaultFlowProps}
         fitViewOptions={fitViewOptions}
+        fitView={false}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>

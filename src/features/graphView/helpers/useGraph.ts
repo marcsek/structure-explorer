@@ -1,7 +1,9 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import {
+  useReactFlow,
   type Edge,
   type EdgeChange,
+  type FitViewOptions,
   type IsValidConnection,
   type OnConnect,
 } from "@xyflow/react";
@@ -23,6 +25,7 @@ import type { RootState } from "../../../app/store";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
 import { makeEdgeHidden, makeNodeInvisible } from "./utils";
+import { defaultFitViewOptions } from "../graphs/common/graphOptions";
 
 type NodesOf<T extends GraphType> = GraphStates[T]["nodes"];
 type NodeOf<T extends GraphType> = NodesOf<T>[number];
@@ -43,16 +46,19 @@ interface UseGraphProps<T extends GraphType> {
   tupleInfo: TupleInfo;
   graphType: T;
   includeHovered?: boolean;
+  fitViewOptions?: FitViewOptions;
 }
 
 export default function useGraph<T extends GraphType>({
   tupleInfo,
   graphType,
+  fitViewOptions = defaultFitViewOptions,
   includeHovered = false,
 }: UseGraphProps<T>) {
   const dispatch = useAppDispatch();
   const tupleId = getTupleId(tupleInfo);
   const representsFunction = tupleInfo.type === "function";
+  const { fitView } = useReactFlow();
 
   const nodeSelector = nodeSelectors[graphType] as NodeSelector<T>;
 
@@ -72,6 +78,15 @@ export default function useGraph<T extends GraphType>({
   const { nodes, onNodesChange, syncNodesWithStore } = useSyncNodesWithStore<
     NodeOf<T>
   >({ tupleInfo, graphType, storeNodes });
+
+  // This is a hack, since the fitView options on the ReactFlow component
+  // don't work correctly for our use case, resulting in flickering
+  // when switching between graph types. Always calling fitView on the initial
+  // mount resolves this. Waiting for another frame is needed to allow ReactFlow to
+  // handle the initial nodes.
+  useEffect(() => {
+    requestAnimationFrame(() => fitView({ ...fitViewOptions }));
+  }, [fitView, fitViewOptions]);
 
   const flowWrapperRef = useFitViewOnNodeAdded({ nodes: storeNodes });
 

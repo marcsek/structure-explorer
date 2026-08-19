@@ -50,8 +50,6 @@ export const defaultFlowProps: ReactFlowProps<
   nodeTypes,
   edgeTypes,
   defaultEdgeOptions,
-  fitView: true,
-  fitViewOptions: defaultFitViewOptions,
   connectionLineComponent: CustomConnectionLine,
   proOptions: { hideAttribution: true },
   nodesFocusable: false,
