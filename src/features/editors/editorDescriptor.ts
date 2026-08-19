@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import type { TupleInfo } from "../structure/tupleInfo";
@@ -14,8 +14,9 @@ export interface InterpretationEditorProps {
   renderControlButtons: (omit?: EditorType[]) => ReactNode;
 }
 
-export type InterpretationEditorComponent =
-  ComponentType<InterpretationEditorProps>;
+export type RenderInterpretationEditor = (
+  props: InterpretationEditorProps,
+) => ReactElement;
 
 export interface EditorDescriptor {
   type: EditorType;
@@ -24,5 +25,5 @@ export interface EditorDescriptor {
   group?: EditorGroup;
   supportsFullscreen?: boolean;
   isAvailable: (tuple: TupleInfo) => boolean;
-  component: InterpretationEditorComponent;
+  render: RenderInterpretationEditor;
 }

@@ -32,7 +32,7 @@ export interface DrawerEditorConfig {
 }
 
 export interface DrawerEditorDescriptor
-  extends Omit<EditorDescriptor, "type" | "component">, DrawerEditorConfig {}
+  extends Omit<EditorDescriptor, "type" | "render">, DrawerEditorConfig {}
 
 export const drawerEditorAdapter = ({
   component,
@@ -48,6 +48,6 @@ export const drawerEditorAdapter = ({
 
   return {
     ...shared,
-    component: (props) => <DrawerEditorWrapper {...props} config={config} />,
+    render: (props) => <DrawerEditorWrapper {...props} config={config} />,
   };
 };

@@ -2,13 +2,13 @@ import type { EditorDescriptor } from "../editors/editorDescriptor";
 import { tupleTypeToTextViewType } from "../structure/tupleInfo";
 import TextView from "./TextViewEditor";
 
-export type TextEditorDescriptor = Omit<EditorDescriptor, "component">;
+export type TextEditorDescriptor = Omit<EditorDescriptor, "render">;
 
 export const textEditorAdapter = (
   entry: TextEditorDescriptor,
 ): EditorDescriptor => ({
   ...entry,
-  component: ({ tupleInfo, renderControlButtons, ...props }) => (
+  render: ({ tupleInfo, renderControlButtons, ...props }) => (
     <TextView
       {...props}
       name={tupleInfo.name}

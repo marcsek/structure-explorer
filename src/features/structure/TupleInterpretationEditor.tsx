@@ -46,17 +46,13 @@ function TupleInterpretationEditor({
     />
   );
 
-  const Editor = editorDescriptors[openedEditor].component;
-
-  return (
-    <Editor
-      id={id}
-      tupleInfo={stableTupleInfo}
-      lock={lock}
-      selectLock={selectLock}
-      renderControlButtons={getEditorControls}
-    />
-  );
+  return editorDescriptors[openedEditor].render({
+    id,
+    tupleInfo: stableTupleInfo,
+    lock,
+    selectLock,
+    renderControlButtons: getEditorControls,
+  });
 }
 
 export default TupleInterpretationEditor;
