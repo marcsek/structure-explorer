@@ -10,7 +10,7 @@ import {
   type NodeTypes,
   type ReactFlowProps,
 } from "@xyflow/react";
-import type { Ref } from "react";
+import type { ReactNode, Ref } from "react";
 
 import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView.tsx";
@@ -21,11 +21,7 @@ import PredicateNode from "../graphComponents/PredicateNode.tsx";
 import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import SetGroupNode from "../graphComponents/SetGroupNode.tsx";
 import { SNAP_GRID_SIZE } from "./graphOptions.ts";
-import {
-  EmptyDomainMessageDialog,
-  ErrorMessageDialogBuilder,
-  type ErrorMessageDialogBuilderProps,
-} from "./MessageDialogs.tsx";
+import { ConnectionWarningDialog } from "./MessageDialogs.tsx";
 
 const nodeTypes: NodeTypes = {
   predicate: PredicateNode,
@@ -58,9 +54,8 @@ export interface GraphCanvasProps<
   edges: EdgeType[];
   locked: boolean;
   expandedView: boolean;
-  dialogShown: boolean;
-  emptyDomain: boolean;
-  errorDialog: ErrorMessageDialogBuilderProps;
+  warning: ReactNode;
+  blockingDialog?: ReactNode;
   containerRef: Ref<HTMLDivElement>;
   flowProps: ReactFlowProps<NodeType, EdgeType>;
   fitViewOptions?: FitViewOptions;
@@ -78,9 +73,8 @@ export default function GraphCanvas<
   edges,
   locked,
   expandedView,
-  dialogShown,
-  emptyDomain,
-  errorDialog,
+  warning,
+  blockingDialog,
   containerRef,
   flowProps,
   fitViewOptions,
@@ -88,6 +82,8 @@ export default function GraphCanvas<
   onExpandedViewChange,
   onLayout,
 }: GraphCanvasProps<NodeType, EdgeType>) {
+  const dialogShown = Boolean(blockingDialog);
+
   return (
     <FlowContainer
       ref={containerRef}
@@ -129,9 +125,9 @@ export default function GraphCanvas<
         onLayout={onLayout}
       />
 
-      <ErrorMessageDialogBuilder {...errorDialog} />
+      <ConnectionWarningDialog warning={warning} />
 
-      {emptyDomain && <EmptyDomainMessageDialog />}
+      {blockingDialog}
     </FlowContainer>
   );
 }

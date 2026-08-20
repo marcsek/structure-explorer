@@ -12,6 +12,9 @@ export type TupleIdentity = Pick<TupleInfo, "type" | "name">;
 
 export const getTupleId = ({ type, name }: TupleIdentity) => `${type}-${name}`;
 
+export const isBinaryTuple = (type: TupleType, arity: number) =>
+  (type === "function" ? arity + 1 : arity) === 2;
+
 export const getKeyFromTupleId = (tupleId: string) =>
   tupleId.substring(tupleId.lastIndexOf("-") + 1);
 

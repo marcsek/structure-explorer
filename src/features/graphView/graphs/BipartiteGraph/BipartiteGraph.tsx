@@ -16,6 +16,7 @@ import {
   defaultFitViewOptions,
 } from "../common/graphOptions.ts";
 import GraphCanvas from "../common/GraphCanvas.tsx";
+import { EmptyDomainMessageDialog } from "../common/MessageDialogs.tsx";
 import type { BipartiteNodeType } from "./model.ts";
 
 const fitViewOptions: FitViewOptions = {
@@ -92,6 +93,9 @@ export default function BipartiteGraph({
     [nodes, onNodesChange, getNode],
   );
 
+  const blockingDialog =
+    storeNodes.length === 0 ? <EmptyDomainMessageDialog /> : null;
+
   return (
     <GraphCanvas
       id={id}
@@ -99,9 +103,8 @@ export default function BipartiteGraph({
       edges={edges}
       locked={locked}
       expandedView={expandedView}
-      dialogShown={storeNodes.length === 0}
-      emptyDomain={nodes.length === 0}
-      errorDialog={{ graphType, body: warning }}
+      warning={warning}
+      blockingDialog={blockingDialog}
       containerRef={flowWrapperRef}
       flowProps={{ ...graphProps, onNodesChange: computeLayoutChange }}
       fitViewOptions={controlsFitViewOptions}

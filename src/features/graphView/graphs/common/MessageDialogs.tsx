@@ -1,6 +1,6 @@
-import MessageDialog, {
-  type MessageDialogProps,
-} from "../graphComponents/MessageDialog/MessageDialog";
+import type { ReactNode } from "react";
+
+import MessageDialog from "../graphComponents/MessageDialog/MessageDialog";
 
 export function EmptyDomainMessageDialog() {
   return (
@@ -13,35 +13,19 @@ export function EmptyDomainMessageDialog() {
   );
 }
 
-export type ErrorMessageDialogBuilderProps =
-  | {
-      graphType: "oriented" | "bipartite";
-      body: MessageDialogProps["body"];
-    }
-  | {
-      graphType: "hasse";
-      body: MessageDialogProps["body"];
-      invalidPoset: boolean;
-    };
+export function InvalidPosetMessageDialog() {
+  return (
+    <MessageDialog
+      type="error"
+      position="center"
+      title="Invalid poset"
+      body="This predicate’s interpretation does not form a valid poset. Adjust it to enable this editor."
+    />
+  );
+}
 
-export function ErrorMessageDialogBuilder(
-  props: ErrorMessageDialogBuilderProps,
-) {
-  const { graphType, body } = props;
+export function ConnectionWarningDialog({ warning }: { warning: ReactNode }) {
+  if (!warning) return null;
 
-  if (graphType === "hasse" && props.invalidPoset) {
-    return (
-      <MessageDialog
-        type="error"
-        position="center"
-        title="Invalid poset"
-        body="This predicate’s interpretation does not form a valid poset. Adjust
-            it to enable this editor."
-      />
-    );
-  }
-
-  if (!body) return null;
-
-  return <MessageDialog type="error" position="corner" body={body} />;
+  return <MessageDialog type="error" position="corner" body={warning} />;
 }

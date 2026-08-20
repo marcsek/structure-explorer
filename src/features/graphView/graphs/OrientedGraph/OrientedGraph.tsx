@@ -3,6 +3,7 @@ import type { GraphComponentProps } from "../../components/GraphView/GraphView.t
 import useGraph from "../../helpers/useGraph.ts";
 import { useGraphLayout } from "../../helpers/useGraphLayout.ts";
 import GraphCanvas from "../common/GraphCanvas.tsx";
+import { EmptyDomainMessageDialog } from "../common/MessageDialogs.tsx";
 
 const graphType = "oriented";
 
@@ -32,7 +33,8 @@ export default function OrientedGraph({
     computeLayout: computeLayoutOriented,
   });
 
-  const emptyDomain = nodes.length === 0;
+  const blockingDialog =
+    nodes.length === 0 ? <EmptyDomainMessageDialog /> : null;
 
   return (
     <GraphCanvas
@@ -41,9 +43,8 @@ export default function OrientedGraph({
       edges={flowEdges}
       locked={locked}
       expandedView={expandedView}
-      dialogShown={emptyDomain}
-      emptyDomain={emptyDomain}
-      errorDialog={{ graphType, body: warning }}
+      warning={warning}
+      blockingDialog={blockingDialog}
       containerRef={flowWrapperRef}
       flowProps={{ ...graphProps, snapToGrid: true }}
       onNodeDragStop={syncNodesWithStore}

@@ -44,6 +44,7 @@ import {
 } from "../../editorToolbar/editorToolbarSlice.ts";
 import {
   getTupleId,
+  isBinaryTuple,
   type TupleIdentity,
   type TupleInfo,
   type TupleType,
@@ -137,13 +138,10 @@ export const graphManagerSlice = createSlice({
         ...funcs.map((func) => [...func, "function"] as const),
       ];
 
-      const isBinary = (arity: number, tupleType: TupleType) =>
-        (tupleType === "function" ? arity + 1 : arity) === 2;
-
       tuples.forEach(([tupleName, arity, tupleType]) => {
         const tupleId = getTupleId({ type: tupleType, name: tupleName });
 
-        if (!isBinary(arity, tupleType) || tupleId in newState) return;
+        if (!isBinaryTuple(tupleType, arity) || tupleId in newState) return;
 
         const tuple = {
           name: tupleName,
@@ -173,7 +171,7 @@ export const graphManagerSlice = createSlice({
       if (!overwrite) {
         const binaryTupleIds = new Set(
           tuples
-            .filter(([, arity, tupleType]) => isBinary(arity, tupleType))
+            .filter(([, arity, tupleType]) => isBinaryTuple(tupleType, arity))
             .map(([tupleName, , tupleType]) =>
               getTupleId({ type: tupleType, name: tupleName }),
             ),

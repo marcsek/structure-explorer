@@ -5,6 +5,10 @@ import type { GraphComponentProps } from "../../components/GraphView/GraphView.t
 import useGraph from "../../helpers/useGraph.ts";
 import { useGraphLayout } from "../../helpers/useGraphLayout.ts";
 import GraphCanvas from "../common/GraphCanvas.tsx";
+import {
+  EmptyDomainMessageDialog,
+  InvalidPosetMessageDialog,
+} from "../common/MessageDialogs.tsx";
 
 const graphType = "hasse";
 
@@ -38,6 +42,12 @@ export default function HasseDiagram({
     computeLayout: computeLayoutHasse,
   });
 
+  const blockingDialog = !isPoset ? (
+    <InvalidPosetMessageDialog />
+  ) : nodes.length === 0 ? (
+    <EmptyDomainMessageDialog />
+  ) : null;
+
   return (
     <GraphCanvas
       id={id}
@@ -45,9 +55,8 @@ export default function HasseDiagram({
       edges={isPoset ? flowEdges : []}
       locked={locked}
       expandedView={expandedView}
-      dialogShown={!isPoset || nodes.length === 0}
-      emptyDomain={isPoset && nodes.length === 0}
-      errorDialog={{ graphType, body: warning, invalidPoset: !isPoset }}
+      warning={warning}
+      blockingDialog={blockingDialog}
       containerRef={flowWrapperRef}
       flowProps={{ ...graphProps, snapToGrid: true }}
       onNodeDragStop={syncNodesWithStore}
