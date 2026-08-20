@@ -18,10 +18,9 @@ import {
   errorAlertSlice,
   setError,
 } from "../features/errorAlert/errorAlertSlice";
-import { isAction, isAnyOf, type Middleware } from "@reduxjs/toolkit";
+import { isAnyOf, type Middleware } from "@reduxjs/toolkit";
 import { editorToolbarSlice } from "../features/editorToolbar/editorToolbarSlice";
 import { UndoActions } from "../features/undoHistory/undoHistory";
-import { listenerShouldIgnore } from "../shared/core/redux";
 import { formulasSlice } from "../features/formulas/formulasSlice";
 import { queriesSlice } from "../features/queries/queriesSlice";
 import { graphManagerSlice } from "../features/graphView/graphs/graphSlice.ts";
@@ -50,11 +49,7 @@ const actionsToIgnore = [
 ];
 
 function isIgnoredAction(action: unknown) {
-  return (
-    typeof action === "function" ||
-    isAnyOf(...actionsToIgnore)(action) ||
-    (isAction(action) && listenerShouldIgnore(action))
-  );
+  return typeof action === "function" || isAnyOf(...actionsToIgnore)(action);
 }
 
 function prepare(initialState?: any): PrepareResult {

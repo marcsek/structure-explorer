@@ -46,16 +46,7 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
         return;
       }
 
-      const nonUserChanges = changes.every(
-        ({ type }) => type === "dimensions" || type === "replace",
-      );
-
-      dispatch(
-        onNodesChanged(
-          { tupleInfo, graphType, changes },
-          { ignore: nonUserChanges },
-        ),
-      );
+      dispatch(onNodesChanged({ tupleInfo, graphType, changes }));
     },
     [dispatch, tupleInfo, storeNodes, graphType, setNodes],
   );

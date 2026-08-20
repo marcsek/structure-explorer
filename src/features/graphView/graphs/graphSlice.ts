@@ -50,10 +50,6 @@ import {
 } from "../../structure/tupleInfo";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
-import {
-  prepareWithListenerIgnoreMeta,
-  type PayloadActionListenerIgnore,
-} from "../../../shared/core/redux.ts";
 import { dev } from "../../../shared/core/logging.ts";
 
 export type GraphManagerState = Record<
@@ -102,20 +98,15 @@ export const graphManagerSlice = createSlice({
       });
     },
 
-    onNodesChanged: {
-      reducer(
-        state,
-        action: PayloadActionListenerIgnore<
-          WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
-        >,
-      ) {
-        updateEntry(state, action.payload, (graph, { changes }) => {
-          graph.nodes = applyNodeChanges(changes, graph.nodes);
-        });
-      },
-      prepare: prepareWithListenerIgnoreMeta<
+    onNodesChanged(
+      state,
+      action: PayloadAction<
         WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
       >,
+    ) {
+      updateEntry(state, action.payload, (graph, { changes }) => {
+        graph.nodes = applyNodeChanges(changes, graph.nodes);
+      });
     },
 
     syncGraphView(
