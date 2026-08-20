@@ -1,60 +1,54 @@
 import type { RootState } from "../../../app/store.ts";
 import type { RelevantSymbols } from "../../import/importExportUtils.ts";
-import { getKeyFromTupleId } from "../../structure/tupleInfo.ts";
+import { getTupleId, isBinaryTuple } from "../../structure/tupleInfo.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
-import type { PredicateNodeType } from "./graphComponents/PredicateNode";
-import type { GraphType } from "./graphRegistry.ts";
+import { graphTypes, type AnyGraphState } from "./graphRegistry.ts";
+
+type NodePositions = Record<string, [number, number]>;
+
+const getPositionsToExport = ({
+  nodes,
+  didLayout,
+}: AnyGraphState): NodePositions => {
+  if (!didLayout) return {};
+
+  return Object.fromEntries(
+    nodes
+      .filter(
+        ({ position: { x, y } }) => Number.isFinite(x) && Number.isFinite(y),
+      )
+      .map(({ id, position: { x, y } }): [string, [number, number]] => [
+        id,
+        [Math.trunc(x), Math.trunc(y)],
+      ]),
+  );
+};
 
 export const getGraphViewStateToExport = (
   state: RootState,
   relevantSymbols: RelevantSymbols,
 ): SerializedGraphViewState => {
-  const relevantEntries = Object.entries(state.present.graphView).filter(
-    ([tupleId, { tupleType }]) => {
-      const tupleName = getKeyFromTupleId(tupleId);
-      const relevantEntry = relevantSymbols[tupleName];
-
-      if (!relevantEntry || relevantEntry.type === "constant") return false;
-      return relevantEntry.arity === (tupleType === "function" ? 1 : 2);
-    },
-  );
-
-  const getNodesToExport = (
-    nodes: PredicateNodeType[],
-    didLayout: boolean,
-  ): [string, [number, number]][] => {
-    const changedNodes = didLayout ? nodes : [];
-
-    return changedNodes
-      .filter(
-        ({ position: { x, y } }) => Number.isFinite(x) && Number.isFinite(y),
-      )
-      .map(({ id, position: { x, y } }) => [
-        id,
-        [x, y].map(Math.trunc) as [number, number],
-      ]);
-  };
-
   const serializedState: SerializedGraphViewState = {};
 
-  for (const [tupleId, { state }] of relevantEntries) {
-    const graphEntries: [GraphType, Record<string, [number, number]>][] = [];
-    for (const graphType in state) {
-      const { nodes, didLayout } = state[graphType as GraphType];
-      const positions = getNodesToExport(nodes, !!didLayout);
+  for (const [tupleName, symbol] of Object.entries(relevantSymbols)) {
+    if (symbol.type === "constant" || !isBinaryTuple(symbol.type, symbol.arity))
+      continue;
 
-      if (positions.length === 0) continue;
+    const tupleId = getTupleId({ type: symbol.type, name: tupleName });
+    const graphStates = state.present.graphView[tupleId]?.state;
 
-      graphEntries.push([
-        graphType as GraphType,
-        Object.fromEntries(positions),
-      ]);
+    if (!graphStates) continue;
+
+    const graphEntries: SerializedGraphViewState[string] = {};
+
+    for (const graphType of graphTypes) {
+      const positions = getPositionsToExport(graphStates[graphType]);
+      if (Object.keys(positions).length > 0)
+        graphEntries[graphType] = positions;
     }
 
-    if (graphEntries.length === 0) continue;
-    serializedState[tupleId] = Object.fromEntries(
-      graphEntries,
-    ) as SerializedGraphViewState[string];
+    if (Object.keys(graphEntries).length > 0)
+      serializedState[tupleId] = graphEntries;
   }
 
   return serializedState;
