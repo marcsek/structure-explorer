@@ -33,7 +33,7 @@ type GraphVisitor<R> = <S extends GraphState>(
   state: S,
 ) => R;
 
-const modelFor = (type: GraphType) =>
+export const modelFor = (type: GraphType) =>
   graphs[type] as unknown as GraphModel<never>;
 
 export function readGraph<R>(state: AnyGraphState, visit: GraphVisitor<R>): R {

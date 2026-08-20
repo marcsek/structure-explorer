@@ -23,9 +23,9 @@ import {
   readGraph,
   updateGraph,
   type AnyGraphState,
-  type GraphModelFor,
   type GraphStates,
   type GraphType,
+  type GraphModelFor,
 } from "./graphRegistry.ts";
 import type { GraphModel, GraphState } from "./common/GraphModel.ts";
 import { type LanguageState } from "../../language/languageSlice.ts";
@@ -244,40 +244,45 @@ export const selectPosetValidity = createSelector(
   },
 );
 
-export function makeSelectNodes<T extends GraphType>() {
-  return createSelector(
-    [
-      (_: RootState, __: TupleInfo, type: T) => type,
-      (state: RootState, tupleInfo: TupleInfo, type: T) =>
-        state.present.graphView[getTupleId(tupleInfo)]?.state[type]?.nodes,
-      (state: RootState, tupleInfo: TupleInfo) =>
-        selectRelevantDomainElements(state, tupleInfo, false),
-      selectHoveredIntr,
-      selectSelectedDomain,
-      selectUnaryFilterDomain,
-    ],
-    (
-      type,
+export const _selectNodes = createSelector(
+  [
+    (_: RootState, __: TupleInfo, type: GraphType) => type,
+    (state: RootState, tupleInfo: TupleInfo, type: GraphType) =>
+      state.present.graphView[getTupleId(tupleInfo)]?.state[type]?.nodes,
+    (state: RootState, tupleInfo: TupleInfo) =>
+      selectRelevantDomainElements(state, tupleInfo, false),
+    selectHoveredIntr,
+    selectSelectedDomain,
+    selectUnaryFilterDomain,
+  ],
+  (
+    type,
+    nodes,
+    relevantDomain,
+    hoveredPredicateIntr,
+    selectedNodes,
+    unaryFilterDomain,
+  ): PredicateNodeType[] => {
+    if (!nodes) return [];
+
+    const model = graphs[type] as GraphModelFor<typeof type>;
+
+    return model.filterNodesToShow(
       nodes,
+      unaryFilterDomain,
+      selectedNodes,
       relevantDomain,
       hoveredPredicateIntr,
-      selectedNodes,
-      unaryFilterDomain,
-    ): GraphStates[T]["nodes"] => {
-      const graph = graphs[type] as GraphModelFor<T>;
+    );
+  },
+);
 
-      if (!nodes) return [];
-
-      return graph.filterNodesToShow(
-        nodes,
-        unaryFilterDomain,
-        selectedNodes,
-        relevantDomain,
-        hoveredPredicateIntr,
-      );
-    },
-  );
-}
+export const selectNodes = <T extends GraphType>(
+  state: RootState,
+  tupleInfo: TupleInfo,
+  type: T,
+): GraphStates[T]["nodes"] =>
+  _selectNodes(state, tupleInfo, type) as GraphStates[T]["nodes"];
 
 export const selectEdges = createSelector(
   [
@@ -286,7 +291,7 @@ export const selectEdges = createSelector(
     (
       state: RootState,
       tupleInfo: TupleInfo,
-      _,
+      _type: GraphType,
       includeHovered: boolean = false,
     ) => selectRelevantDomainElements(state, tupleInfo, includeHovered),
     selectSelectedDomain,

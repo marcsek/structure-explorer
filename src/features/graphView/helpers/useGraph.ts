@@ -8,14 +8,13 @@ import {
 } from "@xyflow/react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
-  makeSelectNodes,
   onConnected,
   onEdgesChanged,
   selectEdges,
+  selectNodes,
 } from "../graphs/graphSlice";
 import { type GraphStates, type GraphType } from "../graphs/graphRegistry";
 import { getTupleId, type TupleInfo } from "../../structure/tupleInfo";
-import type { RootState } from "../../../app/store";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
 import useConnectionWarning from "./useConnectionWarning";
@@ -25,20 +24,7 @@ import {
   defaultFitViewOptions,
 } from "../graphs/common/graphOptions";
 
-type NodesOf<T extends GraphType> = GraphStates[T]["nodes"];
-type NodeOf<T extends GraphType> = NodesOf<T>[number];
-
-type NodeSelector<T extends GraphType> = (
-  state: RootState,
-  tupleInfo: TupleInfo,
-  type: T,
-) => NodesOf<T>;
-
-const nodeSelectors = {
-  oriented: makeSelectNodes<"oriented">(),
-  hasse: makeSelectNodes<"hasse">(),
-  bipartite: makeSelectNodes<"bipartite">(),
-};
+type NodeOf<T extends GraphType> = GraphStates[T]["nodes"][number];
 
 interface UseGraphProps<T extends GraphType> {
   tupleInfo: TupleInfo;
@@ -58,10 +44,8 @@ export default function useGraph<T extends GraphType>({
   const representsFunction = tupleInfo.type === "function";
   const { fitView } = useReactFlow();
 
-  const nodeSelector = nodeSelectors[graphType] as NodeSelector<T>;
-
   const storeNodes = useAppSelector((state) =>
-    nodeSelector(state, tupleInfo, graphType),
+    selectNodes(state, tupleInfo, graphType),
   );
   const edges = useAppSelector((state) =>
     selectEdges(state, tupleInfo, graphType, includeHovered),
