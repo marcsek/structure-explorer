@@ -36,7 +36,6 @@ export type GraphState = {
   nodes: PredicateNodeType[];
   edges: DirectEdgeType[];
   didLayout?: boolean;
-  warning?: string;
 };
 
 type NodeOf<S extends GraphState> = S["nodes"][number];

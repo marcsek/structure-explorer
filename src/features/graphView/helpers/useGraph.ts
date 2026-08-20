@@ -4,7 +4,6 @@ import {
   type Edge,
   type EdgeChange,
   type FitViewOptions,
-  type IsValidConnection,
   type OnConnect,
 } from "@xyflow/react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
@@ -13,17 +12,13 @@ import {
   onConnected,
   onEdgesChanged,
   selectEdges,
-  warningChanged,
 } from "../graphs/graphSlice";
-import {
-  graphs,
-  type GraphStates,
-  type GraphType,
-} from "../graphs/graphRegistry";
+import { type GraphStates, type GraphType } from "../graphs/graphRegistry";
 import { getTupleId, type TupleInfo } from "../../structure/tupleInfo";
 import type { RootState } from "../../../app/store";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
+import useConnectionWarning from "./useConnectionWarning";
 import { makeEdgeHidden, makeNodeInvisible } from "./utils";
 import {
   defaultFitViewDuration,
@@ -70,9 +65,6 @@ export default function useGraph<T extends GraphType>({
   );
   const edges = useAppSelector((state) =>
     selectEdges(state, tupleInfo, graphType, includeHovered),
-  );
-  const warning = useAppSelector(
-    (state) => state.present.graphView[tupleId]?.state[graphType]?.warning,
   );
   const didLayout = useAppSelector(
     (state) => state.present.graphView[tupleId]?.state[graphType]?.didLayout,
@@ -126,26 +118,11 @@ export default function useGraph<T extends GraphType>({
     [dispatch, tupleInfo, graphType, representsFunction],
   );
 
-  const isValidConnection: IsValidConnection = useCallback(
-    (connection) => {
-      const [valid, error] = graphs[graphType].validateConnection(
-        edges,
-        connection,
-      );
-
-      if (error)
-        dispatch(warningChanged({ tupleInfo, graphType, warning: error }));
-
-      return valid;
-    },
-    [dispatch, edges, tupleInfo, graphType],
-  );
-
-  const onConnectEnd = useCallback(
-    () =>
-      dispatch(warningChanged({ tupleInfo, graphType, warning: undefined })),
-    [dispatch, tupleInfo, graphType],
-  );
+  const {
+    warning,
+    isValidConnection,
+    clearWarning: onConnectEnd,
+  } = useConnectionWarning(graphType, edges);
 
   return {
     storeNodes,

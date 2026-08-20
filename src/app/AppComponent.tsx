@@ -39,7 +39,6 @@ const actionsToIgnore = [
   editorToolbarSlice.actions.editorOpened,
   graphManagerSlice.actions.graphDidInitialLayout,
   graphManagerSlice.actions.onNodesChanged,
-  graphManagerSlice.actions.warningChanged,
   errorAlertSlice.actions.clearError,
   errorAlertSlice.actions.setError,
   formulasSlice.actions.gameGoBack,

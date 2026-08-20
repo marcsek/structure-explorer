@@ -186,15 +186,6 @@ export const graphManagerSlice = createSlice({
 
       return newState;
     },
-
-    warningChanged(
-      state,
-      action: PayloadAction<GraphTarget<{ warning?: string }>>,
-    ) {
-      updateEntry(state, action.payload, (graph, { warning }) => {
-        graph.warning = warning;
-      });
-    },
   },
 
   extraReducers(builder) {
@@ -476,7 +467,6 @@ export const {
   setNodes,
   setEdges,
   onNodesChanged,
-  warningChanged,
   syncGraphView,
   graphDidInitialLayout,
 } = graphManagerSlice.actions;
