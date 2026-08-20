@@ -9,7 +9,7 @@ import {
 } from "@xyflow/react";
 import { getEdgeParams } from "../../helpers/utils";
 import SelfConnectingEdge from "./SelfConnectingEdge";
-import { DeleteElementButton } from "./PredicateNode";
+import DeleteElementButton from "./DeleteElementButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
 
@@ -52,9 +52,7 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
         }}
         className="nodrag nopan predicate-edge-delete-button"
         onClick={() => deleteElements({ edges: [{ id }] })}
-      >
-        delete
-      </DeleteElementButton>
+      />
     );
   } else if (props.data?.helper) {
     labelContent = (

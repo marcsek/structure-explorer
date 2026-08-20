@@ -5,7 +5,7 @@ import {
   type EdgeProps,
 } from "@xyflow/react";
 import type { DirectEdgeType } from "./DirectEdge";
-import { DeleteElementButton } from "./PredicateNode";
+import DeleteElementButton from "./DeleteElementButton";
 
 export default function SelfConnectingEdge(props: EdgeProps<DirectEdgeType>) {
   const { deleteElements } = useReactFlow();
@@ -38,9 +38,7 @@ export default function SelfConnectingEdge(props: EdgeProps<DirectEdgeType>) {
             }}
             className="nodrag nopan predicate-edge-delete-button"
             onClick={() => deleteElements({ edges: [{ id: props.id }] })}
-          >
-            delete
-          </DeleteElementButton>
+          />
         )}
       </EdgeLabelRenderer>
     </>

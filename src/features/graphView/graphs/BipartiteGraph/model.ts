@@ -27,6 +27,8 @@ export interface BipartiteGraphState extends GraphState {
 const prefix = { domain: "d-", range: "r-" } as const;
 
 export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState> {
+  readonly supportsSelfLoops = false;
+
   protected empty(): BipartiteGraphState {
     return { kind: "bipartite", nodes: [], edges: [] };
   }

@@ -28,7 +28,7 @@ const defaultControlsFitViewOptions: FitViewOptions = {
   duration: defaultFitViewDuration,
 };
 
-const defaultZoomOptions: ViewportHelperFunctionOptions = {
+const defaultControlsZoomOptions: ViewportHelperFunctionOptions = {
   duration: 150,
 };
 
@@ -69,14 +69,14 @@ function ControlsComponent({
       <TooltipControlButton
         id={id}
         title="Zoom In"
-        onClick={() => zoomIn(defaultZoomOptions)}
+        onClick={() => zoomIn(defaultControlsZoomOptions)}
         icon={faPlus}
       />
 
       <TooltipControlButton
         id={id}
         title="Zoom Out"
-        onClick={() => zoomOut(defaultZoomOptions)}
+        onClick={() => zoomOut(defaultControlsZoomOptions)}
         icon={faMinus}
       />
 

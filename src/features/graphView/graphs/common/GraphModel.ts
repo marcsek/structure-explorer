@@ -46,6 +46,9 @@ export const edgeId = (from: string, to: string, duplicate = false) =>
   `eg-${from}->${to}${duplicate ? "-duplicate" : ""}`;
 
 export abstract class GraphModel<S extends GraphState> {
+  /** Whether an element is allowed to be connected to itself. */
+  readonly supportsSelfLoops: boolean = true;
+
   isCompatible(_tupleType: TupleType): boolean {
     return true;
   }

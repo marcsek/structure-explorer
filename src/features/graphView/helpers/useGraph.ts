@@ -41,7 +41,6 @@ export default function useGraph<T extends GraphType>({
 }: UseGraphProps<T>) {
   const dispatch = useAppDispatch();
   const tupleId = getTupleId(tupleInfo);
-  const representsFunction = tupleInfo.type === "function";
   const { fitView } = useReactFlow();
 
   const storeNodes = useAppSelector((state) =>
@@ -91,15 +90,8 @@ export default function useGraph<T extends GraphType>({
 
   const onConnect: OnConnect = useCallback(
     (connection) =>
-      dispatch(
-        onConnected({
-          tupleInfo,
-          graphType,
-          connection,
-          breakPrevious: representsFunction,
-        }),
-      ),
-    [dispatch, tupleInfo, graphType, representsFunction],
+      dispatch(onConnected({ tupleInfo, graphType, connection })),
+    [dispatch, tupleInfo, graphType],
   );
 
   const {

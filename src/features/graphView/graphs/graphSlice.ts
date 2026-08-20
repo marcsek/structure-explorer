@@ -357,12 +357,10 @@ export const onConnected = ({
   tupleInfo,
   graphType,
   connection,
-  breakPrevious = false,
 }: {
   tupleInfo: TupleInfo;
   graphType: GraphType;
   connection: Connection;
-  breakPrevious?: boolean;
 }): AppThunk => {
   return (dispatch, getState) => {
     const state = getState();
@@ -371,9 +369,14 @@ export const onConnected = ({
 
     if (!graphState) return;
 
+    const model = graphs[graphType];
+
+    if (connection.source === connection.target && !model.supportsSelfLoops)
+      return;
+
     let visibleEdges = selectEdges(state, tupleInfo, graphType);
 
-    if (breakPrevious)
+    if (tupleInfo.type === "function")
       visibleEdges = visibleEdges.filter((e) => e.source !== connection.source);
 
     visibleEdges = addEdge(connection, visibleEdges);
