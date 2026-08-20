@@ -139,11 +139,16 @@ export abstract class GraphModel<S extends GraphState> {
       prev.edges.filter((e) => this.elementOf(e.source) === element).length !==
         1;
 
-    const newNodes = domain.flatMap((element) =>
-      this.createNodes(element, { error: shouldError(element) }, seed).map(
-        (node) => nodeById.get(node.id) ?? node,
-      ),
-    );
+    const newNodes = domain.flatMap((element) => {
+      const error = shouldError(element);
+
+      return this.createNodes(element, { error }, seed).map((node) => {
+        const existing = nodeById.get(node.id);
+        return existing
+          ? { ...existing, data: { ...existing.data, error } }
+          : node;
+      });
+    });
 
     const leftoverNodes = prev.nodes
       .filter(

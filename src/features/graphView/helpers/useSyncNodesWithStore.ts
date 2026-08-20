@@ -54,14 +54,16 @@ export default function useSyncNodesWithStore<TNode extends PredicateNodeType>({
   const syncNodesWithStore = useCallback(() => {
     if (!isDragging.current || !latestNodes.current) return;
 
-    const nodeChanges: NodeChange<PredicateNodeType>[] =
-      latestNodes.current.map((item) => ({
-        type: "replace",
+    const changes: NodeChange<PredicateNodeType>[] = latestNodes.current.map(
+      (item) => ({
+        type: "position",
         id: item.id,
-        item,
-      }));
+        position: item.position,
+        dragging: false,
+      }),
+    );
 
-    dispatch(onNodesChanged({ tupleInfo, graphType, changes: nodeChanges }));
+    dispatch(onNodesChanged({ tupleInfo, graphType, changes }));
     isDragging.current = false;
     setNodes(null);
 

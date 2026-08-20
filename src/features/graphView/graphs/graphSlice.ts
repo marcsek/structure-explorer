@@ -137,11 +137,13 @@ export const graphManagerSlice = createSlice({
         ...funcs.map((func) => [...func, "function"] as const),
       ];
 
+      const isBinary = (arity: number, tupleType: TupleType) =>
+        (tupleType === "function" ? arity + 1 : arity) === 2;
+
       tuples.forEach(([tupleName, arity, tupleType]) => {
-        const correctedArity = tupleType === "function" ? arity + 1 : arity;
         const tupleId = getTupleId({ type: tupleType, name: tupleName });
 
-        if (correctedArity !== 2 || tupleId in newState) return;
+        if (!isBinary(arity, tupleType) || tupleId in newState) return;
 
         const tuple = {
           name: tupleName,
@@ -169,17 +171,16 @@ export const graphManagerSlice = createSlice({
       });
 
       if (!overwrite) {
-        const newTupleNames = [
-          ...preds.map(([name]) => ({ name, kind: "predicate" as const })),
-          ...funcs.map(([name]) => ({ name, kind: "function" as const })),
-        ];
+        const binaryTupleIds = new Set(
+          tuples
+            .filter(([, arity, tupleType]) => isBinary(arity, tupleType))
+            .map(([tupleName, , tupleType]) =>
+              getTupleId({ type: tupleType, name: tupleName }),
+            ),
+        );
 
         for (const tupleId in newState) {
-          const isLeftover = !newTupleNames.find(
-            ({ name, kind }) => tupleId === getTupleId({ type: kind, name }),
-          );
-
-          if (isLeftover) delete newState[tupleId];
+          if (!binaryTupleIds.has(tupleId)) delete newState[tupleId];
         }
       }
 
@@ -216,15 +217,13 @@ export const graphManagerSlice = createSlice({
         const { value, key: tupleName } = action.payload;
         const tupleType = tupleUpdaterToTupleType[action.type];
 
+        const relation = value as BinaryRelation<string>;
+
         withEntry(state, { type: tupleType, name: tupleName }, (entry) => {
           for (const graphType of graphTypes) {
             if (graphs[graphType].isCompatible(entry.tupleType))
               updateGraph(entry.state, graphType, (ops, graphState) =>
-                ops.syncPredIntr(
-                  graphState,
-                  value as BinaryRelation<string>,
-                  entry.tupleType,
-                ),
+                ops.syncPredIntr(graphState, relation, entry.tupleType),
               );
           }
         });
