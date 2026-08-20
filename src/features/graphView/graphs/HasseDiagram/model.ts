@@ -75,42 +75,33 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
       )
       .map((node) => node.id);
 
-    const filteredRelation = this.relationOf(
-      state.edges.filter(
-        ({ source, target }) =>
-          visibleNodes.includes(source) && visibleNodes.includes(target),
+    const coversInWhole = reducePosetRelations(this.relationOf(state.edges));
+    const coversInVisible = reducePosetRelations(
+      this.relationOf(
+        state.edges.filter(
+          ({ source, target }) =>
+            visibleNodes.includes(source) && visibleNodes.includes(target),
+        ),
       ),
     );
 
-    const reducedRelation = reducePosetRelations(filteredRelation);
-    const unfilteredReducedRelation = reducePosetRelations(
-      this.relationOf(state.edges),
-    );
+    const isCover = (
+      covers: BinaryRelation<string>,
+      { source, target }: DirectEdgeType,
+    ) => covers.some(([from, to]) => from === source && to === target);
 
-    const inUnfiltered = (source: string, target: string) =>
-      unfilteredReducedRelation.some(
-        ([from, to]) => source === from && target === to,
-      );
+    return state.edges.flatMap((edge) => {
+      if (edge.data?.duplicate || isCover(coversInWhole, edge)) return edge;
 
-    const unfilteredEdges = state.edges.filter(
-      ({ source, target, data }) =>
-        data?.duplicate || inUnfiltered(source, target),
-    );
+      if (!isCover(coversInVisible, edge)) return [];
 
-    const helperEdges = state.edges
-      .filter(
-        ({ source, target }) =>
-          reducedRelation.some(
-            ([from, to]) => source === from && target === to,
-          ) && !inUnfiltered(source, target),
-      )
-      .map((e) => ({
-        ...e,
-        data: { ...e.data, helper: true },
+      return {
+        ...edge,
+        data: { ...edge.data, helper: true },
         selectable: false,
-      }));
-
-    return [...unfilteredEdges, ...helperEdges];
+        selected: false,
+      };
+    });
   }
 
   validateConnection(
