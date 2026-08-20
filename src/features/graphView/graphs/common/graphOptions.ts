@@ -1,40 +1,8 @@
-import {
-  type NodeTypes,
-  type EdgeTypes,
-  type DefaultEdgeOptions,
-  MarkerType,
-  type FitViewOptions,
-  type ReactFlowProps,
-} from "@xyflow/react";
-import DirectEdge, { type DirectEdgeType } from "../graphComponents/DirectEdge";
-import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge";
-import SetGroupNode from "../graphComponents/SetGroupNode";
-import PredicateNode, {
-  type PredicateNodeType,
-} from "../graphComponents/PredicateNode";
-import CustomConnectionLine from "../graphComponents/DirectConnectionLine";
+import { type FitViewOptions } from "@xyflow/react";
 
 export const FALLBACK_NODE_HEIGHT = 75;
 export const FALLBACK_NODE_WIDTH = 120;
 export const SNAP_GRID_SIZE = 10;
-
-export const nodeTypes: NodeTypes = {
-  predicate: PredicateNode,
-  setGroup: SetGroupNode,
-};
-
-export const edgeTypes: EdgeTypes = {
-  direct: DirectEdge,
-  selfConnecting: SelfConnectingEdge,
-};
-
-export const defaultEdgeOptions: DefaultEdgeOptions = {
-  type: "direct",
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: "#b1b1b7",
-  },
-};
 
 export const defaultFitViewOptions: FitViewOptions = {
   padding: "50px",
@@ -42,20 +10,3 @@ export const defaultFitViewOptions: FitViewOptions = {
 };
 
 export const defaultFitViewDuration = 300;
-
-export const defaultFlowProps: ReactFlowProps<
-  PredicateNodeType,
-  DirectEdgeType
-> = {
-  nodeTypes,
-  edgeTypes,
-  defaultEdgeOptions,
-  connectionLineComponent: CustomConnectionLine,
-  proOptions: { hideAttribution: true },
-  nodesFocusable: false,
-  edgesFocusable: false,
-  edgesReconnectable: false,
-  connectOnClick: false,
-  minZoom: 0.25,
-  snapGrid: [SNAP_GRID_SIZE, SNAP_GRID_SIZE],
-};

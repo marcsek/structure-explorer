@@ -107,7 +107,6 @@ export function AppComponent({
   const [instanceId] = useState(generateInstanceId());
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     instance.handleStoreChange = onStateChange;
     return () => (instance.handleStoreChange = undefined);
   }, [instance, onStateChange]);

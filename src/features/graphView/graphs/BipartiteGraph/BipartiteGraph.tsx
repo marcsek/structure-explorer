@@ -1,6 +1,4 @@
 import {
-  Background,
-  ReactFlow,
   type NodeChange,
   type FitViewOptions,
   useReactFlow,
@@ -11,28 +9,22 @@ import { useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { useAppDispatch } from "../../../../app/hooks";
 import { graphDidInitialLayout } from "../graphSlice.ts";
 import { addGroupNodes, generateNodeChangesWithLayout } from "./groupNodes.ts";
-import Controls from "../graphComponents/Controls.tsx";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import useGraph from "../../helpers/useGraph.ts";
 import {
   defaultFitViewDuration,
-  defaultFlowProps,
+  defaultFitViewOptions,
 } from "../common/graphOptions.ts";
-import {
-  EmptyDomainMessageDialog,
-  ErrorMessageDialogBuilder,
-} from "../common/MessageDialogs.tsx";
-import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
+import GraphCanvas from "../common/GraphCanvas.tsx";
 import type { BipartiteNodeType } from "./model.ts";
 
 const fitViewOptions: FitViewOptions = {
+  ...defaultFitViewOptions,
   padding: "35px",
-  maxZoom: 1,
 };
 
 const controlsFitViewOptions: FitViewOptions = {
   ...fitViewOptions,
-  maxZoom: 1,
   duration: defaultFitViewDuration,
 };
 
@@ -100,43 +92,21 @@ export default function BipartiteGraph({
     [nodes, onNodesChange, getNode],
   );
 
-  const dialogShown = storeNodes.length === 0;
-
   return (
-    <FlowContainer
-      ref={flowWrapperRef}
-      hintEnabled={!expandedView && !dialogShown}
-      zoomEnabled={!expandedView}
-    >
-      <ReactFlow
-        {...defaultFlowProps}
-        {...graphProps}
-        id={id}
-        nodes={groupedNodes}
-        edges={edges}
-        onNodesChange={computeLayoutChange}
-        onNodeDragStop={syncNodesWithStore}
-        nodesConnectable={!locked}
-        panOnDrag={!dialogShown}
-        zoomOnScroll={expandedView && !dialogShown}
-        zoomOnDoubleClick={!dialogShown}
-        zoomOnPinch={!dialogShown}
-      >
-        <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
-      </ReactFlow>
-
-      <Controls
-        id={id}
-        expandedView={expandedView}
-        fitViewOptions={controlsFitViewOptions}
-        onExpandedViewChange={onExpandedViewChange}
-      />
-
-      {warning && (
-        <ErrorMessageDialogBuilder body={warning} graphType={graphType} />
-      )}
-
-      {nodes.length === 0 && <EmptyDomainMessageDialog />}
-    </FlowContainer>
+    <GraphCanvas
+      id={id}
+      nodes={groupedNodes}
+      edges={edges}
+      locked={locked}
+      expandedView={expandedView}
+      dialogShown={storeNodes.length === 0}
+      emptyDomain={nodes.length === 0}
+      errorDialog={{ graphType, body: warning }}
+      containerRef={flowWrapperRef}
+      flowProps={{ ...graphProps, onNodesChange: computeLayoutChange }}
+      fitViewOptions={controlsFitViewOptions}
+      onNodeDragStop={syncNodesWithStore}
+      onExpandedViewChange={onExpandedViewChange}
+    />
   );
 }

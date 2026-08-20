@@ -1,17 +1,10 @@
-import { Background, ReactFlow } from "@xyflow/react";
 import { selectPosetValidity } from "../graphSlice.ts";
 import { useAppSelector } from "../../../../app/hooks.ts";
-import Controls from "../graphComponents/Controls.tsx";
 import { computeLayoutHasse } from "./layout.ts";
 import type { GraphComponentProps } from "../../components/GraphView/GraphView.tsx";
 import useGraph from "../../helpers/useGraph.ts";
 import { useGraphLayout } from "../../helpers/useGraphLayout.ts";
-import { defaultFlowProps } from "../common/graphOptions.ts";
-import {
-  EmptyDomainMessageDialog,
-  ErrorMessageDialogBuilder,
-} from "../common/MessageDialogs.tsx";
-import FlowContainer from "../../components/FlowContainer/FlowContainer.tsx";
+import GraphCanvas from "../common/GraphCanvas.tsx";
 
 const graphType = "hasse";
 
@@ -45,47 +38,21 @@ export default function HasseDiagram({
     computeLayout: computeLayoutHasse,
   });
 
-  const dialogShown = !isPoset || nodes.length === 0;
-
   return (
-    <FlowContainer
-      ref={flowWrapperRef}
-      hintEnabled={!expandedView && !dialogShown}
-      zoomEnabled={!expandedView}
-    >
-      <ReactFlow
-        {...defaultFlowProps}
-        {...graphProps}
-        id={id}
-        nodes={isPoset ? flowNodes : []}
-        edges={isPoset ? flowEdges : []}
-        nodesConnectable={!locked}
-        onNodeDragStop={syncNodesWithStore}
-        panOnDrag={!dialogShown}
-        zoomOnScroll={expandedView && !dialogShown}
-        zoomOnDoubleClick={!dialogShown}
-        zoomOnPinch={!dialogShown}
-        snapToGrid
-      >
-        <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
-      </ReactFlow>
-
-      <Controls
-        id={id}
-        expandedView={expandedView}
-        onExpandedViewChange={onExpandedViewChange}
-        onLayout={onLayout}
-      />
-
-      {(warning || !isPoset) && (
-        <ErrorMessageDialogBuilder
-          body={warning}
-          graphType={graphType}
-          invalidPoset={!isPoset}
-        />
-      )}
-
-      {isPoset && nodes.length === 0 && <EmptyDomainMessageDialog />}
-    </FlowContainer>
+    <GraphCanvas
+      id={id}
+      nodes={isPoset ? flowNodes : []}
+      edges={isPoset ? flowEdges : []}
+      locked={locked}
+      expandedView={expandedView}
+      dialogShown={!isPoset || nodes.length === 0}
+      emptyDomain={isPoset && nodes.length === 0}
+      errorDialog={{ graphType, body: warning, invalidPoset: !isPoset }}
+      containerRef={flowWrapperRef}
+      flowProps={{ ...graphProps, snapToGrid: true }}
+      onNodeDragStop={syncNodesWithStore}
+      onExpandedViewChange={onExpandedViewChange}
+      onLayout={onLayout}
+    />
   );
 }

@@ -13,16 +13,16 @@ const GROUP_CONTAINER_WIDTH = 200;
 const GROUP_CONTAINER_GAP = 50;
 
 export const computeGroupContainerBounds = (nodes: BipartiteNodeType[]) => {
-  const stackedHeight =
-    nodes.reduce(
-      (sum, n) => sum + (n.measured?.height ?? FALLBACK_NODE_HEIGHT),
-      0,
-    ) / 2;
+  const stackedHeight = nodes.reduce(
+    (sum, n) => sum + (n.measured?.height ?? FALLBACK_NODE_HEIGHT),
+    0,
+  );
 
   return {
     bounds: {
       width: GROUP_CONTAINER_WIDTH,
-      height: stackedHeight + 2 * PADDING_Y + (nodes.length / 2 - 1) * GAP_Y,
+      height:
+        stackedHeight / 2 + 2 * PADDING_Y + (nodes.length / 2 - 1) * GAP_Y,
     },
     offset: { x: (GROUP_CONTAINER_GAP + GROUP_CONTAINER_WIDTH) / 2, y: 0 },
   };

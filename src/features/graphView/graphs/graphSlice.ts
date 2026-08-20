@@ -50,7 +50,6 @@ import {
 } from "../../structure/tupleInfo";
 import { UndoActions } from "../../undoHistory/undoHistory.ts";
 import type { SerializedGraphViewState } from "../validationSchema.ts";
-import { dev } from "../../../shared/core/logging.ts";
 
 export type GraphManagerState = Record<
   string,
@@ -118,8 +117,6 @@ export const graphManagerSlice = createSlice({
         overwrite?: boolean;
       }>,
     ) {
-      dev.time("Graph synchronization duration");
-
       const {
         structure,
         language,
@@ -170,8 +167,6 @@ export const graphManagerSlice = createSlice({
           ) as GraphStates,
         };
       });
-
-      dev.timeEnd("Graph synchronization duration");
 
       if (!overwrite) {
         const newTupleNames = [

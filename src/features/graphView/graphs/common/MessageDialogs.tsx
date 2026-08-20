@@ -41,5 +41,7 @@ export function ErrorMessageDialogBuilder(
     );
   }
 
+  if (!body) return null;
+
   return <MessageDialog type="error" position="corner" body={body} />;
 }
