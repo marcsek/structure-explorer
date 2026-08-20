@@ -92,7 +92,8 @@ export default function GraphCanvas<
     <FlowContainer
       ref={containerRef}
       hintEnabled={!expandedView && !dialogShown}
-      zoomEnabled={!expandedView}
+      zoomOnModifier={!expandedView}
+      zoomEnabled={!dialogShown}
     >
       <ReactFlow
         id={id}

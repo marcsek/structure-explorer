@@ -9,11 +9,15 @@ const HIDE_TIMEOUT_DURATION = 750;
 export interface FlowContainerProps {
   children: React.ReactNode;
   hintEnabled?: boolean;
+  zoomOnModifier?: boolean;
   zoomEnabled?: boolean;
 }
 
 const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
-  ({ children, hintEnabled = true, zoomEnabled = true }, ref) => {
+  (
+    { children, hintEnabled = true, zoomOnModifier = true, zoomEnabled = true },
+    ref,
+  ) => {
     const [showHint, setShowHint] = useState(false);
     const hideTimerRef = useRef<number | null>(null);
 
@@ -50,12 +54,16 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
         className="react-flow__container"
         onPointerDownCapture={hideZoomHint}
         onWheelCapture={(e) => {
+          if (!zoomEnabled) {
+            return e.stopPropagation();
+          }
+
           if (e.ctrlKey || e.metaKey) {
             return void hideZoomHint();
           }
 
           showZoomHint();
-          if (zoomEnabled) e.stopPropagation();
+          if (zoomOnModifier) e.stopPropagation();
         }}
         onClick={() => hideZoomHint()}
       >
@@ -69,7 +77,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
 function ZoomHint({ show }: { show: boolean }) {
   return (
     <div
-      className={`flow-container-zoom-hint-container ${show ? "vissible" : "hidden"}`}
+      className={`flow-container-zoom-hint-container ${show ? "visible" : "hidden"}`}
     >
       <div className="flow-container-zoom-hint">
         <FontAwesomeIcon icon={faInfoCircle} />

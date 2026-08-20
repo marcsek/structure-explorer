@@ -70,8 +70,7 @@ export function expandReducedPoset<T>(
 export function staysValidHasseWithEdge<T>(
   relation: BinaryRelation<T>,
   [from, to]: [T, T],
-  preserveEdges: boolean = true,
-): [boolean, string] {
+): [boolean, string?] {
   if (from === to) return [false, "Source same as target."];
 
   const succMap = buildSuccessorMap(relation);
@@ -83,27 +82,25 @@ export function staysValidHasseWithEdge<T>(
   if (isReachable(from, to, succMap))
     return [false, "Indirect path already exists."];
 
-  if (preserveEdges) {
-    if (!succMap.has(from)) succMap.set(from, new Set());
-    succMap.get(from)!.add(to);
+  if (!succMap.has(from)) succMap.set(from, new Set());
+  succMap.get(from)!.add(to);
 
-    for (const [a, b] of relation) {
-      // Ignoring self edges
-      if (a === b) continue;
+  for (const [a, b] of relation) {
+    // Ignoring self edges
+    if (a === b) continue;
 
-      succMap.get(a)?.delete(b);
+    succMap.get(a)?.delete(b);
 
-      if (isReachable(a, b, succMap))
-        return [
-          false,
-          "Edge introduces redundancy when considering the whole interpretation.",
-        ];
+    if (isReachable(a, b, succMap))
+      return [
+        false,
+        "Edge introduces redundancy when considering the whole interpretation.",
+      ];
 
-      succMap.get(a)?.add(b);
-    }
+    succMap.get(a)?.add(b);
   }
 
-  return [true, ""];
+  return [true];
 }
 
 function buildSuccessorMap<T>(relation: BinaryRelation<T>) {

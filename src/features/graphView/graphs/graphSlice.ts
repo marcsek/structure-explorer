@@ -59,7 +59,7 @@ export type GraphManagerState = Record<
   }
 >;
 
-type WithGraphId<T = object> = {
+type GraphTarget<T = object> = {
   tupleInfo: TupleInfo;
   graphType: GraphType;
 } & T;
@@ -72,7 +72,7 @@ export const graphManagerSlice = createSlice({
   reducers: {
     setNodes(
       state,
-      action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
+      action: PayloadAction<GraphTarget<{ nodes: PredicateNodeType[] }>>,
     ) {
       updateEntry(state, action.payload, (graph, { nodes }) => {
         graph.nodes = nodes;
@@ -81,7 +81,7 @@ export const graphManagerSlice = createSlice({
 
     setEdges(
       state,
-      action: PayloadAction<WithGraphId<{ edges: DirectEdgeType[] }>>,
+      action: PayloadAction<GraphTarget<{ edges: DirectEdgeType[] }>>,
     ) {
       updateEntry(state, action.payload, (graph, { edges }) => {
         graph.edges = edges;
@@ -90,7 +90,7 @@ export const graphManagerSlice = createSlice({
 
     graphDidInitialLayout(
       state,
-      action: PayloadAction<WithGraphId<{ didLayout: boolean }>>,
+      action: PayloadAction<GraphTarget<{ didLayout: boolean }>>,
     ) {
       updateEntry(state, action.payload, (graph, { didLayout }) => {
         graph.didLayout = didLayout;
@@ -100,7 +100,7 @@ export const graphManagerSlice = createSlice({
     onNodesChanged(
       state,
       action: PayloadAction<
-        WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
+        GraphTarget<{ changes: NodeChange<PredicateNodeType>[] }>
       >,
     ) {
       updateEntry(state, action.payload, (graph, { changes }) => {
@@ -189,7 +189,7 @@ export const graphManagerSlice = createSlice({
 
     warningChanged(
       state,
-      action: PayloadAction<WithGraphId<{ warning?: string }>>,
+      action: PayloadAction<GraphTarget<{ warning?: string }>>,
     ) {
       updateEntry(state, action.payload, (graph, { warning }) => {
         graph.warning = warning;
@@ -452,7 +452,7 @@ function withEntry(
   if (entry) update(entry);
 }
 
-function updateEntry<P extends WithGraphId>(
+function updateEntry<P extends GraphTarget>(
   state: GraphManagerState,
   payload: P,
   update: (graphState: GraphStates[GraphType], payload: P) => void,

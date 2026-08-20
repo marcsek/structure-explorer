@@ -43,8 +43,8 @@ export const generateLayoutNodesChangesBipartite = (
   let domainY = PADDING_Y,
     rangeY = PADDING_Y;
 
-  const vissible = nodes.filter((node) => !node.hidden);
-  const ordered = vissible.sort((a, b) => a.position.y - b.position.y);
+  const visible = nodes.filter((node) => !node.hidden);
+  const ordered = visible.sort((a, b) => a.position.y - b.position.y);
   const changes: NodeChange<BipartiteNodeType>[] = [];
 
   ordered.forEach((node) => {
@@ -59,7 +59,6 @@ export const generateLayoutNodesChangesBipartite = (
         : PADDING_X;
     const y = origin === "domain" ? domainY : rangeY;
 
-    const newNode = node;
     if (draggedNodesIds?.includes(node.id))
       changes.push({
         id: node.id,
@@ -67,17 +66,11 @@ export const generateLayoutNodesChangesBipartite = (
         position: { x, y: node.position.y },
         dragging: true,
       });
-    else if (newNode.position.x !== x || newNode.position.y !== y)
-      changes.push({
-        id: node.id,
-        type: "position",
-        position: { x, y },
-      });
+    else if (node.position.x !== x || node.position.y !== y)
+      changes.push({ id: node.id, type: "position", position: { x, y } });
 
     domainY += origin === "domain" ? GAP_Y + nodeHeight : 0;
     rangeY += origin === "range" ? GAP_Y + nodeHeight : 0;
-
-    return newNode;
   });
 
   return changes;

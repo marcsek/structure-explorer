@@ -22,8 +22,8 @@ export type GraphModelFor<K extends GraphType> = GraphModel<GraphStates[K]>;
 
 export const graphs: { [K in GraphType]: GraphModelFor<K> } = {
   oriented: new OrientedGraphModel(),
-  bipartite: new BipartiteGraphModel(),
   hasse: new HasseDiagramModel(),
+  bipartite: new BipartiteGraphModel(),
 };
 
 export type AnyGraphState = GraphStates[GraphType];

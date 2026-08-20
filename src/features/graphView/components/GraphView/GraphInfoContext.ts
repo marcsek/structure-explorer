@@ -11,14 +11,14 @@ export const GraphInfoContext = createContext<{
 export const useGraphInfo = () => {
   const context = useContext(GraphInfoContext);
 
-  if (!context)
+  if (!context) {
     console.error("Parent of graph component didn't provide graphInfoContext.");
-
-  return (
-    useContext(GraphInfoContext) ?? {
+    return {
       tupleInfo: { name: "", type: "predicate", arity: 0 } as TupleInfo,
       graphType: "oriented" as GraphType,
       locked: false,
-    }
-  );
+    };
+  }
+
+  return context;
 };

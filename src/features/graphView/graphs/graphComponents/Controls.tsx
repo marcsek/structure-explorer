@@ -18,11 +18,14 @@ import {
 import { memo } from "react";
 import type { OnExpandedViewChange } from "../../components/GraphView/GraphView";
 import { OverlayTrigger, Tooltip } from "react-bootstrap";
+import {
+  defaultFitViewDuration,
+  defaultFitViewOptions,
+} from "../common/graphOptions";
 
-const defaultFitViewOptions: FitViewOptions = {
-  padding: "50px",
-  maxZoom: 1,
-  duration: 300,
+const defaultControlsFitViewOptions: FitViewOptions = {
+  ...defaultFitViewOptions,
+  duration: defaultFitViewDuration,
 };
 
 const defaultZoomOptions: ViewportHelperFunctionOptions = {
@@ -42,7 +45,7 @@ export interface ControlsComponentProps {
 function ControlsComponent({
   id,
   expandedView = false,
-  fitViewOptions = defaultFitViewOptions,
+  fitViewOptions = defaultControlsFitViewOptions,
   onExpandedViewChange,
   onInteractiveChange,
   onLayout,
@@ -83,6 +86,7 @@ function ControlsComponent({
         onClick={() => fitView(fitViewOptions)}
         icon={faExpand}
       />
+
       {onLayout !== undefined && (
         <TooltipControlButton
           id={id}
