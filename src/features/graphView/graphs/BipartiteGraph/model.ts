@@ -51,7 +51,6 @@ export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState>
       source: `${prefix.domain}${from}`,
       target: `${prefix.range}${to}`,
       data: { duplicate, error },
-      selectable: !duplicate && !error,
     };
   }
 

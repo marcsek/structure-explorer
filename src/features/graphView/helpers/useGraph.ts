@@ -89,8 +89,7 @@ export default function useGraph<T extends GraphType>({
   );
 
   const onConnect: OnConnect = useCallback(
-    (connection) =>
-      dispatch(onConnected({ tupleInfo, graphType, connection })),
+    (connection) => dispatch(onConnected({ tupleInfo, graphType, connection })),
     [dispatch, tupleInfo, graphType],
   );
 

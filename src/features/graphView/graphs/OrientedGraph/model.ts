@@ -46,7 +46,6 @@ export default class OrientedGraphModel extends GraphModel<OrientedGraphState> {
       source: from,
       target: to,
       data: { duplicate, error },
-      selectable: !duplicate && !error,
     };
   }
 

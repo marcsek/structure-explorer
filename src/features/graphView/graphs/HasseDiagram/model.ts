@@ -57,7 +57,6 @@ export default class HasseDiagramModel extends GraphModel<HasseDiagramState> {
       source: from,
       target: to,
       data: { duplicate, helper: false },
-      selectable: !duplicate,
     };
   }
 
