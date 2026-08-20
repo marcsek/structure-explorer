@@ -54,6 +54,8 @@ export default function HasseDiagram({
       zoomEnabled={!expandedView}
     >
       <ReactFlow
+        {...defaultFlowProps}
+        {...graphProps}
         id={id}
         nodes={isPoset ? flowNodes : []}
         edges={isPoset ? flowEdges : []}
@@ -64,8 +66,6 @@ export default function HasseDiagram({
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
         snapToGrid
-        {...graphProps}
-        {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>

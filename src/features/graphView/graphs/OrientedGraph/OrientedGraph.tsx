@@ -49,6 +49,8 @@ export default function OrientedGraph({
       zoomEnabled={!expandedView}
     >
       <ReactFlow
+        {...defaultFlowProps}
+        {...graphProps}
         id={id}
         nodes={flowNodes}
         edges={flowEdges}
@@ -59,8 +61,6 @@ export default function OrientedGraph({
         zoomOnDoubleClick={!dialogShown}
         zoomOnPinch={!dialogShown}
         snapToGrid
-        {...graphProps}
-        {...defaultFlowProps}
       >
         <Background id={`bg-${id}-${expandedView ? "expanded" : ""}`} />
       </ReactFlow>

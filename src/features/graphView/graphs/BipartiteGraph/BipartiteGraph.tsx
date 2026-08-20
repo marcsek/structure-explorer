@@ -136,7 +136,7 @@ export default function BipartiteGraph({
         <ErrorMessageDialogBuilder body={warning} graphType={graphType} />
       )}
 
-      {storeNodes.length === 0 && <EmptyDomainMessageDialog />}
+      {nodes.length === 0 && <EmptyDomainMessageDialog />}
     </FlowContainer>
   );
 }
