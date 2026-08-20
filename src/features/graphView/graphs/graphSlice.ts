@@ -44,6 +44,7 @@ import {
 } from "../../editorToolbar/editorToolbarSlice.ts";
 import {
   getTupleId,
+  type TupleIdentity,
   type TupleInfo,
   type TupleType,
 } from "../../structure/tupleInfo";
@@ -78,39 +79,27 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ nodes: PredicateNodeType[] }>>,
     ) {
-      const { tupleInfo, graphType, nodes } = action.payload;
-
-      const tupleId = getTupleId(tupleInfo);
-
-      if (!state[tupleId]) return;
-
-      state[tupleId].state[graphType].nodes = nodes;
+      updateEntry(state, action.payload, (graph, { nodes }) => {
+        graph.nodes = nodes;
+      });
     },
 
     setEdges(
       state,
       action: PayloadAction<WithGraphId<{ edges: DirectEdgeType[] }>>,
     ) {
-      const { tupleInfo, graphType, edges } = action.payload;
-
-      const tupleId = getTupleId(tupleInfo);
-
-      if (!state[tupleId]) return;
-
-      state[tupleId].state[graphType].edges = edges;
+      updateEntry(state, action.payload, (graph, { edges }) => {
+        graph.edges = edges;
+      });
     },
 
     graphDidInitialLayout(
       state,
       action: PayloadAction<WithGraphId<{ didLayout: boolean }>>,
     ) {
-      const { tupleInfo, graphType, didLayout } = action.payload;
-
-      const tupleId = getTupleId(tupleInfo);
-
-      if (!state[tupleId]) return;
-
-      state[tupleId].state[graphType].didLayout = didLayout;
+      updateEntry(state, action.payload, (graph, { didLayout }) => {
+        graph.didLayout = didLayout;
+      });
     },
 
     onNodesChanged: {
@@ -120,16 +109,9 @@ export const graphManagerSlice = createSlice({
           WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
         >,
       ) {
-        const { tupleInfo, graphType, changes } = action.payload;
-
-        const tupleId = getTupleId(tupleInfo);
-
-        if (!state[tupleId]) return;
-
-        state[tupleId].state[graphType].nodes = applyNodeChanges(
-          changes,
-          state[tupleId].state[graphType].nodes,
-        );
+        updateEntry(state, action.payload, (graph, { changes }) => {
+          graph.nodes = applyNodeChanges(changes, graph.nodes);
+        });
       },
       prepare: prepareWithListenerIgnoreMeta<
         WithGraphId<{ changes: NodeChange<PredicateNodeType>[] }>
@@ -222,17 +204,14 @@ export const graphManagerSlice = createSlice({
       state,
       action: PayloadAction<WithGraphId<{ warning?: string }>>,
     ) {
-      const { tupleInfo, graphType, warning } = action.payload;
-
-      const tupleId = getTupleId(tupleInfo);
-
-      if (state[tupleId]) state[tupleId].state[graphType].warning = warning;
+      updateEntry(state, action.payload, (graph, { warning }) => {
+        graph.warning = warning;
+      });
     },
   },
 
   extraReducers(builder) {
     builder.addCase(updateDomain, (state, action) => {
-      dev.time("Graph domain update duration");
       const domain = action.payload;
 
       for (const [, entry] of Object.entries(state)) {
@@ -243,7 +222,6 @@ export const graphManagerSlice = createSlice({
             );
         }
       }
-      dev.timeEnd("Graph domain update duration");
     });
 
     builder.addMatcher(
@@ -252,24 +230,18 @@ export const graphManagerSlice = createSlice({
         const { value, key: tupleName } = action.payload;
         const tupleType = tupleUpdaterToTupleType[action.type];
 
-        const tupleId = getTupleId({ type: tupleType, name: tupleName });
-
-        if (!(tupleId in state)) return;
-
-        dev.time("Graph interpretation update duration");
-        const entry = state[tupleId];
-        for (const graphType of graphTypes) {
-          if (graphs[graphType].isCompatible(entry.tupleType))
-            updateGraph(entry.state, graphType, (ops, graphState) =>
-              ops.syncPredIntr(
-                graphState,
-                value as BinaryRelation<string>,
-                entry.tupleType,
-              ),
-            );
-        }
-
-        dev.timeEnd("Graph interpretation update duration");
+        withEntry(state, { type: tupleType, name: tupleName }, (entry) => {
+          for (const graphType of graphTypes) {
+            if (graphs[graphType].isCompatible(entry.tupleType))
+              updateGraph(entry.state, graphType, (ops, graphState) =>
+                ops.syncPredIntr(
+                  graphState,
+                  value as BinaryRelation<string>,
+                  entry.tupleType,
+                ),
+              );
+          }
+        });
       },
     );
   },
@@ -483,6 +455,27 @@ const updateInterpretation = (
     key: tupleInfo.name,
     value: readGraph(graphState, toRelation),
   });
+
+type GraphEntry = GraphManagerState[string];
+
+function withEntry(
+  state: GraphManagerState,
+  tupleInfo: TupleIdentity,
+  update: (entry: GraphEntry) => void,
+) {
+  const entry = state[getTupleId(tupleInfo)];
+  if (entry) update(entry);
+}
+
+function updateEntry<P extends WithGraphId>(
+  state: GraphManagerState,
+  payload: P,
+  update: (graphState: GraphStates[GraphType], payload: P) => void,
+) {
+  withEntry(state, payload.tupleInfo, (entry) =>
+    update(entry.state[payload.graphType], payload),
+  );
+}
 
 const interpretationUpdaters = {
   predicate: updateInterpretationPredicates,
