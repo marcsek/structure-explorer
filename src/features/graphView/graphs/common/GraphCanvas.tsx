@@ -1,6 +1,5 @@
 import {
   Background,
-  MarkerType,
   ReactFlow,
   type DefaultEdgeOptions,
   type Edge,
@@ -18,7 +17,6 @@ import Controls from "../graphComponents/Controls.tsx";
 import CustomConnectionLine from "../graphComponents/DirectConnectionLine.tsx";
 import DirectEdge from "../graphComponents/DirectEdge.tsx";
 import PredicateNode from "../graphComponents/PredicateNode.tsx";
-import SelfConnectingEdge from "../graphComponents/SelfConnectingEdge.tsx";
 import SetGroupNode from "../graphComponents/SetGroupNode.tsx";
 import { SNAP_GRID_SIZE } from "./graphOptions.ts";
 import { ConnectionWarningDialog } from "./MessageDialogs.tsx";
@@ -30,15 +28,10 @@ const nodeTypes: NodeTypes = {
 
 const edgeTypes: EdgeTypes = {
   direct: DirectEdge,
-  selfConnecting: SelfConnectingEdge,
 };
 
 const defaultEdgeOptions: DefaultEdgeOptions = {
   type: "direct",
-  markerEnd: {
-    type: MarkerType.ArrowClosed,
-    color: "#b1b1b7",
-  },
 };
 
 const proOptions = { hideAttribution: true };

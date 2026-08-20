@@ -24,14 +24,11 @@ export default function CustomConnectionLine({
 
   const [edgePath] = getStraightPath({ sourceX, sourceY, targetX, targetY });
 
-  const marker = isValid ? "url(#connection-marker)" : "";
-
   return (
     <path
       className={`animated connection ${connection.isValid ? "valid" : "invalid"}`}
       style={connectionLineStyle}
       d={edgePath}
-      markerEnd={marker}
     />
   );
 }

@@ -104,6 +104,19 @@ export function getEdgeParams(source: InternalNode, target: InternalNode) {
   };
 }
 
+export function getSelfLoopPath(
+  x: number,
+  y: number,
+): [string, number, number] {
+  const path = `
+  M ${x} ${y - 10}
+  C ${x + 50} ${y - 45},
+    ${x - 20} ${y - 85},
+    ${x - 30} ${y - 40}`;
+
+  return [path, x + 12, y - 55];
+}
+
 export function makeNodeInvisible<T extends Node>(node: T) {
   return { ...node, style: { ...node.style, visibility: "hidden" } };
 }

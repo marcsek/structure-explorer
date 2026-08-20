@@ -1,3 +1,5 @@
+import "./graphComponents.css";
+
 import {
   BaseEdge,
   EdgeLabelRenderer,
@@ -7,8 +9,9 @@ import {
   type Edge,
   type EdgeProps,
 } from "@xyflow/react";
-import { getEdgeParams } from "../../helpers/utils";
-import SelfConnectingEdge from "./SelfConnectingEdge";
+import { useState } from "react";
+
+import { getEdgeParams, getSelfLoopPath } from "../../helpers/utils";
 import DeleteElementButton from "./DeleteElementButton";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar } from "@fortawesome/free-solid-svg-icons";
@@ -27,18 +30,16 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
 
   const { deleteElements } = useReactFlow();
 
+  const [labelHovered, setLabelHovered] = useState(false);
+
   if (!source || !target) return null;
-  if (props.source === props.target) return <SelfConnectingEdge {...props} />;
 
   const { id, style } = props;
-  const { sourceX, sourceY, targetX, targetY } = getEdgeParams(source, target);
 
-  const [path, labelX, labelY] = getStraightPath({
-    sourceX,
-    sourceY,
-    targetX,
-    targetY,
-  });
+  const [path, labelX, labelY] =
+    props.source === props.target
+      ? getSelfLoopPath(props.sourceX, props.sourceY)
+      : getStraightPath(getEdgeParams(source, target));
 
   const shouldError = props.data?.duplicate || props.data?.error;
 
@@ -52,21 +53,17 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
         }}
         className="nodrag nopan predicate-edge-delete-button"
         onClick={() => deleteElements({ edges: [{ id }] })}
+        onMouseEnter={() => setLabelHovered(true)}
+        onMouseLeave={() => setLabelHovered(false)}
       />
     );
   } else if (props.data?.helper) {
     labelContent = (
       <FontAwesomeIcon
         style={{
-          position: "absolute",
           transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px) scale(0.8)`,
-          pointerEvents: "all",
-          color: "#b1b1b7",
-          backgroundColor: "white",
-          borderRadius: "100px",
-          padding: "0.1rem",
         }}
-        className="nodrag nopan"
+        className="nodrag nopan predicate-edge-helper-icon"
         size="sm"
         icon={faStar}
       />
@@ -77,46 +74,19 @@ export default function DirectEdge(props: EdgeProps<DirectEdgeType>) {
     <>
       <BaseEdge
         id={id}
-        className={`react-flow__edge-path ${shouldError ? "error" : ""} ${props.data?.helper ? "helper" : ""}`}
+        className={`react-flow__edge-path ${shouldError ? "error" : ""} ${props.data?.helper ? "helper" : ""} ${labelHovered ? "label-hover" : ""}`}
         path={path}
-        markerEnd={props.markerEnd}
         style={style}
       />
+
       <BaseEdge
         id={`${id}-error-focus`}
-        className={`react-flow__edge-path-focus ${shouldError ? "error" : ""}`}
+        className={`react-flow__edge-path-focus ${shouldError ? "error" : ""} ${labelHovered ? "label-hover" : ""}`}
         path={path}
-        markerEnd={props.markerEnd}
         style={style}
       />
+
       <EdgeLabelRenderer>{labelContent}</EdgeLabelRenderer>
     </>
-  );
-}
-
-export function GenerateMarker({ type }: { type: string }) {
-  return (
-    <svg style={{ position: "absolute", top: 0, left: 0 }}>
-      <defs>
-        <marker
-          className={`react-flow__arrowhead ${type}`}
-          id={`${type}-marker`}
-          markerWidth="20"
-          markerHeight="20"
-          viewBox="-10 -10 20 20"
-          markerUnits="userSpaceOnUse"
-          orient="auto-start-reverse"
-          refX="0"
-          refY="0"
-        >
-          <polyline
-            className="arrowclosed"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points="-5,-4 0,0 -5,4 -5,-4"
-          />
-        </marker>
-      </defs>
-    </svg>
   );
 }

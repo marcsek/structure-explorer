@@ -7,7 +7,7 @@ import HasseDiagram from "../../graphs/HasseDiagram/HasseDiagram";
 import BipartiteGraph from "../../graphs/BipartiteGraph/BipartiteGraph.tsx";
 import { ReactFlowProvider } from "@xyflow/react";
 import { GraphInfoContext } from "./GraphInfoContext.ts";
-import { GenerateMarker } from "../../graphs/graphComponents/DirectEdge.tsx";
+import EdgeMarkers from "../../graphs/graphComponents/EdgeMarkers.tsx";
 import type { GraphType } from "../../graphs/graphRegistry.ts";
 import type { TupleInfo } from "../../../structure/tupleInfo";
 import type { DrawerEditorProps } from "../../../drawerEditor/drawerEditorAdapter.tsx";
@@ -50,11 +50,7 @@ export default function GraphView({
   return (
     <div className="react-flow" style={{ height: "100%" }}>
       {/* Edge markers need to be present in DOM before referencing them. */}
-      <GenerateMarker type="error" />
-      <GenerateMarker type="focusError" />
-      <GenerateMarker type="selected" />
-      <GenerateMarker type="hover" />
-      <GenerateMarker type="connection" />
+      <EdgeMarkers />
 
       <div className="graphViewContainer">
         <div className="graphViewItem" key={tupleName}>

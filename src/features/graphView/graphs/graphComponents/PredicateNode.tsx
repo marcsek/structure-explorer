@@ -72,18 +72,12 @@ function PredicateNode({
     dispatch(leftoverDeleted({ ...graphInfo, deletedNode: id }));
   };
 
-  const nodeClassName = [
-    "predicate-node",
-    isInvalid && "error",
-    data.ghost && "ghost",
-    data.hatched && "hatched",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
     <>
-      <div className={nodeClassName} onDoubleClick={createSelfEdge}>
+      <div
+        className={`predicate-node ${isInvalid ? "error" : ""} ${data.ghost ? "ghost" : ""} ${data.hatched ? "hatched" : ""}`}
+        onDoubleClick={createSelfEdge}
+      >
         {!isInvalid && <UnaryPredicatesIndicator domainId={data.label} />}
 
         <div className="predicate-node-handle-container">
