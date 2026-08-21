@@ -10,10 +10,7 @@ import {
 } from "../language/languageSlice";
 import Structure, { type DomainElement } from "../../model/Structure";
 import type { Symbol } from "../../model/Language";
-import {
-  createSemanticError,
-  type SemanticError,
-} from "../../shared/core/errors";
+import { createSemanticError } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
@@ -261,11 +258,6 @@ export const selectValidatedConstant = createSelector(
   },
 );
 
-export type ValidatedTuples = {
-  parsed: TupleInterpretation;
-  error?: SemanticError;
-};
-
 const findPredicateError = (
   tuples: TupleInterpretation,
   domain: ReadonlySet<string>,
@@ -305,7 +297,12 @@ export const selectValidatedPredicate = createSelector(
     selectValidatedPredicates,
     (_: RootState, name: string) => name,
   ],
-  (interpretation, domain, predicates, name): ValidatedTuples => {
+  (
+    interpretation,
+    domain,
+    predicates,
+    name,
+  ): Validated<TupleInterpretation> => {
     const parsed = interpretation?.value ?? [];
 
     const arity = predicates.parsed.get(name);
@@ -392,7 +389,7 @@ export const selectValidatedFunction = createSelector(
     selectValidatedFunctions,
     (_: RootState, name: string) => name,
   ],
-  (interpretation, domain, functions, name): ValidatedTuples => {
+  (interpretation, domain, functions, name): Validated<TupleInterpretation> => {
     const parsed = interpretation?.value ?? [];
 
     const arity = functions.parsed.get(name);
