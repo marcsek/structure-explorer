@@ -17,14 +17,14 @@ export const getEditorToolbarStateToExport = (
 
     if (!toolbarEntry) continue;
 
-    const { openedEditor, selectedUnary, unaryFilterDomain, selectedDomain } =
+    const { openedEditor, selectedUnary, unaryFilterDomain, deselectedDomain } =
       toolbarEntry;
 
     stateToExport[tupleId] = {
       openedEditor,
       selectedUnary,
       unaryFilterDomain,
-      selectedDomain,
+      deselectedDomain,
     };
   }
 

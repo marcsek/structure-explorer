@@ -8,6 +8,7 @@ import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckDouble, faFilter } from "@fortawesome/free-solid-svg-icons";
 import {
+  allNodesSelected,
   nodeToggled,
   selectRelevantUnaryPreds,
   selectSelectedDomain,
@@ -61,15 +62,16 @@ export default function DomainSelector({
   const activeFilters = domain.length !== selectedNodes.length;
 
   const toggleItem = useCallback(
-    (element: string = "") =>
+    (element: string) =>
       dispatch(
-        nodeToggled({
-          tupleInfo: { name, type, arity },
-          domain,
-          node: element,
-        }),
+        nodeToggled({ tupleInfo: { name, type, arity }, node: element }),
       ),
-    [dispatch, name, type, arity, domain],
+    [dispatch, name, type, arity],
+  );
+
+  const selectAll = useCallback(
+    () => dispatch(allNodesSelected({ tupleInfo: { name, type, arity } })),
+    [dispatch, name, type, arity],
   );
 
   return (
@@ -95,7 +97,7 @@ export default function DomainSelector({
         <div className="domain-selector-body" id={bodyId}>
           <div className="domain-selector-header">
             <p>Selected Elements</p>
-            <button className="select-all" onClick={() => toggleItem()}>
+            <button className="select-all" onClick={selectAll}>
               <FontAwesomeIcon size="sm" icon={faCheckDouble} />
               Select All
             </button>

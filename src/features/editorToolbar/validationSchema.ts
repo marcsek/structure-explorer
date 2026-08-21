@@ -8,6 +8,7 @@ export const serializedEditorToolbarStateSchema = z
       hoveredUnary: z.array(z.string()).optional(),
       selectedUnary: z.array(z.string()),
       selectedDomain: z.array(z.string()).optional(),
+      deselectedDomain: z.array(z.string()).optional(),
       unaryFilterDomain: z.boolean(),
       unaryFilterHovered: z.boolean().optional(),
       openedEditor: z.enum(editorTypes),

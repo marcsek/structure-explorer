@@ -11,7 +11,6 @@ import {
   updatePredicates,
 } from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
-import { updateDomain } from "../structure/structureSlice";
 import {
   getTupleId,
   type TupleIdentity,
@@ -23,7 +22,7 @@ import type { SerializedEditorToolbarState } from "./validationSchema";
 export type EditorToolbarEntry = {
   hoveredUnary: string[];
   selectedUnary: string[];
-  selectedDomain?: string[] | undefined;
+  deselectedDomain: string[];
   unaryFilterDomain: boolean;
   unaryFilterHovered: boolean;
   openedEditor: EditorType;
@@ -46,12 +45,13 @@ export const editorToolbarSlice = createSlice({
       action: PayloadAction<{
         state: SerializedEditorToolbarState;
         unaryPredicates: string[];
+        domain: string[];
       }>,
     ) {
-      const { state: imported, unaryPredicates } = action.payload;
+      const { state: imported, unaryPredicates, domain } = action.payload;
 
       return Object.fromEntries(
-        Object.entries(imported).map(([key, value]) => [
+        Object.entries(imported).map(([key, { selectedDomain, ...value }]) => [
           key,
           {
             ...value,
@@ -59,6 +59,12 @@ export const editorToolbarSlice = createSlice({
               value.selectedUnary,
               unaryPredicates,
             ),
+            deselectedDomain:
+              // TODO: Global migration functionality needed
+              value.deselectedDomain ??
+              (selectedDomain
+                ? domain.filter((element) => !selectedDomain.includes(element))
+                : []),
             hoveredUnary: [],
             unaryFilterHovered: false,
           },
@@ -81,31 +87,21 @@ export const editorToolbarSlice = createSlice({
       else selected.push(predicate);
     },
 
-    nodeToggled(
-      state,
-      action: PayloadAction<WithTupleInfo<{ domain: string[]; node?: string }>>,
-    ) {
-      const { tupleInfo, domain, node: toggledNode = "" } = action.payload;
+    nodeToggled(state, action: PayloadAction<WithTupleInfo<{ node: string }>>) {
+      const { tupleInfo, node } = action.payload;
 
       const entry = getOrCreateEntry(state, tupleInfo);
-      const selectedNodes = entry.selectedDomain ?? domain;
+      const deselected = entry.deselectedDomain;
 
-      if (toggledNode === "") entry.selectedDomain = undefined;
-      else if (selectedNodes.includes(toggledNode))
-        entry.selectedDomain = selectedNodes.filter(
-          (selectedNode) => selectedNode !== toggledNode,
+      if (deselected.includes(node))
+        entry.deselectedDomain = deselected.filter(
+          (element) => element !== node,
         );
-      else {
-        // Done this way to preserve order
-        const newSelectedDomain = domain.filter((element) =>
-          [...selectedNodes, toggledNode].includes(element),
-        );
+      else deselected.push(node);
+    },
 
-        entry.selectedDomain =
-          newSelectedDomain.length === domain.length
-            ? undefined
-            : newSelectedDomain;
-      }
+    allNodesSelected(state, action: PayloadAction<WithTupleInfo>) {
+      getOrCreateEntry(state, action.payload.tupleInfo).deselectedDomain = [];
     },
 
     predicateHovered(
@@ -143,12 +139,6 @@ export const editorToolbarSlice = createSlice({
   },
 
   extraReducers(builder) {
-    builder.addCase(updateDomain, (state) => {
-      for (const entry of Object.values(state)) {
-        entry.selectedDomain = undefined;
-      }
-    });
-
     builder.addCase(updatePredicates, (state, action) => {
       const unaryPredicates = getUnarySymbolNames(
         toAritySymbols(action.payload),
@@ -192,13 +182,14 @@ export const selectUnaryFilterDomainHovered = withTupleId(
 export const selectSelectedDomain = createSelector(
   [
     (state: RootState) => state.present.structure.domain,
-    withTupleId(
-      (state: RootState, tupleId: string) =>
-        getEntry(state, tupleId).selectedDomain,
+    withTupleId((state: RootState, tupleId: string) =>
+      fallbackToEmptyArray(getEntry(state, tupleId).deselectedDomain),
     ),
   ],
-  (domain, selectedNodes) =>
-    selectedNodes ? [...selectedNodes] : [...domain.value],
+  (domain, deselectedNodes) =>
+    deselectedNodes.length === 0
+      ? [...domain.value]
+      : domain.value.filter((element) => !deselectedNodes.includes(element)),
 );
 
 export const selectRelevantConstants = createSelector(
@@ -369,6 +360,7 @@ export default editorToolbarSlice.reducer;
 
 export const {
   importEditorToolbarState,
+  allNodesSelected,
   nodeToggled,
   predicateHovered,
   unaryFilterDomainHovered,
@@ -380,7 +372,7 @@ export const {
 const createEntry = (): EditorToolbarEntry => ({
   hoveredUnary: [],
   selectedUnary: [],
-  selectedDomain: undefined,
+  deselectedDomain: [],
   unaryFilterDomain: false,
   unaryFilterHovered: false,
   openedEditor: "text",

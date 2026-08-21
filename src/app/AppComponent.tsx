@@ -34,6 +34,7 @@ const actionsToIgnore = [
   editorToolbarSlice.actions.predicateHovered,
   editorToolbarSlice.actions.unaryFilterDomainHovered,
   editorToolbarSlice.actions.nodeToggled,
+  editorToolbarSlice.actions.allNodesSelected,
   editorToolbarSlice.actions.unaryFilterDomainToggled,
   editorToolbarSlice.actions.unaryPredicateToggled,
   editorToolbarSlice.actions.editorOpened,
