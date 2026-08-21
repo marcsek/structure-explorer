@@ -25,11 +25,11 @@ import {
   type SerializedAppState,
 } from "./validationSchema";
 import { importEditorToolbarState } from "../editorToolbar/editorToolbarSlice";
-import { getRelevantEditorToolbarState } from "../editorToolbar/editorToolbarSerialization";
+import { getEditorToolbarStateToExport } from "../editorToolbar/editorToolbarSerialization";
 import { importQueriesState } from "../queries/queriesSlice";
-import { getRelevantQueriesState as getQuriesStateToExport } from "../queries/queriesSerialization";
+import { getQueriesStateToExport } from "../queries/queriesSerialization";
 import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
-import { getRelevantCaseTreeState } from "../caseTreeView/caseTreeViewSerialization";
+import { getCaseTreeStateToExport } from "../caseTreeView/caseTreeViewSerialization";
 
 export interface ImportedAppState extends Omit<
   RootState["present"],
@@ -149,7 +149,7 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
   return {
     version: SERIALIZED_STATE_VERSION,
     formulas: state.present.formulas,
-    queries: getQuriesStateToExport(state.present.queries),
+    queries: getQueriesStateToExport(state.present.queries),
     language: state.present.language,
     variables: state.present.variables,
     teacherMode: state.present.teacherMode,
@@ -157,12 +157,15 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
       state.present.structure,
       relevantSymbols,
     ),
-    graphView: getGraphViewStateToExport(state, relevantSymbols),
-    editorToolbar: getRelevantEditorToolbarState(
+    graphView: getGraphViewStateToExport(
+      state.present.graphView,
+      relevantSymbols,
+    ),
+    editorToolbar: getEditorToolbarStateToExport(
       state.present.editorToolbar,
       relevantSymbols,
     ),
-    caseTreeView: getRelevantCaseTreeState(
+    caseTreeView: getCaseTreeStateToExport(
       state.present.caseTreeView,
       relevantSymbols,
     ),

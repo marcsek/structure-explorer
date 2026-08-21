@@ -1,6 +1,13 @@
-import type { GraphType } from "../graphView/graphs/registry";
+import { graphTypes } from "../graphView/graphs/registry";
 
-export type EditorType =
-  "text" | "matrix" | "database" | "caseTree" | GraphType;
+export const editorTypes = [
+  "text",
+  "matrix",
+  "database",
+  "caseTree",
+  ...graphTypes,
+] as const;
+
+export type EditorType = (typeof editorTypes)[number];
 
 export type DrawerEditorType = Exclude<EditorType, "text">;

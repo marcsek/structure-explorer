@@ -1,8 +1,8 @@
-import type { RootState } from "../../app/store.ts";
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import { getTupleId, isBinaryTuple } from "../structure/tupleInfo.ts";
 import type { SerializedGraphViewState } from "./validationSchema.ts";
 import { graphTypes, type AnyGraphState } from "./graphs/registry.ts";
+import type { GraphViewState } from "./graphViewSlice.ts";
 
 type NodePositions = Record<string, [number, number]>;
 
@@ -25,7 +25,7 @@ const getPositionsToExport = ({
 };
 
 export const getGraphViewStateToExport = (
-  state: RootState,
+  state: GraphViewState,
   relevantSymbols: RelevantSymbols,
 ): SerializedGraphViewState => {
   const serializedState: SerializedGraphViewState = {};
@@ -35,7 +35,7 @@ export const getGraphViewStateToExport = (
       continue;
 
     const tupleId = getTupleId({ type: symbol.type, name: tupleName });
-    const graphStates = state.present.graphView[tupleId]?.state;
+    const graphStates = state[tupleId]?.state;
 
     if (!graphStates) continue;
 

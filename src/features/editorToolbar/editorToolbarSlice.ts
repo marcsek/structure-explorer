@@ -356,19 +356,13 @@ export const {
   editorOpened,
 } = editorToolbarSlice.actions;
 
-const defaultEntry: EditorToolbarEntry = {
+const createEntry = (): EditorToolbarEntry => ({
   hoveredUnary: [],
   selectedUnary: [],
   selectedDomain: undefined,
   unaryFilterDomain: false,
   unaryFilterHovered: false,
   openedEditor: "text",
-};
-
-const createEntry = (): EditorToolbarEntry => ({
-  ...defaultEntry,
-  hoveredUnary: [],
-  selectedUnary: [],
 });
 
 const getOrCreateEntry = (
@@ -377,7 +371,7 @@ const getOrCreateEntry = (
 ): EditorToolbarEntry => (state[getTupleId(tupleInfo)] ??= createEntry());
 
 const getEntry = (state: RootState, tupleId: string): EditorToolbarEntry =>
-  state.present.editorToolbar[tupleId] ?? defaultEntry;
+  state.present.editorToolbar[tupleId] ?? createEntry();
 
 function withTupleId<R, A extends unknown[]>(
   selector: (state: RootState, tupleId: string, ...args: A) => R,

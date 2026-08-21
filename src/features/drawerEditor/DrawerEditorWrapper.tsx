@@ -68,7 +68,7 @@ export interface DrawerEditorContentProps extends DrawerEditorWrapperProps {
 }
 
 function DrawerEditorContent({
-  id,
+  id: baseId,
   expandedView = false,
   show = true,
   setExpandedView,
@@ -78,6 +78,8 @@ function DrawerEditorContent({
   selectLock,
   renderControlButtons,
 }: DrawerEditorContentProps) {
+  const id = expandedView ? `${baseId}-expanded` : baseId;
+
   const dispatch = useAppDispatch();
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;

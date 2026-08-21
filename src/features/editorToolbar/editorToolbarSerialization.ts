@@ -1,9 +1,10 @@
 import type { RelevantSymbols } from "../import/importExportUtils.ts";
 import { getTupleId } from "../structure/tupleInfo";
+import type { EditorToolbarState } from "./editorToolbarSlice.ts";
 import type { SerializedEditorToolbarState } from "./validationSchema";
 
-export const getRelevantEditorToolbarState = (
-  editorToolbar: SerializedEditorToolbarState,
+export const getEditorToolbarStateToExport = (
+  editorToolbar: EditorToolbarState,
   relevantSymbols: RelevantSymbols,
 ): SerializedEditorToolbarState => {
   const stateToExport: SerializedEditorToolbarState = {};

@@ -1,7 +1,7 @@
 import type { RelevantSymbols } from "../import/importExportUtils";
 import type { CaseTreeState } from "./caseTreeViewSlice";
 
-export const getRelevantCaseTreeState = (
+export const getCaseTreeStateToExport = (
   state: CaseTreeState,
   relevantSymbols: RelevantSymbols,
 ) => {

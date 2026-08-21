@@ -1,14 +1,5 @@
 import { z } from "zod";
-
-export const editorTypes = [
-  "text",
-  "matrix",
-  "database",
-  "oriented",
-  "hasse",
-  "bipartite",
-  "caseTree",
-] as const;
+import { editorTypes } from "../editors/editorTypes";
 
 export const serializedEditorToolbarStateSchema = z
   .record(
