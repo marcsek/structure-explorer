@@ -31,6 +31,32 @@ export default function DomainSelector({
   tupleInfo,
   disabled,
 }: DomainSelectorProps) {
+  if (disabled) return <DisabledDomainSelector />;
+
+  return <EnabledDomainSelector id={id} tupleInfo={tupleInfo} />;
+}
+
+function DisabledDomainSelector() {
+  return (
+    <div className="domain-selector">
+      <Button
+        className="domain-selector-toggle editor-toolbar-button"
+        title="Domain Filters"
+        disabled
+      >
+        <div className="domain-selector-toggle-icon-container">
+          <div className="domain-selector-toggle-icon-indicator" />
+          <FontAwesomeIcon icon={faFilter} />
+        </div>
+      </Button>
+    </div>
+  );
+}
+
+function EnabledDomainSelector({
+  id,
+  tupleInfo,
+}: Omit<DomainSelectorProps, "disabled">) {
   const { name, type, arity } = tupleInfo;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +113,6 @@ export default function DomainSelector({
         aria-expanded={isOpen}
         aria-controls={bodyId}
         title="Domain Filters"
-        disabled={disabled}
       >
         <div className="domain-selector-toggle-icon-container">
           <div className="domain-selector-toggle-icon-indicator" />

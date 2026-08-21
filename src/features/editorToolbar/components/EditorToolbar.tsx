@@ -21,7 +21,6 @@ export default function EditorToolbar({
   return (
     <div className="editor-toolbar">
       <InterpretationFilters
-        id={id}
         tupleInfo={tupleInfo}
         disabledFilters={disabledFilters}
       />

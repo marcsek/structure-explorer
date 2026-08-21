@@ -28,7 +28,6 @@ import { useUnhoverOnUnmount } from "../useUnhoverOnUnmount";
 import { getSymbolNames, selectUnaryPreds } from "../../language/languageSlice";
 
 export interface InterpretationFiltersProps {
-  id: string;
   tupleInfo: TupleInfo;
   disabledFilters: EditorFilters[];
 }
@@ -61,6 +60,7 @@ export default function InterpretationFilters({
       <Button
         className={`domain-button editor-toolbar-button legend-button ${!unaryFilterDomain ? "active" : ""}`}
         title="Select Domain"
+        aria-pressed={unaryFilterDomain}
         onClick={() => dispatch(unaryFilterDomainToggled({ tupleInfo }))}
         onMouseEnter={() => handleDomainHover(true)}
         onMouseLeave={() => handleDomainHover(false)}
@@ -74,15 +74,14 @@ export default function InterpretationFilters({
 
       <div className="intr-filters-divider" />
 
-      {unaryPredicatesCount !== 0 ? (
-        <UnaryPredicatesFilter
-          tupleInfo={tupleInfo}
-          disabled={disabledFilters.includes("intrFilters")}
-        />
-      ) : (
+      {unaryPredicatesCount === 0 ? (
         <span className="intr-filter-no-elements-info">
           No unary predicates to filter
         </span>
+      ) : (
+        !disabledFilters.includes("intrFilters") && (
+          <UnaryPredicatesFilter tupleInfo={tupleInfo} />
+        )
       )}
     </div>
   );
@@ -90,13 +89,9 @@ export default function InterpretationFilters({
 
 interface UnaryPredicatesFilterProps {
   tupleInfo: TupleInfo;
-  disabled: boolean;
 }
 
-function UnaryPredicatesFilter({
-  tupleInfo,
-  disabled,
-}: UnaryPredicatesFilterProps) {
+function UnaryPredicatesFilter({ tupleInfo }: UnaryPredicatesFilterProps) {
   const { name: tupleName } = tupleInfo;
 
   const dispatch = useAppDispatch();
@@ -117,8 +112,6 @@ function UnaryPredicatesFilter({
   const setHovered = useUnhoverOnUnmount(() =>
     dispatch(predicateHovered({ tupleInfo, predicates: [] })),
   );
-
-  if (disabled) return null;
 
   const handleSelectAll = () => {
     const allSelected = predicatesExcludingSelf.every((pred) =>
