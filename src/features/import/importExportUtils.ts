@@ -5,6 +5,7 @@ import { syncGraphView } from "../graphView/graphViewSlice";
 import { getGraphViewStateToExport } from "../graphView/graphViewSerialization";
 import type { GraphType } from "../graphView/graphs/registry";
 import {
+  getUnarySymbolNames,
   importLanguageState,
   type LanguageState,
 } from "../language/languageSlice";
@@ -85,7 +86,12 @@ export const importAppState =
     dispatch(importCaseTreeViewState(importedState.caseTreeView));
 
     // Needs to be last so it doesn't open uninitialized editor
-    dispatch(importEditorToolbarState(importedState.editorToolbar));
+    dispatch(
+      importEditorToolbarState({
+        state: importedState.editorToolbar,
+        unaryPredicates: getUnarySymbolNames(language.predicates.value),
+      }),
+    );
 
     dispatch(UndoActions.clearHistory());
   };

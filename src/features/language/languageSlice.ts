@@ -212,10 +212,18 @@ export const selectLanguage = createSelector(
   },
 );
 
-const toAritySymbols = (
+export const toAritySymbols = (
   symbols: SymbolWithArity[],
 ): AritySymbolsRepresentation =>
   symbols.map(({ name, arity }) => [name, arity]);
+
+export const getUnarySymbols = (
+  symbols: AritySymbolsRepresentation,
+): AritySymbolsRepresentation => symbols.filter(([, arity]) => arity === 1);
+
+export const getUnarySymbolNames = (
+  symbols: AritySymbolsRepresentation,
+): string[] => getUnarySymbols(symbols).map(([name]) => name);
 
 export const {
   updateConstants,

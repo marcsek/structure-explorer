@@ -4,7 +4,12 @@ import {
   type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
-import { updatePredicates } from "../language/languageSlice";
+import {
+  getUnarySymbolNames,
+  getUnarySymbols,
+  toAritySymbols,
+  updatePredicates,
+} from "../language/languageSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
 import { updateDomain } from "../structure/structureSlice";
 import {
@@ -38,12 +43,25 @@ export const editorToolbarSlice = createSlice({
   reducers: {
     importEditorToolbarState(
       _,
-      action: PayloadAction<SerializedEditorToolbarState>,
+      action: PayloadAction<{
+        state: SerializedEditorToolbarState;
+        unaryPredicates: string[];
+      }>,
     ) {
+      const { state: imported, unaryPredicates } = action.payload;
+
       return Object.fromEntries(
-        Object.entries(action.payload).map(([key, value]) => [
+        Object.entries(imported).map(([key, value]) => [
           key,
-          { ...value, hoveredUnary: [], unaryFilterHovered: false },
+          {
+            ...value,
+            selectedUnary: keepExistingUnaryPreds(
+              value.selectedUnary,
+              unaryPredicates,
+            ),
+            hoveredUnary: [],
+            unaryFilterHovered: false,
+          },
         ]),
       );
     },
@@ -132,17 +150,19 @@ export const editorToolbarSlice = createSlice({
     });
 
     builder.addCase(updatePredicates, (state, action) => {
-      const unaryPredicates = action.payload
-        .filter(({ arity }) => arity === 1)
-        .map(({ name }) => name);
+      const unaryPredicates = getUnarySymbolNames(
+        toAritySymbols(action.payload),
+      );
 
       for (const entry of Object.values(state)) {
-        entry.selectedUnary = entry.selectedUnary.filter((selectedPred) =>
-          unaryPredicates.includes(selectedPred),
+        entry.selectedUnary = keepExistingUnaryPreds(
+          entry.selectedUnary,
+          unaryPredicates,
         );
 
-        entry.hoveredUnary = entry.hoveredUnary.filter((hoveredPred) =>
-          unaryPredicates.includes(hoveredPred),
+        entry.hoveredUnary = keepExistingUnaryPreds(
+          entry.hoveredUnary,
+          unaryPredicates,
         );
       }
     });
@@ -193,7 +213,7 @@ export const selectRelevantConstants = createSelector(
 
 export const selectUnaryPreds = createSelector(
   [(state: RootState) => state.present.language.predicates.value],
-  (preds) => preds.filter(([, arity]) => arity === 1),
+  getUnarySymbols,
 );
 
 export const selectRelevantUnaryPreds = createSelector(
@@ -365,3 +385,8 @@ function withTupleId<R, A extends unknown[]>(
   return (state: RootState, tupleInfo: TupleIdentity, ...args: A): R =>
     selector(state, getTupleId(tupleInfo), ...args);
 }
+
+const keepExistingUnaryPreds = (
+  predicates: string[],
+  existingPredicates: string[],
+) => predicates.filter((pred) => existingPredicates.includes(pred));
