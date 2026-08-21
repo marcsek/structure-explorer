@@ -416,12 +416,12 @@ export const selectValidatedFunction = createSelector(
       .slice(0, MAX_EXAMPLES)
       .map(formatDomainTuple)
       .join(",");
-    const ellipsis = undefinedArguments.length > MAX_EXAMPLES ? "..." : "";
+    const ellipsis = undefinedArguments.length > MAX_EXAMPLES ? "..." : ".";
 
     return {
       parsed,
       error: createSemanticError(
-        `Function is not fully defined, for example these ${domainTupleNoun(arity)}s do not have assigned value: ${examples}${ellipsis}.`,
+        `Function is not fully defined, for example these ${domainTupleNoun(arity)}s do not have assigned value: ${examples}${ellipsis}`,
       ),
     };
   },

@@ -58,10 +58,7 @@ export const languageSlice = createSlice({
 
     updatePredicates: {
       reducer(state, action: PayloadActionSource<SymbolWithArity[]>) {
-        state.predicates.value = action.payload.map(({ name, arity }) => [
-          name,
-          arity,
-        ]);
+        state.predicates.value = toAritySymbols(action.payload);
       },
       prepare: prepareWithSourceMeta<SymbolWithArity[]>,
     },
@@ -72,10 +69,7 @@ export const languageSlice = createSlice({
 
     updateFunctions: {
       reducer(state, action: PayloadActionSource<SymbolWithArity[]>) {
-        state.functions.value = action.payload.map(({ name, arity }) => [
-          name,
-          arity,
-        ]);
+        state.functions.value = toAritySymbols(action.payload);
       },
       prepare: prepareWithSourceMeta<SymbolWithArity[]>,
     },
@@ -102,10 +96,10 @@ export const selectValidatedConstants = createSelector(
   (constants) => {
     const result: Validated<Set<string>> = { parsed: new Set(constants) };
 
-    for (const element of constants) {
-      if (constants.filter((element2) => element === element2).length > 1) {
+    for (const constant of constants) {
+      if (constants.filter((constant2) => constant === constant2).length > 1) {
         result.error = createValidationError(
-          `Constant ${element} is already defined`,
+          `Constant ${constant} is already defined.`,
         );
       }
     }
@@ -124,7 +118,7 @@ export const selectValidatedPredicates = createSelector(
     for (const [name] of predicates) {
       if (predicates.filter(([name2]) => name === name2).length > 1) {
         result.error = createValidationError(
-          `Predicate ${name} is already defined`,
+          `Predicate ${name} is already defined.`,
         );
       }
     }
@@ -170,17 +164,17 @@ export const selectSymbolsClash = createSelector(
 
     constants.forEach((element) => {
       if (predicates.has(element)) {
-        err = `Constant ${element} is also defined in predicates`;
+        err = `Constant ${element} is also defined in predicates.`;
       }
 
       if (functions.has(element)) {
-        err = `Constant ${element} is also defined in functions`;
+        err = `Constant ${element} is also defined in functions.`;
       }
     });
 
     predicates.forEach((element) => {
       if (functions.has(element)) {
-        err = `Predicate ${element} is also defined in functions`;
+        err = `Predicate ${element} is also defined in functions.`;
       }
     });
 
@@ -188,7 +182,7 @@ export const selectSymbolsClash = createSelector(
   },
 );
 
-export const selectLanguageErrors = createSelector(
+export const selectFirstLanguageError = createSelector(
   [
     selectValidatedConstants,
     selectValidatedPredicates,
@@ -217,6 +211,11 @@ export const selectLanguage = createSelector(
     );
   },
 );
+
+const toAritySymbols = (
+  symbols: SymbolWithArity[],
+): AritySymbolsRepresentation =>
+  symbols.map(({ name, arity }) => [name, arity]);
 
 export const {
   updateConstants,

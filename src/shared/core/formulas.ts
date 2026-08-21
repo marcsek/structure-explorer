@@ -17,7 +17,7 @@ import type Formula from "../../model/formula/Formula";
 import type { InterpretationError } from "./errors";
 import { createSelector } from "@reduxjs/toolkit";
 import { selectStructureErrors } from "../../features/structure/structureSlice";
-import { selectLanguageErrors } from "../../features/language/languageSlice";
+import { selectFirstLanguageError } from "../../features/language/languageSlice";
 import { selectValidatedVariables } from "../../features/variables/variablesSlice";
 
 export function getFormulaFactories(language: Language) {
@@ -67,7 +67,7 @@ export function getErrorMessageFromValidation(
 }
 
 export const selectNonFormulaValidationError = createSelector(
-  [selectStructureErrors, selectLanguageErrors, selectValidatedVariables],
+  [selectStructureErrors, selectFirstLanguageError, selectValidatedVariables],
   (structureError, languageError, { error: variablesError }) => {
     return getErrorMessageFromValidation({
       languageError,

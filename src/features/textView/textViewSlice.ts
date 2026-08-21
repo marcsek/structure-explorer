@@ -114,14 +114,12 @@ export const textViewCheckpoint = (): AppThunk => (dispatch, getState) => {
   const previousTextView = getState()._latestUnfiltered?.textView;
 
   if (!previousTextView) {
-    dispatch(UndoActions.checkpoint());
-    return;
+    return void dispatch(UndoActions.checkpoint());
   }
 
   for (const key in currentTextView) {
     if (currentTextView[key].value !== previousTextView[key]?.value) {
-      dispatch(UndoActions.checkpoint());
-      return;
+      return void dispatch(UndoActions.checkpoint());
     }
   }
 };

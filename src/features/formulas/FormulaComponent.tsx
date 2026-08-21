@@ -33,7 +33,7 @@ import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import LockButton from "../../shared/ui/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { useFormulasContext } from "../../providers/logicContext";
-import { selectLanguageErrors } from "../language/languageSlice";
+import { selectFirstLanguageError } from "../language/languageSlice";
 import { getErrorMessageFromValidation } from "../../shared/core/formulas";
 
 interface Props {
@@ -56,7 +56,7 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
   const isVerified = useAppSelector((state) => selectIsVerifiedGame(state, id));
   const backIndex = useAppSelector((state) => selectGameResetIndex(state, id));
   const structureError = useAppSelector(selectStructureErrors);
-  const languageError = useAppSelector(selectLanguageErrors);
+  const languageError = useAppSelector(selectFirstLanguageError);
   const { error: variablesError } = useAppSelector(selectValidatedVariables);
   const teacherMode = useAppSelector(selectTeacherMode);
   const locked = useAppSelector((state) => selectFormulaLock(state, id));

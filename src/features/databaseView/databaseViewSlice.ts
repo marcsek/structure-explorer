@@ -11,10 +11,11 @@ import {
 } from "../structure/structureSlice";
 import type { AppThunk, RootState } from "../../app/store";
 import type { TupleInfo, TupleType } from "../structure/tupleInfo";
+import type { DomainTuple } from "../structure/domainTuple";
 
 export interface DatabaseViewEntry {
   type: TupleType;
-  domainTuple: string[][];
+  domainTuple: DomainTuple[];
 }
 
 export type DatabaseViewState = Record<string, DatabaseViewEntry>;
@@ -23,7 +24,7 @@ const initialState: DatabaseViewState = {};
 
 type ValueChangedPayload = {
   tupleInfo: TupleInfo;
-  domainTuple: string[][];
+  domainTuple: DomainTuple[];
 };
 
 export const databaseViewSlice = createSlice({
@@ -133,17 +134,14 @@ export const updateDatabaseViewValue = ({
   domainTuple,
   tupleInfo,
 }: {
-  domainTuple: string[][];
+  domainTuple: DomainTuple[];
   tupleInfo: TupleInfo;
 }): AppThunk => {
   return (dispatch) => {
     const { type, name, arity } = tupleInfo;
 
-    const filteredTuples = domainTuple.filter((tuple) =>
-      tuple.some((element) => element !== ""),
-    );
-
-    dispatch(valueChanged({ tupleInfo, domainTuple: filteredTuples }));
+    const nonEmptyTuples = domainTuple.filter(isNonEmptyTuple);
+    dispatch(valueChanged({ tupleInfo, domainTuple: nonEmptyTuples }));
 
     const validTuples = domainTuple.filter((tuple) =>
       isValidTuple(tuple, arity),
@@ -162,6 +160,9 @@ const updaters = {
   predicate: updateInterpretationPredicates,
   function: updateFunctionSymbols,
 } as const;
+
+export const isNonEmptyTuple = (tuple: string[]) =>
+  tuple.some((element) => element !== "");
 
 export const isValidTuple = (tuple: string[], arity: number) =>
   tuple.length === arity && tuple.every((element) => element !== "");

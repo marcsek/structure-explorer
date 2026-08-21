@@ -57,7 +57,7 @@ export const selectValidatedVariables = createSelector(
         !domain.parsed
       ) {
         result.error = createValidationError(
-          `${to} is not an element of domain`,
+          `${to} is not an element of domain.`,
         );
       }
     }
