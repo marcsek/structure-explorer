@@ -1,0 +1,175 @@
+.react-flow {
+  --xy-background-color: #ffffff;
+  --xy-theme-selected: #86b7fe;
+  --xy-theme-hover: #c5c5c5;
+  --xy-theme-edge-hover: #737373;
+  --xy-theme-color-focus: #e8e8e8;
+
+  --xy-node-border-default: 1px solid #ededed;
+
+  --xy-node-boxshadow-default:
+    0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
+    0px 0.51px 1.01px 0px #0000001a;
+
+  --xy-node-border-radius-default: 8px;
+
+  --xy-handle-background-color-default: #ffffff;
+  --xy-handle-border-color-default: #aaaaaa;
+
+  --xy-edge-label-color-default: #505050;
+  --xy-edge-stroke-width-default: 1.5px;
+
+  --graph-edge-color-default: #b1b1b7;
+  --graph-edge-dasharray: 5, 3;
+  --graph-connection-color: #22c55e;
+
+  --graph-arrowhead-stroke-width: 3px;
+  --graph-arrowhead-stroke-width-focus: 8px;
+  --graph-edge-focus-stroke-width: 6px;
+}
+
+.react-flow__node {
+  box-shadow: var(--xy-node-boxshadow-default);
+  border-radius: var(--xy-node-border-radius-default);
+  background-color: var(--xy-node-background-color-default);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 12px;
+  flex-direction: column;
+  outline: var(--xy-node-border-default);
+  color: var(--xy-node-color, var(--xy-node-color-default));
+  z-index: 1000;
+
+  transition: outline 0.05s ease-in-out;
+}
+
+.react-flow__node.draggable,
+.react-flow__node.draggable.dragging {
+  cursor: move;
+}
+
+.react-flow__node.selectable:focus {
+  box-shadow: 0px 0px 0px 4px var(--xy-theme-color-focus);
+  outline-color: #d9d9d9;
+}
+
+.react-flow__node.selectable:focus:active {
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.react-flow__node.selectable:hover,
+.react-flow__node.draggable:hover {
+  outline-color: var(--xy-theme-hover);
+}
+
+.react-flow__node.selectable.selected {
+  outline-color: var(--xy-theme-selected);
+  box-shadow:
+    var(--xy-node-boxshadow-default),
+    0 0 0 0.2rem color-mix(in srgb, var(--xy-theme-selected), transparent 60%);
+}
+
+.react-flow__node:has(> .error) {
+  outline-color: var(--bs-danger);
+}
+
+.react-flow__node:has(> .ghost) {
+  opacity: 0.6;
+}
+
+.react-flow__node.selectable:has(> .error):hover,
+.react-flow__node.draggable:has(> .error):hover {
+  outline-color: var(--bs-danger);
+  box-shadow: var(--xy-node-boxshadow-default);
+}
+
+.react-flow__node.selectable.selected:has(> .error) {
+  outline-color: var(--bs-danger);
+  box-shadow:
+    var(--xy-node-boxshadow-default),
+    0 0 0 0.2rem color-mix(in srgb, var(--bs-danger), transparent 75%);
+}
+
+.react-flow__connectionline {
+  z-index: 0 !important;
+}
+
+.react-flow__connectionline .connection {
+  stroke-width: 2;
+}
+
+.react-flow__connectionline .connection.valid {
+  stroke: color-mix(in srgb, var(--graph-connection-color), transparent 40%);
+  marker-end: url(#connection-marker);
+}
+
+.react-flow__connectionline .connection.invalid {
+  stroke: var(--bs-danger);
+}
+
+.react-flow__edge .react-flow__edge-path {
+  marker-end: url(#default-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path {
+  stroke: var(--xy-theme-edge-hover);
+  marker-end: url(#hover-marker);
+}
+
+.react-flow__edge.selectable.selected .react-flow__edge-path {
+  stroke: var(--xy-theme-selected);
+  marker-end: url(#selected-marker);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path.error,
+.react-flow__edge.selectable.selected .react-flow__edge-path.error,
+.react-flow__edge-path.error {
+  stroke: var(--bs-danger);
+  stroke-dasharray: var(--graph-edge-dasharray);
+  marker-end: url(#error-marker);
+}
+
+.react-flow__edge-path-focus {
+  opacity: 0;
+  stroke-width: var(--graph-edge-focus-stroke-width);
+  stroke: var(--bs-danger);
+}
+
+.react-flow__edge.selectable:hover .react-flow__edge-path-focus.error,
+.react-flow__edge.selectable.selected .react-flow__edge-path-focus.error,
+.react-flow__edge-path-focus.error.label-hover {
+  opacity: 0.2;
+  stroke-dasharray: none;
+  marker-end: url(#focusError-marker);
+}
+
+.react-flow__edge-path.helper {
+  stroke-dasharray: var(--graph-edge-dasharray);
+}
+
+.react-flow__edge.inactive {
+  cursor: not-allowed;
+  pointer-events: all;
+}
+
+.react-flow__edgelabel-renderer {
+  z-index: 0;
+}
+
+.react-flow__handle {
+  background-color: var(--xy-handle-background-color-default);
+}
+
+.react-flow__handle.connectionindicator:hover {
+  pointer-events: all;
+  border-color: var(--xy-theme-edge-hover);
+  background-color: var(--xy-handle-background-color-default);
+}
+
+.react-flow__handle.connectionindicator:focus,
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+  border-color: var(--xy-theme-edge-hover);
+}

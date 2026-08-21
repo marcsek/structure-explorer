@@ -1,0 +1,14 @@
+.graph-view-container {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  gap: 1rem;
+  min-height: 400px;
+  height: 100%;
+}
+
+.graph-view-item {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+}

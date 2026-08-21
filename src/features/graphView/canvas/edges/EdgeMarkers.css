@@ -1,0 +1,34 @@
+.react-flow__arrowhead polyline.arrowclosed {
+  stroke-width: var(--graph-arrowhead-stroke-width) !important;
+}
+
+.react-flow__arrowhead.default polyline.arrowclosed {
+  stroke: var(--graph-edge-color-default);
+  fill: var(--graph-edge-color-default);
+}
+
+.react-flow__arrowhead.selected polyline.arrowclosed {
+  stroke: var(--xy-theme-selected);
+  fill: var(--xy-theme-selected);
+}
+
+.react-flow__arrowhead.error polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+}
+
+.react-flow__arrowhead.focusError polyline.arrowclosed {
+  stroke: var(--bs-danger);
+  fill: var(--bs-danger);
+  stroke-width: var(--graph-arrowhead-stroke-width-focus) !important;
+}
+
+.react-flow__arrowhead.hover polyline.arrowclosed {
+  stroke: var(--xy-theme-edge-hover);
+  fill: var(--xy-theme-edge-hover);
+}
+
+.react-flow__arrowhead.connection polyline.arrowclosed {
+  stroke: var(--graph-connection-color);
+  fill: var(--graph-connection-color);
+}

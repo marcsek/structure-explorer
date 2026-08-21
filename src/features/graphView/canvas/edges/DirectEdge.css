@@ -1,0 +1,14 @@
+.predicate-edge-delete-button {
+  position: absolute;
+  pointer-events: all;
+  z-index: 100;
+}
+
+.predicate-edge-helper-icon {
+  position: absolute;
+  pointer-events: none;
+  color: var(--graph-edge-color-default);
+  background-color: var(--bs-white);
+  border-radius: 100px;
+  padding: 0.1rem;
+}

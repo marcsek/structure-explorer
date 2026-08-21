@@ -11,13 +11,13 @@ import languageReducer from "../features/language/languageSlice";
 import structureReducer from "../features/structure/structureSlice";
 import variablesReducer from "../features/variables/variablesSlice.ts";
 import teacherModeReducer from "../features/teacherMode/teacherModeSlice.ts";
-import graphViewReducer from "../features/graphView/graphs/graphSlice";
+import graphViewReducer from "../features/graphView/graphViewSlice";
 import textViewReducer from "../features/textView/textViewSlice";
 import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
 import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import caseTreeViewReducer from "../features/caseTreeView/caseTreeViewSlice.ts";
 import errorAlertReducer from "../features/errorAlert/errorAlertSlice.ts";
-import { graphSliceListener } from "../features/graphView/graphs/listeners";
+import { graphViewListener } from "../features/graphView/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
 import { querySliceListener } from "../features/queries/listeners.ts";
 import { caseTreeListener } from "../features/caseTreeView/listeners.ts";
@@ -58,7 +58,7 @@ export const createStore = (extraMiddleware?: Middleware) =>
     reducer: undoReducer,
     middleware: (getDefaultMiddleware) => {
       const middlewareChain = getDefaultMiddleware().prepend(
-        graphSliceListener.middleware,
+        graphViewListener.middleware,
         querySliceListener.middleware,
         caseTreeListener.middleware,
       );

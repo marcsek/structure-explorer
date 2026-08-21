@@ -1,0 +1,76 @@
+.react-flow__container {
+  width: 100%;
+  flex-grow: 1;
+  position: relative;
+}
+
+.flow-container-zoom-hint-container {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+
+  pointer-events: none;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flow-container-zoom-hint-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--bs-tertiary-bg) 10%, white),
+    color-mix(in srgb, var(--bs-tertiary-bg) 10%, white) 12px,
+    color-mix(in srgb, var(--bs-tertiary-bg) 60%, white) 12px,
+    color-mix(in srgb, var(--bs-tertiary-bg) 60%, white) 24px
+  );
+
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.flow-container-zoom-hint {
+  padding: 0.5rem 0.5rem;
+  font-size: 1.125rem;
+  z-index: 1;
+
+  margin: 1rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1;
+  opacity: 0;
+
+  transition: opacity 0.25s ease;
+}
+
+.flow-container-zoom-hint-container.visible::after {
+  transition: opacity 0.1s ease;
+  opacity: 0.9;
+}
+
+.flow-container-zoom-hint-container.visible .flow-container-zoom-hint {
+  opacity: 1;
+}
+
+.flow-container-zoom-hint svg {
+  margin-right: 0.125rem;
+  color: var(--se-info);
+}
+
+.flow-container-kbd {
+  color: var(--bs-secondary-color);
+  background-color: oklch(97% 0 0);
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1;
+  padding: 4px;
+  font-weight: 500;
+}

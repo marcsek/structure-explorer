@@ -1,9 +1,9 @@
 import type { AppDispatch, AppThunk, RootState } from "../../app/store";
 import { syncDatabaseView } from "../databaseView/databaseViewSlice";
 import { importFormulasState } from "../formulas/formulasSlice";
-import { syncGraphView } from "../graphView/graphs/graphSlice";
-import { getGraphViewStateToExport } from "../graphView/graphs/graphSerialization";
-import type { GraphType } from "../graphView/graphs/graphRegistry";
+import { syncGraphView } from "../graphView/graphViewSlice";
+import { getGraphViewStateToExport } from "../graphView/graphViewSerialization";
+import type { GraphType } from "../graphView/graphs/registry";
 import {
   importLanguageState,
   type LanguageState,

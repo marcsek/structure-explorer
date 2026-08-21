@@ -23,7 +23,7 @@ import { editorToolbarSlice } from "../features/editorToolbar/editorToolbarSlice
 import { UndoActions } from "../features/undoHistory/undoHistory";
 import { formulasSlice } from "../features/formulas/formulasSlice";
 import { queriesSlice } from "../features/queries/queriesSlice";
-import { graphManagerSlice } from "../features/graphView/graphs/graphSlice.ts";
+import { graphViewSlice } from "../features/graphView/graphViewSlice.ts";
 
 interface PrepareResult {
   instance: any;
@@ -37,8 +37,8 @@ const actionsToIgnore = [
   editorToolbarSlice.actions.unaryFilterDomainToggled,
   editorToolbarSlice.actions.unaryPredicateToggled,
   editorToolbarSlice.actions.editorOpened,
-  graphManagerSlice.actions.graphDidInitialLayout,
-  graphManagerSlice.actions.onNodesChanged,
+  graphViewSlice.actions.graphDidInitialLayout,
+  graphViewSlice.actions.onNodesChanged,
   errorAlertSlice.actions.clearError,
   errorAlertSlice.actions.setError,
   formulasSlice.actions.gameGoBack,
@@ -106,6 +106,7 @@ export function AppComponent({
   const [instanceId] = useState(generateInstanceId());
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     instance.handleStoreChange = onStateChange;
     return () => (instance.handleStoreChange = undefined);
   }, [instance, onStateChange]);

@@ -4,8 +4,8 @@ import {
   drawerEditorAdapter,
   type RenderDrawerEditor,
 } from "../drawerEditor/drawerEditorAdapter";
-import GraphView from "../graphView/components/GraphView/GraphView";
-import type { GraphType } from "../graphView/graphs/graphRegistry";
+import GraphView from "../graphView/GraphView";
+import type { GraphType } from "../graphView/graphs/registry";
 import MatrixView from "../matrixView/MatrixView";
 import type { TupleInfo } from "../structure/tupleInfo";
 import { textEditorAdapter } from "../textView/textEditorAdapter";
