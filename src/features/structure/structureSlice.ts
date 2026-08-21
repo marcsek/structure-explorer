@@ -12,9 +12,7 @@ import Structure, { type DomainElement } from "../../model/Structure";
 import type { Symbol } from "../../model/Language";
 import {
   createSemanticError,
-  createValidationError,
   type SemanticError,
-  type ValidationError,
 } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
@@ -237,7 +235,7 @@ export const selectValidatedDomain = createSelector(
     parsed: domain,
     error:
       domain.length === 0
-        ? createValidationError("Domain cannot be empty.")
+        ? createSemanticError("Domain cannot be empty.")
         : undefined,
   }),
 );
@@ -250,13 +248,13 @@ export const selectValidatedConstant = createSelector(
     if (parsed === "")
       return {
         parsed,
-        error: createValidationError("Interpretation must be defined."),
+        error: createSemanticError("Interpretation must be defined."),
       };
 
     if (!domain.parsed.includes(parsed))
       return {
         parsed,
-        error: createValidationError("This element is not in domain."),
+        error: createSemanticError("This element is not in domain."),
       };
 
     return { parsed };
@@ -265,7 +263,7 @@ export const selectValidatedConstant = createSelector(
 
 export type ValidatedTuples = {
   parsed: TupleInterpretation;
-  error?: ValidationError | SemanticError;
+  error?: SemanticError;
 };
 
 const findPredicateError = (
@@ -278,20 +276,22 @@ const findPredicateError = (
 
   for (const tuple of tuples) {
     if (tuple.length !== arity)
-      return createValidationError(
+      return createSemanticError(
         `${formatDomainTuple(tuple)} is ${withArticle(domainTupleNoun(tuple.length))}, but should be ${withArticle(domainTupleNoun(arity))}, because arity of ${name} is ${arity}.`,
       );
 
     const unknownElement = tuple.find((element) => !domain.has(element));
     if (unknownElement !== undefined)
-      return createValidationError(
+      return createSemanticError(
         `Element ${unknownElement} is not in domain.`,
+        true,
       );
 
     const key = domainTupleKey(tuple);
     if (seen.has(key))
-      return createValidationError(
+      return createSemanticError(
         `${capitalize(domainTupleNoun(arity))} ${formatDomainTuple(tuple)} is already in predicate.`,
+        true,
       );
 
     seen.add(key);
@@ -329,21 +329,23 @@ const findFunctionError = (
 
   for (const tuple of tuples) {
     if (tuple.length !== expectedLength)
-      return createValidationError(
+      return createSemanticError(
         `${formatDomainTuple(tuple)} is ${withArticle(domainTupleNoun(tuple.length))}, but should be ${withArticle(domainTupleNoun(expectedLength))}, because arity of ${name} is ${arity}. Format is: (n-elements,mapped_element).`,
       );
 
     const unknownElement = tuple.find((element) => !domain.has(element));
     if (unknownElement !== undefined)
-      return createValidationError(
+      return createSemanticError(
         `Element ${unknownElement} is not in domain.`,
+        true,
       );
 
     const args = tuple.slice(0, -1);
     const key = domainTupleKey(args);
     if (definedArguments.has(key))
-      return createValidationError(
+      return createSemanticError(
         `${capitalize(domainTupleNoun(arity))} ${formatDomainTuple(args)} has already defined value.`,
+        true,
       );
 
     definedArguments.add(key);

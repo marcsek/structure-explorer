@@ -228,7 +228,7 @@ function EditorError({ error, onFixButtonClick, fixButton }: EditorErrorProps) {
         <p>{error.message}</p>
       </div>
 
-      {error.kind !== "semantic" && (
+      {error.kind === "semantic" && error.repairable && (
         <Button
           className=""
           size="sm"

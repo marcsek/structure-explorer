@@ -10,21 +10,16 @@ export interface SyntaxError extends BaseError {
   location?: Location;
 }
 
-export interface ValidationError extends BaseError {
-  kind: "validation";
-}
-
 export interface SemanticError extends BaseError {
   kind: "semantic";
+  repairable: boolean;
 }
 
-export const createValidationError = (message: string): ValidationError => {
-  return { kind: "validation", message };
+export const createSemanticError = (
+  message: string,
+  repairable = false,
+): SemanticError => {
+  return { kind: "semantic", message, repairable };
 };
 
-export const createSemanticError = (message: string): SemanticError => {
-  return { kind: "semantic", message };
-};
-
-// TODO: These could be named better
-export type InterpretationError = SyntaxError | ValidationError | SemanticError;
+export type InterpretationError = SyntaxError | SemanticError;

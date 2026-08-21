@@ -1,4 +1,4 @@
-import type { ValidationError } from "./errors";
+import type { SemanticError } from "./errors";
 
 export interface LockableValue<T> {
   locked: boolean;
@@ -7,7 +7,7 @@ export interface LockableValue<T> {
 
 export type Validated<T> = {
   parsed: T;
-  error?: ValidationError;
+  error?: SemanticError;
 };
 
 export const prepareWithSourceMeta = <P>(

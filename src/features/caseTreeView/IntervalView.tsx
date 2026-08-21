@@ -40,7 +40,7 @@ import {
   selectIfLock,
   selectValidatedFunction,
 } from "../structure/structureSlice";
-import { createValidationError } from "../../shared/core/errors";
+import { createSemanticError } from "../../shared/core/errors";
 import ResizeInput from "./ResizeInput";
 import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter";
 
@@ -76,7 +76,7 @@ export default function IntervalView({
             <FontAwesomeIcon icon={faArrowsRotate} /> Regenerate
           </>
         ),
-        error: createValidationError(
+        error: createSemanticError(
           "This editor is out of sync due to errors in the interpretation. You can regenerate a valid interpretation.",
         ),
         onFixButtonClick: () => dispatch(regenerateInterpretation(tupleName)),

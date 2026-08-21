@@ -3,7 +3,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { type PayloadActionSource } from "../language/languageSlice";
 import { selectValidatedDomain } from "../structure/structureSlice";
-import { createValidationError } from "../../shared/core/errors";
+import { createSemanticError } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
@@ -56,7 +56,7 @@ export const selectValidatedVariables = createSelector(
         (domain.parsed && domain.parsed.includes(to) == false) ||
         !domain.parsed
       ) {
-        result.error = createValidationError(
+        result.error = createSemanticError(
           `${to} is not an element of domain.`,
         );
       }

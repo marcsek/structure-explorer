@@ -3,7 +3,7 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import Language from "../../model/Language";
 import { type SymbolWithArity } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { createValidationError } from "../../shared/core/errors";
+import { createSemanticError } from "../../shared/core/errors";
 import {
   prepareWithSourceMeta,
   type LockableValue,
@@ -98,7 +98,7 @@ export const selectValidatedConstants = createSelector(
 
     for (const constant of constants) {
       if (constants.filter((constant2) => constant === constant2).length > 1) {
-        result.error = createValidationError(
+        result.error = createSemanticError(
           `Constant ${constant} is already defined.`,
         );
       }
@@ -117,7 +117,7 @@ export const selectValidatedPredicates = createSelector(
 
     for (const [name] of predicates) {
       if (predicates.filter(([name2]) => name === name2).length > 1) {
-        result.error = createValidationError(
+        result.error = createSemanticError(
           `Predicate ${name} is already defined.`,
         );
       }
@@ -136,7 +136,7 @@ export const selectValidatedFunctions = createSelector(
 
     for (const [name] of functions) {
       if (functions.filter(([name2]) => name === name2).length > 1) {
-        result.error = createValidationError(
+        result.error = createSemanticError(
           `Function ${name} is already defined`,
         );
       }
@@ -190,7 +190,7 @@ export const selectFirstLanguageError = createSelector(
     selectSymbolsClash,
   ],
   (constants, predicates, functions, clash) => {
-    if (clash) return createValidationError(clash);
+    if (clash) return createSemanticError(clash);
 
     const errors = [constants, predicates, functions].map(({ error }) => error);
     return errors.find((error) => error !== undefined);
