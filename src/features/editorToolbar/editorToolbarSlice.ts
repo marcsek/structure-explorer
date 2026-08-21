@@ -171,7 +171,7 @@ export const selectHoveredUnary = withTupleId((state, tupleId) =>
   fallbackToEmptyArray(getEntry(state, tupleId).hoveredUnary),
 );
 
-export const selectUnaryFilterDomain = withTupleId(
+export const selectUnaryFilterDomainEnabled = withTupleId(
   (state, tupleId) => getEntry(state, tupleId).unaryFilterDomain,
 );
 
@@ -199,7 +199,7 @@ export const selectPredicatesToDisplay = createSelector(
     (state: RootState, _: TupleInfo, domainId: string) =>
       selectRelevantUnaryPreds(state, domainId),
   ],
-  (selectedUnary, hoveredUnary, relevantUnary) => {
+  (selectedUnary, hoveredUnary, relevantUnary): [string[], string[]] => {
     const visiblePreds = [...hoveredUnary, ...selectedUnary];
 
     const toDisplay = relevantUnary.filter((relevant) =>
@@ -221,7 +221,7 @@ export const selectRelevantDomainElements = createSelector(
     (state: RootState) => state.present.structure.domain,
     selectSelectedUnary,
     selectUnaryFilterDomainHovered,
-    selectUnaryFilterDomain,
+    selectUnaryFilterDomainEnabled,
     selectHoveredUnary,
     (_: RootState, __: TupleInfo, includeHovered: boolean = false) =>
       includeHovered,
@@ -230,7 +230,7 @@ export const selectRelevantDomainElements = createSelector(
     iP,
     domain,
     selectedUnary,
-    unaryFilterHovered,
+    unaryFilterDomainHovered,
     unaryFilterDomain,
     hoveredUnary,
     includeHovered,
@@ -238,7 +238,7 @@ export const selectRelevantDomainElements = createSelector(
     const selectedPreds = [...selectedUnary];
 
     if (includeHovered) {
-      if (unaryFilterHovered) return [...domain.value];
+      if (unaryFilterDomainHovered) return [...domain.value];
 
       selectedPreds.push(...hoveredUnary);
     }
@@ -266,15 +266,15 @@ export const selectFilteredDomain = createSelector(
   },
 );
 
-export const selectHoveredIntr = createSelector(
+export const selectHoveredDomainElements = createSelector(
   [
     (state: RootState) => state.present.structure.iP,
     (state: RootState) => state.present.structure.domain,
     selectHoveredUnary,
     selectUnaryFilterDomainHovered,
   ],
-  (iP, domain, hoveredUnary, unaryFilterHovered) => {
-    if (unaryFilterHovered) return new Set(domain.value);
+  (iP, domain, hoveredUnary, unaryFilterDomainHovered) => {
+    if (unaryFilterDomainHovered) return new Set(domain.value);
 
     if (hoveredUnary.length === 0) return undefined;
 
@@ -288,8 +288,8 @@ export const selectHoveredIntr = createSelector(
 
 export const selectHatchedDomain = createSelector(
   [
-    selectHoveredIntr,
-    selectUnaryFilterDomain,
+    selectHoveredDomainElements,
+    selectUnaryFilterDomainEnabled,
     selectSelectedDomain,
     selectRelevantDomainElements,
   ],

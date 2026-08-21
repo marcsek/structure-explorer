@@ -11,12 +11,12 @@ import {
 import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import useScrollControls from "./useScrollControls";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import useDraggingScroll from "./useDraggingScroll";
 import {
   predicateHovered,
   selectSelectedUnary,
-  selectUnaryFilterDomain,
+  selectUnaryFilterDomainEnabled,
   unaryFilterDomainHovered,
   unaryFilterDomainToggled,
   unaryPredicateToggled,
@@ -24,6 +24,7 @@ import {
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
+import { useUnhoverOnUnmount } from "../useUnhoverOnUnmount";
 import { getSymbolNames, selectUnaryPreds } from "../../language/languageSlice";
 
 export interface InterpretationFiltersProps {
@@ -36,11 +37,9 @@ export default function InterpretationFilters({
   tupleInfo,
   disabledFilters,
 }: InterpretationFiltersProps) {
-  const { name, type, arity } = tupleInfo;
-
   const dispatch = useAppDispatch();
   const unaryFilterDomain = useAppSelector((state) =>
-    selectUnaryFilterDomain(state, tupleInfo),
+    selectUnaryFilterDomainEnabled(state, tupleInfo),
   );
   const selectedPredicates = useAppSelector((state) =>
     selectSelectedUnary(state, tupleInfo),
@@ -48,28 +47,14 @@ export default function InterpretationFilters({
 
   const unaryPredicatesCount = useAppSelector(selectUnaryPreds).length;
 
-  const isHoveredRef = useRef(false);
+  const setHovered = useUnhoverOnUnmount(() =>
+    dispatch(unaryFilterDomainHovered({ tupleInfo, hovered: false })),
+  );
 
   const handleDomainHover = (hovered: boolean) => {
-    isHoveredRef.current = hovered;
+    setHovered(hovered);
     dispatch(unaryFilterDomainHovered({ tupleInfo, hovered }));
   };
-
-  // Unhover on unmount if hovered
-  useEffect(
-    () => () => {
-      if (!isHoveredRef.current) return;
-
-      isHoveredRef.current = false;
-      dispatch(
-        unaryFilterDomainHovered({
-          tupleInfo: { name, type, arity },
-          hovered: false,
-        }),
-      );
-    },
-    [dispatch, name, type, arity],
-  );
 
   return (
     <div className="intr-filters-container">
@@ -112,7 +97,7 @@ function UnaryPredicatesFilter({
   tupleInfo,
   disabled,
 }: UnaryPredicatesFilterProps) {
-  const { name: tupleName, type, arity } = tupleInfo;
+  const { name: tupleName } = tupleInfo;
 
   const dispatch = useAppDispatch();
   const unaryPreds = getSymbolNames(useAppSelector(selectUnaryPreds));
@@ -125,24 +110,12 @@ function UnaryPredicatesFilter({
   );
 
   const filtersGroupRef = useRef<HTMLDivElement>(null);
-  const isHoveredRef = useRef(false);
 
   useDraggingScroll(filtersGroupRef);
   const scrollControls = useScrollControls(filtersGroupRef, { edgeMargin: 40 });
 
-  useEffect(
-    () => () => {
-      if (!isHoveredRef.current) return;
-
-      isHoveredRef.current = false;
-      dispatch(
-        predicateHovered({
-          tupleInfo: { name: tupleName, type, arity },
-          predicates: [],
-        }),
-      );
-    },
-    [dispatch, tupleName, type, arity],
+  const setHovered = useUnhoverOnUnmount(() =>
+    dispatch(predicateHovered({ tupleInfo, predicates: [] })),
   );
 
   if (disabled) return null;
@@ -156,13 +129,8 @@ function UnaryPredicatesFilter({
   };
 
   const handlePredicateHover = (hoveredPredicates: string[]) => {
-    isHoveredRef.current = hoveredPredicates.length > 0;
-    dispatch(
-      predicateHovered({
-        tupleInfo,
-        predicates: hoveredPredicates,
-      }),
-    );
+    setHovered(hoveredPredicates.length > 0);
+    dispatch(predicateHovered({ tupleInfo, predicates: hoveredPredicates }));
   };
 
   const handlePredicateToggle = (predicate: string | string[]) => {

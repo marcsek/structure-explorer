@@ -37,10 +37,10 @@ import {
   type StructureState,
 } from "../structure/structureSlice.ts";
 import {
-  selectHoveredIntr,
+  selectHoveredDomainElements,
   selectRelevantDomainElements,
   selectSelectedDomain,
-  selectUnaryFilterDomain,
+  selectUnaryFilterDomainEnabled,
 } from "../editorToolbar/editorToolbarSlice.ts";
 import {
   getTupleId,
@@ -249,9 +249,9 @@ const _selectNodes = createSelector(
       state.present.graphView[getTupleId(tupleInfo)]?.state[type]?.nodes,
     (state: RootState, tupleInfo: TupleInfo) =>
       selectRelevantDomainElements(state, tupleInfo, false),
-    selectHoveredIntr,
+    selectHoveredDomainElements,
     selectSelectedDomain,
-    selectUnaryFilterDomain,
+    selectUnaryFilterDomainEnabled,
   ],
   (
     type,
