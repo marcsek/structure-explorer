@@ -208,14 +208,14 @@ export const selectTupleInterpretation = (
   type: TupleType,
 ) => getTupleInterpretation(state.present.structure, name, type);
 
-const selectIcEntry = (
+export const selectIcEntry = (
   state: RootState,
   name: string,
 ): LockableValue<ConstantInterpretation> | undefined =>
   state.present.structure.iC[name];
-const selectIpEntry = (state: RootState, name: string) =>
+export const selectIpEntry = (state: RootState, name: string) =>
   selectTupleInterpretation(state, name, "predicate");
-const selectIfEntry = (state: RootState, name: string) =>
+export const selectIfEntry = (state: RootState, name: string) =>
   selectTupleInterpretation(state, name, "function");
 
 export const selectIcLock = (state: RootState, name: string) =>

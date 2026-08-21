@@ -217,13 +217,16 @@ export const toAritySymbols = (
 ): AritySymbolsRepresentation =>
   symbols.map(({ name, arity }) => [name, arity]);
 
+export const getSymbolNames = (symbols: AritySymbolsRepresentation): string[] =>
+  symbols.map(([name]) => name);
+
 export const getUnarySymbols = (
   symbols: AritySymbolsRepresentation,
 ): AritySymbolsRepresentation => symbols.filter(([, arity]) => arity === 1);
 
 export const getUnarySymbolNames = (
   symbols: AritySymbolsRepresentation,
-): string[] => getUnarySymbols(symbols).map(([name]) => name);
+): string[] => getSymbolNames(getUnarySymbols(symbols));
 
 export const {
   updateConstants,

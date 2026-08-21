@@ -11,7 +11,7 @@ import {
 import { InlineMath } from "react-katex";
 import { Button } from "react-bootstrap";
 import useScrollControls from "./useScrollControls";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import useDraggingScroll from "./useDraggingScroll";
 import {
   predicateHovered,
@@ -116,13 +116,25 @@ function UnaryPredicatesFilter({
   const { name: tupleName, type, arity } = tupleInfo;
 
   const dispatch = useAppDispatch();
-  const unaryPreds = getSymbolNames(useAppSelector(selectUnaryPreds));
+  const unaryPredicates = getSymbolNames(useAppSelector(selectUnaryPreds));
   const selectedPredicates = useAppSelector((state) =>
     selectSelectedUnary(state, tupleInfo),
   );
 
-  const predicatesExcludingSelf = unaryPreds.filter(
+  const predicatesExcludingSelf = unaryPredicates.filter(
     (name) => name !== tupleName,
+  );
+
+  // Colors follow the position among all unary predicates, not the filtered list
+  const predicateColors = useMemo(
+    () =>
+      new Map(
+        unaryPredicates.map(([name], idx) => [
+          name,
+          getUnaryPredicateColor(idx),
+        ]),
+      ),
+    [unaryPredicates],
   );
 
   const filtersGroupRef = useRef<HTMLDivElement>(null);
@@ -200,7 +212,7 @@ function UnaryPredicatesFilter({
         </Button>
 
         {predicatesExcludingSelf.map((predicate) => {
-          const color = getUnaryPredicateColor(unaryPreds.indexOf(predicate));
+          const color = predicateColors.get(predicate);
           const isSelected = selectedPredicates.includes(predicate);
 
           return (

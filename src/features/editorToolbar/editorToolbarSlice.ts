@@ -216,17 +216,38 @@ export const selectUnaryPreds = createSelector(
   getUnarySymbols,
 );
 
+const selectUnaryPredsContainingElement = createSelector(
+  [(state: RootState) => state.present.structure.iP],
+  (predicates) => {
+    const byElement = new Map<string, string[]>();
+
+    for (const [predicate, interpretation] of Object.entries(predicates)) {
+      const elements = new Set(
+        (interpretation?.value ?? [])
+          .filter((tuple) => tuple.length === 1)
+          .map(([element]) => element),
+      );
+
+      for (const element of elements) {
+        const relevant = byElement.get(element);
+
+        if (relevant) relevant.push(predicate);
+        else byElement.set(element, [predicate]);
+      }
+    }
+
+    return byElement;
+  },
+);
+
+const noRelevantPreds: string[] = [];
 export const selectRelevantUnaryPreds = createSelector(
   [
-    (state: RootState) => state.present.structure.iP,
+    selectUnaryPredsContainingElement,
     (_: RootState, domainElement: string) => domainElement,
   ],
-  (predicates, domainElements) =>
-    Object.keys(predicates).filter((p) =>
-      (predicates[p] ?? []).value.some(
-        (t) => t.length === 1 && t[0] === domainElements,
-      ),
-    ),
+  (predsByElement, domainElement) =>
+    predsByElement.get(domainElement) ?? noRelevantPreds,
 );
 
 export const selectPredicatesToDisplay = createSelector(
@@ -283,7 +304,7 @@ export const selectRelevantDomainElements = createSelector(
     if (selectedPreds.length === 0 || !unaryFilterDomain) return undefined;
 
     const selectedDomain = new Set(
-      selectedPreds.flatMap((pred) => [...(iP[pred]?.value ?? [])].flat()),
+      selectedPreds.flatMap((pred) => (iP[pred]?.value ?? []).flat()),
     );
 
     return domain.value.filter((element) => selectedDomain.has(element));
@@ -316,7 +337,7 @@ export const selectHoveredIntr = createSelector(
     if (hoveredUnary.length === 0) return undefined;
 
     return hoveredUnary.map((hoveredPredicate) =>
-      [...(iP[hoveredPredicate]?.value ?? [])].flat(),
+      (iP[hoveredPredicate]?.value ?? []).flat(),
     );
   },
 );
