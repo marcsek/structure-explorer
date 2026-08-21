@@ -8,7 +8,6 @@ import {
   Stack,
 } from "react-bootstrap";
 import EditorToolbar from "../editorToolbar/components/EditorToolbar";
-import { tupleTypeToTextViewType } from "../structure/tupleInfo";
 import { useState, type ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
@@ -16,14 +15,16 @@ import type { InterpretationError } from "../../shared/core/errors";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { removeInvalidEntries } from "../structure/structureSlice";
+import {
+  removeInvalidEntries,
+  selectTupleValidation,
+} from "../structure/structureSlice";
 import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
 import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
 import type { InterpretationEditorProps } from "../editors/editorDescriptor";
 import LockButton from "../../shared/ui/LockButton";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
-import { selectValidation } from "../textView/textViewSlice";
 import { tupleLatexName } from "../textView/textViewAffixes";
 import type { DrawerEditorConfig, ErrorOverride } from "./drawerEditorAdapter";
 
@@ -81,9 +82,8 @@ function DrawerEditorContent({
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
-  const tupleTextViewType = tupleTypeToTextViewType(tupleInfo.type);
   const error = useAppSelector((state) =>
-    selectValidation(state, tupleTextViewType, tupleInfo.name),
+    selectTupleValidation(state, tupleInfo.name, tupleInfo.type),
   );
 
   const { ref: preservedSizeRef, size: preservedSize } =

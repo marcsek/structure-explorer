@@ -23,6 +23,7 @@ import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../shared/core/logging";
+import { plural, toBe } from "../../shared/core/wordForms";
 import { getFormulaFactories } from "../../shared/core/formulas";
 import { getRandomElement } from "../../shared/core/utils";
 
@@ -244,8 +245,8 @@ const evaluateFormula = (
 
     const unsetFreeVarsLen = unsetFreeVars.length;
     if (unsetFreeVars.length > 0) {
-      const correctPluralVars = `variable${unsetFreeVarsLen > 1 ? "s" : ""}`;
-      const correctPluralVerb = unsetFreeVarsLen > 1 ? "are" : "is";
+      const correctPluralVars = plural(unsetFreeVarsLen, "variable");
+      const correctPluralVerb = toBe(unsetFreeVarsLen);
 
       return {
         error: new Error(

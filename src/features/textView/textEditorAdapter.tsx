@@ -1,6 +1,16 @@
 import type { EditorDescriptor } from "../editors/editorDescriptor";
-import { tupleTypeToTextViewType } from "../structure/tupleInfo";
+import type { TupleType } from "../structure/tupleInfo";
 import TextView from "./TextViewEditor";
+import type { TextViewType } from "./textViews";
+
+const tupleTypeToTextViewType = (type: TupleType): TextViewType => {
+  switch (type) {
+    case "predicate":
+      return "predicate_interpretation";
+    case "function":
+      return "function_interpretation";
+  }
+};
 
 export type TextEditorDescriptor = Omit<EditorDescriptor, "render">;
 

@@ -3,6 +3,7 @@ import type {
   TextViewSyncEntry,
 } from "../textView/textViews";
 import { parseDomain, parseTuples } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { formatDomainTuple } from "./domainTuple";
 import {
   selectValidatedConstant,
   selectValidatedDomain,
@@ -46,12 +47,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
     predicate_interpretation: {
       payloadType: "key",
       parse: (value) => parseTuples(value),
-      toText: (structured) =>
-        structured
-          .map((tuple) =>
-            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
-          )
-          .join(", "),
+      toText: (structured) => structured.map(formatDomainTuple).join(", "),
       validate: (state, key) => selectValidatedPredicate(state, key!).error,
       syncActionCreator: updateInterpretationPredicates,
     },
@@ -59,12 +55,7 @@ export const structureTextViewDescriptors: TextViewDescriptors<StructureTextView
     function_interpretation: {
       payloadType: "key",
       parse: (value) => parseTuples(value),
-      toText: (structured) =>
-        structured
-          .map((tuple) =>
-            tuple.length === 1 ? tuple[0] : `(${tuple.join(",")})`,
-          )
-          .join(", "),
+      toText: (structured) => structured.map(formatDomainTuple).join(", "),
       validate: (state, key) => selectValidatedFunction(state, key!).error,
       syncActionCreator: updateFunctionSymbols,
     },

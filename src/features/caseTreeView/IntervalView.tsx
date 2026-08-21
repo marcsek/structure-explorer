@@ -68,7 +68,7 @@ export default function IntervalView({
     intervalViewRows?.flatMap((r) => getAllIntervalViewRowErrors(r)) ?? [];
 
   useEffect(() => {
-    if ((functionIntr.error || !functionIntr.parsed) && errors.length === 0)
+    if (functionIntr.error && errors.length === 0)
       setErrorOverride({
         editor: "caseTree",
         fixButton: (

@@ -34,9 +34,6 @@ export function latex(parts: string[] = []) {
   };
 }
 
-export const plural = (count: number, noun: string) =>
-  `${noun}${count > 1 ? "s" : ""}`;
-
 export function partition<T>(
   elements: T[],
   predicate: (value: T) => boolean,

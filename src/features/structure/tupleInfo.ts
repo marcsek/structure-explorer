@@ -1,5 +1,3 @@
-import type { TextViewType } from "../textView/textViews";
-
 export type TupleType = "function" | "predicate";
 
 export interface TupleInfo {
@@ -12,17 +10,11 @@ export type TupleIdentity = Pick<TupleInfo, "type" | "name">;
 
 export const getTupleId = ({ type, name }: TupleIdentity) => `${type}-${name}`;
 
+export const getTupleLength = (type: TupleType, arity: number) =>
+  type === "function" ? arity + 1 : arity;
+
 export const isBinaryTuple = (type: TupleType, arity: number) =>
-  (type === "function" ? arity + 1 : arity) === 2;
+  getTupleLength(type, arity) === 2;
 
 export const getKeyFromTupleId = (tupleId: string) =>
   tupleId.substring(tupleId.lastIndexOf("-") + 1);
-
-export const tupleTypeToTextViewType = (type: TupleType): TextViewType => {
-  switch (type) {
-    case "predicate":
-      return "predicate_interpretation";
-    case "function":
-      return "function_interpretation";
-  }
-};

@@ -1,12 +1,13 @@
 import { createSelector } from "@reduxjs/toolkit";
 import {
   selectDomain,
-  selectInterpretationByType,
+  selectTupleInterpretation,
   updateFunctionSymbols,
   updateInterpretationPredicates,
 } from "../structure/structureSlice";
 import type { RootState } from "../../app/store";
 import type { TupleInfo, TupleType } from "../structure/tupleInfo";
+import { domainTupleKey, type DomainTuple } from "../structure/domainTuple";
 
 export type MatrixViewValues = Record<
   string,
@@ -17,7 +18,7 @@ export const selectMatrixValuesWithInvalid = createSelector(
   [
     selectDomain,
     (state: RootState, { name, type }: TupleInfo) =>
-      selectInterpretationByType(state, name, type)?.value,
+      selectTupleInterpretation(state, name, type)?.value,
     (_: RootState, { type }: TupleInfo) => type,
   ],
   (domain, interpretation, tupleType) => {
@@ -85,6 +86,6 @@ export const generateTupleInterpretation = (
 };
 
 export const getKeyFromDomainTuple = (
-  domainTuple: string[],
+  domainTuple: DomainTuple,
   duplicate: boolean = false,
-) => `${domainTuple.join(",")}${duplicate ? "-d" : ""}`;
+) => `${domainTupleKey(domainTuple)}${duplicate ? "-d" : ""}`;

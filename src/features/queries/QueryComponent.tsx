@@ -54,7 +54,6 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
   const serializedVars = queryVariables.parsed?.join() ?? "";
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setQueryResults([]);
   }, [serializedVars]);
 

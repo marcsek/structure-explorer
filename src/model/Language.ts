@@ -5,6 +5,7 @@
  * @class
  */
 import { type Language as ParserLanguage } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import { plural } from "../shared/core/wordForms";
 import type Term from "./term/Term";
 export type Symbol = string;
 
@@ -45,7 +46,7 @@ export class Language {
     const a = this.functions.get(symbol);
 
     if (args.length !== a) {
-      ee.expected(`${a} argument${a == 1 ? "" : "s"} to ${symbol}`);
+      ee.expected(`${a} ${plural(a ?? 0, "argument")} to ${symbol}`);
     }
   }
 
@@ -57,7 +58,7 @@ export class Language {
     const a = this.predicates.get(symbol);
 
     if (args.length !== a) {
-      ee.expected(`${a} argument${a == 1 ? "" : "s"} to ${symbol}`);
+      ee.expected(`${a} ${plural(a ?? 0, "argument")} to ${symbol}`);
     }
   }
 

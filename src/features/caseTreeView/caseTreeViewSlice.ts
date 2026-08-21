@@ -302,7 +302,7 @@ export const initializeTree =
   (dispatch, getState) => {
     const iF = selectValidatedFunction(getState(), tupleName);
 
-    if (iF.error || !iF.parsed || iF.parsed.length === 0) {
+    if (iF.error || iF.parsed.length === 0) {
       return void dispatch(initializeTreeAction({ tupleName }));
     }
 

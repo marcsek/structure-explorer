@@ -15,7 +15,7 @@ import {
   parseFormulaWithPrecedence,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { SerializedQueriesState } from "./validationSchema";
-import { plural } from "../../shared/core/utils";
+import { plural, toBe } from "../../shared/core/wordForms";
 
 export interface QueryState {
   text: string;
@@ -155,7 +155,7 @@ export const selectParsedQueryVariables = createSelector(
       return {
         error: new Error(
           `Query ${plural(duplicates.length, "variable")} ${duplicates.join(", ")} ` +
-            `${duplicates.length > 1 ? "are" : "is"} listed ` +
+            `${toBe(duplicates.length)} listed ` +
             `more than once. Query variables must be distinct.`,
         ),
       };
@@ -201,7 +201,7 @@ export const selectEvaluatedQuery = createSelector(
 
     const unsetFreeVarsLen = unsetFreeVars.length;
     if (unsetFreeVarsLen > 0) {
-      const verb = unsetFreeVarsLen > 1 ? "are" : "is";
+      const verb = toBe(unsetFreeVarsLen);
 
       return {
         error: new Error(
@@ -224,11 +224,9 @@ export const selectEvaluatedQuery = createSelector(
 
     const notFreeLen = notFree.length;
     if (notFreeLen > 0) {
-      const verb = notFreeLen > 1 ? "are" : "is";
-
       return {
         error: new Error(
-          `Query ${plural(notFreeLen, "variable")} ${notFree.join(", ")} ${verb} ` +
+          `Query ${plural(notFreeLen, "variable")} ${notFree.join(", ")} ${toBe(notFreeLen)} ` +
             `not free on the right-hand side of the query definition.`,
         ),
       };

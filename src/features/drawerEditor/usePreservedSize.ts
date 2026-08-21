@@ -25,6 +25,5 @@ export default function usePreservedSize<T extends HTMLElement>() {
   // The size is intentionally not state since it is only read at the moment the
   // observed element gets swapped for the placeholder, so it never needs to
   // trigger a render on its own.
-  // eslint-disable-next-line react-hooks/refs
   return { ref, size: sizeRef.current };
 }
