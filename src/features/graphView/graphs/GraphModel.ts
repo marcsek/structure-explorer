@@ -17,7 +17,6 @@ type NodeOf<S extends GraphState> = S["nodes"][number];
 export type ConnectionValidity = [valid: boolean, error?: string];
 
 export abstract class GraphModel<S extends GraphState> {
-  /** Whether an element is allowed to be connected to itself. */
   readonly supportsSelfLoops: boolean = true;
 
   isCompatible(_tupleType: TupleType): boolean {

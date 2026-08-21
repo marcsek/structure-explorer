@@ -93,11 +93,10 @@ export default function useGraph<T extends GraphType>({
     [dispatch, tupleInfo, graphType],
   );
 
-  const {
-    warning,
-    isValidConnection,
-    clearWarning: onConnectEnd,
-  } = useConnectionWarning(graphType, edges);
+  const { warning, isValidConnection } = useConnectionWarning(
+    graphType,
+    edges,
+  );
 
   return {
     storeNodes,
@@ -113,7 +112,6 @@ export default function useGraph<T extends GraphType>({
       onNodesChange,
       onEdgesChange,
       onConnect,
-      onConnectEnd,
       isValidConnection,
     },
   };
