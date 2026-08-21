@@ -3,10 +3,8 @@ import "./UnaryPredicatesIndicator.css";
 import { useAppSelector } from "../../../../app/hooks";
 import { useGraphInfo } from "../../graphInfoContext";
 import { getUnaryPredicateToColorMap } from "../../../drawerEditor/unaryPredicateColors";
-import {
-  selectPredicatesToDisplay,
-  selectUnaryPreds,
-} from "../../../editorToolbar/editorToolbarSlice";
+import { selectPredicatesToDisplay } from "../../../editorToolbar/editorToolbarSlice";
+import { selectUnaryPreds } from "../../../language/languageSlice";
 
 interface UnaryPredicatesIndicatorProps {
   domainId: string;

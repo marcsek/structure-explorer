@@ -6,10 +6,10 @@ import {
 import type { RootState } from "../../app/store";
 import {
   getUnarySymbolNames,
-  getUnarySymbols,
   toAritySymbols,
   updatePredicates,
 } from "../language/languageSlice";
+import { selectRelevantUnaryPreds } from "../structure/structureSlice";
 import { fallbackToEmptyArray } from "../../shared/core/redux";
 import {
   getTupleId,
@@ -192,55 +192,6 @@ export const selectSelectedDomain = createSelector(
       : domain.value.filter((element) => !deselectedNodes.includes(element)),
 );
 
-export const selectRelevantConstants = createSelector(
-  [
-    (state: RootState) => state.present.language.constants.value,
-    (state: RootState) => state.present.structure.iC,
-    (_: RootState, domainElement: string) => domainElement,
-  ],
-  (constants, iC, domainElement) =>
-    constants.filter((c) => iC[c]?.value === domainElement),
-);
-
-export const selectUnaryPreds = createSelector(
-  [(state: RootState) => state.present.language.predicates.value],
-  getUnarySymbols,
-);
-
-const selectUnaryPredsContainingElement = createSelector(
-  [(state: RootState) => state.present.structure.iP],
-  (predicates) => {
-    const byElement = new Map<string, string[]>();
-
-    for (const [predicate, interpretation] of Object.entries(predicates)) {
-      const elements = new Set(
-        (interpretation?.value ?? [])
-          .filter((tuple) => tuple.length === 1)
-          .map(([element]) => element),
-      );
-
-      for (const element of elements) {
-        const relevant = byElement.get(element);
-
-        if (relevant) relevant.push(predicate);
-        else byElement.set(element, [predicate]);
-      }
-    }
-
-    return byElement;
-  },
-);
-
-const noRelevantPreds: string[] = [];
-export const selectRelevantUnaryPreds = createSelector(
-  [
-    selectUnaryPredsContainingElement,
-    (_: RootState, domainElement: string) => domainElement,
-  ],
-  (predsByElement, domainElement) =>
-    predsByElement.get(domainElement) ?? noRelevantPreds,
-);
-
 export const selectPredicatesToDisplay = createSelector(
   [
     selectSelectedUnary,
@@ -323,12 +274,14 @@ export const selectHoveredIntr = createSelector(
     selectUnaryFilterDomainHovered,
   ],
   (iP, domain, hoveredUnary, unaryFilterHovered) => {
-    if (unaryFilterHovered) return [[...domain.value]];
+    if (unaryFilterHovered) return new Set(domain.value);
 
     if (hoveredUnary.length === 0) return undefined;
 
-    return hoveredUnary.map((hoveredPredicate) =>
-      (iP[hoveredPredicate]?.value ?? []).flat(),
+    return new Set(
+      hoveredUnary.flatMap((hoveredPredicate) =>
+        (iP[hoveredPredicate]?.value ?? []).flat(),
+      ),
     );
   },
 );
@@ -341,18 +294,15 @@ export const selectHatchedDomain = createSelector(
     selectRelevantDomainElements,
   ],
   (hoveredIntr, unaryFilterDomain, selectedDomain, relevantDomain) => {
-    const hoveredElements = hoveredIntr?.flat() ?? [];
-
     if (
-      hoveredElements.length === 0 ||
+      !hoveredIntr ||
+      hoveredIntr.size === 0 ||
       relevantDomain !== undefined ||
       !unaryFilterDomain
     )
       return [];
 
-    return selectedDomain.filter(
-      (element) => !hoveredElements.includes(element),
-    );
+    return selectedDomain.filter((element) => !hoveredIntr.has(element));
   },
 );
 

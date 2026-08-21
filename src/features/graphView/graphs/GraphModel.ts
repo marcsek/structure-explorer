@@ -178,14 +178,13 @@ export abstract class GraphModel<S extends GraphState> {
     unaryFilterDomain: boolean,
     selectedNodes: string[],
     relevantNodes?: string[],
-    hoveredPredicateIntr?: string[][],
+    hovered?: ReadonlySet<string>,
   ): S["nodes"] {
-    const hovered = hoveredPredicateIntr?.flat();
     const elementOf = (node: NodeOf<S>) => this.elementOf(node.id);
 
     const relevantNodesWithHovered = [
       ...(relevantNodes ?? selectedNodes),
-      ...new Set(hovered ?? []),
+      ...(hovered ?? []),
     ];
 
     const filteredNodes = nodes.filter(
@@ -201,16 +200,16 @@ export abstract class GraphModel<S extends GraphState> {
       !node.data.leftover &&
       selectedNodes.includes(elementOf(node)) &&
       !(relevantNodes?.includes(elementOf(node)) ?? true) &&
-      hovered?.includes(elementOf(node));
+      (hovered?.has(elementOf(node)) ?? false);
 
     const isHatched = (node: NodeOf<S>) =>
       unaryFilterDomain &&
-      (hovered?.length ?? 0) !== 0 &&
+      (hovered?.size ?? 0) !== 0 &&
       !node.data.leftover &&
       selectedNodes.includes(elementOf(node)) &&
       relevantNodes === undefined &&
-      hovered &&
-      !hovered.includes(elementOf(node));
+      hovered !== undefined &&
+      !hovered.has(elementOf(node));
 
     return filteredNodes.map((node) => {
       let nodeData = node.data;

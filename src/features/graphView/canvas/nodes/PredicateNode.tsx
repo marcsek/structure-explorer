@@ -11,7 +11,7 @@ import { memo } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import { leftoverDeleted, onConnected } from "../../graphViewSlice";
 import { useGraphInfo } from "../../graphInfoContext";
-import { selectRelevantConstants } from "../../../editorToolbar/editorToolbarSlice";
+import { selectRelevantConstants } from "../../../structure/structureSlice";
 import DeleteElementButton from "../../../../shared/ui/DeleteElementButton";
 import UnaryPredicatesIndicator from "./UnaryPredicatesIndicator";
 

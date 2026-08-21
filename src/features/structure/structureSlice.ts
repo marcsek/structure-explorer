@@ -482,6 +482,50 @@ export const selectHasWrongArityError = createSelector(
   },
 );
 
+export const selectRelevantConstants = createSelector(
+  [
+    (state: RootState) => state.present.language.constants.value,
+    (state: RootState) => state.present.structure.iC,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (constants, iC, domainElement) =>
+    constants.filter((c) => iC[c]?.value === domainElement),
+);
+
+const selectUnaryPredsContainingElement = createSelector(
+  [(state: RootState) => state.present.structure.iP],
+  (predicates) => {
+    const byElement = new Map<string, string[]>();
+
+    for (const [predicate, interpretation] of Object.entries(predicates)) {
+      const elements = new Set(
+        (interpretation?.value ?? [])
+          .filter((tuple) => tuple.length === 1)
+          .map(([element]) => element),
+      );
+
+      for (const element of elements) {
+        const relevant = byElement.get(element);
+
+        if (relevant) relevant.push(predicate);
+        else byElement.set(element, [predicate]);
+      }
+    }
+
+    return byElement;
+  },
+);
+
+const noRelevantPreds: string[] = [];
+export const selectRelevantUnaryPreds = createSelector(
+  [
+    selectUnaryPredsContainingElement,
+    (_: RootState, domainElement: string) => domainElement,
+  ],
+  (predsByElement, domainElement) =>
+    predsByElement.get(domainElement) ?? noRelevantPreds,
+);
+
 export const selectStructure = createSelector(
   [
     (state: RootState) => state.present.structure.iC,

@@ -17,7 +17,6 @@ import {
   predicateHovered,
   selectSelectedUnary,
   selectUnaryFilterDomain,
-  selectUnaryPreds,
   unaryFilterDomainHovered,
   unaryFilterDomainToggled,
   unaryPredicateToggled,
@@ -25,7 +24,7 @@ import {
 import { getUnaryPredicateColor } from "../../drawerEditor/unaryPredicateColors";
 import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
-import { getSymbolNames } from "../../language/languageSlice";
+import { getSymbolNames, selectUnaryPreds } from "../../language/languageSlice";
 
 export interface InterpretationFiltersProps {
   id: string;

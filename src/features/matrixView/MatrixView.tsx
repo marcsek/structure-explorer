@@ -6,8 +6,8 @@ import {
   selectFilteredDomain,
   selectHatchedDomain,
   selectPredicatesToDisplay,
-  selectUnaryPreds,
 } from "../editorToolbar/editorToolbarSlice";
+import { selectUnaryPreds } from "../language/languageSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import {

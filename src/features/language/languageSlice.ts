@@ -228,6 +228,11 @@ export const getUnarySymbolNames = (
   symbols: AritySymbolsRepresentation,
 ): string[] => getSymbolNames(getUnarySymbols(symbols));
 
+export const selectUnaryPreds = createSelector(
+  [(state: RootState) => state.present.language.predicates.value],
+  getUnarySymbols,
+);
+
 export const {
   updateConstants,
   updatePredicates,
