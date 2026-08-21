@@ -26,9 +26,9 @@ Po tomto kroku bude aplikácia bežať na porte `localhost:5173`.
 
 Projekt možno buildovať viacerými spôsobmi:
 
-- `npm run build` vytvorí *produkčnú* verziu knižnice v adresári `dist`.
-- `npm run build:demo` vytvorí v adresári `dist` *ukážkovú* verziu aplikácie.
-- `npm run build:dev-lib` pri spustení a následne pri každej zmene zdrojových súborov vytvorí *vývojovú*
+- `npm run build` vytvorí _produkčnú_ verziu knižnice v adresári `dist`.
+- `npm run build:demo` vytvorí v adresári `dist` _ukážkovú_ verziu aplikácie.
+- `npm run build:dev-lib` pri spustení a následne pri každej zmene zdrojových súborov vytvorí _vývojovú_
   verziu knižnice. Výstup (knižnica) sa nachádza v susednom adresári `../structure-explorer-dev-lib/dist`.
 
 Vývojovú knižnicu z `build:dev-lib` možno použiť v inom projekte cez `npm link`:

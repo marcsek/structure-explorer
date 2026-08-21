@@ -1,7 +1,6 @@
 import "./RelevantPredicatesIndicator.css";
 
-interface RelevantPredicatesIndicatorProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+interface RelevantPredicatesIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {
   predicateToColorMap: Map<string, string>;
   previewed?: string[];
   size?: "md" | "sm";

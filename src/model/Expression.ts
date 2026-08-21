@@ -14,7 +14,7 @@ abstract class Expression {
 
   abstract eval(
     structure: Structure,
-    e: Map<Symbol, DomainElement>
+    e: Map<Symbol, DomainElement>,
   ): DomainElement | boolean;
 
   abstract getVariables(): Set<Symbol>;

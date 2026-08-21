@@ -24,7 +24,8 @@ export function useAreAllNodesInView(
     return nodes.every((node) => {
       const internal = reactFlow.getInternalNode(node.id);
 
-      const nodeLeft = internal?.internals.positionAbsolute.x ?? node.position.x;
+      const nodeLeft =
+        internal?.internals.positionAbsolute.x ?? node.position.x;
       const nodeTop = internal?.internals.positionAbsolute.y ?? node.position.y;
       const nodeRight = nodeLeft + (internal?.measured.width ?? 0);
       const nodeBottom = nodeTop + (internal?.measured.height ?? 0);

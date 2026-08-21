@@ -1,6 +1,6 @@
 import type { ControlButton } from "./ControlButtons";
 
-export const omitControlButtons = <T,>(
+export const omitControlButtons = <T>(
   controlButtons: ControlButton<T>[],
   omit: T[],
 ): ControlButton<T>[] => {

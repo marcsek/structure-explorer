@@ -11,7 +11,7 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
-    "allowSyntheticDefaultImports":true,
+    "allowSyntheticDefaultImports": true,
     "noEmit": true,
 
     /* Linting */
@@ -22,5 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["vite.config.mts", "vite.demo.config.mts", "vite.dev-build.config.mts"]
+  "include": [
+    "vite.config.mts",
+    "vite.demo.config.mts",
+    "vite.dev-build.config.mts"
+  ]
 }

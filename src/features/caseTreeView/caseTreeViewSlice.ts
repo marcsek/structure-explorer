@@ -26,8 +26,7 @@ import type { SerializedCaseTreeViewState } from "./validationSchema";
 import { UndoActions } from "../undoHistory/undoHistory";
 
 export type CaseTreeBranch =
-  | { type: "value"; value: string }
-  | { type: "ref"; nodeId: string };
+  { type: "value"; value: string } | { type: "ref"; nodeId: string };
 
 export interface CaseTreeCase {
   match: string;

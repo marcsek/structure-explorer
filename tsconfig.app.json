@@ -14,7 +14,7 @@
     "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "allowSyntheticDefaultImports":true,
+    "allowSyntheticDefaultImports": true,
 
     /* Linting */
     "strict": true,
@@ -22,8 +22,7 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
-
+    "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
+  "include": ["src"]
 }

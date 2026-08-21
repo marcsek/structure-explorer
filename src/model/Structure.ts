@@ -22,7 +22,7 @@ export class Structure {
     public domain: Set<DomainElement>,
     public iC: Map<Symbol, DomainElement>,
     public iP: Map<Symbol, Set<DomainElement[]>>,
-    public iF: Map<Symbol, Map<DomainElement[], DomainElement>>
+    public iF: Map<Symbol, Map<DomainElement[], DomainElement>>,
   ) {}
 
   iPHas(symbol: Symbol, tuple: DomainElement[]): boolean {
