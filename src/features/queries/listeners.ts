@@ -51,8 +51,8 @@ querySliceListener.startListening({
       const current = selectParsedQuery(api.getState(), queryIdx);
 
       if (
-        errorsDiffer(previous.error, current.error) ||
-        previous.formula?.toString() !== current.formula?.toString()
+        errorsDiffer(previous?.error, current?.error) ||
+        previous?.formula?.toString() !== current?.formula?.toString()
       ) {
         api.dispatch(updateQueryStaleness({ idx: queryIdx, stale: true }));
       }
@@ -70,8 +70,8 @@ querySliceListener.startListening({
       const current = selectParsedQueryVariables(api.getState(), queryIdx);
 
       if (
-        errorsDiffer(previous.error, current.error) ||
-        !sameVariables(previous.parsed, current.parsed)
+        errorsDiffer(previous?.error, current?.error) ||
+        !sameVariables(previous?.parsed, current?.parsed)
       ) {
         api.dispatch(updateQueryStaleness({ idx: queryIdx, stale: true }));
       }

@@ -8,12 +8,12 @@ import { selectLanguage } from "../language/languageSlice";
 import { selectStructure } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
 import { SyntaxError as ParserSyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { getFormulaFactories } from "../../shared/core/formulas";
-import type Language from "../../model/Language";
+import { parseFormula } from "../../shared/core/formulas";
 import {
-  parseConstants,
-  parseFormulaWithPrecedence,
-} from "@fmfi-uk-1-ain-412/js-fol-parser";
+  createSemanticError,
+  createSyntaxError,
+} from "../../shared/core/errors";
+import { parseConstants } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { SerializedQueriesState } from "./validationSchema";
 import { plural, toBe } from "../../shared/core/wordForms";
 
@@ -101,24 +101,6 @@ export const queriesSlice = createSlice({
   },
 });
 
-export const parseQuery = (language: Language, formText: string) => {
-  const factories = getFormulaFactories(language);
-
-  try {
-    const formula = parseFormulaWithPrecedence(
-      formText,
-      language.getParserLanguage(),
-      factories,
-    );
-
-    return { formula };
-  } catch (error) {
-    if (error instanceof Error) return { error };
-  }
-
-  return {};
-};
-
 export const selectQueries = (state: RootState) =>
   state.present.queries.queries;
 
@@ -134,15 +116,19 @@ export const selectQuery = (
 export const selectParsedQueryVariables = createSelector(
   [selectQuery],
   (query) => {
-    if (!query) return { parsed: [] as string[] };
+    if (!query) return undefined;
 
     let parsed: string[];
     try {
       parsed = parseConstants(query.variablesText);
     } catch (error) {
       if (error instanceof ParserSyntaxError) {
-        const adjustedMessage = error.message.replace("constant", "variable");
-        return { error: { ...error, message: adjustedMessage } };
+        return {
+          error: createSyntaxError(
+            error.message.replace("constant", "variable"),
+            error.location,
+          ),
+        };
       }
       throw error;
     }
@@ -153,7 +139,7 @@ export const selectParsedQueryVariables = createSelector(
 
     if (duplicates.length > 0)
       return {
-        error: new Error(
+        error: createSemanticError(
           `Query ${plural(duplicates.length, "variable")} ${duplicates.join(", ")} ` +
             `${toBe(duplicates.length)} listed ` +
             `more than once. Query variables must be distinct.`,
@@ -166,23 +152,22 @@ export const selectParsedQueryVariables = createSelector(
 
 export const selectParsedQuery = createSelector(
   [selectLanguage, selectQuery],
-  (language, query) => (query ? parseQuery(language, query.text) : {}),
+  (language, query) => (query ? parseFormula(query.text, language) : undefined),
 );
 
 export const selectEvaluatedQuery = createSelector(
   [
     selectStructure,
-    selectQuery,
     selectParsedQuery,
     selectParsedQueryVariables,
     selectValuation,
   ],
-  (structure, query, parsed, queryVariables, valuation) => {
-    if (!query) return {};
+  (structure, parsed, queryVariables, valuation) => {
+    if (!parsed || !queryVariables) return undefined;
 
     if (queryVariables.error)
       return {
-        error: new Error(
+        error: createSemanticError(
           `Invalid query variables: ${queryVariables.error.message}`,
         ),
       };
@@ -204,7 +189,7 @@ export const selectEvaluatedQuery = createSelector(
       const verb = toBe(unsetFreeVarsLen);
 
       return {
-        error: new Error(
+        error: createSemanticError(
           `The ${plural(unsetFreeVarsLen, "variable")} ${unsetFreeVars.join(", ")} ${verb} free, ` +
             `but ${verb} not listed among query variables or assigned any value ` +
             `by the global assignment 𝑒.`,
@@ -215,7 +200,8 @@ export const selectEvaluatedQuery = createSelector(
     try {
       parsed.formula.eval(structure, newValuation);
     } catch (error) {
-      if (error instanceof Error) return { error };
+      if (error instanceof Error)
+        return { error: createSemanticError(error.message) };
     }
 
     const notFree = [...queryVariables.parsed].filter(
@@ -225,7 +211,7 @@ export const selectEvaluatedQuery = createSelector(
     const notFreeLen = notFree.length;
     if (notFreeLen > 0) {
       return {
-        error: new Error(
+        error: createSemanticError(
           `Query ${plural(notFreeLen, "variable")} ${notFree.join(", ")} ${toBe(notFreeLen)} ` +
             `not free on the right-hand side of the query definition.`,
         ),
@@ -234,7 +220,7 @@ export const selectEvaluatedQuery = createSelector(
 
     if (queryVariables.parsed.length === 0) {
       return {
-        error: new Error(`No query variables specified.`),
+        error: createSemanticError(`No query variables specified.`),
       };
     }
 
@@ -252,7 +238,7 @@ export const getQueryResults = createSelector(
     selectValuation,
   ],
   (queryVariables, query, structure, structureValuation) => {
-    if (queryVariables.error || query.error || !query.formula) return [];
+    if (!queryVariables?.parsed || !query?.formula) return [];
 
     const satisfying: QueryResult[] = [];
 

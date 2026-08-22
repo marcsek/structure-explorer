@@ -1,10 +1,7 @@
 import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { AppThunk, RootState } from "../../app/store";
-import {
-  parseFormulaWithPrecedence,
-  SyntaxError,
-} from "@fmfi-uk-1-ain-412/js-fol-parser";
+
 import {
   type SignedFormula,
   SignedFormulaType,
@@ -24,7 +21,7 @@ import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../shared/core/logging";
 import { plural, toBe } from "../../shared/core/wordForms";
-import { getFormulaFactories } from "../../shared/core/formulas";
+import { parseFormula } from "../../shared/core/formulas";
 import { getRandomElement } from "../../shared/core/utils";
 
 export interface FormulaState {
@@ -231,31 +228,35 @@ const evaluateFormula = (
 ) => {
   dev.time(`selectEvaluatedFormula duration (${formText})`);
 
-  const factories = getFormulaFactories(language);
+  const parsed = parseFormula(formText, language);
+
+  if (parsed.error) {
+    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+
+    return { error: parsed.error };
+  }
+
+  const { formula } = parsed;
+
+  const freeVariables = formula.getFreeVariables();
+  const unsetFreeVars = [...freeVariables].filter((v) => !valuation.has(v));
+
+  const unsetFreeVarsLen = unsetFreeVars.length;
+  if (unsetFreeVarsLen > 0) {
+    const correctPluralVars = plural(unsetFreeVarsLen, "variable");
+    const correctPluralVerb = toBe(unsetFreeVarsLen);
+
+    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+
+    return {
+      error: new Error(
+        `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
+but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
+      ),
+    };
+  }
 
   try {
-    const formula = parseFormulaWithPrecedence(
-      formText,
-      language.getParserLanguage(),
-      factories,
-    );
-
-    const freeVariables = formula.getFreeVariables();
-    const unsetFreeVars = [...freeVariables].filter((v) => !valuation.has(v));
-
-    const unsetFreeVarsLen = unsetFreeVars.length;
-    if (unsetFreeVars.length > 0) {
-      const correctPluralVars = plural(unsetFreeVarsLen, "variable");
-      const correctPluralVerb = toBe(unsetFreeVarsLen);
-
-      return {
-        error: new Error(
-          `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
-but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
-        ),
-      };
-    }
-
     const evaluated = formula.eval(structure, valuation);
 
     dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
@@ -263,12 +264,6 @@ but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.
     return { evaluated, formula };
   } catch (error) {
     if (error instanceof Error) {
-      dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
-
-      return { error: error };
-    }
-
-    if (error instanceof SyntaxError) {
       dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
 
       return { error: error };

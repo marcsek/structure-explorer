@@ -5,7 +5,7 @@ import type { InterpretationError } from "../core/errors";
 // TODO: better error type
 interface ErrorFeedbackProps {
   id?: string;
-  error: SyntaxError | Error | InterpretationError | undefined;
+  error: Error | InterpretationError | undefined;
   text: string;
 }
 

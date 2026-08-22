@@ -15,6 +15,13 @@ export interface SemanticError extends BaseError {
   repairable: boolean;
 }
 
+export const createSyntaxError = (
+  message: string,
+  location?: Location,
+): SyntaxError => {
+  return { kind: "syntax", message, location };
+};
+
 export const createSemanticError = (
   message: string,
   repairable = false,

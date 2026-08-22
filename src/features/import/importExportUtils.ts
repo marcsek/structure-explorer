@@ -120,8 +120,6 @@ export type RelevantSymbols = Record<
 const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
   const symbols: RelevantSymbols = {};
 
-  // TODO: This could be handled better since now it doesn't work correctly
-  // for symbols with the same name. E.g. key could also consist of type and arity.
   const addSymbol = (key: string, value: RelevantSymbols[string]) => {
     if (key in symbols) {
       console.warn(

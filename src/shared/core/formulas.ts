@@ -1,4 +1,8 @@
-import type { ErrorExpected } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import {
+  parseFormulaWithPrecedence,
+  SyntaxError as ParserSyntaxError,
+  type ErrorExpected,
+} from "@fmfi-uk-1-ain-412/js-fol-parser";
 import Conjunction from "../../model/formula/Formula.Conjunction";
 import Disjunction from "../../model/formula/Formula.Disjunction";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
@@ -14,7 +18,7 @@ import FunctionTerm from "../../model/term/Term.FunctionTerm";
 import Variable from "../../model/term/Term.Variable";
 import type Language from "../../model/Language";
 import type Formula from "../../model/formula/Formula";
-import type { InterpretationError } from "./errors";
+import { createSyntaxError, type InterpretationError } from "./errors";
 import { createSelector } from "@reduxjs/toolkit";
 import { selectStructureErrors } from "../../features/structure/structureSlice";
 import { selectFirstLanguageError } from "../../features/language/languageSlice";
@@ -47,6 +51,28 @@ export function getFormulaFactories(language: Language) {
     universalQuant: (variable: string, subf: Formula) =>
       new UniversalQuant(variable, subf),
   };
+}
+
+export type ParsedFormula =
+  | { formula: Formula; error?: undefined }
+  | { formula?: undefined; error: InterpretationError };
+
+export function parseFormula(text: string, language: Language): ParsedFormula {
+  try {
+    return {
+      formula: parseFormulaWithPrecedence(
+        text,
+        language.getParserLanguage(),
+        getFormulaFactories(language),
+      ),
+    };
+  } catch (error) {
+    if (error instanceof ParserSyntaxError) {
+      return { error: createSyntaxError(error.message, error.location) };
+    }
+
+    throw error;
+  }
 }
 
 export function getErrorMessageFromValidation(

@@ -51,7 +51,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     setQueryResults(getQueryResults(store.getState(), idx));
   };
 
-  const serializedVars = queryVariables.parsed?.join() ?? "";
+  const serializedVars = queryVariables?.parsed?.join() ?? "";
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -64,9 +64,9 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     ? new Error(nonFormulaErrorMessage)
     : undefined;
 
-  const error = queryVariables.error || evaluatedQuery.error || nonQueryError;
+  const error = queryVariables?.error || evaluatedQuery?.error || nonQueryError;
   const variablesError =
-    queryVariables.error || queryVariables.parsed.length === 0;
+    queryVariables?.error || queryVariables?.parsed?.length === 0;
 
   const { text: queryText, variablesText, locked } = query;
 
@@ -103,7 +103,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
               dispatch(updateQueryText({ idx, text: e.target.value }))
             }
             disabled={locked}
-            isInvalid={!!evaluatedQuery.error || !!nonQueryError}
+            isInvalid={!!evaluatedQuery?.error || !!nonQueryError}
             onBlur={() => dispatch(UndoActions.checkpoint())}
           />
 
@@ -127,7 +127,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
           )}
 
           <ErrorFeedback
-            error={evaluatedQuery.error || nonQueryError}
+            error={evaluatedQuery?.error || nonQueryError}
             text={queryText}
           />
         </InputGroup>
@@ -147,7 +147,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
         <QueryResults
           queryIdx={idx}
           stale={query.stale}
-          queryVariables={queryVariables.parsed ?? []}
+          queryVariables={queryVariables?.parsed ?? []}
           results={queryResults}
           onResultsReset={() => setQueryResults([])}
         />
