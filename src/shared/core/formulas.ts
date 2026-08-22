@@ -24,7 +24,6 @@ import {
   createSyntaxError,
   type EvaluationError,
   type InterpretationError,
-  type SemanticError,
   type SyntaxError,
 } from "./errors";
 import ThrownEvaluationError from "../../model/EvaluationError";
@@ -124,8 +123,6 @@ export function safeEval<T extends DomainElement | boolean>(
     throw error;
   }
 }
-
-export type FormulaError = SyntaxError | SemanticError | EvaluationError;
 
 export function getErrorMessageFromValidation(
   errors: Partial<{

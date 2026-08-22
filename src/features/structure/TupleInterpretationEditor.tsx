@@ -8,7 +8,7 @@ import type { TupleInfo } from "./tupleInfo";
 import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { useOpenedEditor } from "../editorToolbar/useOpenedEditor";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 
 export interface TupleInterpretationEditorProps {
   id: string;
@@ -55,4 +55,11 @@ function TupleInterpretationEditor({
   });
 }
 
-export default TupleInterpretationEditor;
+export default memo(
+  TupleInterpretationEditor,
+  (prev, next) =>
+    prev.id === next.id &&
+    prev.tupleInfo.arity === prev.tupleInfo.arity &&
+    prev.tupleInfo.name === prev.tupleInfo.name &&
+    prev.tupleInfo.type === prev.tupleInfo.type,
+);

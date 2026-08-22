@@ -23,11 +23,9 @@ graphViewListener.startListening({
     const { language, structure } = api.getState().present;
 
     if (!parsedPredicates.error && !parsedFuncs.error && !symbolsClash) {
-      dev.time("Graph initialization duration");
-
-      api.dispatch(syncGraphView({ structure, language }));
-
-      dev.timeEnd("Graph initialization duration");
+      dev.timed("Graph initialization duration", () =>
+        api.dispatch(syncGraphView({ structure, language })),
+      );
     }
   },
 });

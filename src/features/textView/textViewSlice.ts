@@ -103,9 +103,9 @@ export const updateTextView = ({
 
     dispatch(textViewChanged({ key, type, value, parseError: undefined }));
 
-    dev.time(`Duration of ${key} text parent state update`);
-    dispatch(updateActionByTextType(type, key, parsed));
-    dev.timeEnd(`Duration of ${key} text parent state update`);
+    dev.timed(`Duration of ${key} text parent state update`, () =>
+      dispatch(updateActionByTextType(type, key, parsed)),
+    );
   };
 };
 

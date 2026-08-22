@@ -68,46 +68,47 @@ abstract class Formula extends Expression {
     structure: Structure,
     e: Valuation,
   ): [SignedFormula, number][] {
-    dev.time("winningSubformulas duration");
+    return dev.timed<[SignedFormula, number][]>(
+      "winningSubformulas duration",
+      () => {
+        const formulas = this.getSignedSubFormulas(sign);
 
-    const formulas = this.getSignedSubFormulas(sign);
+        let shortest = undefined;
+        let winning: [SignedFormula, number][] = [];
 
-    let shortest = undefined;
-    let winning: [SignedFormula, number][] = [];
+        let idx = 0;
+        for (const { sign, formula } of formulas) {
+          const current = { sign: sign, formula: formula };
+          if (formula.eval(structure, e) !== sign) {
+            if (!shortest) {
+              shortest = current;
+              winning.push([shortest, idx]);
+            }
 
-    let idx = 0;
-    for (const { sign, formula } of formulas) {
-      const current = { sign: sign, formula: formula };
-      if (formula.eval(structure, e) !== sign) {
-        if (!shortest) {
-          shortest = current;
-          winning.push([shortest, idx]);
+            if (
+              shortest.formula.gameDepth(shortest.sign) >
+              formula.gameDepth(sign)
+            ) {
+              shortest = current;
+              winning = [[shortest, idx]];
+            } else if (
+              shortest.formula.gameDepth(shortest.sign) ===
+              formula.gameDepth(sign)
+            ) {
+              winning.push([current, idx]);
+            }
+          }
+
+          idx++;
         }
 
-        if (
-          shortest.formula.gameDepth(shortest.sign) > formula.gameDepth(sign)
-        ) {
-          shortest = current;
-          winning = [[shortest, idx]];
-        } else if (
-          shortest.formula.gameDepth(shortest.sign) === formula.gameDepth(sign)
-        ) {
-          winning.push([current, idx]);
+        if (winning.length === 0) {
+          return formulas.map((f, idx) => [f, idx]);
         }
-      }
 
-      idx++;
-    }
-
-    if (winning.length === 0) {
-      dev.timeEnd("winningSubformulas duration");
-
-      return formulas.map((f, idx) => [f, idx]);
-    }
-
-    dev.timeEnd("winningSubformulas duration");
-
-    return winning;
+        return winning;
+      },
+    );
   }
 
   abstract eval(structure: Structure, e: Valuation): boolean;

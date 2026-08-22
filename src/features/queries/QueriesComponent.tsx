@@ -10,7 +10,6 @@ import QueryComponent from "./QueryComponent.tsx";
 
 export default function QueriesComponent() {
   const dispatch = useAppDispatch();
-
   const queryIndexes = useAppSelector(selectQueryIndexes);
 
   return (

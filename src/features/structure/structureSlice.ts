@@ -30,7 +30,6 @@ import {
   type DomainTuple,
 } from "./domainTuple";
 import { capitalize, withArticle } from "../../shared/core/wordForms";
-import { dev } from "../../shared/core/logging";
 
 export type DomainRepresentation = DomainElement[];
 export type ConstantInterpretation = DomainElement;
@@ -534,8 +533,6 @@ export const selectStructure = createSelector(
     selectValidatedDomain,
   ],
   (constants, predicates, functions, language, rawDomain) => {
-    dev.time("selectStructure duration");
-
     const domain = new Set(rawDomain.error ? [] : rawDomain.parsed);
 
     const iC = new Map<Symbol, DomainElement>(
@@ -563,8 +560,6 @@ export const selectStructure = createSelector(
         ),
       ]),
     );
-
-    dev.timeEnd("selectStructure duration");
 
     return new Structure(language, domain, iC, iP, iF);
   },

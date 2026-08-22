@@ -11,11 +11,13 @@ import {
   parseFormula,
   safeEval,
   validateAssignedFreeVariables,
-  type FormulaError,
 } from "../../shared/core/formulas";
 import type Formula from "../../model/formula/Formula";
 
-import { createSemanticError } from "../../shared/core/errors";
+import {
+  createSemanticError,
+  type FormulaError,
+} from "../../shared/core/errors";
 import {
   parseQueryVariables,
   validateQueryVariables,

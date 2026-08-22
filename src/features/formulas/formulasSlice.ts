@@ -228,39 +228,32 @@ const evaluateFormula = (
   structure: Structure,
   formText: string,
   valuation: Map<string, string>,
-) => {
-  dev.time(`selectEvaluatedFormula duration (${formText})`);
+) =>
+  dev.timed(`selectEvaluatedFormula duration (${formText})`, () => {
+    const parsed = parseFormula(formText, language);
 
-  const parsed = parseFormula(formText, language);
+    if (parsed.error) {
+      return { error: parsed.error };
+    }
 
-  if (parsed.error) {
-    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+    const { formula } = parsed;
 
-    return { error: parsed.error };
-  }
+    const unassignedError = validateAssignedFreeVariables(
+      formula,
+      valuation,
+      "not assigned any value by the variable assignment 𝑒.",
+    );
 
-  const { formula } = parsed;
+    if (unassignedError) {
+      return { error: unassignedError };
+    }
 
-  const unassignedError = validateAssignedFreeVariables(
-    formula,
-    valuation,
-    "not assigned any value by the variable assignment 𝑒.",
-  );
+    const { value: evaluated, error } = safeEval(formula, structure, valuation);
 
-  if (unassignedError) {
-    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
+    if (error) return { error };
 
-    return { error: unassignedError };
-  }
-
-  const { value: evaluated, error } = safeEval(formula, structure, valuation);
-
-  dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
-
-  if (error) return { error };
-
-  return { evaluated, formula };
-};
+    return { evaluated, formula };
+  });
 
 export const selectEvaluatedFormula = createSelector(
   [selectLanguage, selectStructure, selectFormula, selectValuation],
@@ -445,87 +438,85 @@ export const selectHistoryData = createSelector(
     valuation,
     structure,
     { value: domain },
-  ) => {
-    const history: HistoryStep[] = [];
+  ) =>
+    dev.timed("selectHistoryData duration", () => {
+      const history: HistoryStep[] = [];
 
-    if (!formula || evaluated === undefined || initialGuess === null) {
-      return [];
-    }
-
-    dev.time("selectHistoryData duration");
-
-    const addHistoryStep = (
-      signedFormula: SignedFormula,
-      valuation: Map<string, string>,
-      choiceIndex?: number,
-    ) => {
-      try {
-        history.push(
-          getStep(
-            signedFormula,
-            valuation,
-            structure,
-            domain,
-            evaluated,
-            choiceIndex,
-          ),
-        );
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    let curSignedFormula: SignedFormula = { sign: initialGuess, formula };
-    let curValuation = new Map(valuation);
-
-    for (const { formula: formulaIndex, element, type } of choices) {
-      const { formula: curFormula, sign } = curSignedFormula;
-
-      // If formula and choice type don't match, cut-off history
-      if (curFormula.getSignedType(sign) !== type) {
-        if (history.length) history.pop();
-        break;
+      if (!formula || evaluated === undefined || initialGuess === null) {
+        return [];
       }
 
-      if (type === "alpha" || type === "beta") {
-        const nextFormula =
-          curFormula.getSignedSubFormulas(sign)[formulaIndex!];
+      const addHistoryStep = (
+        signedFormula: SignedFormula,
+        valuation: Map<string, string>,
+        choiceIndex?: number,
+      ) => {
+        try {
+          history.push(
+            getStep(
+              signedFormula,
+              valuation,
+              structure,
+              domain,
+              evaluated,
+              choiceIndex,
+            ),
+          );
+        } catch (error) {
+          console.error(error);
+        }
+      };
 
-        if (!nextFormula) {
+      let curSignedFormula: SignedFormula = { sign: initialGuess, formula };
+      let curValuation = new Map(valuation);
+
+      for (const { formula: formulaIndex, element, type } of choices) {
+        const { formula: curFormula, sign } = curSignedFormula;
+
+        // If formula and choice type don't match, cut-off history
+        if (curFormula.getSignedType(sign) !== type) {
+          if (history.length) history.pop();
           break;
         }
 
-        addHistoryStep(curSignedFormula, new Map(curValuation), formulaIndex);
+        if (type === "alpha" || type === "beta") {
+          const nextFormula =
+            curFormula.getSignedSubFormulas(sign)[formulaIndex!];
 
-        curSignedFormula = nextFormula;
-      } else if (curFormula instanceof QuantifiedFormula) {
-        const varName = curFormula.getVariableName();
-        const nextValuation = new Map(curValuation);
-        const nextFormula = curFormula.getSignedSubFormulas(sign)[0];
+          if (!nextFormula) {
+            break;
+          }
 
-        nextValuation.set(varName, element!);
+          addHistoryStep(curSignedFormula, new Map(curValuation), formulaIndex);
 
-        if (!nextFormula) {
-          break;
+          curSignedFormula = nextFormula;
+        } else if (curFormula instanceof QuantifiedFormula) {
+          const varName = curFormula.getVariableName();
+          const nextValuation = new Map(curValuation);
+          const nextFormula = curFormula.getSignedSubFormulas(sign)[0];
+
+          nextValuation.set(varName, element!);
+
+          if (!nextFormula) {
+            break;
+          }
+
+          const elementIdx = domain.indexOf(element ?? "");
+          const choiceIdx = elementIdx === -1 ? undefined : elementIdx;
+
+          addHistoryStep(curSignedFormula, curValuation, choiceIdx);
+
+          curSignedFormula = nextFormula;
+          curValuation = nextValuation;
         }
-
-        const elementIdx = domain.indexOf(element ?? "");
-        const choiceIdx = elementIdx === -1 ? undefined : elementIdx;
-
-        addHistoryStep(curSignedFormula, curValuation, choiceIdx);
-
-        curSignedFormula = nextFormula;
-        curValuation = nextValuation;
       }
-    }
 
-    addHistoryStep(curSignedFormula, curValuation);
+      addHistoryStep(curSignedFormula, curValuation);
 
-    dev.log(history);
-    dev.timeEnd("selectHistoryData duration");
+      dev.log(history);
 
-    return history;
-  },
+      return history;
+    }),
 );
 
 export function getDiffAndNew(
@@ -625,81 +616,75 @@ export const selectGameResetIndex = createSelector(
     selectFormulaChoices,
     selectValidatedDomain,
   ],
-  (data, structure, choices, domain) => {
-    if (data.length === 0) return 0;
+  (data, structure, choices, domain) =>
+    dev.timed("selectGameResetIndex duration", () => {
+      if (data.length === 0) return 0;
+      let index = 0;
 
-    dev.time("selectGameResetIndex duration");
-    let index = 0;
+      for (const { sf, valuation } of data) {
+        const prev = data[index - 1];
 
-    for (const { sf, valuation } of data) {
-      const prev = data[index - 1];
+        if (prev === undefined) {
+          index++;
+          continue;
+        }
 
-      if (prev === undefined) {
+        if (
+          choices[index - 1] &&
+          choices[index - 1].element !== undefined &&
+          domain.error === undefined &&
+          domain.parsed &&
+          domain.parsed.includes(choices[index - 1].element!) === false
+        ) {
+          return index - 1;
+        }
+
+        const prevWinningFormula =
+          prev.type === "alpha" || prev.type === "beta"
+            ? prev.winFormula
+            : undefined;
+
+        const prevWinningElementValue =
+          (prev.type === "gamma" || prev.type === "delta") &&
+          prev.sf.formula instanceof QuantifiedFormula
+            ? prev.winElement
+            : undefined;
+
+        const prevVariableName =
+          prev.sf.formula instanceof QuantifiedFormula
+            ? prev.sf.formula.variableName
+            : undefined;
+
+        const prevWinningFormulaStr = prevWinningFormula
+          ? prevWinningFormula.formula.signedFormulaToString(
+              prevWinningFormula.sign,
+            )
+          : undefined;
+
+        const currentFormulaStr = sf.formula.signedFormulaToString(sf.sign);
+
+        if (
+          prevWinningFormula &&
+          prevWinningFormulaStr !== currentFormulaStr &&
+          prev.sf.formula.eval(structure, prev.valuation) !== prev.sf.sign &&
+          prev.type === "alpha"
+        ) {
+          return index - 1;
+        }
+
+        if (
+          prevWinningElementValue !== undefined &&
+          prevVariableName !== undefined &&
+          valuation.get(prevVariableName) !== prevWinningElementValue &&
+          prev.type === "gamma"
+        ) {
+          return index - 1;
+        }
         index++;
-        continue;
       }
 
-      if (
-        choices[index - 1] &&
-        choices[index - 1].element !== undefined &&
-        domain.error === undefined &&
-        domain.parsed &&
-        domain.parsed.includes(choices[index - 1].element!) === false
-      ) {
-        dev.timeEnd("selectGameResetIndex duration");
-        return index - 1;
-      }
-
-      const prevWinningFormula =
-        prev.type === "alpha" || prev.type === "beta"
-          ? prev.winFormula
-          : undefined;
-
-      const prevWinningElementValue =
-        (prev.type === "gamma" || prev.type === "delta") &&
-        prev.sf.formula instanceof QuantifiedFormula
-          ? prev.winElement
-          : undefined;
-
-      const prevVariableName =
-        prev.sf.formula instanceof QuantifiedFormula
-          ? prev.sf.formula.variableName
-          : undefined;
-
-      const prevWinningFormulaStr = prevWinningFormula
-        ? prevWinningFormula.formula.signedFormulaToString(
-            prevWinningFormula.sign,
-          )
-        : undefined;
-
-      const currentFormulaStr = sf.formula.signedFormulaToString(sf.sign);
-
-      if (
-        prevWinningFormula &&
-        prevWinningFormulaStr !== currentFormulaStr &&
-        prev.sf.formula.eval(structure, prev.valuation) !== prev.sf.sign &&
-        prev.type === "alpha"
-      ) {
-        dev.timeEnd("selectGameResetIndex duration");
-        return index - 1;
-      }
-
-      if (
-        prevWinningElementValue !== undefined &&
-        prevVariableName !== undefined &&
-        valuation.get(prevVariableName) !== prevWinningElementValue &&
-        prev.type === "gamma"
-      ) {
-        dev.timeEnd("selectGameResetIndex duration");
-        return index - 1;
-      }
-      index++;
-    }
-
-    dev.timeEnd("selectGameResetIndex duration");
-
-    return index;
-  },
+      return index;
+    }),
 );
 
 export const updateFormulaText =

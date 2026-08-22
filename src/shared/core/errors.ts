@@ -45,3 +45,4 @@ export const createEvaluationError = (
 };
 
 export type InterpretationError = SyntaxError | SemanticError;
+export type FormulaError = SyntaxError | SemanticError | EvaluationError;
