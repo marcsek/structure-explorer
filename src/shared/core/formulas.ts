@@ -20,9 +20,11 @@ import type Language from "../../model/Language";
 import type Formula from "../../model/formula/Formula";
 import {
   createEvaluationError,
+  createSemanticError,
   createSyntaxError,
   type EvaluationError,
   type InterpretationError,
+  type SemanticError,
   type SyntaxError,
 } from "./errors";
 import ThrownEvaluationError from "../../model/EvaluationError";
@@ -31,12 +33,13 @@ import type {
   Structure,
   Valuation,
 } from "../../model/Structure";
+import { plural, toBe } from "./wordForms";
 import { createSelector } from "@reduxjs/toolkit";
 import { selectStructureErrors } from "../../features/structure/structureSlice";
 import { selectFirstLanguageError } from "../../features/language/languageSlice";
 import { selectValidatedVariables } from "../../features/variables/variablesSlice";
 
-export function getFormulaFactories(
+function getFormulaFactories(
   language: Language,
 ): FormulaFactories<Term, Formula> {
   return {
@@ -83,6 +86,23 @@ export function parseFormula(text: string, language: Language): ParsedFormula {
   }
 }
 
+export function validateAssignedFreeVariables(
+  formula: Formula,
+  valuation: Valuation,
+  reason: string,
+) {
+  const unassigned = [...formula.getFreeVariables()].filter(
+    (v) => !valuation.has(v),
+  );
+
+  if (unassigned.length === 0) return;
+
+  return createSemanticError(
+    `The ${plural(unassigned.length, "variable")} ${unassigned.join(", ")} ` +
+      `${toBe(unassigned.length)} free, but ${toBe(unassigned.length)} ${reason}`,
+  );
+}
+
 export type Evaluated<T> =
   | { value: T; error?: undefined }
   | { value?: undefined; error: EvaluationError };
@@ -104,6 +124,8 @@ export function safeEval<T extends DomainElement | boolean>(
     throw error;
   }
 }
+
+export type FormulaError = SyntaxError | SemanticError | EvaluationError;
 
 export function getErrorMessageFromValidation(
   errors: Partial<{

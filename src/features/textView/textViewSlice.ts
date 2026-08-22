@@ -12,7 +12,7 @@ import {
   type StructuredOf,
   type TextViewSyncEntry,
 } from "./textViews";
-import type { SyntaxError } from "../../shared/core/errors";
+import { createSyntaxError, type SyntaxError } from "../../shared/core/errors";
 import { dev } from "../../shared/core/logging";
 import { UndoActions } from "../undoHistory/undoHistory";
 
@@ -155,11 +155,7 @@ const parseByTextType = <T extends TextViewType>(
   } catch (error) {
     if (error instanceof ParserSyntaxError) {
       return {
-        error: {
-          kind: "syntax",
-          message: error.message,
-          location: error.location,
-        } as SyntaxError,
+        error: createSyntaxError(error.message, error.location),
       };
     }
 

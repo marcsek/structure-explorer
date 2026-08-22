@@ -46,3 +46,7 @@ export function partition<T>(
     [[], []],
   );
 }
+
+export function duplicates<T>(elements: T[]): T[] {
+  return [...new Set(elements.filter((e, i) => elements.indexOf(e) !== i))];
+}

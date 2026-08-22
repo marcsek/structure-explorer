@@ -46,13 +46,6 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     selectParsedQueryVariables(state, idx),
   );
 
-  const handleQueryButtonClick = () => {
-    dispatch(updateQueryStaleness({ idx, stale: false }));
-
-    setQueryResults(getQueryResults(store.getState(), idx));
-    setShowResults(true);
-  };
-
   const serializedVars = queryVariables?.parsed?.join() ?? "";
 
   useEffect(() => {
@@ -60,15 +53,25 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     setShowResults(false);
   }, [serializedVars]);
 
-  if (!query) return null;
+  const handleQueryButtonClick = () => {
+    dispatch(updateQueryStaleness({ idx, stale: false }));
+
+    setQueryResults(getQueryResults(store.getState(), idx));
+    setShowResults(true);
+  };
+
+  if (!query || !evaluatedQuery || !queryVariables) return null;
 
   const nonQueryError = nonFormulaErrorMessage
     ? new Error(nonFormulaErrorMessage)
     : undefined;
 
-  const error = queryVariables?.error || evaluatedQuery?.error || nonQueryError;
-  const variablesError =
-    queryVariables?.error || queryVariables?.parsed?.length === 0;
+  const error = queryVariables.error || evaluatedQuery.error || nonQueryError;
+
+  const variablesInvalid =
+    !!queryVariables.error || queryVariables.parsed?.length === 0;
+  const queryInvalid =
+    !variablesInvalid && (!!evaluatedQuery.error || !!nonQueryError);
 
   const { text: queryText, variablesText, locked } = query;
 
@@ -79,7 +82,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
         direction="horizontal"
         style={{ width: "100%", alignItems: "flex-start" }}
       >
-        <InputGroup size="sm" hasValidation={!!error}>
+        <InputGroup size="sm" hasValidation={variablesInvalid || queryInvalid}>
           <InputGroup.Text className="input-group-fix-height">
             <InlineMath>{`\\psi_${idx + 1} (`}</InlineMath>
           </InputGroup.Text>
@@ -90,7 +93,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
               dispatch(updateQueryVariablesText({ idx, text: e.target.value }))
             }
             disabled={locked}
-            isInvalid={!!variablesError}
+            isInvalid={variablesInvalid}
             onBlur={() => dispatch(UndoActions.checkpoint())}
             style={{ maxWidth: "5rem" }}
           />
@@ -105,7 +108,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
               dispatch(updateQueryText({ idx, text: e.target.value }))
             }
             disabled={locked}
-            isInvalid={!!evaluatedQuery?.error || !!nonQueryError}
+            isInvalid={queryInvalid}
             onBlur={() => dispatch(UndoActions.checkpoint())}
           />
 
@@ -129,8 +132,8 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
           )}
 
           <ErrorFeedback
-            error={evaluatedQuery?.error || nonQueryError}
-            text={queryText}
+            error={error}
+            text={queryVariables.error ? variablesText : queryText}
           />
         </InputGroup>
 
@@ -139,7 +142,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
           size="sm"
           style={{ width: "fit-content" }}
           onClick={handleQueryButtonClick}
-          disabled={!!error}
+          disabled={variablesInvalid || queryInvalid}
         >
           Query
         </Button>
@@ -149,7 +152,7 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
         <QueryResults
           queryIdx={idx}
           stale={query.stale}
-          queryVariables={queryVariables?.parsed ?? []}
+          queryVariables={queryVariables.parsed ?? []}
           results={queryResults}
           onResultsClose={() => setShowResults(false)}
         />

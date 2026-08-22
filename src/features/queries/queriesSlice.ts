@@ -7,18 +7,19 @@ import type { RootState } from "../../app/store";
 import { selectLanguage } from "../language/languageSlice";
 import { selectStructure } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
-import { SyntaxError as ParserSyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { parseFormula, safeEval } from "../../shared/core/formulas";
+import {
+  parseFormula,
+  safeEval,
+  validateAssignedFreeVariables,
+  type FormulaError,
+} from "../../shared/core/formulas";
 import type Formula from "../../model/formula/Formula";
 
+import { createSemanticError } from "../../shared/core/errors";
 import {
-  createSemanticError,
-  createSyntaxError,
-  type EvaluationError,
-  type SemanticError,
-  type SyntaxError,
-} from "../../shared/core/errors";
-import { parseConstants } from "@fmfi-uk-1-ain-412/js-fol-parser";
+  parseQueryVariables,
+  validateQueryVariables,
+} from "../../shared/core/parsers/queryVariables";
 import type { SerializedQueriesState } from "./validationSchema";
 import { plural, toBe } from "../../shared/core/wordForms";
 
@@ -123,33 +124,11 @@ export const selectParsedQueryVariables = createSelector(
   (query) => {
     if (!query) return undefined;
 
-    let parsed: string[];
-    try {
-      parsed = parseConstants(query.variablesText);
-    } catch (error) {
-      if (error instanceof ParserSyntaxError) {
-        return {
-          error: createSyntaxError(
-            error.message.replace("constant", "variable"),
-            error.location,
-          ),
-        };
-      }
-      throw error;
-    }
+    const { parsed, error } = parseQueryVariables(query?.variablesText);
+    if (error) return { error };
 
-    const duplicates = [
-      ...new Set(parsed.filter((v, i) => parsed.indexOf(v) !== i)),
-    ];
-
-    if (duplicates.length > 0)
-      return {
-        error: createSemanticError(
-          `Query ${plural(duplicates.length, "variable")} ${duplicates.join(", ")} ` +
-            `${toBe(duplicates.length)} listed ` +
-            `more than once. Query variables must be distinct.`,
-        ),
-      };
+    const validationError = validateQueryVariables(parsed);
+    if (validationError) return { error: validationError };
 
     return { parsed };
   },
@@ -162,10 +141,7 @@ export const selectParsedQuery = createSelector(
 
 export type EvaluatedQuery =
   | { formula: Formula; error?: undefined }
-  | {
-      formula?: undefined;
-      error: SyntaxError | SemanticError | EvaluationError;
-    };
+  | { formula?: undefined; error: FormulaError };
 
 export const selectEvaluatedQuery = createSelector(
   [
@@ -182,12 +158,7 @@ export const selectEvaluatedQuery = createSelector(
   ): EvaluatedQuery | undefined => {
     if (!parsed || !queryVariables) return undefined;
 
-    if (queryVariables.error)
-      return {
-        error: createSemanticError(
-          `Invalid query variables: ${queryVariables.error.message}`,
-        ),
-      };
+    if (queryVariables.error) return { error: queryVariables.error };
 
     const newValuation = new Map(valuation);
     for (const variable of queryVariables.parsed) {
@@ -197,22 +168,14 @@ export const selectEvaluatedQuery = createSelector(
     if (!parsed.formula) return parsed;
 
     const freeVariables = parsed.formula.getFreeVariables();
-    const unsetFreeVars = [...freeVariables].filter(
-      (v) => !newValuation.has(v),
+    const unassignedError = validateAssignedFreeVariables(
+      parsed.formula,
+      newValuation,
+      "not listed among query variables or assigned any value " +
+        "by the global assignment 𝑒.",
     );
 
-    const unsetFreeVarsLen = unsetFreeVars.length;
-    if (unsetFreeVarsLen > 0) {
-      const verb = toBe(unsetFreeVarsLen);
-
-      return {
-        error: createSemanticError(
-          `The ${plural(unsetFreeVarsLen, "variable")} ${unsetFreeVars.join(", ")} ${verb} free, ` +
-            `but ${verb} not listed among query variables or assigned any value ` +
-            `by the global assignment 𝑒.`,
-        ),
-      };
-    }
+    if (unassignedError) return { error: unassignedError };
 
     const { error } = safeEval(parsed.formula, structure, newValuation);
 
@@ -229,12 +192,6 @@ export const selectEvaluatedQuery = createSelector(
           `Query ${plural(notFreeLen, "variable")} ${notFree.join(", ")} ${toBe(notFreeLen)} ` +
             `not free on the right-hand side of the query definition.`,
         ),
-      };
-    }
-
-    if (queryVariables.parsed.length === 0) {
-      return {
-        error: createSemanticError(`No query variables specified.`),
       };
     }
 

@@ -20,8 +20,11 @@ import type { SerializedFormulasState } from "./validationSchema";
 import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../shared/core/logging";
-import { plural, toBe } from "../../shared/core/wordForms";
-import { parseFormula, safeEval } from "../../shared/core/formulas";
+import {
+  parseFormula,
+  safeEval,
+  validateAssignedFreeVariables,
+} from "../../shared/core/formulas";
 import { getRandomElement } from "../../shared/core/utils";
 
 export interface FormulaState {
@@ -238,22 +241,16 @@ const evaluateFormula = (
 
   const { formula } = parsed;
 
-  const freeVariables = formula.getFreeVariables();
-  const unsetFreeVars = [...freeVariables].filter((v) => !valuation.has(v));
+  const unassignedError = validateAssignedFreeVariables(
+    formula,
+    valuation,
+    "not assigned any value by the variable assignment 𝑒.",
+  );
 
-  const unsetFreeVarsLen = unsetFreeVars.length;
-  if (unsetFreeVarsLen > 0) {
-    const correctPluralVars = plural(unsetFreeVarsLen, "variable");
-    const correctPluralVerb = toBe(unsetFreeVarsLen);
-
+  if (unassignedError) {
     dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
 
-    return {
-      error: new Error(
-        `The ${correctPluralVars} ${unsetFreeVars.join(", ")} ${correctPluralVerb} free, 
-but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.`,
-      ),
-    };
+    return { error: unassignedError };
   }
 
   const { value: evaluated, error } = safeEval(formula, structure, valuation);
