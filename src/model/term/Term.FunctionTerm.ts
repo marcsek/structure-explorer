@@ -1,6 +1,7 @@
 import Structure, { type DomainElement, type Valuation } from "../Structure";
 import type { Symbol } from "../Language";
 import Term from "./Term";
+import EvaluationError from "../EvaluationError";
 
 /**
  * Represent function term
@@ -37,7 +38,9 @@ class FunctionTerm extends Term {
     const interpretation = structure.iF.get(this.name);
 
     if (interpretation === undefined) {
-      throw new Error(
+      throw new EvaluationError(
+        "undefinedFunction",
+        this.name,
         `The interpretation of the function symbol ${this.name} is not defined.`,
       );
     }
@@ -45,7 +48,9 @@ class FunctionTerm extends Term {
     const interpretedValue = structure.iFGet(this.name, interpretedParams);
 
     if (interpretedValue === undefined) {
-      throw new Error(
+      throw new EvaluationError(
+        "undefinedFunctionValue",
+        this.name,
         `The interpretation of the function symbol ${this.name} for ${
           interpretedParams.length > 1
             ? `(${interpretedParams})`

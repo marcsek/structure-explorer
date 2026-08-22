@@ -2,6 +2,7 @@ import Formula, { type SignedFormula, SignedFormulaType } from "./Formula";
 import Term from "../term/Term";
 import Structure, { type Valuation } from "../Structure";
 import type { Symbol } from "../Language";
+import EvaluationError from "../EvaluationError";
 
 /**
  * Represent predicate symbol
@@ -35,7 +36,9 @@ class PredicateAtom extends Formula {
     const interpretation = structure.iP.get(this.name);
 
     if (interpretation === undefined) {
-      throw new Error(
+      throw new EvaluationError(
+        "undefinedPredicate",
+        this.name,
         `The interpretation of the predicate symbol ${this.name} is not defined`,
       );
     }

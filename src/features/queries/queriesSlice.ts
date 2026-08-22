@@ -8,10 +8,15 @@ import { selectLanguage } from "../language/languageSlice";
 import { selectStructure } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
 import { SyntaxError as ParserSyntaxError } from "@fmfi-uk-1-ain-412/js-fol-parser";
-import { parseFormula } from "../../shared/core/formulas";
+import { parseFormula, safeEval } from "../../shared/core/formulas";
+import type Formula from "../../model/formula/Formula";
+
 import {
   createSemanticError,
   createSyntaxError,
+  type EvaluationError,
+  type SemanticError,
+  type SyntaxError,
 } from "../../shared/core/errors";
 import { parseConstants } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import type { SerializedQueriesState } from "./validationSchema";
@@ -155,6 +160,13 @@ export const selectParsedQuery = createSelector(
   (language, query) => (query ? parseFormula(query.text, language) : undefined),
 );
 
+export type EvaluatedQuery =
+  | { formula: Formula; error?: undefined }
+  | {
+      formula?: undefined;
+      error: SyntaxError | SemanticError | EvaluationError;
+    };
+
 export const selectEvaluatedQuery = createSelector(
   [
     selectStructure,
@@ -162,7 +174,12 @@ export const selectEvaluatedQuery = createSelector(
     selectParsedQueryVariables,
     selectValuation,
   ],
-  (structure, parsed, queryVariables, valuation) => {
+  (
+    structure,
+    parsed,
+    queryVariables,
+    valuation,
+  ): EvaluatedQuery | undefined => {
     if (!parsed || !queryVariables) return undefined;
 
     if (queryVariables.error)
@@ -197,12 +214,9 @@ export const selectEvaluatedQuery = createSelector(
       };
     }
 
-    try {
-      parsed.formula.eval(structure, newValuation);
-    } catch (error) {
-      if (error instanceof Error)
-        return { error: createSemanticError(error.message) };
-    }
+    const { error } = safeEval(parsed.formula, structure, newValuation);
+
+    if (error) return { error };
 
     const notFree = [...queryVariables.parsed].filter(
       (v) => !freeVariables.has(v),
@@ -252,12 +266,18 @@ export const getQueryResults = createSelector(
         enhancedValuation.set(variables[i], valuation[i]);
       }
 
-      try {
-        if (query.formula.eval(structure, enhancedValuation))
-          satisfying.push(valuation);
-      } catch (error) {
+      const { value, error } = safeEval(
+        query.formula,
+        structure,
+        enhancedValuation,
+      );
+
+      if (error) {
         console.error(error);
+        continue;
       }
+
+      if (value) satisfying.push(valuation);
     }
 
     return satisfying;

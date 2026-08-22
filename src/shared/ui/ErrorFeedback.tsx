@@ -1,11 +1,11 @@
 import { SyntaxError, type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import { Form } from "react-bootstrap";
-import type { InterpretationError } from "../core/errors";
+import type { EvaluationError, InterpretationError } from "../core/errors";
 
 // TODO: better error type
 interface ErrorFeedbackProps {
   id?: string;
-  error: Error | InterpretationError | undefined;
+  error: Error | InterpretationError | EvaluationError | undefined;
   text: string;
 }
 

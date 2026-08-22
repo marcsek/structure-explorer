@@ -21,7 +21,7 @@ import type Language from "../../model/Language";
 import type Structure from "../../model/Structure";
 import { dev } from "../../shared/core/logging";
 import { plural, toBe } from "../../shared/core/wordForms";
-import { parseFormula } from "../../shared/core/formulas";
+import { parseFormula, safeEval } from "../../shared/core/formulas";
 import { getRandomElement } from "../../shared/core/utils";
 
 export interface FormulaState {
@@ -256,23 +256,13 @@ but ${correctPluralVerb} not assigned any value by the variable assignment 𝑒.
     };
   }
 
-  try {
-    const evaluated = formula.eval(structure, valuation);
-
-    dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
-
-    return { evaluated, formula };
-  } catch (error) {
-    if (error instanceof Error) {
-      dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
-
-      return { error: error };
-    }
-  }
+  const { value: evaluated, error } = safeEval(formula, structure, valuation);
 
   dev.timeEnd(`selectEvaluatedFormula duration (${formText})`);
 
-  return {};
+  if (error) return { error };
+
+  return { evaluated, formula };
 };
 
 export const selectEvaluatedFormula = createSelector(
@@ -610,21 +600,23 @@ export const selectIsVerifiedGame = createSelector(
 
     const lastFormula = last.sf.formula;
 
-    try {
-      if (
-        lastFormula instanceof PredicateAtom ||
-        lastFormula instanceof EqualityAtom
-      ) {
-        const originallyCorrect = first.rootFormulaEval === first.sf.sign;
-        const didWin =
-          lastFormula.eval(structure, last.valuation) === last.sf.sign;
+    if (
+      lastFormula instanceof PredicateAtom ||
+      lastFormula instanceof EqualityAtom
+    ) {
+      const { value, error } = safeEval(lastFormula, structure, last.valuation);
 
-        if (originallyCorrect && !didWin) return undefined;
-
-        return didWin;
+      if (error) {
+        console.error(error);
+        return undefined;
       }
-    } catch (error) {
-      console.error(error);
+
+      const originallyCorrect = first.rootFormulaEval === first.sf.sign;
+      const didWin = value === last.sf.sign;
+
+      if (originallyCorrect && !didWin) return undefined;
+
+      return didWin;
     }
   },
 );

@@ -13,7 +13,7 @@ export interface QueryResultsProps {
   stale: boolean;
   results: QueryResult[];
   queryVariables: string[];
-  onResultsReset: () => void;
+  onResultsClose: () => void;
 }
 
 export default function QueryResults({
@@ -21,7 +21,7 @@ export default function QueryResults({
   stale,
   results,
   queryVariables,
-  onResultsReset,
+  onResultsClose,
 }: QueryResultsProps) {
   const queryVariablesLen = queryVariables.length;
   const queryVarsEscaped = queryVariables.map((v) => latex().escape(v).get());
@@ -45,7 +45,7 @@ export default function QueryResults({
           <InlineMath>{queryResultString}</InlineMath>
         </span>
 
-        <CloseButton onClick={onResultsReset} />
+        <CloseButton onClick={onResultsClose} />
       </div>
 
       <QueryResultTable

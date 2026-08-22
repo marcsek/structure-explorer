@@ -1,7 +1,7 @@
 import {
   parseFormulaWithPrecedence,
   SyntaxError as ParserSyntaxError,
-  type ErrorExpected,
+  type FormulaFactories,
 } from "@fmfi-uk-1-ain-412/js-fol-parser";
 import Conjunction from "../../model/formula/Formula.Conjunction";
 import Disjunction from "../../model/formula/Formula.Disjunction";
@@ -18,44 +18,52 @@ import FunctionTerm from "../../model/term/Term.FunctionTerm";
 import Variable from "../../model/term/Term.Variable";
 import type Language from "../../model/Language";
 import type Formula from "../../model/formula/Formula";
-import { createSyntaxError, type InterpretationError } from "./errors";
+import {
+  createEvaluationError,
+  createSyntaxError,
+  type EvaluationError,
+  type InterpretationError,
+  type SyntaxError,
+} from "./errors";
+import ThrownEvaluationError from "../../model/EvaluationError";
+import type {
+  DomainElement,
+  Structure,
+  Valuation,
+} from "../../model/Structure";
 import { createSelector } from "@reduxjs/toolkit";
 import { selectStructureErrors } from "../../features/structure/structureSlice";
 import { selectFirstLanguageError } from "../../features/language/languageSlice";
 import { selectValidatedVariables } from "../../features/variables/variablesSlice";
 
-export function getFormulaFactories(language: Language) {
+export function getFormulaFactories(
+  language: Language,
+): FormulaFactories<Term, Formula> {
   return {
-    variable: (symbol: string) => new Variable(symbol),
-    constant: (symbol: string) => new Constant(symbol),
-    functionApplication: (
-      symbol: string,
-      args: Array<Term>,
-      ee: ErrorExpected,
-    ) => {
+    variable: (symbol) => new Variable(symbol),
+    constant: (symbol) => new Constant(symbol),
+    functionApplication(symbol, args, ee) {
       language.checkFunctionArity(symbol, args, ee);
       return new FunctionTerm(symbol, args);
     },
-    predicateAtom: (symbol: string, args: Array<Term>, ee: ErrorExpected) => {
+    predicateAtom(symbol, args, ee) {
       language.checkPredicateArity(symbol, args, ee);
       return new PredicateAtom(symbol, args);
     },
-    equalityAtom: (lhs: Term, rhs: Term) => new EqualityAtom(lhs, rhs),
-    negation: (subf: Formula) => new Negation(subf),
-    conjunction: (lhs: Formula, rhs: Formula) => new Conjunction(lhs, rhs),
-    disjunction: (lhs: Formula, rhs: Formula) => new Disjunction(lhs, rhs),
-    implication: (lhs: Formula, rhs: Formula) => new Implication(lhs, rhs),
-    equivalence: (lhs: Formula, rhs: Formula) => new Equivalence(lhs, rhs),
-    existentialQuant: (variable: string, subf: Formula) =>
-      new ExistentialQuant(variable, subf),
-    universalQuant: (variable: string, subf: Formula) =>
-      new UniversalQuant(variable, subf),
+    equalityAtom: (lhs, rhs) => new EqualityAtom(lhs, rhs),
+    negation: (subf) => new Negation(subf),
+    conjunction: (lhs, rhs) => new Conjunction(lhs, rhs),
+    disjunction: (lhs, rhs) => new Disjunction(lhs, rhs),
+    implication: (lhs, rhs) => new Implication(lhs, rhs),
+    equivalence: (lhs, rhs) => new Equivalence(lhs, rhs),
+    existentialQuant: (variable, subf) => new ExistentialQuant(variable, subf),
+    universalQuant: (variable, subf) => new UniversalQuant(variable, subf),
   };
 }
 
 export type ParsedFormula =
   | { formula: Formula; error?: undefined }
-  | { formula?: undefined; error: InterpretationError };
+  | { formula?: undefined; error: SyntaxError };
 
 export function parseFormula(text: string, language: Language): ParsedFormula {
   try {
@@ -69,6 +77,28 @@ export function parseFormula(text: string, language: Language): ParsedFormula {
   } catch (error) {
     if (error instanceof ParserSyntaxError) {
       return { error: createSyntaxError(error.message, error.location) };
+    }
+
+    throw error;
+  }
+}
+
+export type Evaluated<T> =
+  | { value: T; error?: undefined }
+  | { value?: undefined; error: EvaluationError };
+
+export function safeEval<T extends DomainElement | boolean>(
+  expression: { eval: (structure: Structure, e: Valuation) => T },
+  structure: Structure,
+  valuation: Valuation,
+): Evaluated<T> {
+  try {
+    return { value: expression.eval(structure, valuation) };
+  } catch (error) {
+    if (error instanceof ThrownEvaluationError) {
+      return {
+        error: createEvaluationError(error.reason, error.symbol, error.message),
+      };
     }
 
     throw error;

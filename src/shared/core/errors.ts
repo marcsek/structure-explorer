@@ -1,4 +1,5 @@
 import { type Location } from "@fmfi-uk-1-ain-412/js-fol-parser";
+import type { EvaluationErrorReason } from "../../model/EvaluationError";
 
 export interface BaseError {
   kind: string;
@@ -15,6 +16,12 @@ export interface SemanticError extends BaseError {
   repairable: boolean;
 }
 
+export interface EvaluationError extends BaseError {
+  kind: "evaluation";
+  reason: EvaluationErrorReason;
+  symbol: string;
+}
+
 export const createSyntaxError = (
   message: string,
   location?: Location,
@@ -27,6 +34,14 @@ export const createSemanticError = (
   repairable = false,
 ): SemanticError => {
   return { kind: "semantic", message, repairable };
+};
+
+export const createEvaluationError = (
+  reason: EvaluationErrorReason,
+  symbol: string,
+  message: string,
+): EvaluationError => {
+  return { kind: "evaluation", reason, symbol, message };
 };
 
 export type InterpretationError = SyntaxError | SemanticError;

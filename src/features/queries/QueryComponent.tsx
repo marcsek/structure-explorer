@@ -30,6 +30,7 @@ export interface QueryComponentProps {
 export default function QueryComponent({ idx }: QueryComponentProps) {
   const dispatch = useAppDispatch();
   const store = useAppStore();
+  const [showResults, setShowResults] = useState(false);
   const [queryResults, setQueryResults] = useState<QueryResult[]>([]);
   const nonFormulaErrorMessage = useAppSelector(
     selectNonFormulaValidationError,
@@ -49,13 +50,14 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
     dispatch(updateQueryStaleness({ idx, stale: false }));
 
     setQueryResults(getQueryResults(store.getState(), idx));
+    setShowResults(true);
   };
 
   const serializedVars = queryVariables?.parsed?.join() ?? "";
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQueryResults([]);
+    setShowResults(false);
   }, [serializedVars]);
 
   if (!query) return null;
@@ -143,13 +145,13 @@ export default function QueryComponent({ idx }: QueryComponentProps) {
         </Button>
       </Stack>
 
-      {queryResults.length > 0 && (
+      {showResults && (
         <QueryResults
           queryIdx={idx}
           stale={query.stale}
           queryVariables={queryVariables?.parsed ?? []}
           results={queryResults}
-          onResultsReset={() => setQueryResults([])}
+          onResultsClose={() => setShowResults(false)}
         />
       )}
     </Stack>
