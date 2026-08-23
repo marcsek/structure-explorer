@@ -233,6 +233,16 @@ function getTreeNodeValidation(
   return errors;
 }
 
+export function hasCasePathError(row: CasePath) {
+  if (row.error !== "") return true;
+
+  return row.nodes.some(
+    (node) =>
+      node.errors.length > 0 ||
+      (node.case.type === "case" && node.case.error !== ""),
+  );
+}
+
 export function getCasePathErrors(row: CasePath) {
   const errors: string[] = [];
 

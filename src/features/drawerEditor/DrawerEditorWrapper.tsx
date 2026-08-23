@@ -9,24 +9,23 @@ import {
 } from "react-bootstrap";
 import EditorToolbar from "../editorToolbar/components/EditorToolbar";
 import { useState, type ReactNode } from "react";
+import { shallowEqual } from "react-redux";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
 import type { InterpretationError } from "../../shared/core/errors";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLock, faTrash, faWarning } from "@fortawesome/free-solid-svg-icons";
+import { faLock, faWarning } from "@fortawesome/free-solid-svg-icons";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import {
-  removeInvalidEntries,
-  selectTupleValidation,
-} from "../structure/structureSlice";
-import { UndoActions } from "../undoHistory/undoHistory";
 import usePreservedSize, { type Size } from "./usePreservedSize";
 import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
 import type { InterpretationEditorProps } from "../editors/editorDescriptor";
 import LockButton from "../../shared/ui/LockButton";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import { tupleLatexName } from "../textView/textViewAffixes";
-import type { DrawerEditorConfig, ErrorOverride } from "./drawerEditorAdapter";
+import {
+  resolveEditorError,
+  type DrawerEditorConfig,
+} from "./drawerEditorAdapter";
 
 interface DrawerEditorWrapperProps extends InterpretationEditorProps {
   config: DrawerEditorConfig;
@@ -84,44 +83,23 @@ function DrawerEditorContent({
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
-  const error = useAppSelector((state) =>
-    selectTupleValidation(state, tupleInfo.name, tupleInfo.type),
+  const editorError = useAppSelector(
+    (state) => resolveEditorError(config.errors, state, tupleInfo),
+    shallowEqual,
   );
 
   const { ref: preservedSizeRef, size: preservedSize } =
     usePreservedSize<HTMLDivElement>();
-  const [errorOverride, setErrorOverride] = useState<ErrorOverride | null>(
-    null,
-  );
 
   const editorComponent = show ? (
-    config.render({
-      id,
-      tupleInfo,
-      locked,
-      expandedView,
-      setExpandedView,
-      setErrorOverride,
-    })
+    config.render({ id, tupleInfo, locked, expandedView, setExpandedView })
   ) : (
     <InactiveViewPlaceholder size={preservedSize} />
   );
 
-  const shouldOverrideError = errorOverride?.editor === config.type;
-  const finalError = shouldOverrideError ? errorOverride.error : error;
-
-  const onFixButtonClick = () => {
-    if (shouldOverrideError) {
-      errorOverride.onFixButtonClick();
-    } else {
-      dispatch(removeInvalidEntries({ tupleInfo }));
-      dispatch(UndoActions.checkpoint());
-    }
-  };
-
   return (
     <Stack
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${finalError ? "error" : ""}`}
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${editorError ? "error" : ""}`}
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
@@ -156,17 +134,20 @@ function DrawerEditorContent({
           </div>
         )}
 
-        {finalError && (
+        {editorError && (
           <EditorError
-            error={finalError}
-            onFixButtonClick={onFixButtonClick}
-            fixButton={shouldOverrideError ? errorOverride.fixButton : null}
+            error={editorError.error}
+            fixButton={editorError.source.fixButton}
+            onFix={() =>
+              editorError.source.onFix &&
+              dispatch(editorError.source.onFix(tupleInfo))
+            }
           />
         )}
 
         <div
           ref={preservedSizeRef}
-          className={`drawer-editor-view-container ${finalError ? "error" : ""}`}
+          className={`drawer-editor-view-container ${editorError ? "error" : ""}`}
         >
           {editorComponent}
         </div>
@@ -216,11 +197,11 @@ function EditorControlsGroup({
 
 interface EditorErrorProps {
   error: InterpretationError;
-  onFixButtonClick: () => void;
   fixButton?: ReactNode;
+  onFix?: () => void;
 }
 
-function EditorError({ error, onFixButtonClick, fixButton }: EditorErrorProps) {
+function EditorError({ error, fixButton, onFix }: EditorErrorProps) {
   return (
     <div className="drawer-editor-error-container">
       <div className="drawer-editor-error-message">
@@ -228,19 +209,9 @@ function EditorError({ error, onFixButtonClick, fixButton }: EditorErrorProps) {
         <p>{error.message}</p>
       </div>
 
-      {error.kind === "semantic" && error.repairable && (
-        <Button
-          className=""
-          size="sm"
-          variant="outline-danger"
-          onClick={onFixButtonClick}
-        >
-          {fixButton ?? (
-            <>
-              <FontAwesomeIcon icon={faTrash} size="sm" />
-              Remove invalid
-            </>
-          )}
+      {error.kind === "semantic" && error.repairable && !!fixButton && (
+        <Button className="" size="sm" variant="outline-danger" onClick={onFix}>
+          {fixButton}
         </Button>
       )}
     </div>

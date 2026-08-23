@@ -1,5 +1,10 @@
+import { caseTreeOutOfSync } from "../caseTreeView/caseTreeError";
 import CaseTreeView from "../caseTreeView/components/CaseTreeView";
 import DatabaseView from "../databaseView/DatabaseView";
+import {
+  interpretationError,
+  unfixableInterpretationError,
+} from "../drawerEditor/interpretationError";
 import {
   drawerEditorAdapter,
   type RenderDrawerEditor,
@@ -35,6 +40,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ type }) => type === "function",
     supportsFullscreen: false,
     toolbar: false,
+    errors: [caseTreeOutOfSync, unfixableInterpretationError],
     render: (props) => <CaseTreeView {...props} />,
   }),
   matrix: drawerEditorAdapter({
@@ -45,6 +51,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ arity }) => arity <= 2,
     supportsFullscreen: false,
     toolbar: {},
+    errors: [interpretationError],
     render: (props) => <MatrixView {...props} />,
   }),
   database: drawerEditorAdapter({
@@ -55,6 +62,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ type, arity }) => arity <= 2 || type !== "function",
     supportsFullscreen: false,
     toolbar: { disabledFilters: ["domainSelector", "unaryFilterToggle"] },
+    errors: [interpretationError],
     render: (props) => <DatabaseView {...props} />,
   }),
   oriented: drawerEditorAdapter({
@@ -65,6 +73,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
     toolbar: {},
+    errors: [interpretationError],
     render: renderGraphEditor("oriented"),
   }),
   hasse: drawerEditorAdapter({
@@ -76,6 +85,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
       isBinaryRelation(tuple) && tuple.type !== "function",
     supportsFullscreen: true,
     toolbar: {},
+    errors: [interpretationError],
     render: renderGraphEditor("hasse"),
   }),
   bipartite: drawerEditorAdapter({
@@ -86,6 +96,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
     toolbar: {},
+    errors: [interpretationError],
     render: renderGraphEditor("bipartite"),
   }),
 };

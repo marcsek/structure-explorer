@@ -21,7 +21,7 @@ export function generateTuples(
     node: CaseTreeNode,
     partialTuple: (string[] | null)[],
   ): GenerateTuplesResult => {
-    if (!node?.default || !node.variable) return { ok: false };
+    if (!node?.variable) return { ok: false };
     if (!allowedVars.includes(node.variable)) return { ok: false };
 
     const variableIdx = allowedVars.indexOf(node.variable);
@@ -29,50 +29,50 @@ export function generateTuples(
 
     if (partialTupleCpy[variableIdx] !== null) return { ok: false };
 
-    const cases = [
-      ...node.cases.map((c) => ({ ...c, type: "case" as const })),
-      { branch: node.default, type: "default" as const },
-    ];
+    const expandBranch = (branch: CaseTreeBranch): GenerateTuplesResult => {
+      if (branch.type === "ref")
+        return dfs(nodes[branch.nodeId], partialTupleCpy);
 
-    const tuples: string[][] = [];
-    const seenMatches = new Set<string>();
-    for (const nodeCase of cases) {
-      if (nodeCase.type === "case") {
-        const matches = parseMatch(nodeCase.match);
-
-        if (
-          !matches.some((m) => domain.has(m)) ||
-          matches.some((m) => seenMatches.has(m))
-        )
-          return { ok: false };
-
-        matches.forEach((m) => seenMatches.add(m));
-
-        partialTupleCpy[variableIdx] = [...matches];
-      } else {
-        partialTupleCpy[variableIdx] = [...domain].filter(
-          (d) => !seenMatches.has(d),
-        );
-      }
-
-      if (nodeCase.branch.type === "ref") {
-        const result = dfs(nodes[nodeCase.branch.nodeId], partialTupleCpy);
-
-        if (!result.ok) return result;
-
-        tuples.push(...result.tuples);
-
-        continue;
-      }
-
-      if (!domain.has(nodeCase.branch.value)) return { ok: false };
+      if (!domain.has(branch.value)) return { ok: false };
 
       const generatableTuple = partialTupleCpy.map((e) =>
         e === null ? [...domain] : e,
       );
 
-      tuples.push(...combinations(generatableTuple, nodeCase.branch.value));
+      return { ok: true, tuples: combinations(generatableTuple, branch.value) };
+    };
+
+    const tuples: string[][] = [];
+    const seenMatches = new Set<string>();
+    for (const nodeCase of node.cases) {
+      const matches = parseMatch(nodeCase.match);
+
+      if (
+        matches.some((m) => !domain.has(m)) ||
+        matches.some((m) => seenMatches.has(m))
+      )
+        return { ok: false };
+
+      matches.forEach((m) => seenMatches.add(m));
+      partialTupleCpy[variableIdx] = [...matches];
+
+      const result = expandBranch(nodeCase.branch);
+
+      if (!result.ok) return result;
+
+      tuples.push(...result.tuples);
     }
+
+    const leftover = [...domain].filter((d) => !seenMatches.has(d));
+    if (leftover.length === 0) return { ok: true, tuples };
+
+    if (!node.default) return { ok: false };
+
+    partialTupleCpy[variableIdx] = leftover;
+    const defaultResult = expandBranch(node.default);
+    if (!defaultResult.ok) return defaultResult;
+
+    tuples.push(...defaultResult.tuples);
 
     return { ok: true, tuples };
   };

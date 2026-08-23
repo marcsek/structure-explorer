@@ -19,7 +19,7 @@ import {
   intervalVariables,
 } from "./model/caseTree";
 import { generateTuples, initializeTreeFromTuples } from "./model/tuples";
-import { flattenCaseTree } from "./model/flattenTree";
+import { flattenCaseTree, hasCasePathError } from "./model/flattenTree";
 import type {
   AppendTarget,
   BranchTarget,
@@ -227,8 +227,10 @@ export const {
 
 export const regenerateInterpretation =
   (tupleName: string): AppThunk =>
-  (dispatch, getState) =>
+  (dispatch, getState) => {
     updateInterpretation(dispatch, getState, tupleName);
+    dispatch(UndoActions.checkpoint());
+  };
 
 const treeUpdateWrapper =
   <T>(action: PayloadActionCreator<WithCaseTreeId<T>>) =>
@@ -299,4 +301,16 @@ export const selectCasePaths = createSelector(
       arity ?? 0,
     );
   },
+);
+
+export const selectCaseTreeOutOfSync = createSelector(
+  [
+    selectCasePaths,
+    (state: RootState, functionName: string) =>
+      selectValidatedFunction(state, functionName).error,
+  ],
+  (casePaths, error) =>
+    !!error &&
+    !!casePaths &&
+    casePaths.every((path) => !hasCasePathError(path)),
 );

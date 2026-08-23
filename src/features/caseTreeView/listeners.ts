@@ -1,5 +1,6 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
 import {
+  selectValidatedFunction,
   updateDomain,
   updateFunctionSymbols,
 } from "../structure/structureSlice";
@@ -20,8 +21,9 @@ caseTreeListener.startListening({
 
     if (updateFunctionSymbols.match(action)) {
       const functionName = action.payload.key;
+      const validation = selectValidatedFunction(api.getState(), functionName);
 
-      if (action.meta.source === "caseTreeView") return;
+      if (action.meta.source === "caseTreeView" || validation.error) return;
 
       const caseTreeEntry = state.caseTreeView[functionName];
       if (!caseTreeEntry) return;
