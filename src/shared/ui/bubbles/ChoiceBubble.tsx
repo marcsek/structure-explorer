@@ -3,6 +3,7 @@ import { InlineMath } from "react-katex";
 
 export interface ChoiceBubble {
   value: string;
+  latex?: boolean;
   onClick: () => void;
 }
 
@@ -15,15 +16,15 @@ export interface ChoiceBubblesProps {
 export default function ChoiceBubbles({ bubbles }: ChoiceBubblesProps) {
   return (
     <div>
-      {bubbles.map(({ value, onClick }) => {
+      {bubbles.map(({ value, latex = true, onClick }, idx) => {
         return (
           <Button
-            key={value}
+            key={idx}
             size="sm"
             variant="outline-primary d-inline m-1"
             onClick={onClick}
           >
-            <InlineMath>{value}</InlineMath>
+            {latex ? <InlineMath>{value}</InlineMath> : value}
           </Button>
         );
       })}

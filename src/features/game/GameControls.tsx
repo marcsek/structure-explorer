@@ -30,7 +30,8 @@ export default function GameControls({ id }: GameControlsProps) {
       case "alpha":
         return [
           {
-            value: "\\text{Continue}",
+            value: "Continue",
+            latex: false,
             onClick: () => dispatch(addGameChoice({ id, type: "alpha" })),
           },
         ];
@@ -60,7 +61,8 @@ export default function GameControls({ id }: GameControlsProps) {
       case "gamma": {
         return [
           {
-            value: "\\text{Continue}",
+            value: "Continue",
+            latex: false,
             onClick: () => dispatch(addGameChoice({ id, type: "gamma" })),
           },
         ];
