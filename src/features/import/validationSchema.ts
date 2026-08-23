@@ -82,12 +82,17 @@ export function parseSerializedAppStateWithDefaults(data: unknown): {
   errors: string[];
 } {
   const errors: string[] = [];
-  const input = (data ?? {}) as Record<string, unknown>;
+  const parsedInput = z.looseObject({}).safeParse(data);
   const result = createSchemaDefaults();
+
+  if (!parsedInput.success) {
+    errors.push(z.prettifyError(parsedInput.error));
+    return { data: result, errors };
+  }
 
   for (const [field, schema] of Object.entries(schemaFields)) {
     const key = field as keyof typeof schemaFields;
-    const parsed = schema.safeParse(input[key]);
+    const parsed = schema.safeParse(parsedInput.data[key]);
 
     if (parsed.success) {
       // Typescript isn't able to narrow this.

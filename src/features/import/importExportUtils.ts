@@ -123,7 +123,7 @@ const getRelevantSymbols = (language: LanguageState): RelevantSymbols => {
   const addSymbol = (key: string, value: RelevantSymbols[string]) => {
     if (key in symbols) {
       console.warn(
-        `Found duplicate symbol name: "${key}" while exporting Structure Explorer State`,
+        `Found duplicate symbol name: "${key}" while exporting Structure Explorer state`,
       );
     }
     symbols[key] = value;

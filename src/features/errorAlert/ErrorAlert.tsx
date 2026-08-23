@@ -14,7 +14,7 @@ export default function ErrorAlert() {
       <ToastErrorVisual
         show={errorKind === "localImportFailed"}
         heading="Import failed"
-        message="The provided JSON file was invalid. See console output for details."
+        message="The provided JSON file could not be fully imported. See console output for details."
         onClose={() => dispatch(clearError())}
       />
 

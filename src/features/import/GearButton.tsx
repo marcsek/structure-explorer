@@ -11,7 +11,7 @@ import {
   updateTeacherMode,
 } from "../teacherMode/teacherModeSlice.ts";
 import { useLogicContext } from "../../providers/logicContext";
-import { serializedAppStateSchema } from "./validationSchema";
+import { parseSerializedAppStateWithDefaults } from "./validationSchema";
 import { clearError, setError } from "../errorAlert/errorAlertSlice";
 import { useInstanceId } from "../../providers/instanceIdContext.tsx";
 
@@ -34,9 +34,14 @@ export default function GearButton() {
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result?.toString() ?? "");
-        const serializedAppState = serializedAppStateSchema.parse(json);
+        const { data, errors } = parseSerializedAppStateWithDefaults(json);
 
-        dispatch(importAppState(serializedAppState, !!logicContext));
+        dispatch(importAppState(data, !!logicContext));
+
+        if (errors.length !== 0) {
+          throw errors;
+        }
+
         dispatch(clearError());
       } catch (err) {
         console.error(err);
