@@ -1,4 +1,4 @@
-import IntervalView from "../caseTreeView/IntervalView";
+import CaseTreeView from "../caseTreeView/components/CaseTreeView";
 import DatabaseView from "../databaseView/DatabaseView";
 import {
   drawerEditorAdapter,
@@ -35,7 +35,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
     isAvailable: ({ type }) => type === "function",
     supportsFullscreen: false,
     toolbar: false,
-    render: (props) => <IntervalView {...props} />,
+    render: (props) => <CaseTreeView {...props} />,
   }),
   matrix: drawerEditorAdapter({
     type: "matrix",

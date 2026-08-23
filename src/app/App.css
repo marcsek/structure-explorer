@@ -50,7 +50,7 @@
 .view-mode .btn,
 .view-mode .header-container > *,
 .view-mode .help-tooltip-button,
-.view-mode .interval-view .row-placeholder {
+.view-mode .case-tree-view .row-placeholder {
   display: none !important;
 }
 
@@ -60,7 +60,7 @@
 }
 
 .view-mode .input-group > .form-control,
-.view-mode .interval-view .form-control,
+.view-mode .case-tree-view .form-control,
 .view-mode .input-group > .form-select,
 .view-mode .input-group > .input-group-text {
   border: none;
@@ -169,13 +169,13 @@
   display: none;
 }
 
-.view-mode .interval-view .form-control {
+.view-mode .case-tree-view .form-control {
   padding: 0;
   width: 2rem;
   padding-left: 0.25rem;
 }
 
-.view-mode .interval-view-wrapper {
+.view-mode .case-tree-view-wrapper {
   min-height: 160px;
 }
 

@@ -5,7 +5,8 @@ import {
 } from "../structure/structureSlice";
 import type { RootState } from "../../app/store";
 import { selectValidatedFunctions } from "../language/languageSlice";
-import { copyNode, generateTuples, updateCaseTree } from "./helpers";
+import { copyNode } from "./model/caseTree";
+import { generateTuples, updateCaseTree } from "./model/tuples";
 import { updateTree } from "./caseTreeViewSlice";
 
 export const caseTreeListener = createListenerMiddleware<RootState>();
@@ -14,15 +15,15 @@ caseTreeListener.startListening({
   matcher: isAnyOf(updateDomain, updateFunctionSymbols),
   effect(action, api) {
     const state = api.getState().present;
-    const intervalViews = state.caseTreeView;
+    const caseTrees = state.caseTreeView;
     const domain = new Set(state.structure.domain.value);
 
     if (updateFunctionSymbols.match(action)) {
-      const tupleName = action.payload.key;
+      const functionName = action.payload.key;
 
       if (action.meta.source === "caseTreeView") return;
 
-      const caseTreeEntry = state.caseTreeView[tupleName];
+      const caseTreeEntry = state.caseTreeView[functionName];
       if (!caseTreeEntry) return;
 
       const nodesCopy = Object.fromEntries(
@@ -35,10 +36,12 @@ caseTreeListener.startListening({
 
       updateCaseTree(caseTreeCopy, action.payload.value);
 
-      return void api.dispatch(updateTree({ tupleName, tree: caseTreeCopy }));
+      return void api.dispatch(
+        updateTree({ functionName, tree: caseTreeCopy }),
+      );
     }
 
-    for (const [tupleName, view] of Object.entries(intervalViews)) {
+    for (const [tupleName, view] of Object.entries(caseTrees)) {
       const { rootId, nodes } = view;
       const arity = selectValidatedFunctions(api.getState()).parsed.get(
         tupleName,

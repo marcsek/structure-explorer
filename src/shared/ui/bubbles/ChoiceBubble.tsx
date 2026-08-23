@@ -19,7 +19,8 @@ export default function ChoiceBubbles({ bubbles }: ChoiceBubblesProps) {
       {bubbles.map(({ value, latex = true, onClick }, idx) => {
         return (
           <Button
-            key={idx}
+            // If number of buttons changes, don't preserve
+            key={idx + 2 * bubbles.length}
             size="sm"
             variant="outline-primary d-inline m-1"
             onClick={onClick}

@@ -14,13 +14,18 @@ import {
 } from "../structure/structureSlice";
 import { selectValidatedFunctions } from "../language/languageSlice";
 import {
-  generateTuples,
   getNextNodeId,
-  getStructuredIntervalView,
   getSubstreeNodeIds,
-  initializeTreeFromTuples,
   intervalVariables,
-} from "./helpers";
+} from "./model/caseTree";
+import { generateTuples, initializeTreeFromTuples } from "./model/tuples";
+import { flattenCaseTree } from "./model/flattenTree";
+import type {
+  AppendTarget,
+  BranchTarget,
+  CaseRef,
+  EditTarget,
+} from "./model/targets";
 import { dev } from "../../shared/core/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
 import { UndoActions } from "../undoHistory/undoHistory";
@@ -47,8 +52,20 @@ export interface CaseTreeEntry {
 export type CaseTreeState = Record<string, CaseTreeEntry>;
 
 type WithCaseTreeId<T = object> = {
-  tupleName: string;
+  functionName: string;
 } & T;
+
+const getBranch = (node: CaseTreeNode, ref: CaseRef) =>
+  ref.kind === "case" ? node.cases[ref.caseIdx]?.branch : node.default;
+
+const setBranch = (
+  node: CaseTreeNode,
+  ref: CaseRef,
+  branch: CaseTreeBranch,
+) => {
+  if (ref.kind === "default") node.default = branch;
+  else node.cases[ref.caseIdx].branch = branch;
+};
 
 export const initialCaseTreeViewState: CaseTreeState = {};
 
@@ -64,11 +81,11 @@ export const caseTreeViewSlice = createSlice({
     },
 
     initializeTree(state, action: PayloadAction<WithCaseTreeId>) {
-      const { tupleName } = action.payload;
+      const { functionName } = action.payload;
 
-      if (tupleName in state) return;
+      if (functionName in state) return;
 
-      state[tupleName] = {
+      state[functionName] = {
         rootId: "root",
         nodes: { root: { variable: intervalVariables[0], cases: [] } },
       };
@@ -78,156 +95,111 @@ export const caseTreeViewSlice = createSlice({
       state,
       action: PayloadAction<WithCaseTreeId<{ tree: CaseTreeEntry }>>,
     ) {
-      const { tupleName, tree } = action.payload;
+      const { functionName, tree } = action.payload;
 
-      state[tupleName] = tree;
+      state[functionName] = tree;
     },
 
-    updateNode(
+    editCaseTree(
       state,
       action: PayloadAction<
-        WithCaseTreeId<{ nodeId: string; variable: string }>
+        WithCaseTreeId<{ target: EditTarget; value: string }>
       >,
     ) {
-      const { nodeId, variable, tupleName } = action.payload;
-
-      if (state[tupleName]) state[tupleName].nodes[nodeId].variable = variable;
-    },
-
-    updateCase(
-      state,
-      action: PayloadAction<
-        WithCaseTreeId<{ nodeId: string; caseIdx: number; match: string }>
-      >,
-    ) {
-      const { nodeId, caseIdx, match, tupleName } = action.payload;
-
-      const caseToUpdate = state[tupleName]?.nodes[nodeId].cases[caseIdx];
-
-      if (caseToUpdate) caseToUpdate.match = match;
-    },
-
-    updateBranch(
-      state,
-      action: PayloadAction<
-        WithCaseTreeId<{
-          nodeId: string;
-          branch: CaseTreeBranch;
-          caseIdx?: number;
-        }>
-      >,
-    ) {
-      const { nodeId, caseIdx, branch, tupleName } = action.payload;
-
-      if (!state[tupleName]) return;
-
-      const node = state[tupleName].nodes[nodeId];
-
-      if (caseIdx === undefined) node.default = branch;
-      else node.cases[caseIdx].branch = branch;
-    },
-
-    addCase(
-      state,
-      action: PayloadAction<
-        WithCaseTreeId<{
-          parentId: string;
-          caseType: "case" | "default";
-          branchType: "value" | "ref";
-          caseIdx?: number;
-          variable?: string;
-          value?: string;
-          match?: string;
-        }>
-      >,
-    ) {
-      const {
-        parentId,
-        caseType,
-        branchType,
-        caseIdx,
-        tupleName,
-        variable,
-        value,
-        match,
-      } = action.payload;
-
-      if (!state[tupleName]) return;
-
-      const newBranch: CaseTreeBranch =
-        branchType === "value"
-          ? { type: "value", value: value ?? "" }
-          : { type: "ref", nodeId: "" };
-
-      const parent = state[tupleName].nodes[parentId];
-
-      if (newBranch.type === "ref") {
-        const newNode: CaseTreeNode = { variable: variable ?? "", cases: [] };
-        const nextId = getNextNodeId(state[tupleName].nodes);
-
-        newBranch.nodeId = nextId;
-        state[tupleName].nodes[nextId] = newNode;
-
-        newNode.default = { type: "value", value: "" };
-
-        const previousBranch =
-          caseIdx !== undefined ? parent.cases[caseIdx].branch : parent.default;
-
-        if (previousBranch && previousBranch.type === "value")
-          newNode.default.value = previousBranch.value;
-      }
-
-      if (caseType === "case" && caseIdx !== undefined) {
-        parent.cases[caseIdx].branch = newBranch;
-        if (match) parent.cases[caseIdx].match = match;
-      } else if (caseType === "case") {
-        const newCase: CaseTreeCase = { match: match ?? "", branch: newBranch };
-        parent.cases.push(newCase);
-      } else {
-        parent.default = newBranch;
-      }
-    },
-
-    addInitialCase(
-      state,
-      action: PayloadAction<WithCaseTreeId<{ variable: string }>>,
-    ) {
-      const { tupleName, variable } = action.payload;
-
-      if (!state[tupleName]) return;
-
-      const rootId = state[tupleName].rootId;
-      const rootNode = state[tupleName].nodes[rootId];
-
-      rootNode.variable = variable;
-      rootNode.cases.push({ match: "", branch: { type: "value", value: "" } });
-    },
-
-    deleteCase(
-      state,
-      action: PayloadAction<
-        WithCaseTreeId<{
-          parentId: string;
-          caseType: "case" | "default";
-          caseIdx?: number;
-        }>
-      >,
-    ) {
-      const { parentId, tupleName, caseType, caseIdx } = action.payload;
-      const caseTree = state[tupleName];
+      const { target, value, functionName } = action.payload;
+      const caseTree = state[functionName];
 
       if (!caseTree) return;
 
-      const parentNode = caseTree.nodes[parentId];
+      switch (target.kind) {
+        case "value":
+          setBranch(caseTree.nodes[target.ref.nodeId], target.ref, {
+            type: "value",
+            value,
+          });
+          return;
 
-      let branch: CaseTreeBranch | undefined;
-      if (caseType === "case" && caseIdx !== undefined) {
-        branch = parentNode.cases[caseIdx].branch;
-        parentNode.cases.splice(caseIdx, 1);
-      } else if (caseType === "default") {
-        branch = parentNode.default;
-        parentNode.default = undefined;
+        case "variable":
+          caseTree.nodes[target.nodeId].variable = value;
+          return;
+
+        case "match": {
+          const caseToUpdate =
+            caseTree.nodes[target.nodeId].cases[target.caseIdx];
+
+          if (caseToUpdate) caseToUpdate.match = value;
+          return;
+        }
       }
+    },
+
+    appendCase(
+      state,
+      action: PayloadAction<
+        WithCaseTreeId<{ target: AppendTarget; value: string }>
+      >,
+    ) {
+      const { target, value, functionName } = action.payload;
+      const caseTree = state[functionName];
+
+      if (!caseTree) return;
+
+      caseTree.nodes[target.nodeId].cases.push(
+        target.kind === "appendValue"
+          ? { match: "", branch: { type: "value", value } }
+          : { match: value, branch: { type: "value", value: "" } },
+      );
+    },
+
+    branchVariable(
+      state,
+      action: PayloadAction<
+        WithCaseTreeId<{ target: BranchTarget; variable: string }>
+      >,
+    ) {
+      const { target, variable, functionName } = action.payload;
+      const caseTree = state[functionName];
+
+      if (!caseTree) return;
+
+      if (target.kind === "initial") {
+        const rootNode = caseTree.nodes[caseTree.rootId];
+
+        rootNode.variable = variable;
+        rootNode.cases.push({
+          match: "",
+          branch: { type: "value", value: "" },
+        });
+        return;
+      }
+
+      const parent = caseTree.nodes[target.ref.nodeId];
+      const previousBranch = getBranch(parent, target.ref);
+      const nextId = getNextNodeId(caseTree.nodes);
+
+      caseTree.nodes[nextId] = {
+        variable,
+        cases: [],
+        default: {
+          type: "value",
+          value: previousBranch?.type === "value" ? previousBranch.value : "",
+        },
+      };
+
+      setBranch(parent, target.ref, { type: "ref", nodeId: nextId });
+    },
+
+    deleteCase(state, action: PayloadAction<WithCaseTreeId<{ ref: CaseRef }>>) {
+      const { ref, functionName } = action.payload;
+      const caseTree = state[functionName];
+
+      if (!caseTree) return;
+
+      const parentNode = caseTree.nodes[ref.nodeId];
+      const branch = getBranch(parentNode, ref);
+
+      if (ref.kind === "case") parentNode.cases.splice(ref.caseIdx, 1);
+      else parentNode.default = undefined;
 
       if (!branch || branch.type === "value") return;
 
@@ -241,23 +213,29 @@ export const caseTreeViewSlice = createSlice({
 export default caseTreeViewSlice.reducer;
 
 const {
-  updateNode: updateNodeAction,
-  updateCase: updateCaseAction,
-  updateBranch: updateBranchAction,
+  editCaseTree: editCaseTreeAction,
   deleteCase: deleteCaseAction,
   initializeTree: initializeTreeAction,
 } = caseTreeViewSlice.actions;
 
-export const { importCaseTreeViewState, updateTree, addCase, addInitialCase } =
-  caseTreeViewSlice.actions;
+export const {
+  importCaseTreeViewState,
+  updateTree,
+  appendCase,
+  branchVariable,
+} = caseTreeViewSlice.actions;
+
+export const regenerateInterpretation =
+  (tupleName: string): AppThunk =>
+  (dispatch, getState) =>
+    updateInterpretation(dispatch, getState, tupleName);
 
 const treeUpdateWrapper =
   <T>(action: PayloadActionCreator<WithCaseTreeId<T>>) =>
   (args: WithCaseTreeId<T>): AppThunk =>
   (dispatch, getState) => {
     dispatch(action(args));
-
-    updateInterpretation(dispatch, getState, args.tupleName);
+    updateInterpretation(dispatch, getState, args.functionName);
     dispatch(UndoActions.checkpoint());
   };
 
@@ -286,32 +264,26 @@ const updateInterpretation = (
   );
 };
 
-export const regenerateInterpretation =
-  (tupleName: string): AppThunk =>
-  (dispatch, getState) =>
-    updateInterpretation(dispatch, getState, tupleName);
-
-export const updateNode = treeUpdateWrapper(updateNodeAction);
-export const updateCase = treeUpdateWrapper(updateCaseAction);
-export const updateBranch = treeUpdateWrapper(updateBranchAction);
 export const deleteCase = treeUpdateWrapper(deleteCaseAction);
+export const editCaseTree = treeUpdateWrapper(editCaseTreeAction);
 
 export const initializeTree =
-  (tupleName: string): AppThunk =>
+  (functionName: string): AppThunk =>
   (dispatch, getState) => {
-    const iF = selectValidatedFunction(getState(), tupleName);
+    const functions = selectValidatedFunctions(getState());
+    const iF = selectValidatedFunction(getState(), functionName);
+    const arity = functions.parsed.get(functionName);
 
-    if (iF.error || iF.parsed.length === 0) {
-      return void dispatch(initializeTreeAction({ tupleName }));
+    if (arity === undefined || iF.error || iF.parsed.length === 0) {
+      return void dispatch(initializeTreeAction({ functionName }));
     }
 
-    const arity = iF.parsed[0].length - 1;
     const tree = initializeTreeFromTuples(iF.parsed, arity);
 
-    dispatch(updateTree({ tupleName, tree }));
+    dispatch(updateTree({ functionName, tree }));
   };
 
-export const selectStructuredCaseView = createSelector(
+export const selectCasePaths = createSelector(
   selectDomain,
   (state: RootState, tupleName: string) =>
     selectValidatedFunctions(state).parsed.get(tupleName),
@@ -320,7 +292,7 @@ export const selectStructuredCaseView = createSelector(
   ({ value: domain }, arity, caseTree) => {
     if (!caseTree?.rootId) return undefined;
 
-    return getStructuredIntervalView(
+    return flattenCaseTree(
       caseTree.rootId,
       caseTree.nodes,
       new Set(domain),
