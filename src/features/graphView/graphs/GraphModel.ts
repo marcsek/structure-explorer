@@ -178,7 +178,8 @@ export abstract class GraphModel<S extends GraphState> {
     unaryFilterDomain: boolean,
     selectedNodes: string[],
     relevantNodes?: string[],
-    hovered?: ReadonlySet<string>,
+    hovered?: Set<string>,
+    hatchedNodes?: string[],
   ): S["nodes"] {
     const elementOf = (node: NodeOf<S>) => this.elementOf(node.id);
 
@@ -203,13 +204,7 @@ export abstract class GraphModel<S extends GraphState> {
       (hovered?.has(elementOf(node)) ?? false);
 
     const isHatched = (node: NodeOf<S>) =>
-      unaryFilterDomain &&
-      (hovered?.size ?? 0) !== 0 &&
-      !node.data.leftover &&
-      selectedNodes.includes(elementOf(node)) &&
-      relevantNodes === undefined &&
-      hovered !== undefined &&
-      !hovered.has(elementOf(node));
+      !node.data.leftover && (hatchedNodes?.includes(elementOf(node)) ?? false);
 
     return filteredNodes.map((node) => {
       let nodeData = node.data;

@@ -37,6 +37,7 @@ import {
   type StructureState,
 } from "../structure/structureSlice.ts";
 import {
+  selectHatchedDomain,
   selectHoveredDomainElements,
   selectRelevantDomainElements,
   selectSelectedDomain,
@@ -252,6 +253,8 @@ const _selectNodes = createSelector(
     selectHoveredDomainElements,
     selectSelectedDomain,
     selectUnaryFilterDomainEnabled,
+    (state: RootState, tupleInfo: TupleInfo) =>
+      selectHatchedDomain(state, tupleInfo),
   ],
   (
     type,
@@ -260,6 +263,7 @@ const _selectNodes = createSelector(
     hoveredPredicateIntr,
     selectedNodes,
     unaryFilterDomain,
+    hatchedDomain,
   ): PredicateNodeType[] => {
     if (!nodes) return [];
 
@@ -271,6 +275,7 @@ const _selectNodes = createSelector(
       selectedNodes,
       relevantDomain,
       hoveredPredicateIntr,
+      hatchedDomain,
     );
   },
 );
