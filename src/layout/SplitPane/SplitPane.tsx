@@ -32,16 +32,26 @@ export default function SplitPane({
   const [ratio, setRatio] = useState(defaultRatio);
   const [isDragging, setIsDragging] = useState(false);
 
-  const getRenderedRatio = useCallback(() => {
+  const getTrack = useCallback(() => {
     const container = containerRef.current;
-    const leftPane = leftPaneRef.current;
-    if (!container || !leftPane) return null;
+    const divider = dividerRef.current;
+    if (!container || !divider) return null;
 
-    const width = container.getBoundingClientRect().width;
-    if (width === 0) return null;
+    const { left, width } = container.getBoundingClientRect();
+    const dividerWidth = divider.getBoundingClientRect().width;
 
-    return leftPane.getBoundingClientRect().width / width;
+    if (width - dividerWidth <= 0) return null;
+
+    return { left, dividerWidth, trackWidth: width - dividerWidth };
   }, []);
+
+  const getRenderedRatio = useCallback(() => {
+    const track = getTrack();
+    const leftPane = leftPaneRef.current;
+    if (!track || !leftPane) return null;
+
+    return leftPane.getBoundingClientRect().width / track.trackWidth;
+  }, [getTrack]);
 
   const snapRatio = useCallback(
     (ratio: number, width: number) => {
@@ -64,17 +74,15 @@ export default function SplitPane({
 
   const setRatioFromClientX = useCallback(
     (clientX: number) => {
-      const container = containerRef.current;
-      if (!container) return;
+      const track = getTrack();
+      if (!track) return;
 
-      const { left: containerLeft, width } = container.getBoundingClientRect();
+      const pointerRatio =
+        (clientX - track.left - track.dividerWidth / 2) / track.trackWidth;
 
-      if (width === 0) return;
-
-      const pointerRatio = (clientX - containerLeft) / width;
-      setRatio(snapRatio(pointerRatio, width));
+      setRatio(snapRatio(pointerRatio, track.trackWidth));
     },
-    [snapRatio],
+    [getTrack, snapRatio],
   );
 
   useEffect(() => {
