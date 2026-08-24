@@ -3,12 +3,13 @@ import "../index.css";
 
 import StructureComponent from "../features/structure/StructureComponent";
 import VariablesComponent from "../features/variables/VariablesComponent";
-import { Col, Container, Row } from "react-bootstrap";
+import { Container, Row } from "react-bootstrap";
 import LanguageComponent from "../features/language/LanguageComponent";
 import FormulaCard from "../features/formulas/FormulaCard";
 import Header from "../layout/Header";
 import ErrorAlert from "../features/errorAlert/ErrorAlert";
 import QueriesComponent from "../features/queries/QueriesComponent";
+import SplitPane from "../layout/SplitPane/SplitPane";
 
 interface AppProps {
   viewOnlyMode?: boolean;
@@ -26,17 +27,17 @@ function App({ viewOnlyMode }: AppProps) {
           <Header />
         </Row>
 
-        <Row className="gx-4 split-pane">
-          <Col xs={12} lg={6} className="vh-pane-left col-divider">
+        <SplitPane leftClassName="vh-pane-left" rightClassName="vh-pane-right">
+          <>
             <LanguageComponent />
             <StructureComponent />
             <VariablesComponent />
-          </Col>
-          <Col className="vh-pane-right" xs={12} lg={6}>
+          </>
+          <>
             <FormulaCard />
             <QueriesComponent />
-          </Col>
-        </Row>
+          </>
+        </SplitPane>
       </Container>
     </div>
   );
