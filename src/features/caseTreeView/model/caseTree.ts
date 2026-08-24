@@ -1,4 +1,4 @@
-import type { CaseTreeNode } from "../caseTreeViewSlice";
+import type { CaseTreeEntry, CaseTreeNode } from "../caseTreeViewSlice";
 
 export const intervalVariables = ["x", "y", "z", "u", "v", "w", "r", "s", "t"];
 
@@ -42,6 +42,14 @@ export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
   while (ids.has(`n-${i}`)) i++;
 
   return `n-${i}`;
+}
+
+export function copyTree(tree: CaseTreeEntry): CaseTreeEntry {
+  const nodes = Object.fromEntries(
+    Object.entries(tree.nodes).map(([k, node]) => [k, copyNode(node)]),
+  );
+
+  return { rootId: tree.rootId, nodes };
 }
 
 export function copyNode(node: CaseTreeNode): CaseTreeNode {

@@ -72,7 +72,7 @@ export default function CaseCondition({
         value={node.variable}
         size="sm"
         className="case-tree-view-input case-tree-view-variable-input"
-        disabled={locked || !node.startsSpan}
+        disabled={locked || !node.firstOccurence}
         isInvalid={!!node.error}
         onChange={(e) =>
           dispatch(
@@ -93,7 +93,7 @@ export default function CaseCondition({
           className="case-tree-view-input case-tree-view-match-input"
           value={nodeCase.match}
           size="sm"
-          disabled={locked || !nodeCase.startsSpan}
+          disabled={locked || !nodeCase.firstOccurence}
           isInvalid={!!nodeCase.error}
           onChange={(e) => handleMatchChange(e.target.value)}
         />

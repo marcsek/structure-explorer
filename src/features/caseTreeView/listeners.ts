@@ -6,7 +6,7 @@ import {
 } from "../structure/structureSlice";
 import type { RootState } from "../../app/store";
 import { selectValidatedFunctions } from "../language/languageSlice";
-import { copyNode } from "./model/caseTree";
+import { copyTree } from "./model/caseTree";
 import { generateTuples, updateCaseTree } from "./model/tuples";
 import { updateTree } from "./caseTreeViewSlice";
 
@@ -28,15 +28,9 @@ caseTreeListener.startListening({
       const caseTreeEntry = state.caseTreeView[functionName];
       if (!caseTreeEntry) return;
 
-      const nodesCopy = Object.fromEntries(
-        Object.entries(caseTreeEntry.nodes).map(([k, node]) => [
-          k,
-          copyNode(node),
-        ]),
-      );
-      const caseTreeCopy = { ...caseTreeEntry, nodes: nodesCopy };
+      const caseTreeCopy = copyTree(caseTreeEntry);
 
-      updateCaseTree(caseTreeCopy, action.payload.value);
+      updateCaseTree(copyTree(caseTreeEntry), action.payload.value);
 
       return void api.dispatch(
         updateTree({ functionName, tree: caseTreeCopy }),

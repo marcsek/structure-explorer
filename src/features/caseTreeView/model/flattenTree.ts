@@ -8,7 +8,7 @@ export type CasePathCase =
       caseIdx: number;
       match: string;
       error: string;
-      startsSpan: boolean;
+      firstOccurence: boolean;
     }
   | { type: "default"; leftoverMatches: string[]; deletable: boolean };
 
@@ -17,7 +17,7 @@ export interface CasePathNode {
   variable: string;
   case: CasePathCase;
   error: string;
-  startsSpan: boolean;
+  firstOccurence: boolean;
   exhausted: boolean;
 }
 
@@ -181,14 +181,14 @@ function toCasePaths(drafts: RowDraft[]): CasePath[] {
           draftCase.type === "case"
             ? {
                 ...nodeDraft.case,
-                startsSpan: startsCase,
+                firstOccurence: startsCase,
                 error: startsCase ? draftCase.error : "",
               }
             : draftCase,
         error: startsNode ? error : "",
-        startsSpan: startsNode,
+        firstOccurence: startsNode,
         exhausted: covered && endsNode,
-      };
+      } as CasePathNode;
     });
 
     return {
@@ -210,10 +210,10 @@ const toGhostNode = (
   variable: draft.variable,
   case:
     draft.case.type === "case"
-      ? { ...draft.case, startsSpan: idx === drafts.length - 1 }
+      ? { ...draft.case, firstOccurence: idx === drafts.length - 1 }
       : draft.case,
   error: "",
-  startsSpan: false,
+  firstOccurence: false,
   exhausted: false,
 });
 
