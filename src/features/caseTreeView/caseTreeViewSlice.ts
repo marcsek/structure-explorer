@@ -19,7 +19,7 @@ import {
   intervalVariables,
 } from "./model/caseTree";
 import { generateTuples, initializeTreeFromTuples } from "./model/tuples";
-import { flattenCaseTree, hasCasePathError } from "./model/flattenTree";
+import { flattenCaseTree } from "./model/flattenTree";
 import type {
   AppendTarget,
   BranchTarget,
@@ -310,7 +310,5 @@ export const selectCaseTreeOutOfSync = createSelector(
       selectValidatedFunction(state, functionName).error,
   ],
   (casePaths, error) =>
-    !!error &&
-    !!casePaths &&
-    casePaths.every((path) => !hasCasePathError(path)),
+    !!error && !!casePaths && casePaths.every((path) => path.error === ""),
 );

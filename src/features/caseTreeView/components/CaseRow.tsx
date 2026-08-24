@@ -3,13 +3,8 @@ import CaseButtons from "./CaseButtons";
 import CaseCondition from "./CaseCondition";
 import { useAppDispatch } from "../../../app/hooks";
 import { appendCase, editCaseTree } from "../caseTreeViewSlice";
-import { getCasePathErrors, type CasePath } from "../model/flattenTree";
-import {
-  caseRefOf,
-  getDisplayNodes,
-  getRemoveRef,
-  getUnusedVars,
-} from "../model/caseRow";
+import type { CasePath } from "../model/flattenTree";
+import { caseRefOf, getRemoveRef, getUnusedVars } from "../model/caseRow";
 
 export default function CaseRow({
   path,
@@ -24,19 +19,14 @@ export default function CaseRow({
 }) {
   const dispatch = useAppDispatch();
 
-  const { value, error, placeholder, exhausted } = path;
-  const lastNode = path.nodes.at(-1);
+  const { value, valueError, error, nodes, placeholder } = path;
+  const lastNode = nodes.at(-1);
 
   if (!lastNode) return null;
-  if (placeholder && (locked || exhausted)) return null;
+  if (placeholder && locked) return null;
 
-  const flags = { placeholder, locked };
-  const rowErrors = getCasePathErrors(path);
-  const nodes = getDisplayNodes(path);
   const unusedVars = getUnusedVars(nodes, allowedVars);
-
-  const hasExhaustedVar =
-    nodes.some((n) => n.exhausted) && !placeholder && rowErrors.length === 0;
+  const showExhausted = !placeholder && error === "";
 
   const handleValueChange = (next: string) =>
     dispatch(
@@ -56,7 +46,7 @@ export default function CaseRow({
   const rowClass = [
     "case-tree-view-row",
     placeholder && "row-placeholder",
-    hasExhaustedVar && "exhausted",
+    showExhausted && nodes.some((n) => n.exhausted) && "exhausted",
     locked && "locked",
   ]
     .filter(Boolean)
@@ -64,12 +54,16 @@ export default function CaseRow({
 
   return (
     <div className={rowClass}>
-      <Stack direction="horizontal" gap={1} className="case-tree-view-row-stack">
+      <Stack
+        direction="horizontal"
+        gap={1}
+        className="case-tree-view-row-stack"
+      >
         <FormControl
           value={value}
           size="sm"
-          disabled={locked || (placeholder && exhausted)}
-          isInvalid={!!error}
+          disabled={locked}
+          isInvalid={!!valueError}
           onChange={(e) => handleValueChange(e.target.value)}
         />
 
@@ -88,9 +82,8 @@ export default function CaseRow({
               <CaseCondition
                 node={node}
                 functionName={functionName}
-                appendNodeId={lastNode.id}
-                isLast={isLast}
-                flags={flags}
+                placeholder={placeholder}
+                locked={locked}
               />
 
               {!isLast && <span>,</span>}
@@ -100,11 +93,11 @@ export default function CaseRow({
                   functionName={functionName}
                   variables={unusedVars}
                   branchTarget={{ kind: "nested", ref: caseRefOf(node) }}
-                  removeRef={getRemoveRef(path.nodes, idx)}
+                  removeRef={getRemoveRef(nodes)}
                 />
               )}
 
-              {node.exhausted && rowErrors.length === 0 && !placeholder && (
+              {node.exhausted && showExhausted && (
                 <span className="exhaust-message">
                   all cases for <var>{node.variable}</var> covered
                 </span>
@@ -114,7 +107,7 @@ export default function CaseRow({
         })}
       </Stack>
 
-      {rowErrors.length > 0 && <p className="error-message">{rowErrors[0]}</p>}
+      {error && <p className="error-message">{error}</p>}
     </div>
   );
 }

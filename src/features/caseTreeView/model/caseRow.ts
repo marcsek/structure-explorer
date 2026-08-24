@@ -2,11 +2,6 @@ import { intervalVariables } from "./caseTree";
 import type { CasePath, CasePathNode } from "./flattenTree";
 import type { CaseRef } from "./targets";
 
-export interface RowFlags {
-  placeholder: boolean;
-  locked: boolean;
-}
-
 export const caseRefOf = (node: CasePathNode): CaseRef =>
   node.case.type === "case"
     ? { kind: "case", nodeId: node.id, caseIdx: node.case.caseIdx }
@@ -27,36 +22,16 @@ export function getSingleBranchPath(paths: CasePath[]) {
   return path;
 }
 
-const emptyCaseNode = (node: CasePathNode): CasePathNode => ({
-  id: "",
-  variable: node.variable,
-  case: { type: "case", caseIdx: 0, error: "", match: "", primary: false },
-  errors: [],
-  primary: false,
-  exhausted: false,
-});
-
-export const getDisplayNodes = (path: CasePath) =>
-  path.placeholder
-    ? [
-        ...path.nodes.slice(0, -1),
-        emptyCaseNode(path.nodes[path.nodes.length - 1]),
-      ]
-    : path.nodes;
-
 export const getUnusedVars = (nodes: CasePathNode[], allowedVars: string[]) =>
   allowedVars.filter((v) => !nodes.some((n) => n.variable === v));
 
-export function getRemoveRef(
-  nodes: CasePathNode[],
-  idx: number,
-): CaseRef | null {
-  const node = nodes[idx];
+export function getRemoveRef(nodes: CasePathNode[]): CaseRef | null {
+  const node = nodes.at(-1);
+  const parent = nodes.at(-2);
 
+  if (!node) return null;
   if (node.case.type === "case") return caseRefOf(node);
-  if (!node.case.deletable) return null;
+  if (!node.case.deletable || !parent) return null;
 
-  const parent = idx > 0 ? nodes[idx - 1] : undefined;
-
-  return parent ? caseRefOf(parent) : null;
+  return caseRefOf(parent);
 }

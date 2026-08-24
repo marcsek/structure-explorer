@@ -17,7 +17,7 @@ export function generateTuples(
 ) {
   const allowedVars = intervalVariables.slice(0, maxDepth);
 
-  const dfs = (
+  const collect = (
     node: CaseTreeNode,
     partialTuple: (string[] | null)[],
   ): GenerateTuplesResult => {
@@ -31,7 +31,7 @@ export function generateTuples(
 
     const expandBranch = (branch: CaseTreeBranch): GenerateTuplesResult => {
       if (branch.type === "ref")
-        return dfs(nodes[branch.nodeId], partialTupleCpy);
+        return collect(nodes[branch.nodeId], partialTupleCpy);
 
       if (!domain.has(branch.value)) return { ok: false };
 
@@ -77,7 +77,7 @@ export function generateTuples(
     return { ok: true, tuples };
   };
 
-  return dfs(nodes[rootId], Array(maxDepth).fill(null));
+  return collect(nodes[rootId], Array(maxDepth).fill(null));
 }
 
 function combinations(generatable: string[][], value: string): string[][] {

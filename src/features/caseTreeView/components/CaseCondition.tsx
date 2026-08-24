@@ -4,23 +4,19 @@ import ResizeInput from "./ResizeInput";
 import { useAppDispatch } from "../../../app/hooks";
 import { appendCase, editCaseTree } from "../caseTreeViewSlice";
 import type { CasePathNode } from "../model/flattenTree";
-import type { RowFlags } from "../model/caseRow";
 
 export default function CaseCondition({
   node,
   functionName,
-  appendNodeId,
-  isLast,
-  flags,
+  placeholder,
+  locked,
 }: {
   node: CasePathNode;
   functionName: string;
-  appendNodeId: string;
-  isLast: boolean;
-  flags: RowFlags;
+  placeholder: boolean;
+  locked: boolean;
 }) {
   const dispatch = useAppDispatch();
-  const { placeholder, locked } = flags;
 
   if (node.case.type === "default") {
     const { leftoverMatches } = node.case;
@@ -51,19 +47,12 @@ export default function CaseCondition({
 
   const nodeCase = node.case;
 
-  const variableDisabled = !node.primary || placeholder || locked;
-
-  const matchDisabled =
-    locked ||
-    (placeholder && node.exhausted) ||
-    ((placeholder || !nodeCase.primary) && !isLast);
-
   const handleMatchChange = (match: string) =>
     dispatch(
       placeholder
         ? appendCase({
             functionName,
-            target: { kind: "appendMatch", nodeId: appendNodeId },
+            target: { kind: "appendMatch", nodeId: node.id },
             value: match,
           })
         : editCaseTree({
@@ -83,8 +72,8 @@ export default function CaseCondition({
         value={node.variable}
         size="sm"
         className="case-tree-view-input case-tree-view-variable-input"
-        disabled={variableDisabled}
-        isInvalid={node.errors.length > 0}
+        disabled={locked || !node.startsSpan}
+        isInvalid={!!node.error}
         onChange={(e) =>
           dispatch(
             editCaseTree({
@@ -102,9 +91,9 @@ export default function CaseCondition({
         <InlineMath>{"\\{"}</InlineMath>
         <ResizeInput
           className="case-tree-view-input case-tree-view-match-input"
-          value={!placeholder || !isLast ? nodeCase.match : ""}
+          value={nodeCase.match}
           size="sm"
-          disabled={matchDisabled}
+          disabled={locked || !nodeCase.startsSpan}
           isInvalid={!!nodeCase.error}
           onChange={(e) => handleMatchChange(e.target.value)}
         />

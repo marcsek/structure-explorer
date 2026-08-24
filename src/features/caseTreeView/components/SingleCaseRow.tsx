@@ -3,6 +3,7 @@ import CaseButtons from "./CaseButtons";
 import { useAppDispatch } from "../../../app/hooks";
 import { editCaseTree } from "../caseTreeViewSlice";
 import type { CasePath } from "../model/flattenTree";
+import { caseRefOf } from "../model/caseRow";
 
 export default function SingleCaseRow({
   path,
@@ -20,21 +21,22 @@ export default function SingleCaseRow({
 
   return (
     <>
-      <Stack direction="horizontal" gap={1} className="case-tree-view-single-value">
+      <Stack
+        direction="horizontal"
+        gap={1}
+        className="case-tree-view-single-value"
+      >
         <FormControl
           value={path.value}
           size="sm"
           className="case-tree-view-input"
           disabled={locked}
-          isInvalid={!!path.error}
+          isInvalid={!!path.valueError}
           onChange={(e) =>
             dispatch(
               editCaseTree({
                 functionName,
-                target: {
-                  kind: "value",
-                  ref: { kind: "default", nodeId: node.id },
-                },
+                target: { kind: "value", ref: caseRefOf(node) },
                 value: e.target.value,
               }),
             )
@@ -51,8 +53,8 @@ export default function SingleCaseRow({
         )}
       </Stack>
 
-      {path.error && (
-        <p className="error-message text-danger m-0">{path.error}</p>
+      {path.valueError && (
+        <p className="error-message text-danger m-0">{path.valueError}</p>
       )}
     </>
   );

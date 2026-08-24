@@ -1,37 +1,49 @@
 import { plural, toBe } from "../../../shared/core/wordForms";
-import type { CaseTreeNode } from "../caseTreeViewSlice";
+import type { CaseTreeBranch, CaseTreeNode } from "../caseTreeViewSlice";
 import { intervalVariables, parseMatch } from "./caseTree";
 
 export type CasePathCase =
   | {
       type: "case";
-      match: string;
       caseIdx: number;
+      match: string;
       error: string;
-      primary: boolean;
+      startsSpan: boolean;
     }
-  | {
-      type: "default";
-      deletable: boolean;
-      leftoverMatches: string[];
-    };
+  | { type: "default"; leftoverMatches: string[]; deletable: boolean };
 
 export interface CasePathNode {
   id: string;
   variable: string;
   case: CasePathCase;
-  errors: string[];
-  primary: boolean;
+  error: string;
+  startsSpan: boolean;
   exhausted: boolean;
 }
 
 export interface CasePath {
   value: string;
-  nodes: CasePathNode[];
+  valueError: string;
   error: string;
-  exhausted: boolean;
-  exhaustedVars: string[];
+  nodes: CasePathNode[];
   placeholder: boolean;
+}
+
+interface NodeDraft {
+  id: string;
+  variable: string;
+  error: string;
+  covered: boolean;
+  case:
+    | { type: "case"; caseIdx: number; match: string; error: string }
+    | { type: "default"; leftoverMatches: string[]; deletable: boolean };
+}
+
+interface RowDraft {
+  value: string;
+  valueError: string;
+  placeholder: boolean;
+  nodeDrafts: NodeDraft[];
 }
 
 export function flattenCaseTree(
@@ -39,219 +51,214 @@ export function flattenCaseTree(
   nodes: Record<string, CaseTreeNode>,
   domain: Set<string>,
   maxDepth: number,
-) {
+): CasePath[] {
   const allowedVars = intervalVariables.slice(0, maxDepth);
-  const rows: CasePath[] = [];
+  const drafts: RowDraft[] = [];
 
-  const buildRow = (
+  const buildRows = (
     nodeId: string,
     usedVars: Set<string>,
-    currentPathNodes: CasePathNode[],
-    parentExhaustedVars: string[],
-    parentHadError: boolean = false,
+    trail: NodeDraft[],
+    parentHasError: boolean,
   ) => {
     const node = nodes[nodeId];
-    const nodeErrors = getTreeNodeValidation(node, allowedVars, usedVars);
+    const variableError = getVariableError(node, allowedVars, usedVars);
+    const nestedUsedVars = new Set(usedVars).add(node.variable);
 
-    const cases = [
-      ...node.cases.map((c) => ({
-        ...c,
-        type: "case" as const,
-        matches: parseMatch(c.match),
-      })),
-      { branch: node.default, type: "default" as const },
-    ];
-
-    const usedVarsCpy = new Set(usedVars);
-    usedVarsCpy.add(node.variable);
-
-    const allMatches = cases.flatMap((c) =>
-      c.type === "case" ? [...c.matches] : "def",
+    const cases = node.cases.map((c) => ({
+      ...c,
+      matches: parseMatch(c.match),
+    }));
+    const coveredElements = new Set(
+      cases.flatMap((c) => c.matches).filter((m) => domain.has(m)),
     );
-    const casesExhausted = allMatches.length === domain.size + 1;
-    const exhaustedVars = [...parentExhaustedVars];
+    const covered = coveredElements.size === domain.size;
+
+    let hasError = parentHasError || variableError !== "";
+
+    const nodeDraft = (nodeCase: NodeDraft["case"]): NodeDraft => ({
+      id: nodeId,
+      variable: node.variable,
+      error: variableError,
+      covered,
+      case: nodeCase,
+    });
+
+    const emitBranch = (
+      branch: CaseTreeBranch | undefined,
+      nodeDrafts: NodeDraft[],
+    ) => {
+      if (branch?.type === "ref") {
+        buildRows(branch.nodeId, nestedUsedVars, nodeDrafts, hasError);
+        return;
+      }
+
+      const value = branch?.value ?? "";
+      const valueError = getValueError(value, domain);
+
+      hasError ||= valueError !== "";
+      drafts.push({ value, valueError, placeholder: false, nodeDrafts });
+    };
 
     const seenMatches = new Set<string>();
-    let rowHadError = nodeErrors.length > 0 || parentHadError;
-    for (const [idx, nodeCase] of cases.entries()) {
-      const deletable = currentPathNodes.length > 0 && cases.length === 1;
 
-      let viewCase: CasePathCase | undefined;
+    cases.forEach(({ match, matches, branch }, caseIdx) => {
+      const error = getMatchError(matches, seenMatches, domain);
 
-      if (nodeCase.type === "case") {
-        let matchError = "";
+      matches.forEach((m) => seenMatches.add(m));
+      hasError ||= error !== "";
 
-        const respecified = nodeCase.matches.filter((m) => seenMatches.has(m));
-        const respecLen = respecified.length;
-        if (respecLen > 0)
-          matchError = `${plural(respecLen, "Case")} for ${respecified.join(",")} ${toBe(respecLen)} already specified.`;
+      emitBranch(branch, [
+        ...trail,
+        nodeDraft({ type: "case", caseIdx, match, error }),
+      ]);
+    });
 
-        for (const match of nodeCase.matches) {
-          if (!domain.has(match))
-            matchError = `Case element ${match === "" ? "is empty" : `${match} is not in domain`}.`;
+    if (!hasError && !covered)
+      drafts.push({
+        value: "",
+        valueError: "",
+        placeholder: true,
+        nodeDrafts: [
+          ...trail,
+          nodeDraft({
+            type: "case",
+            caseIdx: cases.length,
+            match: "",
+            error: "",
+          }),
+        ],
+      });
 
-          rowHadError ||= !!matchError;
+    if (covered) return;
 
-          seenMatches.add(match);
-        }
-
-        viewCase = {
-          type: "case",
-          match: nodeCase.match,
-          caseIdx: idx,
-          error: matchError,
-          primary: true,
-        };
-      } else {
-        const leftoverMatches = [...domain].filter((e) => !seenMatches.has(e));
-        viewCase = { type: "default", deletable, leftoverMatches };
-      }
-
-      const isLastCase = casesExhausted
-        ? idx === cases.length - 2
-        : idx === cases.length - 1;
-      const exhausted = casesExhausted && isLastCase;
-
-      if (exhausted) exhaustedVars.push(node.variable);
-
-      const isPrimary = idx === 0;
-
-      let localPathNodes = currentPathNodes.map((n) => ({
-        ...n,
-        exhausted: n.exhausted && isLastCase,
-      }));
-
-      if (!isPrimary) {
-        localPathNodes = localPathNodes.map((n) => ({
-          ...n,
-          case: { ...n.case, primary: false, error: "" },
-        }));
-      }
-
-      const pathNode: CasePathNode = {
-        id: nodeId,
-        variable: node.variable,
-        case: viewCase,
-        errors: isPrimary ? nodeErrors : [],
-        primary: isPrimary,
-        exhausted,
-      };
-
-      const primaryResetNodes = isPrimary
-        ? [...localPathNodes]
-        : localPathNodes.map((n) => ({
-            ...n,
-            primary: false,
-            errors: [],
-          }));
-
-      const newPathNodes = [...primaryResetNodes, pathNode];
-
-      if (pathNode.case.type === "default" && casesExhausted) {
-        continue;
-      }
-
-      if (!rowHadError && cases.length === 1 && !exhausted) {
-        rows.push({
-          value: "",
-          nodes: newPathNodes,
-          error: "",
-          exhausted,
-          exhaustedVars: [],
-          placeholder: true,
-        });
-      }
-
-      if (!nodeCase.branch) {
-        rows.push({
-          value: "",
-          nodes: newPathNodes,
-          error: "Value element is empty.",
-          exhausted,
-          exhaustedVars: isLastCase ? exhaustedVars : [],
-          placeholder: false,
-        });
-        rowHadError = true;
-      } else if (nodeCase.branch.type === "value") {
-        const value = nodeCase.branch.value;
-        const valueError = !domain.has(value)
-          ? `Value element ${value === "" ? "is empty" : `${value} is not in domain`}.`
-          : "";
-
-        rows.push({
-          value,
-          nodes: newPathNodes,
-          error: valueError,
-          exhausted,
-          exhaustedVars: isLastCase ? exhaustedVars : [],
-          placeholder: false,
-        });
-
-        rowHadError ||= !!valueError;
-      } else {
-        buildRow(
-          nodeCase.branch.nodeId,
-          usedVarsCpy,
-          newPathNodes,
-          exhaustedVars,
-          rowHadError,
-        );
-      }
-
-      if (!rowHadError && idx === cases.length - 2) {
-        rows.push({
-          value: "",
-          nodes: newPathNodes,
-          error: "",
-          exhausted: casesExhausted,
-          exhaustedVars: isLastCase ? exhaustedVars : [],
-          placeholder: true,
-        });
-      }
-    }
+    emitBranch(node.default, [
+      ...trail,
+      nodeDraft({
+        type: "default",
+        leftoverMatches: [...domain].filter((e) => !coveredElements.has(e)),
+        deletable: trail.length > 0 && cases.length === 0,
+      }),
+    ]);
   };
 
-  buildRow(rootId, new Set(), [], []);
-  return rows;
+  buildRows(rootId, new Set(), [], false);
+
+  return toCasePaths(drafts);
 }
 
-function getTreeNodeValidation(
+function toCasePaths(drafts: RowDraft[]): CasePath[] {
+  const spanned = drafts.filter((d) => !d.placeholder).map((d) => d.nodeDrafts);
+  let rowIdx = -1;
+
+  return drafts.map((draft) => {
+    if (draft.placeholder)
+      return {
+        value: "",
+        valueError: "",
+        error: "",
+        placeholder: true,
+        nodes: draft.nodeDrafts.map(toGhostNode),
+      };
+
+    rowIdx++;
+    const above = spanned[rowIdx - 1] ?? [];
+    const below = spanned[rowIdx + 1] ?? [];
+
+    const nodes = draft.nodeDrafts.map((nodeDraft, depth) => {
+      const previous = above.at(depth);
+
+      const { id, variable, error, case: draftCase, covered } = nodeDraft;
+
+      const startsNode = previous?.id !== id;
+      const startsCase = previous !== nodeDraft;
+      const endsNode = below.at(depth)?.id !== id;
+
+      return {
+        id,
+        variable,
+        case:
+          draftCase.type === "case"
+            ? {
+                ...nodeDraft.case,
+                startsSpan: startsCase,
+                error: startsCase ? draftCase.error : "",
+              }
+            : draftCase,
+        error: startsNode ? error : "",
+        startsSpan: startsNode,
+        exhausted: covered && endsNode,
+      };
+    });
+
+    return {
+      value: draft.value,
+      valueError: draft.valueError,
+      error: firstError(draft.valueError, nodes),
+      placeholder: false,
+      nodes,
+    };
+  });
+}
+
+const toGhostNode = (
+  draft: NodeDraft,
+  idx: number,
+  drafts: NodeDraft[],
+): CasePathNode => ({
+  id: draft.id,
+  variable: draft.variable,
+  case:
+    draft.case.type === "case"
+      ? { ...draft.case, startsSpan: idx === drafts.length - 1 }
+      : draft.case,
+  error: "",
+  startsSpan: false,
+  exhausted: false,
+});
+
+function getValueError(value: string, domain: Set<string>) {
+  return domain.has(value)
+    ? ""
+    : `Value element ${value === "" ? "is empty" : `${value} is not in domain`}.`;
+}
+
+function getMatchError(
+  matches: string[],
+  seenMatches: Set<string>,
+  domain: Set<string>,
+) {
+  const outsideDomain = matches.filter((m) => !domain.has(m));
+  if (outsideDomain.length > 0)
+    return `Case element ${outsideDomain[0]} is not in domain.`;
+
+  const respecified = matches.filter((m) => seenMatches.has(m));
+  if (respecified.length > 0)
+    return `${plural(respecified.length, "Case")} for ${respecified.join(",")} ${toBe(respecified.length)} already specified.`;
+
+  return "";
+}
+
+function getVariableError(
   node: CaseTreeNode,
   allowedVars: string[],
   usedVars: Set<string>,
 ) {
-  const errors: string[] = [];
+  if (!node.variable) return "Variable must be specified.";
 
-  if (!node.variable) errors.push("Variable must be specified.");
-
-  if (!allowedVars.includes(node.variable))
-    errors.push("Invalid variable name.");
+  if (!allowedVars.includes(node.variable)) return "Invalid variable name.";
 
   if (usedVars.has(node.variable))
-    errors.push("Variable can only appear once in the tree.");
+    return "Variable can only appear once in the tree.";
 
-  return errors;
+  return "";
 }
 
-export function hasCasePathError(row: CasePath) {
-  if (row.error !== "") return true;
-
-  return row.nodes.some(
-    (node) =>
-      node.errors.length > 0 ||
-      (node.case.type === "case" && node.case.error !== ""),
-  );
-}
-
-export function getCasePathErrors(row: CasePath) {
-  const errors: string[] = [];
-
-  errors.push(row.error);
-
-  for (const node of row.nodes) {
-    errors.push(...node.errors);
-    if (node.case.type === "case") errors.push(node.case.error);
-  }
-
-  return errors.filter((e) => e !== "");
-}
+const firstError = (valueError: string, nodes: CasePathNode[]) =>
+  [
+    valueError,
+    ...nodes.flatMap((node) => [
+      node.error,
+      node.case.type === "case" ? node.case.error : "",
+    ]),
+  ].find((e) => e !== "") ?? "";
