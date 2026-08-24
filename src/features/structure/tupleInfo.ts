@@ -15,6 +15,3 @@ export const getTupleLength = (type: TupleType, arity: number) =>
 
 export const isBinaryTuple = (type: TupleType, arity: number) =>
   getTupleLength(type, arity) === 2;
-
-export const getKeyFromTupleId = (tupleId: string) =>
-  tupleId.substring(tupleId.indexOf("-") + 1);

@@ -4,6 +4,8 @@ import DomainSelector from "./DomainSelector";
 import InterpretationFilters from "./InterpretationFilters";
 import type { TupleInfo } from "../../structure/tupleInfo";
 
+const EMPTY_ARRAY: EditorFilters[] = [];
+
 export type EditorFilters =
   "intrFilters" | "domainSelector" | "unaryFilterToggle";
 
@@ -16,7 +18,7 @@ export interface EditorToolbarProps {
 export default function EditorToolbar({
   id,
   tupleInfo,
-  disabledFilters = [],
+  disabledFilters = EMPTY_ARRAY,
 }: EditorToolbarProps) {
   return (
     <div className="editor-toolbar">

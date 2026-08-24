@@ -65,7 +65,6 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
           showZoomHint();
           if (zoomOnModifier) e.stopPropagation();
         }}
-        onClick={() => hideZoomHint()}
       >
         <ZoomHint show={showHint} />
         {children}

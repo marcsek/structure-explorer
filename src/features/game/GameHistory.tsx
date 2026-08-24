@@ -136,7 +136,6 @@ export default function GameHistory({ id }: Props) {
         ({ text, sender, goBack, win, lose, fixableLoss }, index) => (
           <MessageBubble
             key={`${index}-${sender}`}
-            children={text}
             sent={sender === "player"}
             recieved={sender === "game"}
             onClick={
@@ -148,7 +147,9 @@ export default function GameHistory({ id }: Props) {
             lose={lose}
             win={win}
             fixableLoss={fixableLoss}
-          />
+          >
+            {text}
+          </MessageBubble>
         ),
       )}
       <div ref={bottomScrollElement} />

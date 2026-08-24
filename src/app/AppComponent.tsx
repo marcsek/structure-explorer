@@ -104,7 +104,7 @@ export function AppComponent({
   // Since some components must have a unique id across the whole document
   // we need a way do distinguish between identical instances.
   // (e.g copied instances inside workbook)
-  const [instanceId] = useState(generateInstanceId());
+  const [instanceId] = useState(() => generateInstanceId());
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/immutability

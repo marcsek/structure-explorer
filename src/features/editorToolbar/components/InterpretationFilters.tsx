@@ -136,6 +136,7 @@ function UnaryPredicatesFilter({ tupleInfo }: UnaryPredicatesFilterProps) {
         <div className="scroll-button-background left">
           <button
             className="scroll-button left"
+            aria-label="Scroll filters left"
             onClick={() => scrollControls.scrollIntoView("left")}
           >
             <FontAwesomeIcon icon={faAngleLeft} />
@@ -192,6 +193,7 @@ function UnaryPredicatesFilter({ tupleInfo }: UnaryPredicatesFilterProps) {
         <div className="scroll-button-background right">
           <button
             className="scroll-button right"
+            aria-label="Scroll filters right"
             onClick={() => scrollControls.scrollIntoView("right")}
           >
             <FontAwesomeIcon icon={faAngleRight} />

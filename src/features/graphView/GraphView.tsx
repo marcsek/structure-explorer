@@ -11,6 +11,7 @@ import EdgeMarkers from "./canvas/edges/EdgeMarkers.tsx";
 import type { GraphType } from "./graphs/registry.ts";
 import type { TupleInfo } from "../structure/tupleInfo";
 import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter.tsx";
+import { useMemo } from "react";
 
 export type OnExpandedViewChange = (change: boolean) => void;
 
@@ -47,6 +48,11 @@ export default function GraphView({
 
   const GraphComponent = graphComponents[graphType];
 
+  const context = useMemo(
+    () => ({ tupleInfo, graphType, locked }),
+    [graphType, locked, tupleInfo],
+  );
+
   return (
     <div className="react-flow" style={{ height: "100%" }}>
       {/* Edge markers need to be present in DOM before referencing them. */}
@@ -54,7 +60,7 @@ export default function GraphView({
 
       <div className="graph-view-container">
         <div className="graph-view-item" key={tupleName}>
-          <GraphInfoContext.Provider value={{ tupleInfo, graphType, locked }}>
+          <GraphInfoContext.Provider value={context}>
             <ReactFlowProvider key={graphType}>
               <GraphComponent
                 id={`${graphType}-${id}`}
