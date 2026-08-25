@@ -112,7 +112,7 @@ function EnabledDomainSelector({
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
         aria-controls={bodyId}
-        title="Domain Filters"
+        title="Domain filters"
       >
         <div className="domain-selector-toggle-icon-container">
           <div className="domain-selector-toggle-icon-indicator" />
@@ -123,19 +123,17 @@ function EnabledDomainSelector({
       {isOpen && (
         <div className="domain-selector-body" id={bodyId}>
           <div className="domain-selector-header">
-            <p>Selected Elements</p>
+            <p>Selected elements</p>
             <button className="select-all" onClick={selectAll}>
               <FontAwesomeIcon size="sm" icon={faCheckDouble} />
-              Select All
+              Select all
             </button>
           </div>
-
-          <div className="domain-selector-body-divider" />
 
           <div className="domain-selector-list-container">
             <div className="domain-selector-list-header">
               <span>Element</span>
-              <span>Unary Predicates</span>
+              <span>Unary predicates</span>
             </div>
 
             {domain.length === 0 && (
