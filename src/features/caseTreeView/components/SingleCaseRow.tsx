@@ -29,7 +29,6 @@ export default function SingleCaseRow({
         <FormControl
           value={path.value}
           size="sm"
-          className="case-tree-view-input"
           disabled={locked}
           isInvalid={!!path.valueError}
           onChange={(e) =>
@@ -53,9 +52,7 @@ export default function SingleCaseRow({
         )}
       </Stack>
 
-      {path.valueError && (
-        <p className="error-message text-danger m-0">{path.valueError}</p>
-      )}
+      {path.valueError && <p className="error-message">{path.valueError}</p>}
     </>
   );
 }

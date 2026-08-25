@@ -1,10 +1,14 @@
-import type {
-  CaseTreeBranch,
-  CaseTreeCase,
-  CaseTreeEntry,
-  CaseTreeNode,
-} from "../caseTreeViewSlice";
-import { getNextNodeId, intervalVariables, parseMatch } from "./caseTree";
+import { duplicates } from "../../../shared/core/utils";
+import {
+  getNextNodeId,
+  intervalVariables,
+  parseMatch,
+  rootNodeId,
+  type CaseTreeBranch,
+  type CaseTreeCase,
+  type CaseTreeEntry,
+  type CaseTreeNode,
+} from "./caseTree";
 
 export type GenerateTuplesResult =
   { ok: true; tuples: string[][] } | { ok: false };
@@ -13,9 +17,9 @@ export function generateTuples(
   rootId: string,
   nodes: Record<string, CaseTreeNode>,
   domain: Set<string>,
-  maxDepth: number,
+  arity: number,
 ) {
-  const allowedVars = intervalVariables.slice(0, maxDepth);
+  const allowedVars = intervalVariables.slice(0, arity);
 
   const collect = (
     node: CaseTreeNode,
@@ -48,8 +52,10 @@ export function generateTuples(
       const matches = parseMatch(nodeCase.match);
 
       if (
+        matches.length === 0 ||
         matches.some((m) => !domain.has(m)) ||
-        matches.some((m) => seenMatches.has(m))
+        matches.some((m) => seenMatches.has(m)) ||
+        duplicates(matches).length > 0
       )
         return { ok: false };
 
@@ -77,7 +83,7 @@ export function generateTuples(
     return { ok: true, tuples };
   };
 
-  return collect(nodes[rootId], Array(maxDepth).fill(null));
+  return collect(nodes[rootId], Array(arity).fill(null));
 }
 
 function combinations(generatable: string[][], value: string): string[][] {
@@ -96,11 +102,10 @@ export function initializeTreeFromTuples(
 ) {
   const nodes: Record<string, CaseTreeNode> = {};
 
-  let nodeCounter = 0;
-  const nextId = () => (nodeCounter++ === 0 ? "root" : `n${nodeCounter}`);
+  let nextNodeId = 1;
 
   const buildNode = (depth: number, group: string[][]) => {
-    const nodeId = nextId();
+    const nodeId = depth === 0 ? rootNodeId : `n${nextNodeId++}`;
     const variable = intervalVariables[depth];
 
     const grouped = new Map<string, string[][]>();
@@ -172,14 +177,13 @@ export function initializeTreeFromTuples(
     return { rootId: rootBranch.nodeId, nodes };
   }
 
-  const rootId = "root";
-  nodes[rootId] = {
+  nodes[rootNodeId] = {
     variable: intervalVariables[0],
     cases: [],
     default: rootBranch,
   };
 
-  return { rootId, nodes };
+  return { rootId: rootNodeId, nodes };
 }
 
 function findMatchingCase(
@@ -311,22 +315,19 @@ function cloneNode(entry: CaseTreeEntry, nodeId: string) {
   const orig = entry.nodes[nodeId];
   const newId = getNextNodeId(entry.nodes);
 
+  const clone: CaseTreeNode = { variable: orig.variable, cases: [] };
+  entry.nodes[newId] = clone;
+
   const cloneBranch = (b: CaseTreeBranch): CaseTreeBranch =>
     b.type === "value"
       ? { ...b }
       : { type: "ref", nodeId: cloneNode(entry, b.nodeId) };
 
-  // Makes sure next node id generates correctly
-  entry.nodes[newId] = { cases: [], variable: "" };
-
-  entry.nodes[newId] = {
-    variable: orig.variable,
-    cases: orig.cases.map((c) => ({
-      match: c.match,
-      branch: cloneBranch(c.branch),
-    })),
-    default: orig.default ? cloneBranch(orig.default) : undefined,
-  };
+  clone.cases = orig.cases.map((c) => ({
+    match: c.match,
+    branch: cloneBranch(c.branch),
+  }));
+  clone.default = orig.default ? cloneBranch(orig.default) : undefined;
 
   return newId;
 }

@@ -15,8 +15,12 @@ import {
 import { selectValidatedFunctions } from "../language/languageSlice";
 import {
   getNextNodeId,
-  getSubstreeNodeIds,
+  getSubtreeNodeIds,
   intervalVariables,
+  rootNodeId,
+  type CaseTreeBranch,
+  type CaseTreeEntry,
+  type CaseTreeNode,
 } from "./model/caseTree";
 import { generateTuples, initializeTreeFromTuples } from "./model/tuples";
 import { flattenCaseTree } from "./model/flattenTree";
@@ -30,30 +34,30 @@ import { dev } from "../../shared/core/logging";
 import type { SerializedCaseTreeViewState } from "./validationSchema";
 import { UndoActions } from "../undoHistory/undoHistory";
 
-export type CaseTreeBranch =
-  { type: "value"; value: string } | { type: "ref"; nodeId: string };
-
-export interface CaseTreeCase {
-  match: string;
-  branch: CaseTreeBranch;
-}
-
-export interface CaseTreeNode {
-  variable: string;
-  cases: CaseTreeCase[];
-  default?: CaseTreeBranch;
-}
-
-export interface CaseTreeEntry {
-  rootId: string;
-  nodes: Record<string, CaseTreeNode>;
-}
-
 export type CaseTreeState = Record<string, CaseTreeEntry>;
 
 type WithCaseTreeId<T = object> = {
   functionName: string;
 } & T;
+
+const getNode = (
+  caseTree: CaseTreeEntry,
+  nodeId: string,
+): CaseTreeNode | undefined => caseTree.nodes[nodeId];
+
+const collapseBranch = (
+  branch: CaseTreeBranch | undefined,
+  nodes: Record<string, CaseTreeNode>,
+): CaseTreeBranch | undefined => {
+  if (branch?.type !== "ref") return undefined;
+
+  const child = nodes[branch.nodeId];
+
+  return {
+    type: "value",
+    value: child?.default?.type === "value" ? child.default.value : "",
+  };
+};
 
 const getBranch = (node: CaseTreeNode, ref: CaseRef) =>
   ref.kind === "case" ? node.cases[ref.caseIdx]?.branch : node.default;
@@ -64,7 +68,11 @@ const setBranch = (
   branch: CaseTreeBranch,
 ) => {
   if (ref.kind === "default") node.default = branch;
-  else node.cases[ref.caseIdx].branch = branch;
+  else {
+    const caseToUpdate = node.cases[ref.caseIdx];
+
+    if (caseToUpdate) caseToUpdate.branch = branch;
+  }
 };
 
 export const initialCaseTreeViewState: CaseTreeState = {};
@@ -86,8 +94,8 @@ export const caseTreeViewSlice = createSlice({
       if (functionName in state) return;
 
       state[functionName] = {
-        rootId: "root",
-        nodes: { root: { variable: intervalVariables[0], cases: [] } },
+        rootId: rootNodeId,
+        nodes: { [rootNodeId]: { variable: intervalVariables[0], cases: [] } },
       };
     },
 
@@ -112,22 +120,32 @@ export const caseTreeViewSlice = createSlice({
       if (!caseTree) return;
 
       switch (target.kind) {
-        case "value":
-          setBranch(caseTree.nodes[target.ref.nodeId], target.ref, {
-            type: "value",
-            value,
-          });
-          return;
+        case "value": {
+          const node = getNode(caseTree, target.ref.nodeId);
 
-        case "variable":
-          caseTree.nodes[target.nodeId].variable = value;
+          if (!node) return;
+
+          setBranch(node, target.ref, { type: "value", value });
           return;
+        }
+
+        case "variable": {
+          const node = getNode(caseTree, target.nodeId);
+
+          if (!node) return;
+
+          node.variable = value;
+          return;
+        }
 
         case "match": {
-          const caseToUpdate =
-            caseTree.nodes[target.nodeId].cases[target.caseIdx];
+          const caseToUpdate = getNode(caseTree, target.nodeId)?.cases[
+            target.caseIdx
+          ];
 
-          if (caseToUpdate) caseToUpdate.match = value;
+          if (!caseToUpdate) return;
+
+          caseToUpdate.match = value;
           return;
         }
       }
@@ -144,7 +162,11 @@ export const caseTreeViewSlice = createSlice({
 
       if (!caseTree) return;
 
-      caseTree.nodes[target.nodeId].cases.push(
+      const node = getNode(caseTree, target.nodeId);
+
+      if (!node) return;
+
+      node.cases.push(
         target.kind === "appendValue"
           ? { match: "", branch: { type: "value", value } }
           : { match: value, branch: { type: "value", value: "" } },
@@ -163,7 +185,9 @@ export const caseTreeViewSlice = createSlice({
       if (!caseTree) return;
 
       if (target.kind === "initial") {
-        const rootNode = caseTree.nodes[caseTree.rootId];
+        const rootNode = getNode(caseTree, caseTree.rootId);
+
+        if (!rootNode) return;
 
         rootNode.variable = variable;
         rootNode.cases.push({
@@ -173,7 +197,10 @@ export const caseTreeViewSlice = createSlice({
         return;
       }
 
-      const parent = caseTree.nodes[target.ref.nodeId];
+      const parent = getNode(caseTree, target.ref.nodeId);
+
+      if (!parent) return;
+
       const previousBranch = getBranch(parent, target.ref);
       const nextId = getNextNodeId(caseTree.nodes);
 
@@ -195,15 +222,18 @@ export const caseTreeViewSlice = createSlice({
 
       if (!caseTree) return;
 
-      const parentNode = caseTree.nodes[ref.nodeId];
+      const parentNode = getNode(caseTree, ref.nodeId);
+
+      if (!parentNode) return;
+
       const branch = getBranch(parentNode, ref);
 
       if (ref.kind === "case") parentNode.cases.splice(ref.caseIdx, 1);
-      else parentNode.default = undefined;
+      else parentNode.default = collapseBranch(branch, caseTree.nodes);
 
       if (!branch || branch.type === "value") return;
 
-      const nodeIdsToDelete = getSubstreeNodeIds(branch.nodeId, caseTree.nodes);
+      const nodeIdsToDelete = getSubtreeNodeIds(branch.nodeId, caseTree.nodes);
 
       nodeIdsToDelete.forEach((id) => delete caseTree.nodes[id]);
     },
@@ -247,13 +277,16 @@ const updateInterpretation = (
   tupleName: string,
 ) => {
   const state = getState().present;
-  const { rootId, nodes } = state.caseTreeView[tupleName];
+  const caseTree = state.caseTreeView[tupleName];
+
+  if (!caseTree) return;
+
   const domain = new Set(state.structure.domain.value);
   const arity = selectValidatedFunctions(getState()).parsed.get(tupleName);
 
   if (!arity) return;
 
-  const result = generateTuples(rootId, nodes, domain, arity);
+  const result = generateTuples(caseTree.rootId, caseTree.nodes, domain, arity);
 
   if (!result.ok) return;
 

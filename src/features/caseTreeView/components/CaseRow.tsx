@@ -54,11 +54,7 @@ export default function CaseRow({
 
   return (
     <div className={rowClass}>
-      <Stack
-        direction="horizontal"
-        gap={1}
-        className="case-tree-view-row-stack"
-      >
+      <Stack direction="horizontal" gap={1}>
         <FormControl
           value={value}
           size="sm"
@@ -74,7 +70,7 @@ export default function CaseRow({
 
           return (
             <Stack
-              key={isLast ? "last-node" : node.id}
+              key={idx}
               direction="horizontal"
               className="case-tree-view-node-stack"
               gap={1}

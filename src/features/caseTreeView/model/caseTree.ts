@@ -1,4 +1,30 @@
-import type { CaseTreeEntry, CaseTreeNode } from "../caseTreeViewSlice";
+export type CaseTreeBranch =
+  { type: "value"; value: string } | { type: "ref"; nodeId: string };
+
+export interface CaseTreeCase {
+  match: string;
+  branch: CaseTreeBranch;
+}
+
+export interface CaseTreeNode {
+  variable: string;
+  cases: CaseTreeCase[];
+  default?: CaseTreeBranch;
+}
+
+export interface CaseTreeEntry {
+  rootId: string;
+  nodes: Record<string, CaseTreeNode>;
+}
+
+export const rootNodeId = "root";
+
+export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
+  let i = 1;
+  while (`n${i}` in nodes) i++;
+
+  return `n${i}`;
+}
 
 export const intervalVariables = ["x", "y", "z", "u", "v", "w", "r", "s", "t"];
 
@@ -10,7 +36,7 @@ export function parseMatch(match: string) {
     .filter((s) => s);
 }
 
-export function getSubstreeNodeIds(
+export function getSubtreeNodeIds(
   rootId: string,
   nodes: Record<string, CaseTreeNode>,
 ) {
@@ -33,15 +59,6 @@ export function getSubstreeNodeIds(
   }
 
   return foundIds;
-}
-
-export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
-  const ids = new Set(Object.keys(nodes));
-
-  let i = 1;
-  while (ids.has(`n-${i}`)) i++;
-
-  return `n-${i}`;
 }
 
 export function copyTree(tree: CaseTreeEntry): CaseTreeEntry {

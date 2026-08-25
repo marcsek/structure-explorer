@@ -19,6 +19,8 @@ caseTreeListener.startListening({
     const caseTrees = state.caseTreeView;
     const domain = new Set(state.structure.domain.value);
 
+    if (domain.size === 0) return;
+
     if (updateFunctionSymbols.match(action)) {
       const functionName = action.payload.key;
       const validation = selectValidatedFunction(api.getState(), functionName);
@@ -30,7 +32,7 @@ caseTreeListener.startListening({
 
       const caseTreeCopy = copyTree(caseTreeEntry);
 
-      updateCaseTree(copyTree(caseTreeEntry), action.payload.value);
+      updateCaseTree(caseTreeCopy, action.payload.value);
 
       return void api.dispatch(
         updateTree({ functionName, tree: caseTreeCopy }),
@@ -43,11 +45,11 @@ caseTreeListener.startListening({
         tupleName,
       );
 
-      if (!arity) return;
+      if (!arity) continue;
 
       const result = generateTuples(rootId, nodes, domain, arity);
 
-      if (!result.ok) return;
+      if (!result.ok) continue;
 
       api.dispatch(
         updateFunctionSymbols(

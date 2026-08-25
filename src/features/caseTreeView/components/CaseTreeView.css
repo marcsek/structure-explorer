@@ -72,7 +72,7 @@
 }
 
 .case-tree-view-row:not(.locked) .form-control:disabled {
-  background-color: white;
+  background-color: var(--bs-body-bg);
   border-color: transparent;
   border-style: none;
 }
@@ -81,7 +81,8 @@
   opacity: 0.6;
 }
 
-.case-tree-view-row.row-placeholder:hover:not(.exhausted) .form-control:disabled,
+.case-tree-view-row.row-placeholder:hover:not(.exhausted)
+  .form-control:disabled,
 .case-tree-view-row.row-placeholder:focus-within:not(.exhausted)
   .form-control:disabled {
   opacity: 1;

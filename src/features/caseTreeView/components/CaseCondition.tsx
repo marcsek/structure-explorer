@@ -30,10 +30,8 @@ export default function CaseCondition({
             className="custom-bs-tooltip lg"
             id={`tooltip-default-${node.id}`}
           >
-            <span className="any-other-tootlip-label">
-              <var>{node.variable}</var>
-              {` ∈ {${leftoverMatches.join(",")}}`}
-            </span>
+            <var>{node.variable}</var>
+            {` ∈ {${leftoverMatches.join(",")}}`}
           </Tooltip>
         }
       >
@@ -71,8 +69,8 @@ export default function CaseCondition({
       <FormControl
         value={node.variable}
         size="sm"
-        className="case-tree-view-input case-tree-view-variable-input"
-        disabled={locked || !node.firstOccurence}
+        className="case-tree-view-variable-input"
+        disabled={locked || !node.editable}
         isInvalid={!!node.error}
         onChange={(e) =>
           dispatch(
@@ -90,10 +88,10 @@ export default function CaseCondition({
       <div className="case-tree-view-match-group">
         <InlineMath>{"\\{"}</InlineMath>
         <ResizeInput
-          className="case-tree-view-input case-tree-view-match-input"
+          className="case-tree-view-match-input"
           value={nodeCase.match}
           size="sm"
-          disabled={locked || !nodeCase.firstOccurence}
+          disabled={locked || !nodeCase.editable}
           isInvalid={!!nodeCase.error}
           onChange={(e) => handleMatchChange(e.target.value)}
         />

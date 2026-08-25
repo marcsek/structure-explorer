@@ -1,27 +1,38 @@
-import { plural, toBe } from "../../../shared/core/wordForms";
-import type { CaseTreeBranch, CaseTreeNode } from "../caseTreeViewSlice";
-import { intervalVariables, parseMatch } from "./caseTree";
+import { duplicates } from "../../../shared/core/utils";
+import { list, toBe } from "../../../shared/core/wordForms";
+import {
+  intervalVariables,
+  parseMatch,
+  type CaseTreeBranch,
+  type CaseTreeNode,
+} from "./caseTree";
 
-export type CasePathCase =
-  | {
-      type: "case";
-      caseIdx: number;
-      match: string;
-      error: string;
-      firstOccurence: boolean;
-    }
-  | { type: "default"; leftoverMatches: string[]; deletable: boolean };
+interface CaseDraft {
+  type: "case";
+  caseIdx: number;
+  match: string;
+  error: string;
+}
+
+interface DefaultDraft {
+  type: "default";
+  leftoverMatches: string[];
+  deletable: boolean;
+}
+
+export type CasePathCase = (CaseDraft & { editable: boolean }) | DefaultDraft;
 
 export interface CasePathNode {
   id: string;
   variable: string;
   case: CasePathCase;
   error: string;
-  firstOccurence: boolean;
+  editable: boolean;
   exhausted: boolean;
 }
 
 export interface CasePath {
+  id: string;
   value: string;
   valueError: string;
   error: string;
@@ -34,9 +45,7 @@ interface NodeDraft {
   variable: string;
   error: string;
   covered: boolean;
-  case:
-    | { type: "case"; caseIdx: number; match: string; error: string }
-    | { type: "default"; leftoverMatches: string[]; deletable: boolean };
+  case: CaseDraft | DefaultDraft;
 }
 
 interface RowDraft {
@@ -50,9 +59,9 @@ export function flattenCaseTree(
   rootId: string,
   nodes: Record<string, CaseTreeNode>,
   domain: Set<string>,
-  maxDepth: number,
+  arity: number,
 ): CasePath[] {
-  const allowedVars = intervalVariables.slice(0, maxDepth);
+  const allowedVars = intervalVariables.slice(0, arity);
   const drafts: RowDraft[] = [];
 
   const buildRows = (
@@ -147,6 +156,11 @@ export function flattenCaseTree(
   return toCasePaths(drafts);
 }
 
+const pathId = (nodeDrafts: NodeDraft[]) =>
+  nodeDrafts
+    .map((d) => `${d.id}#${d.case.type === "case" ? d.case.caseIdx : "d"}`)
+    .join("-");
+
 function toCasePaths(drafts: RowDraft[]): CasePath[] {
   const spanned = drafts.filter((d) => !d.placeholder).map((d) => d.nodeDrafts);
   let rowIdx = -1;
@@ -154,6 +168,7 @@ function toCasePaths(drafts: RowDraft[]): CasePath[] {
   return drafts.map((draft) => {
     if (draft.placeholder)
       return {
+        id: pathId(draft.nodeDrafts),
         value: "",
         valueError: "",
         error: "",
@@ -165,7 +180,7 @@ function toCasePaths(drafts: RowDraft[]): CasePath[] {
     const above = spanned[rowIdx - 1] ?? [];
     const below = spanned[rowIdx + 1] ?? [];
 
-    const nodes = draft.nodeDrafts.map((nodeDraft, depth) => {
+    const nodes = draft.nodeDrafts.map((nodeDraft, depth): CasePathNode => {
       const previous = above.at(depth);
 
       const { id, variable, error, case: draftCase, covered } = nodeDraft;
@@ -180,18 +195,19 @@ function toCasePaths(drafts: RowDraft[]): CasePath[] {
         case:
           draftCase.type === "case"
             ? {
-                ...nodeDraft.case,
-                firstOccurence: startsCase,
+                ...draftCase,
+                editable: startsCase,
                 error: startsCase ? draftCase.error : "",
               }
             : draftCase,
         error: startsNode ? error : "",
-        firstOccurence: startsNode,
+        editable: startsNode,
         exhausted: covered && endsNode,
-      } as CasePathNode;
+      };
     });
 
     return {
+      id: pathId(draft.nodeDrafts),
       value: draft.value,
       valueError: draft.valueError,
       error: firstError(draft.valueError, nodes),
@@ -210,17 +226,17 @@ const toGhostNode = (
   variable: draft.variable,
   case:
     draft.case.type === "case"
-      ? { ...draft.case, firstOccurence: idx === drafts.length - 1 }
+      ? { ...draft.case, editable: idx === drafts.length - 1 }
       : draft.case,
   error: "",
-  firstOccurence: false,
+  editable: false,
   exhausted: false,
 });
 
 function getValueError(value: string, domain: Set<string>) {
   return domain.has(value)
     ? ""
-    : `Value element ${value === "" ? "is empty" : `${value} is not in domain`}.`;
+    : `Value ${value === "" ? "is empty" : `${value} is not in the domain`}.`;
 }
 
 function getMatchError(
@@ -228,13 +244,19 @@ function getMatchError(
   seenMatches: Set<string>,
   domain: Set<string>,
 ) {
+  if (matches.length === 0) return `Case has no elements.`;
+
   const outsideDomain = matches.filter((m) => !domain.has(m));
   if (outsideDomain.length > 0)
-    return `Case element ${outsideDomain[0]} is not in domain.`;
+    return `Element ${outsideDomain[0]} is not in the domain.`;
 
   const respecified = matches.filter((m) => seenMatches.has(m));
   if (respecified.length > 0)
-    return `${plural(respecified.length, "Case")} for ${respecified.join(",")} ${toBe(respecified.length)} already specified.`;
+    return `${respecified.join(", ")} ${toBe(respecified.length)} already covered above.`;
+
+  const duplicated = duplicates(matches);
+  if (duplicated.length > 0)
+    return `${duplicated.join(", ")} ${toBe(duplicated.length)} repeated in this case.`;
 
   return "";
 }
@@ -244,12 +266,13 @@ function getVariableError(
   allowedVars: string[],
   usedVars: Set<string>,
 ) {
-  if (!node.variable) return "Variable must be specified.";
+  if (!node.variable) return "Variable is missing.";
 
-  if (!allowedVars.includes(node.variable)) return "Invalid variable name.";
+  if (!allowedVars.includes(node.variable))
+    return `Variable must be ${list(allowedVars, "or")}.`;
 
   if (usedVars.has(node.variable))
-    return "Variable can only appear once in the tree.";
+    return `Variable ${node.variable} is already used above.`;
 
   return "";
 }

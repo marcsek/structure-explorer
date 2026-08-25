@@ -5,7 +5,13 @@ export const plural = (count: number, noun: string) => {
   return `${noun}s`;
 };
 
-export const toBe = (count: number) => (count === 1 ? "is" : "are");
+export const toBe = (count: number, past: boolean = false) =>
+  past ? (count === 1 ? "was" : "were") : count === 1 ? "is" : "are";
+
+export const list = (items: string[], conjunction: "and" | "or" = "and") =>
+  items.length <= 1
+    ? (items[0] ?? "")
+    : `${items.slice(0, -1).join(", ")} ${conjunction} ${items[items.length - 1]}`;
 
 export const withArticle = (noun: string) =>
   `${/^[aeiou]/i.test(noun) ? "an" : "a"} ${noun}`;

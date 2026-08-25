@@ -11,10 +11,9 @@ import CaseRow from "./CaseRow";
 import CasesBrace from "./CasesBrace";
 import SingleCaseRow from "./SingleCaseRow";
 import { latex } from "../../../shared/core/utils";
-import { selectIfLock } from "../../structure/structureSlice";
 import type { DrawerEditorProps } from "../../drawerEditor/drawerEditorAdapter";
 
-export default function CaseTreeView({ tupleInfo }: DrawerEditorProps) {
+export default function CaseTreeView({ tupleInfo, locked }: DrawerEditorProps) {
   const { name: functionName, arity: tupleArity } = tupleInfo;
 
   const dispatch = useAppDispatch();
@@ -22,7 +21,6 @@ export default function CaseTreeView({ tupleInfo }: DrawerEditorProps) {
   const casePaths = useAppSelector((state) =>
     selectCasePaths(state, functionName),
   );
-  const locked = useAppSelector((state) => selectIfLock(state, functionName));
 
   useEffect(() => {
     if (!casePaths) dispatch(initializeTree(functionName));
@@ -51,9 +49,9 @@ export default function CaseTreeView({ tupleInfo }: DrawerEditorProps) {
               locked={locked}
             />
           ) : (
-            casePaths.map((path, idx) => (
+            casePaths.map((path) => (
               <CaseRow
-                key={idx}
+                key={path.id}
                 path={path}
                 functionName={functionName}
                 allowedVars={allowedVars}
