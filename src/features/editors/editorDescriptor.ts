@@ -9,6 +9,7 @@ export type EditorGroup = "tables" | "graphs";
 export interface InterpretationEditorProps {
   id: string;
   tupleInfo: TupleInfo;
+  tupleDisplayName: string;
   lock: (name: string) => UnknownAction;
   selectLock: (state: RootState, name: string) => boolean;
   renderControlButtons: (omit?: EditorType[]) => ReactNode;

@@ -2,6 +2,7 @@ import { lockVariables, selectVariablesLock } from "./variablesSlice.ts";
 import ComponentCard from "../../layout/ComponentCard/ComponentCard.tsx";
 import TextView from "../textView/TextViewEditor.tsx";
 import { useInstanceId } from "../../providers/instanceIdContext.tsx";
+import { getAffixes } from "../textView/textViewAffixes.tsx";
 
 export default function VariablesComponent() {
   const instanceId = useInstanceId();
@@ -16,6 +17,7 @@ export default function VariablesComponent() {
         placeholder="assignments"
         lock={() => lockVariables()}
         selectLock={selectVariablesLock}
+        {...getAffixes({ type: "variables" })}
       />
     </ComponentCard>
   );

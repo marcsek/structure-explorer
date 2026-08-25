@@ -20,6 +20,7 @@ import {
   selectValidatedPredicates,
 } from "../language/languageSlice.ts";
 import { useInstanceId } from "../../providers/instanceIdContext.tsx";
+import { getAffixes } from "../textView/textViewAffixes.tsx";
 
 export default function StructureComponent() {
   const instanceId = useInstanceId();
@@ -43,6 +44,7 @@ export default function StructureComponent() {
           textViewType="domain"
           placeholder="Domain"
           label="Domain"
+          {...getAffixes({ type: "domain" })}
         />
 
         <InterpretationSection
@@ -56,6 +58,7 @@ export default function StructureComponent() {
               textViewType="constant_interpretation"
               lock={(name) => lockInterpretationConstants({ key: name })}
               selectLock={selectIcLock}
+              {...getAffixes({ type: "constant_interpretation", name })}
             />
           )}
         />

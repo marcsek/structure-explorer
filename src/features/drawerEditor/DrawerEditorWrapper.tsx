@@ -21,7 +21,6 @@ import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
 import type { InterpretationEditorProps } from "../editors/editorDescriptor";
 import LockButton from "../../shared/ui/LockButton";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
-import { tupleLatexName } from "../textView/textViewAffixes";
 import {
   resolveEditorError,
   type DrawerEditorConfig,
@@ -72,6 +71,7 @@ function DrawerEditorContent({
   show = true,
   setExpandedView,
   tupleInfo,
+  tupleDisplayName,
   config,
   lock,
   selectLock,
@@ -104,7 +104,7 @@ function DrawerEditorContent({
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
           <EditorTitle
-            base={tupleLatexName(tupleInfo.name)}
+            base={tupleDisplayName}
             editor={config.displayName}
             locked={locked}
           />

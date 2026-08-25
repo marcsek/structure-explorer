@@ -9,6 +9,7 @@ import type { UnknownAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../app/store";
 import { useOpenedEditor } from "../editorToolbar/useOpenedEditor";
 import { memo, useMemo } from "react";
+import { tupleLatexName } from "../textView/textViewAffixes";
 
 export interface TupleInterpretationEditorProps {
   id: string;
@@ -46,9 +47,12 @@ function TupleInterpretationEditor({
     />
   );
 
+  const tupleDisplayName = tupleLatexName(name, arity);
+
   return editorDescriptors[openedEditor].render({
     id,
     tupleInfo: stableTupleInfo,
+    tupleDisplayName,
     lock,
     selectLock,
     renderControlButtons: getEditorControls,

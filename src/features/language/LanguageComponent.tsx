@@ -18,6 +18,7 @@ import { useSyncLanguageContext } from "../../providers/logicContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { useInstanceId } from "../../providers/instanceIdContext.tsx";
+import { getAffixes } from "../textView/textViewAffixes.tsx";
 
 export default function LanguageComponent() {
   const dispatch = useAppDispatch();
@@ -61,6 +62,7 @@ export default function LanguageComponent() {
             lock={() => lockConstants()}
             selectLock={selectConstantsLock}
             disabledOverride={hasContext}
+            {...getAffixes({ type: "constants" })}
           />
 
           <TextView
@@ -72,6 +74,7 @@ export default function LanguageComponent() {
             lock={() => lockPredicates()}
             selectLock={selectPredicatesLock}
             disabledOverride={hasContext}
+            {...getAffixes({ type: "predicates" })}
           />
 
           <TextView
@@ -83,6 +86,7 @@ export default function LanguageComponent() {
             lock={() => lockFunctions()}
             selectLock={selectFunctionsLock}
             disabledOverride={hasContext}
+            {...getAffixes({ type: "functions" })}
           />
 
           {symbolsClash && <div className="text-danger">{symbolsClash}</div>}

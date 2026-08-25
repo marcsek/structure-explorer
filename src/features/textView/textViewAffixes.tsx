@@ -2,19 +2,31 @@ import type { ReactNode } from "react";
 import { InlineMath } from "react-katex";
 import type { TextViewType } from "./textViews";
 
-export const tupleLatexName = (name: string) =>
-  `i(\\text{\\textsf{${name.replace(/_/g, "\\_")}}})`;
+export const tupleLatexName = (name: string, arity?: number) =>
+  `i(\\text{\\textsf{${name.replace(/_/g, "\\_")}}}${arity ? `^${arity}` : ""})`;
 
 export interface TextViewAffixes {
   prefix: ReactNode;
   suffix: ReactNode;
 }
 
-export const getAffixes = (
-  type: TextViewType,
-  name: string,
-): TextViewAffixes => {
-  switch (type) {
+type TextViewTypeWithName =
+  | "constant_interpretation"
+  | "predicate_interpretation"
+  | "function_interpretation";
+
+export type GetAffixesArgs =
+  | {
+      type: TextViewTypeWithName;
+      name: string;
+      displayName?: string;
+    }
+  | {
+      type: Exclude<TextViewType, TextViewTypeWithName>;
+    };
+
+export const getAffixes = (args: GetAffixesArgs): TextViewAffixes => {
+  switch (args.type) {
     case "domain":
       return {
         prefix: <InlineMath>{"D = \\{"}</InlineMath>,
@@ -22,13 +34,17 @@ export const getAffixes = (
       };
     case "constant_interpretation":
       return {
-        prefix: <InlineMath>{`${tupleLatexName(name)} = `}</InlineMath>,
+        prefix: (
+          <InlineMath>{`${args.displayName ?? tupleLatexName(args.name)} = `}</InlineMath>
+        ),
         suffix: null,
       };
     case "predicate_interpretation":
     case "function_interpretation":
       return {
-        prefix: <InlineMath>{`${tupleLatexName(name)} = \\{`}</InlineMath>,
+        prefix: (
+          <InlineMath>{`${args.displayName ?? tupleLatexName(args.name)} = \\{`}</InlineMath>
+        ),
         suffix: <InlineMath>{`\\}`}</InlineMath>,
       };
     case "variables":
@@ -41,7 +57,7 @@ export const getAffixes = (
     case "functions":
       return {
         prefix: (
-          <InlineMath>{`\\mathcal{${type.at(0)?.toUpperCase()}}_{\\mathcal{L}} = \\{`}</InlineMath>
+          <InlineMath>{`\\mathcal{${args.type.at(0)?.toUpperCase()}}_{\\mathcal{L}} = \\{`}</InlineMath>
         ),
         suffix: <InlineMath>{"\\}"}</InlineMath>,
       };

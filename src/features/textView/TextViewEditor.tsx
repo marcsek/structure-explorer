@@ -8,15 +8,17 @@ import {
   textViewCheckpoint,
   updateTextView,
 } from "./textViewSlice";
-import { getAffixes } from "./textViewAffixes";
 import type { TextViewType } from "./textViews";
 import type { RootState } from "../../app/store";
 import type { UnknownAction } from "@reduxjs/toolkit";
+import type { ReactNode } from "react";
 
 export interface TextViewEditorProps {
   id: string;
   label?: string;
   placeholder?: string;
+  prefix: ReactNode;
+  suffix: ReactNode;
   name: string;
   textViewType: TextViewType;
   lock: (name: string) => UnknownAction;
@@ -31,6 +33,8 @@ export default function TextView({
   label = "",
   placeholder = "",
   textViewType,
+  prefix,
+  suffix,
   lock,
   selectLock,
   controlButtons = null,
@@ -43,7 +47,6 @@ export default function TextView({
     selectValidatedTextView(state, textViewType, name),
   );
 
-  const { prefix, suffix } = getAffixes(textViewType, name);
   const { value: text, error } = textView;
   const errorId = `${id}-feedback`;
 
