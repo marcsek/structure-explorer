@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import {
   useReactFlow,
   type Edge,
@@ -18,7 +18,6 @@ import { getTupleId, type TupleInfo } from "../../structure/tupleInfo";
 import useSyncNodesWithStore from "./useSyncNodesWithStore";
 import useFitViewOnNodeAdded from "./useFitViewOnNodeAdded";
 import useConnectionWarning from "./useConnectionWarning";
-import { makeEdgeHidden, makeNodeInvisible } from "../canvas/utils";
 import {
   defaultFitViewDuration,
   defaultFitViewOptions,
@@ -72,16 +71,6 @@ export default function useGraph<T extends GraphType>({
     fitViewDuration: defaultFitViewDuration,
   });
 
-  const flowNodes = useMemo(
-    () => (didLayout ? nodes : nodes.map(makeNodeInvisible)),
-    [nodes, didLayout],
-  );
-
-  const flowEdges = useMemo(
-    () => (didLayout ? edges : edges.map(makeEdgeHidden)),
-    [edges, didLayout],
-  );
-
   const onEdgesChange = useCallback(
     (changes: EdgeChange<Edge>[]) =>
       dispatch(onEdgesChanged({ tupleInfo, graphType, changes })),
@@ -99,8 +88,6 @@ export default function useGraph<T extends GraphType>({
     storeNodes,
     nodes,
     edges,
-    flowNodes,
-    flowEdges,
     didLayout,
     warning,
     flowWrapperRef,

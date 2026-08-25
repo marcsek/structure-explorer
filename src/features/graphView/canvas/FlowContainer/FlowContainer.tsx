@@ -11,11 +11,18 @@ export interface FlowContainerProps {
   hintEnabled?: boolean;
   zoomOnModifier?: boolean;
   zoomEnabled?: boolean;
+  elementsHidden?: boolean;
 }
 
 const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
   (
-    { children, hintEnabled = true, zoomOnModifier = true, zoomEnabled = true },
+    {
+      children,
+      hintEnabled = true,
+      zoomOnModifier = true,
+      zoomEnabled = true,
+      elementsHidden = false,
+    },
     ref,
   ) => {
     const [showHint, setShowHint] = useState(false);
@@ -51,7 +58,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
     return (
       <div
         ref={ref}
-        className="react-flow__container"
+        className={`react-flow__container ${elementsHidden ? "elements-hidden" : ""}`}
         onPointerDownCapture={hideZoomHint}
         onWheelCapture={(e) => {
           if (!zoomEnabled) {

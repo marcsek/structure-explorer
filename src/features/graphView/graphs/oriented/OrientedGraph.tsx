@@ -17,8 +17,7 @@ export default function OrientedGraph({
   const {
     nodes,
     edges,
-    flowNodes,
-    flowEdges,
+    didLayout,
     warning,
     flowWrapperRef,
     syncNodesWithStore,
@@ -39,14 +38,15 @@ export default function OrientedGraph({
   return (
     <GraphCanvas
       id={id}
-      nodes={flowNodes}
-      edges={flowEdges}
+      nodes={nodes}
+      edges={edges}
       locked={locked}
       expandedView={expandedView}
       warning={warning}
       blockingDialog={blockingDialog}
       containerRef={flowWrapperRef}
       flowProps={{ ...graphProps, snapToGrid: true }}
+      elementsHidden={!didLayout}
       onNodeDragStop={syncNodesWithStore}
       onExpandedViewChange={onExpandedViewChange}
       onLayout={onLayout}

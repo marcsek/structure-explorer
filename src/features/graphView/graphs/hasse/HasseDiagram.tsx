@@ -22,8 +22,7 @@ export default function HasseDiagram({
   const {
     nodes,
     edges,
-    flowNodes,
-    flowEdges,
+    didLayout,
     warning,
     flowWrapperRef,
     syncNodesWithStore,
@@ -51,14 +50,15 @@ export default function HasseDiagram({
   return (
     <GraphCanvas
       id={id}
-      nodes={isPoset ? flowNodes : []}
-      edges={isPoset ? flowEdges : []}
+      nodes={nodes}
+      edges={edges}
       locked={locked}
       expandedView={expandedView}
       warning={warning}
       blockingDialog={blockingDialog}
       containerRef={flowWrapperRef}
       flowProps={{ ...graphProps, snapToGrid: true }}
+      elementsHidden={!didLayout || !isPoset}
       onNodeDragStop={syncNodesWithStore}
       onExpandedViewChange={onExpandedViewChange}
       onLayout={onLayout}

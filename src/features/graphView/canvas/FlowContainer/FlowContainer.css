@@ -74,3 +74,8 @@
   padding: 4px;
   font-weight: 500;
 }
+
+.react-flow__container.elements-hidden .react-flow__node,
+.react-flow__container.elements-hidden .react-flow__edge {
+  visibility: hidden !important;
+}

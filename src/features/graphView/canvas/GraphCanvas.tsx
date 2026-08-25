@@ -52,6 +52,7 @@ export interface GraphCanvasProps<
   containerRef: Ref<HTMLDivElement>;
   flowProps: ReactFlowProps<NodeType, EdgeType>;
   fitViewOptions?: FitViewOptions;
+  elementsHidden?: boolean;
   onNodeDragStop: () => void;
   onExpandedViewChange?: OnExpandedViewChange;
   onLayout?: () => void;
@@ -71,6 +72,7 @@ export default function GraphCanvas<
   containerRef,
   flowProps,
   fitViewOptions,
+  elementsHidden = false,
   onNodeDragStop,
   onExpandedViewChange,
   onLayout,
@@ -83,6 +85,7 @@ export default function GraphCanvas<
       hintEnabled={!expandedView && !dialogShown}
       zoomOnModifier={!expandedView}
       zoomEnabled={!dialogShown}
+      elementsHidden={elementsHidden}
     >
       <ReactFlow
         id={id}

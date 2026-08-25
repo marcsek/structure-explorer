@@ -80,14 +80,15 @@ export function useGraphLayout<T extends GraphType>({
   );
 
   const nodesInitialized = useNodesInitialized();
-  const didTryInitialLayout = useRef(false);
+  const layoutAttemptedFor = useRef<string | null>(null);
+  const layoutKey = `${tupleId}-${graphType}`;
 
   useEffect(() => {
-    if (!nodesInitialized || didTryInitialLayout.current) return;
+    if (!nodesInitialized || layoutAttemptedFor.current === layoutKey) return;
 
-    didTryInitialLayout.current = true;
+    layoutAttemptedFor.current = layoutKey;
     if (!didLayout) onLayout(true, true);
-  }, [nodesInitialized, didLayout, onLayout]);
+  }, [nodesInitialized, didLayout, onLayout, layoutKey]);
 
   return onLayout;
 }
