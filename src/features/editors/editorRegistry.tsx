@@ -29,13 +29,13 @@ const isBinaryRelation = (tuple: TupleInfo) => correctedArity(tuple) === 2;
 export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   text: textEditorAdapter({
     type: "text",
-    displayName: "Text Editor",
-    buttonText: "Text (default)",
+    displayName: "Set",
+    buttonText: "Set (default)",
     isAvailable: () => true,
   }),
   caseTree: drawerEditorAdapter({
     type: "caseTree",
-    displayName: "Case Tree Editor",
+    displayName: "Case Tree",
     buttonText: "Case Tree",
     isAvailable: ({ type }) => type === "function",
     supportsFullscreen: false,
@@ -45,8 +45,8 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   }),
   matrix: drawerEditorAdapter({
     type: "matrix",
-    displayName: "Matrix Editor",
-    buttonText: "Matrix",
+    displayName: "Matrix Table",
+    buttonText: "Matrix Table",
     group: "tables",
     isAvailable: ({ arity }) => arity <= 2,
     supportsFullscreen: false,
@@ -56,8 +56,8 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   }),
   database: drawerEditorAdapter({
     type: "database",
-    displayName: "Database Table Editor",
-    buttonText: "Database",
+    displayName: "Database Table",
+    buttonText: "Database Table",
     group: "tables",
     isAvailable: ({ type, arity }) => arity <= 2 || type !== "function",
     supportsFullscreen: false,
@@ -68,7 +68,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   oriented: drawerEditorAdapter({
     type: "oriented",
     displayName: "Oriented Graph",
-    buttonText: "Oriented",
+    buttonText: "Oriented Graph",
     group: "graphs",
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
@@ -79,7 +79,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   hasse: drawerEditorAdapter({
     type: "hasse",
     displayName: "Hasse Diagram",
-    buttonText: "Hasse",
+    buttonText: "Hasse Diagram",
     group: "graphs",
     isAvailable: (tuple) =>
       isBinaryRelation(tuple) && tuple.type !== "function",
@@ -91,7 +91,7 @@ export const editorDescriptors: Record<EditorType, EditorDescriptor> = {
   bipartite: drawerEditorAdapter({
     type: "bipartite",
     displayName: "Bipartite Graph",
-    buttonText: "Bipartite",
+    buttonText: "Bipartite Graph",
     group: "graphs",
     isAvailable: isBinaryRelation,
     supportsFullscreen: true,
