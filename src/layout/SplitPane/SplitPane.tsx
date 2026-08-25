@@ -1,6 +1,12 @@
 import "./SplitPane.css";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type React from "react";
 
 const KEYBOARD_STEP = 0.02;
@@ -27,10 +33,27 @@ export default function SplitPane({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const leftPaneRef = useRef<HTMLDivElement>(null);
+  const leftContentRef = useRef<HTMLDivElement>(null);
   const dividerRef = useRef<HTMLDivElement>(null);
   const pointerIdRef = useRef<number | null>(null);
   const [ratio, setRatio] = useState(defaultRatio);
   const [isDragging, setIsDragging] = useState(false);
+  const [isLeftScrolling, setIsLeftScrolling] = useState(false);
+
+  useLayoutEffect(() => {
+    const leftPane = leftPaneRef.current;
+    const leftContent = leftContentRef.current;
+    if (!leftPane || !leftContent) return;
+
+    const observer = new ResizeObserver(() =>
+      setIsLeftScrolling(leftPane.scrollHeight > leftPane.clientHeight),
+    );
+
+    observer.observe(leftPane);
+    observer.observe(leftContent);
+
+    return () => observer.disconnect();
+  }, []);
 
   const getTrack = useCallback(() => {
     const container = containerRef.current;
@@ -181,9 +204,11 @@ export default function SplitPane({
     >
       <div
         ref={leftPaneRef}
-        className={`split-pane-panel split-pane-left ${leftClassName ?? ""}`}
+        className={`split-pane-panel split-pane-left ${
+          isLeftScrolling ? "split-pane-left-scrolling" : ""
+        } ${leftClassName ?? ""}`}
       >
-        {left}
+        <div ref={leftContentRef}>{left}</div>
       </div>
 
       <div
