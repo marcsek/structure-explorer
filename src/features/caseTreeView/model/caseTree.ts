@@ -19,6 +19,8 @@ export interface CaseTreeEntry {
 
 export const rootNodeId = "root";
 
+// WARNING Trees saved by older versions mix id formats (n{number} vs. n-{number}), so
+// be careful when modifing this function.
 export function getNextNodeId(nodes: Record<string, CaseTreeNode>) {
   let i = 1;
   while (`n${i}` in nodes) i++;
@@ -44,13 +46,14 @@ export function getSubtreeNodeIds(
   const foundIds = new Set([rootId]);
 
   while (nodeStack.length > 0) {
-    const node = nodeStack.pop()!;
+    const node = nodeStack.pop();
+    if (!node) continue;
 
     const branches = [...node.cases.map((c) => c.branch)];
     if (node.default) branches.push(node.default);
 
     for (const branch of branches) {
-      if (branch.type === "value") continue;
+      if (branch.type === "value" || foundIds.has(branch.nodeId)) continue;
 
       foundIds.add(branch.nodeId);
 

@@ -6,8 +6,7 @@ import {
 } from "../structure/structureSlice";
 import type { RootState } from "../../app/store";
 import { selectValidatedFunctions } from "../language/languageSlice";
-import { copyTree } from "./model/caseTree";
-import { generateTuples, updateCaseTree } from "./model/tuples";
+import { generateTuples, rebuildCaseTree } from "./model/tuples";
 import { updateTree } from "./caseTreeViewSlice";
 
 export const caseTreeListener = createListenerMiddleware<RootState>();
@@ -28,15 +27,22 @@ caseTreeListener.startListening({
       if (action.meta.source === "caseTreeView" || validation.error) return;
 
       const caseTreeEntry = state.caseTreeView[functionName];
-      if (!caseTreeEntry) return;
-
-      const caseTreeCopy = copyTree(caseTreeEntry);
-
-      updateCaseTree(caseTreeCopy, action.payload.value);
-
-      return void api.dispatch(
-        updateTree({ functionName, tree: caseTreeCopy }),
+      const arity = selectValidatedFunctions(api.getState()).parsed.get(
+        functionName,
       );
+
+      if (!caseTreeEntry || !arity) return;
+
+      const { tree, changed } = rebuildCaseTree(
+        caseTreeEntry,
+        action.payload.value,
+        domain,
+        arity,
+      );
+
+      if (!changed) return;
+
+      return void api.dispatch(updateTree({ functionName, tree }));
     }
 
     for (const [tupleName, view] of Object.entries(caseTrees)) {

@@ -313,7 +313,8 @@ export const initializeTree =
       return void dispatch(initializeTreeAction({ functionName }));
     }
 
-    const tree = initializeTreeFromTuples(iF.parsed, arity);
+    const domain = new Set(selectDomain(getState()).value);
+    const tree = initializeTreeFromTuples(iF.parsed, domain, arity);
 
     dispatch(updateTree({ functionName, tree }));
   };
