@@ -2,6 +2,7 @@
  * Represent components_parts
  * @author Milan Cifra
  * @author Jozef Filip
+ * @author Jakub Marček
  * @class
  */
 
@@ -11,7 +12,12 @@ export type DomainElement = string;
 
 export type Valuation = Map<Symbol, DomainElement>;
 
+const tupleKey = (tuple: DomainElement[]) => tuple.join(",");
+
 export class Structure {
+  private readonly iPKeys = new Map<Symbol, Set<string>>();
+  private readonly iFValues = new Map<Symbol, Map<string, DomainElement>>();
+
   /**
    *
    * @param {Language} language
@@ -23,51 +29,42 @@ export class Structure {
     public iC: Map<Symbol, DomainElement>,
     public iP: Map<Symbol, Set<DomainElement[]>>,
     public iF: Map<Symbol, Map<DomainElement[], DomainElement>>,
-  ) {}
+  ) {
+    // Indexes tuples for faster lookups.
+    for (const [symbol, predicateSet] of iP) {
+      const keys = new Set<string>();
+      for (const element of predicateSet) keys.add(tupleKey(element));
+
+      this.iPKeys.set(symbol, keys);
+    }
+
+    for (const [symbol, functionMap] of iF) {
+      const values = new Map<string, DomainElement>();
+      for (const [key, value] of functionMap) values.set(tupleKey(key), value);
+
+      this.iFValues.set(symbol, values);
+    }
+  }
 
   iPHas(symbol: Symbol, tuple: DomainElement[]): boolean {
-    const predicateSet = this.iP.get(symbol);
-    if (!predicateSet) return false;
+    const keys = this.iPKeys.get(symbol);
+    if (!keys) return false;
 
-    let has = false;
-    predicateSet.forEach((element) => {
-      if (JSON.stringify(element) === JSON.stringify(tuple)) {
-        has = true;
-        return true;
-      }
-    });
-
-    return has;
+    return keys.has(tupleKey(tuple));
   }
 
   iFHas(symbol: Symbol, tuple: DomainElement[]): boolean {
-    const functionMap = this.iF.get(symbol);
-    if (!functionMap) return false;
+    const values = this.iFValues.get(symbol);
+    if (!values) return false;
 
-    let has = false;
-    functionMap.forEach((_, key) => {
-      if (JSON.stringify(key) === JSON.stringify(tuple)) {
-        has = true;
-        return true;
-      }
-    });
-
-    return has;
+    return values.has(tupleKey(tuple));
   }
 
   iFGet(symbol: Symbol, tuple: DomainElement[]): DomainElement | undefined {
-    const functionMap = this.iF.get(symbol);
-    if (!functionMap) return undefined;
+    const values = this.iFValues.get(symbol);
+    if (!values) return undefined;
 
-    let element = "";
-    functionMap.forEach((value, key) => {
-      if (JSON.stringify(key) === JSON.stringify(tuple)) {
-        element = value;
-        return true;
-      }
-    });
-
-    return element;
+    return values.get(tupleKey(tuple));
   }
 }
 

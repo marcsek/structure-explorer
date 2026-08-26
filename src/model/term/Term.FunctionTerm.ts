@@ -51,11 +51,11 @@ class FunctionTerm extends Term {
       throw new EvaluationError(
         "undefinedFunctionValue",
         this.name,
-        `The interpretation of the function symbol ${this.name} for ${
+        `The interpretation of the function symbol ${this.name} is not defined for ${
           interpretedParams.length > 1
             ? `(${interpretedParams})`
             : interpretedParams
-        } is not defined`,
+        }.`,
       );
     }
     return interpretedValue;
@@ -66,28 +66,12 @@ class FunctionTerm extends Term {
    * @returns {string}
    */
   toString(): string {
-    let res = this.name + "(";
-    for (let i = 0; i < this.terms.length; i++) {
-      if (i > 0) {
-        res += ", ";
-      }
-      res += this.terms[i].toString();
-    }
-    res += ")";
-    return res;
+    return `${this.name}(${this.terms.map((t) => t.toString()).join(", ")})`;
   }
 
   toTex(): string {
     const escapedName = this.name.replace(/_/g, "\\_");
-    let res = `\\text{${escapedName}}` + "(";
-    for (let i = 0; i < this.terms.length; i++) {
-      if (i > 0) {
-        res += ", ";
-      }
-      res += this.terms[i].toString();
-    }
-    res += ")";
-    return res;
+    return `\\text{${escapedName}}(${this.terms.map((t) => t.toTex()).join(", ")})`;
   }
 
   getVariables(): Set<Symbol> {
