@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectStructure } from "../structure/structureSlice";
 import PredicateAtom from "../../model/formula/Formula.PredicateAtom";
 import MessageBubble from "../../shared/ui/bubbles/MessageBubble";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { selectValuation } from "../variables/variablesSlice";
 import EqualityAtom from "../../model/formula/Formula.EqualityAtom";
 import { Stack } from "react-bootstrap";
@@ -22,6 +22,7 @@ import {
   getGameResultBubble,
   getGammaBubbles,
 } from "./messageBubbleFactories";
+import useScrollToBottom from "./useScrollToBottom";
 
 export type BubbleFormat = {
   text: ReactNode;
@@ -41,16 +42,10 @@ export default function GameHistory({ id }: Props) {
   const data = useAppSelector((state) => selectHistoryData(state, id));
   const structure = useAppSelector(selectStructure);
   const choices = useAppSelector((state) => selectFormulaChoices(state, id));
-  const bottomScrollElement = useRef<HTMLDivElement>(null);
   const initialValuation = useAppSelector(selectValuation);
 
-  useEffect(() => {
-    if (bottomScrollElement.current)
-      bottomScrollElement.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-  }, [data]);
+  const bubblesRef = useRef<HTMLDivElement>(null);
+  useScrollToBottom(bubblesRef);
 
   const bubbles: BubbleFormat[] = [];
 
@@ -131,7 +126,7 @@ export default function GameHistory({ id }: Props) {
   }
 
   return (
-    <Stack gap={1}>
+    <Stack gap={1} ref={bubblesRef}>
       {bubbles.map(
         ({ text, sender, goBack, win, lose, fixableLoss }, index) => (
           <MessageBubble
@@ -152,7 +147,6 @@ export default function GameHistory({ id }: Props) {
           </MessageBubble>
         ),
       )}
-      <div ref={bottomScrollElement} />
     </Stack>
   );
 }

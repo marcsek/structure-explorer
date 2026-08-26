@@ -9,11 +9,10 @@ import {
   selectIsVerifiedGame,
   selectGameResetIndex,
   gameGoBack,
-  selectFormulaLock,
-  selectFormulaGuessLock,
   lockFormula,
   lockFormulaGuess,
   updateFormulaText,
+  selectFormula,
 } from "./formulasSlice";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { InlineMath } from "react-katex";
@@ -24,72 +23,53 @@ import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import GameComponent from "../game/GameComponent";
 import { useEffect, useState } from "react";
-import {
-  selectValidatedDomain,
-  selectStructureErrors,
-} from "../structure/structureSlice";
-import { selectValidatedVariables } from "../variables/variablesSlice";
 import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import LockButton from "../../shared/ui/LockButton";
 import { UndoActions } from "../undoHistory/undoHistory";
 import { useFormulasContext } from "../../providers/logicContext";
-import { selectFirstLanguageError } from "../language/languageSlice";
-import { getErrorMessageFromValidation } from "../../shared/core/formulas";
+import { selectNonFormulaValidationError } from "../../shared/core/formulas";
 
 interface Props {
   id: number;
-  name?: string;
-  text: string;
-  guess: boolean | null;
 }
 
-export default function FormulaComponent({ id, text, guess, name }: Props) {
-  const isFromContext = !!name;
-  const real_id = id + 1;
+export default function FormulaComponent({ id }: Props) {
   const dispatch = useAppDispatch();
+  const [showGame, setShowGame] = useState(false);
+
+  const { name, text, guess, locked, lockedGuess } = useAppSelector((state) =>
+    selectFormula(state, id),
+  );
   const { error: formulaError, formula } = useAppSelector((state) =>
     selectEvaluatedFormula(state, id),
   );
-  const [begin, setBegin] = useState(false);
-
-  const domain = useAppSelector(selectValidatedDomain);
+  const validationErrorMessage = useAppSelector(
+    selectNonFormulaValidationError,
+  );
   const isVerified = useAppSelector((state) => selectIsVerifiedGame(state, id));
   const backIndex = useAppSelector((state) => selectGameResetIndex(state, id));
-  const structureError = useAppSelector(selectStructureErrors);
-  const languageError = useAppSelector(selectFirstLanguageError);
-  const { error: variablesError } = useAppSelector(selectValidatedVariables);
   const teacherMode = useAppSelector(selectTeacherMode);
-  const locked = useAppSelector((state) => selectFormulaLock(state, id));
-  const lockedGuess = useAppSelector((state) =>
-    selectFormulaGuessLock(state, id),
-  );
+
   const { formulas: contextFormulas } = useFormulasContext();
   const contextFormulasNames = new Set(
     contextFormulas.map((formula) => formula.name),
   );
+  const isFromContext = !!name;
   const isMissingInContext = isFromContext && !contextFormulasNames.has(name);
 
   const contextError = isMissingInContext
     ? new Error(`Formula is missing in context. ${formulaError?.message ?? ""}`)
     : undefined;
 
-  const validtionErrorMessage = getErrorMessageFromValidation({
-    languageError,
-    structureError,
-    variablesError,
-  });
-
-  const nonFormulaError = validtionErrorMessage
-    ? new Error(validtionErrorMessage)
+  const nonFormulaError = validationErrorMessage
+    ? new Error(validationErrorMessage)
     : undefined;
-
-  const isPlayable = !nonFormulaError;
 
   useEffect(() => {
     dispatch(gameGoBack({ id, index: backIndex }));
   }, [backIndex, dispatch, id]);
 
-  const displayName = `${isFromContext ? name : `\\varphi_{${real_id}}`}`;
+  const displayName = `${isFromContext ? name : `\\varphi_{${id + 1}}`}`;
   const error = contextError || formulaError || nonFormulaError;
 
   const gameStatus =
@@ -219,21 +199,17 @@ export default function FormulaComponent({ id, text, guess, name }: Props) {
         <Col xs="auto">
           <GameVerificationButton
             gameStatus={gameStatus}
-            gameOpened={begin}
+            gameOpened={showGame}
             didSelectGuess={guess !== null}
-            disabled={!!error || guess === null || !isPlayable}
-            onClick={() => setBegin(!begin)}
+            disabled={!!error || guess === null}
+            onClick={() => setShowGame(!showGame)}
           />
         </Col>
       </Row>
 
-      {begin &&
-        guess !== null &&
-        formula &&
-        domain.error === undefined &&
-        isPlayable === true && (
-          <GameComponent id={id} guess={guess} originalFormula={formula} />
-        )}
+      {showGame && guess !== null && !error && (
+        <GameComponent id={id} guess={guess} originalFormula={formula} />
+      )}
     </Form>
   );
 }

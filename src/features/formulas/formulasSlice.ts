@@ -214,14 +214,19 @@ export const selectFormulaChoices = (state: RootState, id: number) =>
 export const selectFormulas = (state: RootState) =>
   state.present.formulas.allFormulas;
 
+export const selectFormulaCount = (state: RootState) =>
+  state.present.formulas.allFormulas.length;
+
+export const selectFormulaNames = (state: RootState) =>
+  state.present.formulas.allFormulas.flatMap(({ name }) =>
+    name ? [name] : [],
+  );
+
+export const selectFormulaText = (state: RootState, id: number) =>
+  selectFormula(state, id)?.text ?? "";
+
 export const selectFormula = (state: RootState, id: number) =>
   state.present.formulas.allFormulas[id];
-
-export const selectFormulaLock = (state: RootState, id: number) =>
-  selectFormula(state, id).locked;
-
-export const selectFormulaGuessLock = (state: RootState, id: number) =>
-  selectFormula(state, id).lockedGuess;
 
 const evaluateFormula = (
   language: Language,
@@ -256,9 +261,9 @@ const evaluateFormula = (
   });
 
 export const selectEvaluatedFormula = createSelector(
-  [selectLanguage, selectStructure, selectFormula, selectValuation],
+  [selectLanguage, selectStructure, selectFormulaText, selectValuation],
   (language, structure, form, valuation) =>
-    evaluateFormula(language, structure, form.text, valuation),
+    evaluateFormula(language, structure, form, valuation),
 );
 
 export const selectEvaluatedFormulas = createSelector(

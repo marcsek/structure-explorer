@@ -3,21 +3,22 @@ import {
   selectFormulas,
   updateText,
 } from "../../features/formulas/formulasSlice";
-import { useAppDispatch, useAppSelector, useAppStore } from "../../app/hooks";
+import { useAppDispatch, useAppStore } from "../../app/hooks";
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagicWandSparkles } from "@fortawesome/free-solid-svg-icons";
 import { UndoActions } from "../undoHistory/undoHistory";
 
 export default function PrettifyButton() {
-  const allFormulas = useAppSelector(selectFormulas);
   const dispatch = useAppDispatch();
   const store = useAppStore();
 
   const prettifyAll = () => {
     let someNeededUpdate = false;
 
-    const evaluatedFormulas = selectEvaluatedFormulas(store.getState());
+    const state = store.getState();
+    const allFormulas = selectFormulas(state);
+    const evaluatedFormulas = selectEvaluatedFormulas(state);
 
     evaluatedFormulas.forEach((evaluated, id) => {
       if (evaluated?.formula) {
