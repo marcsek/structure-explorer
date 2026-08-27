@@ -41,6 +41,25 @@ npm link ../structure-explorer-dev-lib
 > Ukážkovú verziu je možné po builde spustiť lokálne príkazom `npm run preview`.
 > Príkaz `npm run deploy` najprv buildne ukážkovú aplikáciu a následne ju zverejní na GitHub Pages.
 
+## Migrácie
+
+Každá zmena štruktúry exportovaného stavu vyžaduje vytvorenie migrácie zabezpečujúcej spätnú kompatibilitu s predchádzajúcimi verziami. 
+Migrácie sa aplikujú automaticky pri načítaní staršej verzie stavu a prevedú ju na aktuálnu verziu.
+
+### Pridanie migrácie
+
+Napríklad na zmenu štruktúry exportovaného stavu `language` pri aktuálnej verzii 2 by bolo 
+v `src/features/import/migrations` potrebné vykonať nasledujúce kroky:
+
+1. Skopírovať pôvodnú validačnú schému stavu `language` do `oldSchemas/language.v2.ts`.
+2. Vo `versions.ts` nasmerovať na kópiu z kroku 1 všetky schémy, ktoré doteraz odkazovali na pôvodnú schému `language`.
+3. Aktualizovať validačnú schému stavu `language` v `src/features/language/validationSchema.ts`.
+4. Vo `versions.ts` pridať `v3Fields = { ...v2Fields, language: serializedLanguageStateSchema }`, 
+exportovať `V3Fields`/`V3State`, nastaviť `SERIALIZED_STATE_VERSION = 3` a `currentFields = v3Fields`.
+5. Napísať samotnú migráciu do súboru `steps/v2_to_v3.ts` ako `Migration<V2Fields, V3Fields>` 
+a pridať ju v `index.ts` do `migrationSteps` (`[..., step(2, v2Fields, <migrácia>)]`).
+6. Ak sa zmenil default daného slice-u, upraviť aj defaulty vo `../validationSchema.ts`.
+
 ## História
 
 Aplikácia vznikla v rokoch 2017–2018 v rámci bakalárskej práce Milana Cifru

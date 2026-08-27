@@ -45,13 +45,12 @@ export const editorToolbarSlice = createSlice({
       action: PayloadAction<{
         state: SerializedEditorToolbarState;
         unaryPredicates: string[];
-        domain: string[];
       }>,
     ) {
-      const { state: imported, unaryPredicates, domain } = action.payload;
+      const { state: imported, unaryPredicates } = action.payload;
 
       return Object.fromEntries(
-        Object.entries(imported).map(([key, { selectedDomain, ...value }]) => [
+        Object.entries(imported).map(([key, value]) => [
           key,
           {
             ...value,
@@ -59,12 +58,6 @@ export const editorToolbarSlice = createSlice({
               value.selectedUnary,
               unaryPredicates,
             ),
-            deselectedDomain:
-              // TODO: Global migration functionality needed
-              value.deselectedDomain ??
-              (selectedDomain
-                ? domain.filter((element) => !selectedDomain.includes(element))
-                : []),
             hoveredUnary: [],
             unaryFilterHovered: false,
           },

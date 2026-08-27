@@ -90,7 +90,6 @@ export const importAppState =
       importEditorToolbarState({
         state: importedState.editorToolbar,
         unaryPredicates: getUnarySymbolNames(language.predicates.value),
-        domain: structure.domain.value,
       }),
     );
 

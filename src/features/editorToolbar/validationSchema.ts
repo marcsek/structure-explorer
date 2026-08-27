@@ -6,8 +6,7 @@ export const serializedEditorToolbarStateSchema = z
     z.string(),
     z.object({
       selectedUnary: z.array(z.string()),
-      selectedDomain: z.array(z.string()).optional(),
-      deselectedDomain: z.array(z.string()).optional(),
+      deselectedDomain: z.array(z.string()).default(() => []),
       unaryFilterDomain: z.boolean(),
       openedEditor: z.enum(editorTypes),
     }),
