@@ -211,12 +211,9 @@ export abstract class GraphModel<S extends GraphState> {
       if (isGhost(node)) nodeData = { ...nodeData, ghost: true };
       else if (isHatched(node)) nodeData = { ...nodeData, hatched: true };
 
-      return {
-        ...node,
-        data: nodeData,
-        selectable:
-          nodeData.ghost || nodeData.hatched ? false : node.selectable,
-      };
+      if (nodeData === node.data) return node;
+
+      return { ...node, data: nodeData, selectable: false };
     });
   }
 

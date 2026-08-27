@@ -77,7 +77,7 @@ export default function GraphCanvas<
   onExpandedViewChange,
   onLayout,
 }: GraphCanvasProps<NodeType, EdgeType>) {
-  const dialogShown = Boolean(blockingDialog);
+  const dialogShown = !!blockingDialog;
 
   return (
     <FlowContainer

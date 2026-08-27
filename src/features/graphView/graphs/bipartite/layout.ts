@@ -92,13 +92,15 @@ const groupNodeOptions = {
   type: "setGroup",
 } satisfies Partial<Node>;
 
+export const groupNodeId = (originSet: OriginSet) => `${originSet}-group`;
+
 export const createGroupNode = (
   originSet: OriginSet,
   size: { width: number; height: number },
   offset: { x: number; y: number },
 ): SetGroupNodeType => {
   return {
-    id: `${originSet}-group`,
+    id: groupNodeId(originSet),
     position: offset,
     ...size,
     measured: size,
@@ -128,6 +130,8 @@ export const addGroupNodes = (
   nodes: BipartiteNodeType[],
   keepPositions = false,
 ) => {
+  if (nodes.length === 0) return [];
+
   const draggedIds = nodes.filter((n) => n.dragging).map((n) => n.id);
   const positioned = keepPositions
     ? nodes
@@ -135,22 +139,14 @@ export const addGroupNodes = (
 
   const { bounds, offset } = computeGroupContainerBounds(positioned);
 
-  if (positioned.length === 0) return [];
-
   const domainGroup = createGroupNode("domain", bounds, {
     ...offset,
     x: -offset.x,
   });
   const rangeGroup = createGroupNode("range", bounds, offset);
 
-  const childNodes: BipartiteNodeType[] = positioned.map((node) => ({
-    ...node,
-    parentId: node.data.origin === "domain" ? domainGroup.id : rangeGroup.id,
-    extent: "parent",
-  }));
-
   const [childrenDomain, childrenRange] = partition(
-    childNodes,
+    positioned,
     (n) => n.data.origin === "domain",
   );
 

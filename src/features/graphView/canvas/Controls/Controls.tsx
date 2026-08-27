@@ -45,7 +45,6 @@ function ControlsComponent({
   expandedView = false,
   fitViewOptions = defaultControlsFitViewOptions,
   onExpandedViewChange,
-  onInteractiveChange,
   onLayout,
 }: ControlsComponentProps) {
   const { fitView, zoomIn, zoomOut } = useReactFlow();
@@ -62,7 +61,6 @@ function ControlsComponent({
       showInteractive={false}
       showFitView={false}
       showZoom={false}
-      onInteractiveChange={onInteractiveChange}
     >
       <TooltipControlButton
         id={id}

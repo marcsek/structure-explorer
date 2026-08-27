@@ -44,7 +44,24 @@ export default function useConnectionWarning(
   graphType: GraphType,
   edges: DirectEdgeType[],
 ) {
-  const connection = useConnection(toConnection);
+  const lastConnection = useRef<Connection>();
+
+  const connection = useConnection((state) => {
+    const next = toConnection(state);
+
+    if (!next) {
+      lastConnection.current = undefined;
+      return undefined;
+    }
+
+    const previous = lastConnection.current;
+
+    if (previous && connectionKey(previous) === connectionKey(next))
+      return previous;
+
+    lastConnection.current = next;
+    return next;
+  });
 
   const warning = useMemo(
     () =>

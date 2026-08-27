@@ -14,6 +14,7 @@ import {
   type PositionSeed,
 } from "../utils";
 import type { PredicateNodeType } from "../../canvas/nodes/PredicateNode";
+import { groupNodeId } from "./layout";
 
 export type OriginSet = "domain" | "range";
 
@@ -79,6 +80,8 @@ export default class BipartiteGraphModel extends GraphModel<BipartiteGraphState>
         },
         connectable: origin === "domain" ? undefined : false,
         deletable: false,
+        parentId: groupNodeId(origin),
+        extent: "parent",
       };
     };
 

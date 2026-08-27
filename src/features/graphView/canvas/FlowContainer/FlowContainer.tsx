@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import "./FlowContainer.css";
 
-import { useState, useRef, forwardRef, useEffect } from "react";
+import { useState, useRef, forwardRef, useEffect, memo } from "react";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 const HIDE_TIMEOUT_DURATION = 750;
@@ -80,7 +80,7 @@ const FlowContainer = forwardRef<HTMLDivElement, FlowContainerProps>(
   },
 );
 
-function ZoomHint({ show }: { show: boolean }) {
+const ZoomHint = memo(({ show }: { show: boolean }) => {
   return (
     <div
       className={`flow-container-zoom-hint-container ${show ? "visible" : "hidden"}`}
@@ -92,7 +92,7 @@ function ZoomHint({ show }: { show: boolean }) {
       </div>
     </div>
   );
-}
+});
 
 const getModifierKey = () =>
   /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent) ? "⌘" : "Ctrl";

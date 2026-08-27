@@ -63,7 +63,7 @@ export default memo(
   TupleInterpretationEditor,
   (prev, next) =>
     prev.id === next.id &&
-    prev.tupleInfo.arity === prev.tupleInfo.arity &&
-    prev.tupleInfo.name === prev.tupleInfo.name &&
-    prev.tupleInfo.type === prev.tupleInfo.type,
+    prev.tupleInfo.arity === next.tupleInfo.arity &&
+    prev.tupleInfo.name === next.tupleInfo.name &&
+    prev.tupleInfo.type === next.tupleInfo.type,
 );

@@ -37,7 +37,8 @@ function PredicateNode({
   const dispatch = useAppDispatch();
 
   const graphInfo = useGraphInfo();
-  const connection = useConnection();
+  const connectionInProgress = useConnection((c) => c.inProgress);
+  const connectionFromNodeId = useConnection((c) => c.fromNode?.id);
 
   const constants = useAppSelector((state) =>
     selectRelevantConstants(state, data.label),
@@ -46,7 +47,7 @@ function PredicateNode({
   const isInvalid = data.error || data.leftover;
 
   const isConnectingFromOtherNode =
-    connection.inProgress && connection.fromNode.id !== id;
+    connectionInProgress && connectionFromNodeId !== id;
 
   const isInteractive = !graphInfo.locked && !data.leftover && !data.ghost;
 
@@ -81,7 +82,7 @@ function PredicateNode({
         {!isInvalid && <UnaryPredicatesIndicator domainId={data.label} />}
 
         <div className="predicate-node-handle-container">
-          {!connection.inProgress && (
+          {!connectionInProgress && (
             <Handle
               id={`source-${id}`}
               className="predicate-node-handle source"
@@ -92,7 +93,7 @@ function PredicateNode({
             />
           )}
 
-          {(!connection.inProgress || isConnectingFromOtherNode) && (
+          {(!connectionInProgress || isConnectingFromOtherNode) && (
             <Handle
               id={`target-${id}`}
               className="predicate-node-handle target"

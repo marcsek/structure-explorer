@@ -6,7 +6,7 @@
   --set-group-origin-color: #00b8d9;
 }
 
-.set-group-node {
+.react-flow__node.set-group-node {
   --set-group-bg: color-mix(
     in srgb,
     var(--set-group-origin-color),
