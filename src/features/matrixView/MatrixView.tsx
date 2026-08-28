@@ -6,10 +6,7 @@ import {
   useAppSelector,
   useShallowAppSelector,
 } from "../../app/hooks";
-import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
-import { selectUnaryPreds } from "../language/languageSlice";
-import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
-import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
+import { DomainPredicateIndicator } from "../drawerEditor/DomainPredicateIndicator";
 import {
   matrixCellChanged,
   matrixCellToggled,
@@ -200,43 +197,16 @@ function MatrixHead({
   return (
     <HeadElement className={headClass}>
       {!opaque && (
-        <PredicateIndicatorTableHead
-          tupleInfo={tupleInfo}
-          domainId={domainId}
-        />
+        <div className="table-view-head">
+          {domainId}
+          <DomainPredicateIndicator
+            tupleInfo={tupleInfo}
+            domainId={domainId}
+            showEmpty
+          />
+        </div>
       )}
     </HeadElement>
-  );
-}
-
-interface PredicateIndicatorTableHeadProps {
-  tupleInfo: TupleInfo;
-  domainId: string;
-}
-
-function PredicateIndicatorTableHead({
-  tupleInfo,
-  domainId,
-}: PredicateIndicatorTableHeadProps) {
-  const allUnaryPreds = useAppSelector(selectUnaryPreds);
-  const [predsToDisplay, previewed] = useAppSelector((state) =>
-    selectPredicatesToDisplay(state, tupleInfo, domainId),
-  );
-
-  const colorMap = getUnaryPredicateToColorMap(
-    predsToDisplay ?? [],
-    allUnaryPreds ?? [],
-  );
-
-  return (
-    <div className="table-view-head">
-      {domainId}
-      <RelevantPredicatesIndicator
-        predicateToColorMap={colorMap}
-        previewed={previewed}
-        size="sm"
-      />
-    </div>
   );
 }
 
