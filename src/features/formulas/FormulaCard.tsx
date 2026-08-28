@@ -1,7 +1,11 @@
 import { Dropdown, DropdownButton, Stack, Table } from "react-bootstrap";
 import FormulaComponent from "./FormulaComponent";
 import Button from "react-bootstrap/Button";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import {
+  useAppDispatch,
+  useAppSelector,
+  useShallowAppSelector,
+} from "../../app/hooks";
 import {
   selectFormulaNames,
   selectFormulaCount,
@@ -19,7 +23,6 @@ import {
 } from "../../providers/logicContext";
 import { useMemo, useState } from "react";
 import React from "react";
-import { shallowEqual } from "react-redux";
 
 export default function FormulaCard() {
   const dispatch = useAppDispatch();
@@ -89,7 +92,7 @@ function ContextFormulasDropdown() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dispatch = useAppDispatch();
 
-  const contextFormulaNames = useAppSelector(selectFormulaNames, shallowEqual);
+  const contextFormulaNames = useShallowAppSelector(selectFormulaNames);
   const presentContextFormulas = useMemo(
     () => new Set(contextFormulaNames),
     [contextFormulaNames],

@@ -8,14 +8,16 @@ import {
   Stack,
 } from "react-bootstrap";
 import EditorToolbar from "../editorToolbar/components/EditorToolbar";
-import { useState, type ReactNode } from "react";
-import { shallowEqual } from "react-redux";
+import { useState } from "react";
 import { InlineMath } from "react-katex";
 import { ForwardSlashIcon } from "../../shared/ui/CustomIcons";
-import type { InterpretationError } from "../../shared/core/errors";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock, faWarning } from "@fortawesome/free-solid-svg-icons";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import {
+  useAppDispatch,
+  useAppSelector,
+  useShallowAppSelector,
+} from "../../app/hooks";
 import usePreservedSize, { type Size } from "./usePreservedSize";
 import { fullscreenOmittedEditors } from "../editors/editorControlButtons";
 import type { InterpretationEditorProps } from "../editors/editorDescriptor";
@@ -24,7 +26,9 @@ import { selectTeacherMode } from "../teacherMode/teacherModeSlice";
 import {
   resolveEditorError,
   type DrawerEditorConfig,
+  type EditorErrorSource,
 } from "./drawerEditorAdapter";
+import type { TupleInfo } from "../structure/tupleInfo";
 
 interface DrawerEditorWrapperProps extends InterpretationEditorProps {
   config: DrawerEditorConfig;
@@ -83,9 +87,8 @@ function DrawerEditorContent({
   const locked = useAppSelector((state) => selectLock(state, tupleInfo.name));
   const teacherMode = useAppSelector(selectTeacherMode) ?? false;
 
-  const editorError = useAppSelector(
-    (state) => resolveEditorError(config.errors, state, tupleInfo),
-    shallowEqual,
+  const hasError = useAppSelector(
+    (state) => !!resolveEditorError(config.errors, state, tupleInfo),
   );
 
   const { ref: preservedSizeRef, size: preservedSize } =
@@ -99,7 +102,7 @@ function DrawerEditorContent({
 
   return (
     <Stack
-      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${editorError ? "error" : ""}`}
+      className={`drawer-editor-container ${expandedView ? "expanded" : ""} ${hasError ? "error" : ""}`}
     >
       <div className="drawer-editor-header">
         <Stack direction="horizontal">
@@ -134,20 +137,13 @@ function DrawerEditorContent({
           </div>
         )}
 
-        {editorError && (
-          <EditorError
-            error={editorError.error}
-            fixButton={editorError.source.fixButton}
-            onFix={() =>
-              editorError.source.onFix &&
-              dispatch(editorError.source.onFix(tupleInfo))
-            }
-          />
+        {hasError && (
+          <EditorError tupleInfo={tupleInfo} errorSources={config.errors} />
         )}
 
         <div
           ref={preservedSizeRef}
-          className={`drawer-editor-view-container ${editorError ? "error" : ""}`}
+          className={`drawer-editor-view-container ${hasError ? "error" : ""}`}
         >
           {editorComponent}
         </div>
@@ -196,12 +192,19 @@ function EditorControlsGroup({
 }
 
 interface EditorErrorProps {
-  error: InterpretationError;
-  fixButton?: ReactNode;
-  onFix?: () => void;
+  tupleInfo: TupleInfo;
+  errorSources: EditorErrorSource[];
 }
 
-function EditorError({ error, fixButton, onFix }: EditorErrorProps) {
+function EditorError({ tupleInfo, errorSources }: EditorErrorProps) {
+  const editorError = useShallowAppSelector((state) =>
+    resolveEditorError(errorSources, state, tupleInfo),
+  );
+
+  if (!editorError) return null;
+
+  const { error, source } = editorError;
+
   return (
     <div className="drawer-editor-error-container">
       <div className="drawer-editor-error-message">
@@ -209,9 +212,14 @@ function EditorError({ error, fixButton, onFix }: EditorErrorProps) {
         <p>{error.message}</p>
       </div>
 
-      {error.kind === "semantic" && error.repairable && !!fixButton && (
-        <Button className="" size="sm" variant="outline-danger" onClick={onFix}>
-          {fixButton}
+      {error.kind === "semantic" && error.repairable && !!source.fixButton && (
+        <Button
+          className=""
+          size="sm"
+          variant="outline-danger"
+          onClick={() => source.onFix?.(tupleInfo)}
+        >
+          {source.fixButton}
         </Button>
       )}
     </div>

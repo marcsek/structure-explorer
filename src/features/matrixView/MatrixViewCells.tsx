@@ -1,6 +1,6 @@
 import { Form } from "react-bootstrap";
 
-type PredicateInputProps = {
+type PredicateInputProps = React.TdHTMLAttributes<HTMLTableCellElement> & {
   value: boolean;
   locked: boolean;
   invalid: boolean;
@@ -8,8 +8,6 @@ type PredicateInputProps = {
   unselected: boolean;
   hatched: boolean;
   onValueChange: () => void;
-  onMouseEnter: () => void;
-  onMouseLeave: () => void;
 };
 
 export function PredicateTableCell({
@@ -18,10 +16,9 @@ export function PredicateTableCell({
   invalid,
   columnError,
   onValueChange,
-  onMouseEnter,
-  onMouseLeave,
   unselected,
   hatched,
+  ...cellProps
 }: PredicateInputProps) {
   const shouldError = !hatched && !unselected && (columnError || invalid);
   let cellClass = shouldError ? "error" : "";
@@ -32,9 +29,8 @@ export function PredicateTableCell({
 
   return (
     <td
+      {...cellProps}
       className={cellClass}
-      onMouseEnter={() => !unselected && onMouseEnter()}
-      onMouseLeave={() => !unselected && onMouseLeave()}
       onClick={() => !isDisabled && onValueChange()}
     >
       <Form.Check

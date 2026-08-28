@@ -1,22 +1,24 @@
 import "./TableView.css";
 
 import { Table } from "react-bootstrap";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
-  selectFilteredDomain,
-  selectHatchedDomain,
-  selectPredicatesToDisplay,
-} from "../editorToolbar/editorToolbarSlice";
+  useAppDispatch,
+  useAppSelector,
+  useShallowAppSelector,
+} from "../../app/hooks";
+import { selectPredicatesToDisplay } from "../editorToolbar/editorToolbarSlice";
 import { selectUnaryPreds } from "../language/languageSlice";
 import { getUnaryPredicateToColorMap } from "../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import {
-  generateTupleInterpretation,
-  getKeyFromDomainTuple,
-  selectMatrixValuesWithInvalid,
-  updaters,
+  matrixCellChanged,
+  matrixCellToggled,
+  selectMatrixAxisClass,
+  selectMatrixCell,
+  selectMatrixOrderedColumns,
+  selectMatrixIsEmpty,
+  selectMatrixOrderedRows,
 } from "./matrixViewSelectors";
-import { selectDomain } from "../structure/structureSlice";
 import { FunctionTableCell, PredicateTableCell } from "./MatrixViewCells";
 import { UndoActions } from "../undoHistory/undoHistory";
 import EmptyPlaceholder from "../../shared/ui/EmptyPlaceholder/EmptyPlaceholder";
@@ -30,111 +32,20 @@ import type { TupleInfo } from "../structure/tupleInfo";
 import type { DrawerEditorProps } from "../drawerEditor/drawerEditorAdapter";
 
 export default function MatrixView({ tupleInfo, locked }: DrawerEditorProps) {
-  const { type: tupleType, name: tupleName, arity: tupleArity } = tupleInfo;
+  const { tableRef, handleTableHover, clearHover } = useTableCrosshairHover();
 
-  const dispatch = useAppDispatch();
-  const { tableRef, handleCellHover } = useTableCrosshairHover();
-  const { values, leftovers } = useAppSelector((state) =>
-    selectMatrixValuesWithInvalid(state, tupleInfo),
+  const columns = useShallowAppSelector((state) =>
+    selectMatrixOrderedColumns(state, tupleInfo),
   );
-  const domain = useAppSelector(selectDomain).value;
-  const selectedDomain = useAppSelector((state) =>
-    selectFilteredDomain(state, tupleInfo, true),
+  const rows = useShallowAppSelector((state) =>
+    selectMatrixOrderedRows(state, tupleInfo),
   );
-  const hatchedDomain = useAppSelector((state) =>
-    selectHatchedDomain(state, tupleInfo),
+  const isEmpty = useAppSelector((state) =>
+    selectMatrixIsEmpty(state, tupleInfo),
   );
+  console.log(columns, rows, isEmpty);
 
-  const isUnary = tupleArity === 1;
-  const getDomainTuple = (row: string, col: string) =>
-    isUnary ? [col] : [row, col];
-
-  const getEntry = (row: string, col: string) =>
-    values[getKeyFromDomainTuple(getDomainTuple(row, col))];
-
-  const getValue = (row: string, col: string) => getEntry(row, col)?.value;
-
-  const isDuplicate = (row: string, col: string) =>
-    getEntry(row, col)?.duplicate;
-
-  const isInvalid = (row: string, col: string) =>
-    leftovers.includes(col) ||
-    leftovers.includes(row) ||
-    !!isDuplicate(row, col);
-
-  const updateValue = (row: string, col: string, value: string) => {
-    if (locked) return;
-
-    const domainTuple = getDomainTuple(row, col);
-    const key = getKeyFromDomainTuple(domainTuple);
-    const newValues = { ...values };
-
-    const hasDuplicate = newValues[key]?.duplicate;
-    newValues[key] = {
-      ...(newValues[key] ?? { duplicate: false, domainTuple }),
-      value,
-    };
-
-    if (hasDuplicate) {
-      const duplicateKey = getKeyFromDomainTuple(domainTuple, true);
-      newValues[duplicateKey] = { ...newValues[duplicateKey], value };
-    }
-
-    const newInterpretation = generateTupleInterpretation(tupleType, newValues);
-
-    dispatch(updaters[tupleType]({ value: newInterpretation, key: tupleName }));
-
-    const isInsideLeftover = domainTuple.some((d) => leftovers.includes(d));
-    const willBeResolvedInvalid =
-      (isInsideLeftover || isDuplicate(row, col)) && value === "";
-
-    if (tupleType === "function" && willBeResolvedInvalid)
-      dispatch(UndoActions.checkpoint());
-  };
-
-  const handlePredicateToggle = (row: string, col: string) => {
-    updateValue(row, col, getValue(row, col) ? "" : "in");
-    dispatch(UndoActions.checkpoint());
-  };
-
-  const handleFunctionChange = (row: string, col: string, value: string) => {
-    updateValue(row, col, value);
-  };
-
-  const getCellState = (row: string, col: string) => {
-    const value = getValue(row, col) ?? "";
-    const columnError = leftovers.includes(col);
-    const unselected =
-      unselectedDomain.includes(col) || unselectedDomain.includes(row);
-    const hatched = hatchedDomain.includes(col) || hatchedDomain.includes(row);
-    const invalid =
-      (tupleType === "function" && !!value && !domain.includes(value)) ||
-      isInvalid(row, col);
-
-    return { value, columnError, unselected, hatched, invalid };
-  };
-
-  const selectedDomainWithHatched = domain.filter(
-    (e) => selectedDomain.includes(e) || hatchedDomain.includes(e),
-  );
-  const unselectedDomain = domain.filter(
-    (e) => !selectedDomainWithHatched.includes(e) && !leftovers.includes(e),
-  );
-  const domainWithLeftovers = [
-    ...selectedDomainWithHatched,
-    ...leftovers,
-    ...unselectedDomain,
-  ];
-
-  const getTableClass = (element: string) => {
-    const unselected = unselectedDomain.includes(element) ? " unselected" : "";
-    if (leftovers.includes(element) && !unselected) return "error";
-    if (hatchedDomain.includes(element)) return "hatched";
-    return unselected;
-  };
-
-  const domainWithoutUnselected = [...selectedDomainWithHatched, ...leftovers];
-  if (domainWithoutUnselected.length === 0) {
+  if (isEmpty) {
     return (
       <EmptyPlaceholder message="Nothing to display (selected domain is empty)" />
     );
@@ -146,68 +57,157 @@ export default function MatrixView({ tupleInfo, locked }: DrawerEditorProps) {
       className="table-bordered table-view"
       size="sm"
       ref={tableRef}
+      onMouseOver={handleTableHover}
+      onMouseLeave={clearHover}
     >
       <thead>
         <tr>
-          <TableHeadsIndicator key="col-head" headCount={tupleArity} />
-          {domainWithLeftovers.map((head) => (
-            <th className={getTableClass(head)} key={head}>
-              <PredicateIndicatorTableHead
-                tupleInfo={tupleInfo}
-                domainId={head}
-              />
-            </th>
+          <TableHeadsIndicator key="col-head" headCount={tupleInfo.arity} />
+          {columns.map((head) => (
+            <MatrixHead key={head} tupleInfo={tupleInfo} domainId={head} />
           ))}
         </tr>
       </thead>
 
       <tbody>
-        {(isUnary ? [""] : domainWithLeftovers).map((row, rowIdx) => (
-          <tr key={`r-${row}`} className={getTableClass(row)}>
-            <td key="row-head">
-              {!isUnary && (
-                <PredicateIndicatorTableHead
-                  tupleInfo={tupleInfo}
-                  domainId={row}
-                />
-              )}
-            </td>
-
-            {domainWithLeftovers.map((col, colIdx) => {
-              const cellState = getCellState(row, col);
-
-              if (tupleType === "predicate") {
-                return (
-                  <PredicateTableCell
-                    key={col}
-                    {...cellState}
-                    value={!!cellState.value}
-                    onValueChange={() => handlePredicateToggle(row, col)}
-                    locked={locked}
-                    onMouseEnter={() =>
-                      handleCellHover(isUnary ? -1 : rowIdx, colIdx)
-                    }
-                    onMouseLeave={() => handleCellHover(-1, -1)}
-                  />
-                );
-              }
-
-              return (
-                <FunctionTableCell
-                  key={col}
-                  {...cellState}
-                  onValueChange={(value) =>
-                    handleFunctionChange(row, col, value)
-                  }
-                  locked={locked}
-                  onBlur={() => dispatch(UndoActions.checkpoint())}
-                />
-              );
-            })}
-          </tr>
+        {rows.map((row, rowIdx) => (
+          <MatrixRow
+            key={`r-${row}`}
+            tupleInfo={tupleInfo}
+            row={row}
+            rowIdx={rowIdx}
+            columns={columns}
+            locked={locked}
+          />
         ))}
       </tbody>
     </Table>
+  );
+}
+
+interface MatrixRowProps {
+  tupleInfo: TupleInfo;
+  row: string;
+  rowIdx: number;
+  columns: string[];
+  locked: boolean;
+}
+
+function MatrixRow({
+  tupleInfo,
+  row,
+  rowIdx,
+  columns,
+  locked,
+}: MatrixRowProps) {
+  const isUnary = tupleInfo.arity === 1;
+
+  const rowClass = useAppSelector((state) =>
+    selectMatrixAxisClass(state, tupleInfo, row),
+  );
+
+  return (
+    <tr className={rowClass}>
+      <MatrixHead
+        tupleInfo={tupleInfo}
+        domainId={row}
+        type="row"
+        opaque={isUnary}
+      />
+
+      {columns.map((col, colIdx) => (
+        <MatrixCell
+          key={col}
+          tupleInfo={tupleInfo}
+          row={row}
+          col={col}
+          rowIdx={isUnary ? undefined : rowIdx}
+          colIdx={colIdx}
+          locked={locked}
+        />
+      ))}
+    </tr>
+  );
+}
+
+interface MatrixCellProps {
+  tupleInfo: TupleInfo;
+  row: string;
+  col: string;
+  rowIdx?: number;
+  colIdx: number;
+  locked: boolean;
+}
+
+function MatrixCell({
+  tupleInfo,
+  row,
+  col,
+  rowIdx,
+  colIdx,
+  locked,
+}: MatrixCellProps) {
+  const dispatch = useAppDispatch();
+
+  const cellState = useShallowAppSelector((state) =>
+    selectMatrixCell(state, tupleInfo, row, col),
+  );
+
+  if (tupleInfo.type === "predicate") {
+    return (
+      <PredicateTableCell
+        {...cellState}
+        value={!!cellState.value}
+        locked={locked}
+        onValueChange={() =>
+          dispatch(matrixCellToggled({ tupleInfo, row, col }))
+        }
+        data-row={cellState.unselected ? undefined : rowIdx}
+        data-col={cellState.unselected ? undefined : colIdx}
+      />
+    );
+  }
+
+  return (
+    <FunctionTableCell
+      {...cellState}
+      locked={locked}
+      onValueChange={(value) =>
+        dispatch(matrixCellChanged({ tupleInfo, row, col, value }))
+      }
+      onBlur={() => dispatch(UndoActions.checkpoint())}
+    />
+  );
+}
+
+interface MatrixHeadProps {
+  tupleInfo: TupleInfo;
+  domainId: string;
+  type?: "row" | "column";
+  opaque?: boolean;
+}
+
+function MatrixHead({
+  tupleInfo,
+  domainId,
+  type = "column",
+  opaque = false,
+}: MatrixHeadProps) {
+  const headClass = useAppSelector((state) =>
+    selectMatrixAxisClass(state, tupleInfo, domainId),
+  );
+
+  const HeadElement = type === "column" ? "th" : "td";
+
+  return (
+    <HeadElement className={headClass}>
+      {!opaque && (
+        <PredicateIndicatorTableHead
+          tupleInfo={tupleInfo}
+          domainId={domainId}
+        />
+      )}
+    </HeadElement>
   );
 }
 
