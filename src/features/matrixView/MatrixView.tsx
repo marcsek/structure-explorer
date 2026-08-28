@@ -43,7 +43,6 @@ export default function MatrixView({ tupleInfo, locked }: DrawerEditorProps) {
   const isEmpty = useAppSelector((state) =>
     selectMatrixIsEmpty(state, tupleInfo),
   );
-  console.log(columns, rows, isEmpty);
 
   if (isEmpty) {
     return (
@@ -156,8 +155,7 @@ function MatrixCell({
   if (tupleInfo.type === "predicate") {
     return (
       <PredicateTableCell
-        {...cellState}
-        value={!!cellState.value}
+        cell={cellState}
         locked={locked}
         onValueChange={() =>
           dispatch(matrixCellToggled({ tupleInfo, row, col }))
@@ -170,7 +168,7 @@ function MatrixCell({
 
   return (
     <FunctionTableCell
-      {...cellState}
+      cell={cellState}
       locked={locked}
       onValueChange={(value) =>
         dispatch(matrixCellChanged({ tupleInfo, row, col, value }))

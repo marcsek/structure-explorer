@@ -1,41 +1,30 @@
 import { Form } from "react-bootstrap";
+import type { MatrixCellState } from "./matrixViewSelectors";
 
 type PredicateInputProps = React.TdHTMLAttributes<HTMLTableCellElement> & {
-  value: boolean;
+  cell: MatrixCellState;
   locked: boolean;
-  invalid: boolean;
-  columnError: boolean;
-  unselected: boolean;
-  hatched: boolean;
   onValueChange: () => void;
 };
 
 export function PredicateTableCell({
-  value,
+  cell,
   locked,
-  invalid,
-  columnError,
   onValueChange,
-  unselected,
-  hatched,
   ...cellProps
 }: PredicateInputProps) {
-  const shouldError = !hatched && !unselected && (columnError || invalid);
-  let cellClass = shouldError ? "error" : "";
+  const { invalid, value, unselected, hatched } = cell;
   const isDisabled = locked || (invalid && !value) || unselected || hatched;
-
-  if (unselected) cellClass += " unselected";
-  if (hatched) cellClass += " hatched";
 
   return (
     <td
       {...cellProps}
-      className={cellClass}
+      className={getCellClass(cell)}
       onClick={() => !isDisabled && onValueChange()}
     >
       <Form.Check
         type="checkbox"
-        checked={value}
+        checked={!!value}
         disabled={isDisabled}
         isInvalid={invalid}
         onClick={(e) => e.stopPropagation()}
@@ -46,34 +35,22 @@ export function PredicateTableCell({
 }
 
 type FunctionInputProps = {
-  value: string;
+  cell: MatrixCellState;
   locked: boolean;
-  invalid: boolean;
-  columnError: boolean;
-  unselected: boolean;
-  hatched: boolean;
   onValueChange: (value: string) => void;
   onBlur: () => void;
 };
 
 export function FunctionTableCell({
-  value,
+  cell,
   locked,
-  invalid,
-  columnError,
   onValueChange,
   onBlur,
-  unselected,
-  hatched,
 }: FunctionInputProps) {
-  const shouldError = !hatched && !unselected && (columnError || invalid);
-  let cellClass = shouldError ? "error" : "";
-
-  if (unselected) cellClass += " unselected";
-  if (hatched) cellClass += " hatched";
+  const { value, invalid, unselected } = cell;
 
   return (
-    <td className={cellClass}>
+    <td className={getCellClass(cell)}>
       <Form.Control
         type="text"
         size="sm"
@@ -85,4 +62,16 @@ export function FunctionTableCell({
       />
     </td>
   );
+}
+
+function getCellClass(cell: MatrixCellState) {
+  const { hatched, unselected, columnError, invalid } = cell;
+
+  const shouldError = !hatched && !unselected && (columnError || invalid);
+
+  let cellClass = shouldError ? "error" : "";
+  if (unselected) cellClass += " unselected";
+  if (hatched) cellClass += " hatched";
+
+  return cellClass;
 }
