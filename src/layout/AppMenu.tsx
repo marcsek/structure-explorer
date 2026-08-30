@@ -3,24 +3,30 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Dropdown from "react-bootstrap/Dropdown";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Form from "react-bootstrap/Form";
-import { useRef } from "react";
-import { exportAppState, importAppState } from "./importExportUtils.ts";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useRef, useState } from "react";
+import {
+  exportAppState,
+  importAppState,
+} from "../features/import/importExportUtils.ts";
+import { useAppDispatch, useAppSelector } from "../app/hooks";
 import {
   selectTeacherMode,
   updateTeacherMode,
-} from "../teacherMode/teacherModeSlice.ts";
-import { useLogicContext } from "../../providers/logicContext";
-import { parseSerializedAppStateWithDefaults } from "./validationSchema";
-import { clearError, setError } from "../errorAlert/errorAlertSlice";
-import { useInstanceId } from "../../providers/instanceIdContext.tsx";
+} from "../features/teacherMode/teacherModeSlice.ts";
+import { useLogicContext } from "../providers/logicContext";
+import { parseSerializedAppStateWithDefaults } from "../features/import/validationSchema";
+import { clearError, setError } from "../features/errorAlert/errorAlertSlice";
+import { useInstanceId } from "../providers/instanceIdContext.tsx";
+import PredicatePalette from "../features/predicatePalette/PredicatePalette";
+import { Button } from "react-bootstrap";
 
-export default function GearButton() {
+export default function AppMenu() {
   const dispatch = useAppDispatch();
   const teacherMode = useAppSelector(selectTeacherMode);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const logicContext = useLogicContext();
   const instanceId = useInstanceId();
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -62,8 +68,10 @@ export default function GearButton() {
         title={<FontAwesomeIcon icon={faGear} />}
         autoClose={false}
       >
-        <Dropdown.Item onClick={handleImportClick}>Import</Dropdown.Item>
-        <Dropdown.Item onClick={() => dispatch(exportAppState())}>
+        <Dropdown.Item as={Button} onClick={handleImportClick}>
+          Import
+        </Dropdown.Item>
+        <Dropdown.Item as={Button} onClick={() => dispatch(exportAppState())}>
           Export
         </Dropdown.Item>
 
@@ -78,12 +86,17 @@ export default function GearButton() {
               onChange={(e) => dispatch(updateTeacherMode(e.target.checked))}
             />
             <Dropdown.Item
+              as={Button}
               onClick={() => dispatch(updateTeacherMode(undefined))}
             >
               Lock to student mode
             </Dropdown.Item>
           </>
         )}
+
+        <Dropdown.Item as={Button} onClick={() => setPaletteOpen(true)}>
+          Edit palette
+        </Dropdown.Item>
       </DropdownButton>
 
       <Form.Control
@@ -92,6 +105,11 @@ export default function GearButton() {
         ref={fileInputRef}
         onChange={handleFileChange}
         className="d-none"
+      />
+
+      <PredicatePalette
+        show={paletteOpen}
+        onHide={() => setPaletteOpen(false)}
       />
     </>
   );

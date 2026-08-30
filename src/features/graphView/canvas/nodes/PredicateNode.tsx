@@ -13,7 +13,8 @@ import { leftoverDeleted, onConnected } from "../../graphViewSlice";
 import { useGraphInfo } from "../../graphInfoContext";
 import { selectRelevantConstants } from "../../../structure/structureSlice";
 import DeleteElementButton from "../../../../shared/ui/DeleteElementButton";
-import UnaryPredicatesIndicator from "./UnaryPredicatesIndicator";
+import PredicateNodeVisual from "./PredicateNodeVisual";
+import NodeUnaryPredicatesIndicator from "./NodeUnaryPredicatesIndicator";
 
 interface PredicateNodeData extends Record<string, unknown> {
   label: string;
@@ -44,8 +45,6 @@ function PredicateNode({
     selectRelevantConstants(state, data.label),
   );
 
-  const isInvalid = data.error || data.leftover;
-
   const isConnectingFromOtherNode =
     connectionInProgress && connectionFromNodeId !== id;
 
@@ -75,12 +74,16 @@ function PredicateNode({
 
   return (
     <>
-      <div
-        className={`predicate-node ${isInvalid ? "error" : ""} ${data.ghost ? "ghost" : ""} ${data.hatched ? "hatched" : ""}`}
+      <PredicateNodeVisual
+        label={data.label}
+        constants={constants}
+        indicator={<NodeUnaryPredicatesIndicator domainId={data.label} />}
+        error={data.error}
+        leftover={data.leftover}
+        ghost={data.ghost}
+        hatched={data.hatched}
         onDoubleClick={createSelfEdge}
       >
-        {!isInvalid && <UnaryPredicatesIndicator domainId={data.label} />}
-
         <div className="predicate-node-handle-container">
           {!connectionInProgress && (
             <Handle
@@ -104,21 +107,7 @@ function PredicateNode({
             />
           )}
         </div>
-
-        <div className="predicate-node-body">
-          <span className="predicate-node-label">{data.label}</span>
-
-          {data.leftover ? (
-            <span className="predicate-node-error-text">Leftover node</span>
-          ) : (
-            constants.length > 0 && (
-              <span className="predicate-node-constants">
-                {constants.join(", ")}
-              </span>
-            )
-          )}
-        </div>
-      </div>
+      </PredicateNodeVisual>
 
       {data.leftover && (
         <DeleteElementButton

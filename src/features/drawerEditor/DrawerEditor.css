@@ -13,31 +13,8 @@
   transform: none;
 }
 
-.drawer-editor-modal-content {
-  height: 100%;
-  width: 100%;
-
-  background-color: var(--bs-white);
-  border: none;
-  box-shadow: var(--bs-box-shadow-sm);
-  background-clip: unset;
-}
-
 .drawer-editor-container-body {
   height: 100%;
-}
-
-.structure-explorer.modal.fade .drawer-editor-modal-dialog {
-  transform: none;
-  transform: scale(0.95);
-
-  transition: all 0.2s ease-out;
-  opacity: 0;
-}
-
-.structure-explorer.modal.show .drawer-editor-modal-dialog {
-  transform: scale(1);
-  opacity: 1;
 }
 
 .drawer-editor-divider-container-body {

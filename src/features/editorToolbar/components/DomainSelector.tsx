@@ -19,6 +19,7 @@ import { selectUnaryPreds } from "../../language/languageSlice";
 import { getUnaryPredicateToColorMap } from "../../drawerEditor/unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import useClickAwayListener from "./useClickAwayListener";
+import { selectActivePalette } from "../../predicatePalette/predicatePaletteSlice";
 
 export interface DomainSelectorProps {
   id: string;
@@ -168,14 +169,20 @@ const DomainSelectorItem = memo(function DomainSelectorItem({
   isSelected: boolean;
   onToggle: (element: string) => void;
 }) {
+  const activePalette = useAppSelector(selectActivePalette);
   const allUnaryPreds = useAppSelector(selectUnaryPreds);
   const relevantPreds = useAppSelector((state) =>
     selectRelevantUnaryPreds(state, element),
   );
 
   const colorMap = useMemo(
-    () => getUnaryPredicateToColorMap(relevantPreds, allUnaryPreds),
-    [relevantPreds, allUnaryPreds],
+    () =>
+      getUnaryPredicateToColorMap(
+        relevantPreds,
+        allUnaryPreds,
+        activePalette.colors,
+      ),
+    [relevantPreds, allUnaryPreds, activePalette.colors],
   );
 
   return (

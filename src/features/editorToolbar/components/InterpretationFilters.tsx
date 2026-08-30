@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAngleLeft,
   faAngleRight,
-  faCheck,
   faCheckDouble,
 } from "@fortawesome/free-solid-svg-icons";
 import { InlineMath } from "react-katex";
@@ -26,6 +25,8 @@ import type { TupleInfo } from "../../structure/tupleInfo";
 import type { EditorFilters } from "./EditorToolbar";
 import { useUnhoverOnUnmount } from "../useUnhoverOnUnmount";
 import { getSymbolNames, selectUnaryPreds } from "../../language/languageSlice";
+import { PredicatePill } from "../../../shared/ui/PredicatePill/PredicatePill";
+import { selectActivePalette } from "../../predicatePalette/predicatePaletteSlice";
 
 export interface InterpretationFiltersProps {
   tupleInfo: TupleInfo;
@@ -99,6 +100,7 @@ function UnaryPredicatesFilter({ tupleInfo }: UnaryPredicatesFilterProps) {
   const selectedPredicates = useAppSelector((state) =>
     selectSelectedUnary(state, tupleInfo),
   );
+  const activePalette = useAppSelector(selectActivePalette);
 
   const predicatesExcludingSelf = unaryPreds.filter(
     (name) => name !== tupleName,
@@ -161,30 +163,22 @@ function UnaryPredicatesFilter({ tupleInfo }: UnaryPredicatesFilterProps) {
         </Button>
 
         {predicatesExcludingSelf.map((predicate) => {
-          const color = getUnaryPredicateColor(unaryPreds.indexOf(predicate));
+          const color = getUnaryPredicateColor(
+            activePalette.colors,
+            unaryPreds.indexOf(predicate),
+          );
           const isSelected = selectedPredicates.includes(predicate);
 
           return (
-            <label
+            <PredicatePill
               key={predicate}
-              className="unary-preds-filters-checkbox"
-              style={{ color }}
+              predicate={predicate}
+              color={color}
+              selected={isSelected}
+              onChange={() => handlePredicateToggle(predicate)}
               onMouseEnter={() => handlePredicateHover([predicate])}
               onMouseLeave={() => handlePredicateHover([])}
-            >
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={() => handlePredicateToggle(predicate)}
-              />
-              <span
-                className="unary-preds-filters-checkbox-indicator"
-                style={{ color }}
-              >
-                {isSelected && <FontAwesomeIcon icon={faCheck} />}
-              </span>
-              <p style={{ color: isSelected ? color : "" }}>{predicate}</p>
-            </label>
+            />
           );
         })}
       </div>

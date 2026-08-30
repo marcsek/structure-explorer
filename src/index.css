@@ -29,3 +29,26 @@
 .popover-bs-no-arrow .popover-arrow {
   display: none;
 }
+
+.structure-explorer .modal-content {
+  height: 100%;
+  width: 100%;
+
+  background-color: var(--bs-white);
+  border: none;
+  box-shadow: var(--bs-box-shadow-sm);
+  background-clip: unset;
+}
+
+.structure-explorer.modal.fade .modal-dialog {
+  transform: none;
+  transform: scale(0.95);
+
+  transition: all 0.2s ease-out;
+  opacity: 0;
+}
+
+.structure-explorer.modal.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}

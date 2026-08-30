@@ -4,6 +4,7 @@ import { selectUnaryPreds } from "../language/languageSlice";
 import { getUnaryPredicateToColorMap } from "./unaryPredicateColors";
 import { RelevantPredicatesIndicator } from "../../shared/ui/RelevantPredicatesIndicator/RelevantPredicatesIndicator";
 import type { TupleInfo } from "../structure/tupleInfo";
+import { selectActivePalette } from "../predicatePalette/predicatePaletteSlice";
 
 interface DomainPredicateIndicatorProps {
   tupleInfo: TupleInfo;
@@ -22,12 +23,15 @@ export function DomainPredicateIndicator({
     selectPredicatesToDisplay(state, tupleInfo, domainId),
   );
 
+  const activePalette = useAppSelector(selectActivePalette);
+
   if (!showEmpty && predsToDisplay.length === 0 && previewed.length === 0)
     return null;
 
   const colorMap = getUnaryPredicateToColorMap(
     predsToDisplay ?? [],
     allUnaryPreds ?? [],
+    activePalette.colors,
   );
 
   return (

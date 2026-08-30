@@ -1,26 +1,21 @@
-export const unaryPredicatesColors = [
-  "#42a7c6",
-  "#64c183",
-  "#f7b503",
-  "#FF70A4",
-  "#987EF0",
-  "#684957",
-  "#00a892",
-  "#88ccee",
-];
+import { defaultPalette } from "../predicatePalette/palettes";
 
-export function getUnaryPredicateColor(idx: number) {
-  return unaryPredicatesColors[idx % unaryPredicatesColors.length];
+export function getUnaryPredicateColor(colors: string[], idx: number) {
+  if (colors.length === 0) return defaultPalette[idx % defaultPalette.length];
+
+  return colors[idx % colors.length];
 }
 
 export function getUnaryPredicateToColorMap(
   relevantPredicates: string[],
   allPredicates: [string, number][],
+  colors: string[],
 ) {
   return new Map(
     allPredicates
       .map(
-        ([predicate], idx) => [predicate, getUnaryPredicateColor(idx)] as const,
+        ([predicate], idx) =>
+          [predicate, getUnaryPredicateColor(colors, idx)] as const,
       )
       .filter(([predicate]) => relevantPredicates.includes(predicate)),
   );

@@ -1,6 +1,6 @@
 import { Button, ButtonGroup, Stack } from "react-bootstrap";
 import { useAppSelector } from "../app/hooks";
-import GearButton from "../features/import/GearButton";
+import AppMenu from "./AppMenu";
 import { useDispatch } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRotateLeft, faRotateRight } from "@fortawesome/free-solid-svg-icons";
@@ -14,7 +14,7 @@ export default function Header() {
       direction="horizontal"
     >
       <HistoryButtons />
-      <GearButton />
+      <AppMenu />
     </Stack>
   );
 }

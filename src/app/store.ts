@@ -17,6 +17,7 @@ import editorToolbarReducer from "../features/editorToolbar/editorToolbarSlice";
 import databaseViewReducer from "../features/databaseView/databaseViewSlice.ts";
 import caseTreeViewReducer from "../features/caseTreeView/caseTreeViewSlice.ts";
 import errorAlertReducer from "../features/errorAlert/errorAlertSlice.ts";
+import predicatePaletteReducer from "../features/predicatePalette/predicatePaletteSlice.ts";
 import { graphViewListener } from "../features/graphView/listeners";
 import { undoable } from "../features/undoHistory/undoHistory.ts";
 import { querySliceListener } from "../features/queries/listeners.ts";
@@ -35,6 +36,7 @@ const rootReducer = {
   caseTreeView: caseTreeViewReducer,
   editorToolbar: editorToolbarReducer,
   errorAlert: errorAlertReducer,
+  predicatePalette: predicatePaletteReducer,
 };
 
 const historyEqualityExcludedReducers: RootReducerEntryName[] = [
