@@ -7,6 +7,7 @@ import {
   defaultPalette,
   palettes as bakedPalettes,
   paletteKinds,
+  newColor,
   type PaletteKind,
   type Palette,
 } from "./palettes";
@@ -28,6 +29,36 @@ export const predicatePaletteSlice = createSlice({
   reducers: {
     setActivePalette(state, action: PayloadAction<PaletteKind>) {
       state.activePaletteKind = action.payload;
+    },
+
+    addCustomPaletteColor(state) {
+      state.customPaletteColors.push(newColor);
+    },
+
+    removeCustomPaletteColor(state, action: PayloadAction<number>) {
+      if (state.customPaletteColors.length <= 1) return;
+
+      state.customPaletteColors.splice(action.payload, 1);
+    },
+
+    setCustomPaletteColor(
+      state,
+      action: PayloadAction<{ index: number; color: string }>,
+    ) {
+      const { index, color } = action.payload;
+
+      state.customPaletteColors[index] = color;
+    },
+
+    reorderCustomPaletteColors(
+      state,
+      action: PayloadAction<{ from: number; to: number }>,
+    ) {
+      const { from, to } = action.payload;
+      const colors = state.customPaletteColors;
+
+      const [moved] = colors.splice(from, 1);
+      colors.splice(to, 0, moved);
     },
   },
 });
@@ -55,4 +86,10 @@ export const selectAvailablePalettes = createSelector(
 
 export default predicatePaletteSlice.reducer;
 
-export const { setActivePalette } = predicatePaletteSlice.actions;
+export const {
+  setActivePalette,
+  addCustomPaletteColor,
+  removeCustomPaletteColor,
+  setCustomPaletteColor,
+  reorderCustomPaletteColors,
+} = predicatePaletteSlice.actions;

@@ -53,3 +53,5 @@ export const palettes: Record<PaletteKind, string[]> = {
 };
 
 export const defaultPalette = palettes.default;
+
+export const newColor = "#ff0000";

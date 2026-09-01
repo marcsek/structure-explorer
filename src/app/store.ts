@@ -39,21 +39,20 @@ const rootReducer = {
   predicatePalette: predicatePaletteReducer,
 };
 
-const historyEqualityExcludedReducers: RootReducerEntryName[] = [
+const historyPinnedReducers: RootReducerEntryName[] = [
   "teacherMode",
-  "editorToolbar",
+  "predicatePalette",
 ];
 
-const isHistoryEquivalent = (
-  prev: RootStateWithoutHistory,
-  next: RootStateWithoutHistory,
-) => {
-  return (Object.keys(rootReducer) as RootReducerEntryName[])
-    .filter((key) => !historyEqualityExcludedReducers.includes(key))
-    .every((key) => prev[key] === next[key]);
-};
+const historyEqualityExcludedReducers: RootReducerEntryName[] = [
+  "editorToolbar",
+  ...historyPinnedReducers,
+];
 
-const undoReducer = undoable(combineReducers(rootReducer), isHistoryEquivalent);
+const undoReducer = undoable(combineReducers(rootReducer), {
+  equalityExcluded: historyEqualityExcludedReducers,
+  pinned: historyPinnedReducers,
+});
 
 export const createStore = (extraMiddleware?: Middleware) =>
   configureStore({

@@ -1,0 +1,17 @@
+.predicate-palette-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  align-self: flex-start;
+}
+
+.predicate-palette-title {
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.predicate-palette-subtitle {
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+  margin: 0;
+}

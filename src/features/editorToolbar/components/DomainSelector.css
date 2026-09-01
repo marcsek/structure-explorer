@@ -20,7 +20,7 @@
   position: absolute;
   z-index: 1000;
   background-color: white;
-  width: 320px;
+  width: 280px;
   max-height: 332px;
   border: var(--bs-border-width) solid var(--bs-light-border-subtle);
   border-radius: var(--bs-border-radius);

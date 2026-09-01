@@ -1,0 +1,153 @@
+.predicate-palette-editor {
+  border-bottom: 1px solid var(--bs-border-color);
+  padding-inline: 1rem;
+
+  --color-picker-size: 2.5rem;
+  --color-picker-button-size: 0.55rem;
+
+  --color-picker-hole-bg: white;
+  --color-picker-ring: var(--bs-border-color);
+  --color-picker-shadow: rgb(0 0 0 / 25%);
+  --color-picker-focus-outline: var(--palette-accent);
+}
+
+.palette-editor-color-list {
+  user-select: none;
+
+  display: flex;
+  flex-wrap: wrap;
+  list-style: none;
+  gap: 0.75rem;
+  margin: 0;
+  padding-block: 1rem;
+  padding-inline: 0;
+}
+
+.palette-editor-color-item {
+  position: relative;
+  touch-action: none;
+}
+
+.palette-editor-color-item.dragging {
+  z-index: 1;
+  z-index: 9999;
+}
+
+.palette-editor-color-picker {
+  position: relative;
+  cursor: grab;
+
+  width: var(--color-picker-size);
+  height: var(--color-picker-size);
+  background-color: currentColor;
+  border-radius: 999px;
+
+  box-shadow: 0 2px 3px 1px transparent;
+}
+
+.palette-color-picker-edit-icon-container {
+  position: absolute;
+  inset: 0;
+  margin: var(--color-picker-button-size);
+  padding: 0;
+  border: none;
+  appearance: none;
+  border-radius: 999px;
+  background-color: var(--color-picker-hole-bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: color 0.1s ease-in;
+  box-shadow: 0px 0px 0px 2px var(--color-picker-shadow);
+}
+
+.palette-editor-color-picker:hover:not(.dragged)
+  .palette-color-picker-edit-icon-container,
+.palette-editor-color-picker:has(:focus-visible):not(.dragged)
+  .palette-color-picker-edit-icon-container,
+.palette-editor-color-picker.editing .palette-color-picker-edit-icon-container {
+  color: currentColor;
+}
+
+.palette-editor-color-picker:has(
+  .palette-color-picker-edit-icon-container:focus-visible
+) {
+  outline: 2px solid var(--color-picker-focus-outline);
+  outline-offset: 2px;
+}
+
+.palette-editor-color-picker.dragged {
+  transition: box-shadow 75ms ease-in;
+  cursor: grabbing;
+  box-shadow: 0 2px 3px 1px var(--color-picker-shadow);
+}
+
+.palette-editor-color-picker.palette-editor-color-ghost {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.palette-editor-color-ghost::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: var(--color-picker-button-size);
+  border-radius: 999px;
+  box-shadow: 0px 0px 0px 2px var(--color-picker-shadow);
+  background-color: var(--color-picker-hole-bg);
+}
+
+.predicate-palette-add-color-button {
+  border-radius: 999px;
+  width: var(--color-picker-size);
+  height: var(--color-picker-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette-delete-color-button svg {
+  margin-right: 0.5rem;
+}
+
+.palette-editor-color-popover .popover-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.palette-editor-color-popover .react-colorful {
+  height: 10rem;
+  width: 11rem;
+}
+
+.palette-editor-color-popover .react-colorful__saturation {
+  border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
+}
+
+.palette-editor-color-popover .react-colorful__hue {
+  border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+}
+
+.palette-editor-color-popover .react-colorful .react-colorful__pointer {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.palette-editor-color-hex {
+  width: 100%;
+  padding: 0.25rem;
+
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: center;
+  text-transform: uppercase;
+
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: 4px;
+}

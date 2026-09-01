@@ -11,6 +11,10 @@ import reduxUndo, {
   includeAction,
   type StateWithHistory,
 } from "redux-undo";
+import type {
+  RootReducerEntryName,
+  RootStateWithoutHistory,
+} from "../../app/store";
 
 export const UndoActionTypes = {
   ...ReduxUndoTypes,
@@ -28,21 +32,42 @@ const reduxUndoOptions: UndoableOptions = {
   limit: 30,
 };
 
-export type StateComparator<State> = (
-  previous: State,
-  present: State,
-) => boolean;
+const timeTravelActionTypes: string[] = [
+  UndoActionTypes.UNDO,
+  UndoActionTypes.REDO,
+  UndoActionTypes.JUMP,
+  UndoActionTypes.JUMP_TO_PAST,
+  UndoActionTypes.JUMP_TO_FUTURE,
+];
 
-export const undoable = <State, A extends Action = UnknownAction>(
-  reducer: Reducer<State, A>,
-  comparator: StateComparator<State>,
-) => withStateComparator(reduxUndo(reducer, reduxUndoOptions), comparator);
+export interface UndoHistoryConfig {
+  equalityExcluded: RootReducerEntryName[];
+  pinned: RootReducerEntryName[];
+}
+
+export const undoable = <A extends Action = UnknownAction>(
+  reducer: Reducer<RootStateWithoutHistory, A>,
+  { equalityExcluded, pinned }: UndoHistoryConfig,
+) =>
+  withPinnedSlices(
+    withStateComparator(reduxUndo(reducer, reduxUndoOptions), equalityExcluded),
+    pinned,
+  );
+
+const isHistoryEquivalent = (
+  previous: RootStateWithoutHistory,
+  present: RootStateWithoutHistory,
+  equalityExcluded: RootReducerEntryName[],
+) =>
+  (Object.keys(previous) as RootReducerEntryName[])
+    .filter((key) => !equalityExcluded.includes(key))
+    .every((key) => previous[key] === present[key]);
 
 const withStateComparator =
-  <State, A extends Action = UnknownAction>(
-    reducer: Reducer<StateWithHistory<State>, A>,
-    comparator: StateComparator<State>,
-  ): Reducer<StateWithHistory<State>, A> =>
+  <A extends Action = UnknownAction>(
+    reducer: Reducer<StateWithHistory<RootStateWithoutHistory>, A>,
+    equalityExcluded: RootReducerEntryName[],
+  ): Reducer<StateWithHistory<RootStateWithoutHistory>, A> =>
   (state, action) => {
     if (state === undefined || state._latestUnfiltered === undefined)
       return reducer(state, action);
@@ -52,7 +77,43 @@ const withStateComparator =
 
     const { present, _latestUnfiltered } = state;
 
-    if (comparator(_latestUnfiltered, present)) return state;
+    if (isHistoryEquivalent(_latestUnfiltered, present, equalityExcluded))
+      return state;
 
     return reducer(state, action);
   };
+
+const withPinnedSlices =
+  <A extends Action = UnknownAction>(
+    reducer: Reducer<StateWithHistory<RootStateWithoutHistory>, A>,
+    pinned: RootReducerEntryName[],
+  ): Reducer<StateWithHistory<RootStateWithoutHistory>, A> =>
+  (state, action) => {
+    const nextState = reducer(state, action);
+
+    if (state === undefined || !timeTravelActionTypes.includes(action.type))
+      return nextState;
+
+    const present = restorePinnedSlices(
+      nextState.present,
+      state.present,
+      pinned,
+    );
+
+    if (present === nextState.present) return nextState;
+
+    return { ...nextState, present, _latestUnfiltered: present };
+  };
+
+const restorePinnedSlices = (
+  target: RootStateWithoutHistory,
+  source: RootStateWithoutHistory,
+  pinned: RootReducerEntryName[],
+): RootStateWithoutHistory => {
+  if (pinned.every((key) => target[key] === source[key])) return target;
+
+  return pinned.reduce(
+    (restored, key) => ({ ...restored, [key]: source[key] }),
+    { ...target },
+  );
+};
