@@ -1,9 +1,10 @@
 import "./PaletteEditor.css";
 
-import { Button, Overlay, Popover } from "react-bootstrap";
+import { Button, Dropdown, Overlay, Popover } from "react-bootstrap";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 import {
   faAngleDown,
+  faFillDrip,
   faPlus,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons";
@@ -20,15 +21,22 @@ import {
 import { useAppDispatch } from "../../../app/hooks";
 import {
   addCustomPaletteColor,
+  copyPaletteToCustom,
   removeCustomPaletteColor,
   reorderCustomPaletteColors,
   setCustomPaletteColor,
 } from "../predicatePaletteSlice";
 import PaletteTitle from "./PaletteTitle";
 import useColorDrag, { type Point } from "./useColorDrag";
+import {
+  bakedPaletteKinds,
+  palettes,
+  type BakedPaletteKind,
+  type PaletteColor,
+} from "../palettes";
 
 interface PaletteEditorProps {
-  colors: string[];
+  colors: PaletteColor[];
 }
 
 interface OpenColor {
@@ -74,6 +82,11 @@ export default function PaletteEditor({ colors }: PaletteEditorProps) {
     dispatch(addCustomPaletteColor());
   };
 
+  const copyPreset = (kind: BakedPaletteKind) => {
+    closeEditing();
+    dispatch(copyPaletteToCustom(kind));
+  };
+
   return (
     <div className="predicate-palette-editor" ref={editorRef}>
       <PaletteTitle
@@ -88,11 +101,12 @@ export default function PaletteEditor({ colors }: PaletteEditorProps) {
         onCloseEdit={closeEditing}
         onReorder={reorderColors}
         onAdd={addColor}
+        onCopyPreset={copyPreset}
       />
 
       {open && (
         <PaletteColorPopover
-          color={colors[open.index]}
+          color={colors[open.index].color}
           anchor={open.anchor}
           trigger={open.trigger}
           container={editorRef}
@@ -106,13 +120,54 @@ export default function PaletteEditor({ colors }: PaletteEditorProps) {
   );
 }
 
+interface PalettePresetDropdownProps {
+  onCopy: (kind: BakedPaletteKind) => void;
+}
+
+function PalettePresetDropdown({ onCopy }: PalettePresetDropdownProps) {
+  return (
+    <Dropdown className="palette-editor-preset-dropdown">
+      <Dropdown.Toggle
+        className="btn-bd-light-outline palette-editor-preset-toggle"
+        title="Copy a preset"
+        aria-label="Copy a preset"
+      >
+        <FontAwesomeIcon icon={faFillDrip} />
+      </Dropdown.Toggle>
+
+      <Dropdown.Menu>
+        <Dropdown.Header>Copy a preset</Dropdown.Header>
+        <Dropdown.Divider />
+
+        {bakedPaletteKinds.map((kind) => (
+          <Dropdown.Item
+            key={kind}
+            as="button"
+            className="palette-editor-preset-item"
+            onClick={() => onCopy(kind)}
+          >
+            <span className="palette-editor-preset-name">{kind}</span>
+
+            <span className="palette-editor-preset-bar">
+              {palettes[kind].map((color, idx) => (
+                <span key={idx} style={{ backgroundColor: color }} />
+              ))}
+            </span>
+          </Dropdown.Item>
+        ))}
+      </Dropdown.Menu>
+    </Dropdown>
+  );
+}
+
 interface PaletteColorListProps {
-  colors: string[];
+  colors: PaletteColor[];
   editing: number | null;
   onEdit: (index: number, swatch: HTMLElement, trigger: HTMLElement) => void;
   onCloseEdit: () => void;
   onReorder: (from: number, to: number) => void;
   onAdd: () => void;
+  onCopyPreset: (kind: BakedPaletteKind) => void;
 }
 
 function PaletteColorList({
@@ -122,6 +177,7 @@ function PaletteColorList({
   onCloseEdit,
   onReorder,
   onAdd,
+  onCopyPreset,
 }: PaletteColorListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const { order, draggedIndex, offset, startDrag } = useColorDrag({
@@ -130,8 +186,6 @@ function PaletteColorList({
     onReorder,
     onDragStart: onCloseEdit,
   });
-
-  const keys = colorKeys(order.map((index) => colors[index]));
 
   const moveWithKeyboard = (
     e: ReactKeyboardEvent<HTMLButtonElement>,
@@ -152,31 +206,35 @@ function PaletteColorList({
   };
 
   return (
-    <ul className="palette-editor-color-list" ref={listRef}>
-      {order.map((index, slot) => (
-        <PaletteColorItem
-          key={keys[slot]}
-          color={colors[index]}
-          dragged={draggedIndex === index}
-          offset={offset}
-          editing={editing === index}
-          onDragStart={(e) => startDrag(e, slot)}
-          onEdit={(swatch, trigger) =>
-            editing === index ? onCloseEdit() : onEdit(index, swatch, trigger)
-          }
-          onKeyDown={(e) => moveWithKeyboard(e, slot)}
-        />
-      ))}
+    <div className="palette-editor-color-row">
+      <PalettePresetDropdown onCopy={onCopyPreset} />
 
-      <li key="add-color">
-        <Button
-          className="btn-bd-light-outline predicate-palette-add-color-button"
-          onClick={onAdd}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
-      </li>
-    </ul>
+      <ul className="palette-editor-color-list" role="list" ref={listRef}>
+        {order.map((index, slot) => (
+          <PaletteColorItem
+            key={colors[index].id}
+            color={colors[index].color}
+            dragged={draggedIndex === index}
+            offset={offset}
+            editing={editing === index}
+            onDragStart={(e) => startDrag(e, slot)}
+            onEdit={(swatch, trigger) =>
+              editing === index ? onCloseEdit() : onEdit(index, swatch, trigger)
+            }
+            onKeyDown={(e) => moveWithKeyboard(e, slot)}
+          />
+        ))}
+      </ul>
+
+      <Button
+        className="btn-bd-light-outline predicate-palette-add-color-button"
+        onClick={onAdd}
+        title="Add a color"
+        aria-label="Add a color"
+      >
+        <FontAwesomeIcon icon={faPlus} />
+      </Button>
+    </div>
   );
 }
 
@@ -313,14 +371,4 @@ function PaletteColorPopover({
       )}
     </Overlay>
   );
-}
-
-function colorKeys(ordered: string[]) {
-  const seen = new Map<string, number>();
-
-  return ordered.map((color) => {
-    const repeat = (seen.get(color) ?? 0) + 1;
-    seen.set(color, repeat);
-    return `${color}#${repeat}`;
-  });
 }

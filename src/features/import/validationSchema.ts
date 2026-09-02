@@ -4,6 +4,7 @@ import { serializedEditorToolbarStateDefault } from "../editorToolbar/validation
 import { serializedFormulasStateDefault } from "../formulas/validationSchema";
 import { serializedGraphViewStateDefault } from "../graphView/validationSchema";
 import { serializedLanguageStateDefault } from "../language/validationSchema";
+import { serializedPredicatePaletteStateDefault } from "../predicatePalette/validationSchema";
 import { serializedQueriesStateDefault } from "../queries/validationSchema";
 import { serializedStructureStateDefault } from "../structure/validationSchema";
 import { serializedTeacherModeStateDefault } from "../teacherMode/validationSchema";
@@ -33,6 +34,7 @@ const createSchemaDefaults = (): SerializedAppState => ({
   queries: serializedQueriesStateDefault(),
   editorToolbar: serializedEditorToolbarStateDefault(),
   caseTreeView: serializedCaseTreeViewStateDefault(),
+  predicatePalette: serializedPredicatePaletteStateDefault(),
 });
 
 export function parseSerializedAppStateWithDefaults(data: unknown): {

@@ -13,6 +13,13 @@ export interface Point {
   y: number;
 }
 
+interface Bounds {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
 interface ColorDragState {
   pointerId: number;
   draggedIndex: number;
@@ -50,7 +57,7 @@ export default function useColorDrag({
   const startDrag = (e: ReactPointerEvent<HTMLElement>, slot: number) => {
     if (dragRef.current || e.button !== 0) return;
 
-    const center = centerOf(e.currentTarget);
+    const center = centerOf(e.currentTarget.getBoundingClientRect());
 
     onDragStart();
     updateDrag({
@@ -74,13 +81,16 @@ export default function useColorDrag({
       if (!prev || !list || e.pointerId !== prev.pointerId) return;
 
       const slot = prev.order.indexOf(prev.draggedIndex);
-      const centers = Array.from(list.children).slice(0, count).map(centerOf);
+      const rects = Array.from(list.children).map((item) =>
+        item.getBoundingClientRect(),
+      );
+      const centers = rects.map(centerOf);
       const dragged = {
         x: e.clientX - prev.grab.x,
         y: e.clientY - prev.grab.y,
       };
 
-      const overList = containsPoint(list.getBoundingClientRect(), {
+      const overList = containsPoint(boundsOf(rects), {
         x: e.clientX,
         y: e.clientY,
       });
@@ -117,7 +127,7 @@ export default function useColorDrag({
       window.removeEventListener("pointerup", onEnd);
       window.removeEventListener("pointercancel", onEnd);
     };
-  }, [dragging, count, listRef, onReorder, updateDrag]);
+  }, [dragging, listRef, onReorder, updateDrag]);
 
   return {
     order,
@@ -127,9 +137,17 @@ export default function useColorDrag({
   };
 }
 
-function centerOf(item: Element): Point {
-  const rect = item.getBoundingClientRect();
+function centerOf(rect: DOMRect): Point {
   return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+}
+
+function boundsOf(rects: DOMRect[]): Bounds {
+  return {
+    left: Math.min(...rects.map((rect) => rect.left)),
+    right: Math.max(...rects.map((rect) => rect.right)),
+    top: Math.min(...rects.map((rect) => rect.top)),
+    bottom: Math.max(...rects.map((rect) => rect.bottom)),
+  };
 }
 
 function nearestSlot(centers: Point[], point: Point) {
@@ -142,7 +160,7 @@ function nearestSlot(centers: Point[], point: Point) {
   );
 }
 
-function containsPoint(rect: DOMRect, point: Point) {
+function containsPoint(rect: Bounds, point: Point) {
   return (
     point.x >= rect.left &&
     point.x <= rect.right &&

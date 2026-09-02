@@ -24,31 +24,28 @@ export default function PredicatePalettePreview({
       p.includes(id) ? p.filter((pred) => pred !== id) : [...p, id],
     );
   };
-  const colorsWithRepeating = [...colors];
 
-  const predicateToColor = new Map(
-    colors
-      .map(
-        (color, id) => [predicateName(predicates[id], id), color, id] as const,
-      )
-      .filter(([, , id]) => !unselected.includes(id) || hovered === id)
-      .map(([pred, color]) => [pred, color]),
+  const pills = Array.from(
+    { length: Math.max(colors.length, predicates.length) },
+    (_, id) => ({
+      id,
+      predicate: predicateName(predicates[id], id),
+      color: colors[id % colors.length],
+    }),
   );
 
-  if (colors.length < predicates.length) {
-    predicates.slice(colors.length).forEach((pred, idx) => {
-      const color = colors[idx % colors.length];
-      predicateToColor.set(pred, color);
-      colorsWithRepeating.push(color);
-    });
-  }
+  const predicateToColor = new Map(
+    pills
+      .filter(({ id }) => !unselected.includes(id) || hovered === id)
+      .map(({ predicate, color }) => [predicate, color]),
+  );
 
   const nodePredicateIndicator = (
     <UnaryPredicatesIndicator
       predicateToColor={predicateToColor}
       previewed={
         hovered !== null && unselected.includes(hovered)
-          ? [predicateName(predicates[hovered], hovered)]
+          ? [pills[hovered].predicate]
           : undefined
       }
     />
@@ -62,10 +59,10 @@ export default function PredicatePalettePreview({
       />
 
       <div className="predicate-palette-preview-pills">
-        {colorsWithRepeating.map((color, id) => (
+        {pills.map(({ id, predicate, color }) => (
           <PredicatePill
             key={id}
-            predicate={predicateName(predicates[id], id)}
+            predicate={predicate}
             color={color}
             selected={!unselected.includes(id)}
             onChange={() => togglePredicate(id)}

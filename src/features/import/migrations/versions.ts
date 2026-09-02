@@ -3,6 +3,7 @@ import { serializedEditorToolbarStateSchema } from "../../editorToolbar/validati
 import { serializedFormulasStateSchema } from "../../formulas/validationSchema";
 import { serializedGraphViewStateSchema } from "../../graphView/validationSchema";
 import { serializedLanguageStateSchema } from "../../language/validationSchema";
+import { serializedPredicatePaletteStateSchema } from "../../predicatePalette/validationSchema";
 import { serializedQueriesStateSchema } from "../../queries/validationSchema";
 import { serializedStructureStateSchema } from "../../structure/validationSchema";
 import { serializedTeacherModeStateSchema } from "../../teacherMode/validationSchema";
@@ -20,6 +21,7 @@ export const v1Fields = {
   queries: serializedQueriesStateSchema,
   editorToolbar: editorToolbarSchemaV1,
   caseTreeView: serializedCaseTreeViewStateSchema,
+  predicatePalette: serializedPredicatePaletteStateSchema,
 } satisfies SchemaFields;
 
 export const v2Fields = {

@@ -11,16 +11,70 @@
   --color-picker-focus-outline: var(--palette-accent);
 }
 
-.palette-editor-color-list {
+.palette-editor-preset-toggle {
+  border-radius: 999px;
+  width: var(--color-picker-size);
+  height: var(--color-picker-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.palette-editor-preset-toggle.dropdown-toggle::after {
+  display: none;
+}
+
+.palette-editor-preset-dropdown .dropdown-header {
+  line-height: 1;
+  padding-block: 0.25rem;
+  color: var(--bs-secondary);
+}
+
+.palette-editor-preset-dropdown .dropdown-header svg {
+  margin-right: 0.5rem;
+}
+
+.palette-editor-preset-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.palette-editor-preset-name {
+  text-transform: capitalize;
+  font-size: 0.875rem;
+}
+
+.palette-editor-preset-bar {
+  display: flex;
+  overflow: hidden;
+
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--bs-border-color);
+}
+
+.palette-editor-preset-bar span {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.palette-editor-color-row {
   user-select: none;
 
   display: flex;
   flex-wrap: wrap;
-  list-style: none;
+  align-items: flex-start;
   gap: 0.75rem;
-  margin: 0;
   padding-block: 1rem;
-  padding-inline: 0;
+}
+
+.palette-editor-color-list {
+  display: contents;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .palette-editor-color-item {

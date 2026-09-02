@@ -95,7 +95,7 @@ export default function AppMenu() {
         )}
 
         <Dropdown.Item as={Button} onClick={() => setPaletteOpen(true)}>
-          Edit palette
+          Change palette
         </Dropdown.Item>
       </DropdownButton>
 

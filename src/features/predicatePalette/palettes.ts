@@ -7,9 +7,16 @@ export const paletteKinds = [
 
 export type PaletteKind = (typeof paletteKinds)[number];
 
+export type BakedPaletteKind = Exclude<PaletteKind, "custom">;
+
 export interface Palette {
   kind: PaletteKind;
   colors: string[];
+}
+
+export interface PaletteColor {
+  id: number;
+  color: string;
 }
 
 const defaultColors = [
@@ -52,6 +59,10 @@ export const palettes: Record<PaletteKind, string[]> = {
   custom: defaultColors,
 };
 
-export const defaultPalette = palettes.default;
+export const isBakedPaletteKind = (
+  kind: PaletteKind,
+): kind is BakedPaletteKind => kind !== "custom";
 
-export const newColor = "#ff0000";
+export const bakedPaletteKinds = paletteKinds.filter(isBakedPaletteKind);
+
+export const defaultPalette = palettes.default;

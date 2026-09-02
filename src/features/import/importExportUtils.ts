@@ -29,6 +29,8 @@ import { getEditorToolbarStateToExport } from "../editorToolbar/editorToolbarSer
 import { importQueriesState } from "../queries/queriesSlice";
 import { getQueriesStateToExport } from "../queries/queriesSerialization";
 import { importCaseTreeViewState } from "../caseTreeView/caseTreeViewSlice";
+import { importPredicatePaletteState } from "../predicatePalette/predicatePaletteSlice";
+import { getPredicatePaletteStateToExport } from "../predicatePalette/predicatePaletteSerialization";
 import { getCaseTreeStateToExport } from "../caseTreeView/caseTreeViewSerialization";
 
 export interface ImportedAppState extends Omit<
@@ -84,6 +86,7 @@ export const importAppState =
       }),
     );
     dispatch(importCaseTreeViewState(importedState.caseTreeView));
+    dispatch(importPredicatePaletteState(importedState.predicatePalette));
 
     // Needs to be last so it doesn't open uninitialized editor
     dispatch(
@@ -166,6 +169,9 @@ export const getAppStateToExport = (state: RootState): SerializedAppState => {
     caseTreeView: getCaseTreeStateToExport(
       state.present.caseTreeView,
       relevantSymbols,
+    ),
+    predicatePalette: getPredicatePaletteStateToExport(
+      state.present.predicatePalette,
     ),
   };
 };

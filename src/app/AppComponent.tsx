@@ -24,6 +24,7 @@ import { UndoActions } from "../features/undoHistory/undoHistory";
 import { formulasSlice } from "../features/formulas/formulasSlice";
 import { queriesSlice } from "../features/queries/queriesSlice";
 import { graphViewSlice } from "../features/graphView/graphViewSlice.ts";
+import { predicatePaletteSlice } from "../features/predicatePalette/predicatePaletteSlice.ts";
 
 interface PrepareResult {
   instance: any;
@@ -45,6 +46,7 @@ const actionsToIgnore = [
   formulasSlice.actions.gameGoBack,
   queriesSlice.actions.allQueriesStale,
   queriesSlice.actions.updateQueryStaleness,
+  ...Object.values(predicatePaletteSlice.actions),
   UndoActions.checkpoint,
 ];
 

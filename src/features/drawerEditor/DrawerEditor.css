@@ -50,15 +50,6 @@
   border-radius: var(--bs-border-radius);
 }
 
-.drawer-editor-header .btn-close {
-  height: 100%;
-  flex: 1 0 0;
-  width: 38px;
-  --bs-btn-close-color: var(--bs-body-color);
-  --bs-btn-close-opacity: 1;
-  padding: 0;
-}
-
 .drawer-editor-header-control-group {
   gap: 1rem;
 }

@@ -49,8 +49,17 @@ const historyEqualityExcludedReducers: RootReducerEntryName[] = [
   ...historyPinnedReducers,
 ];
 
+const isHistoryEquivalent = (
+  prev: RootStateWithoutHistory,
+  next: RootStateWithoutHistory,
+) => {
+  return (Object.keys(rootReducer) as RootReducerEntryName[])
+    .filter((key) => !historyEqualityExcludedReducers.includes(key))
+    .every((key) => prev[key] === next[key]);
+};
+
 const undoReducer = undoable(combineReducers(rootReducer), {
-  equalityExcluded: historyEqualityExcludedReducers,
+  isEquivalent: isHistoryEquivalent,
   pinned: historyPinnedReducers,
 });
 
