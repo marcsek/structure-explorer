@@ -197,6 +197,7 @@ interface EditorErrorProps {
 }
 
 function EditorError({ tupleInfo, errorSources }: EditorErrorProps) {
+  const dispatch = useAppDispatch();
   const editorError = useShallowAppSelector((state) =>
     resolveEditorError(errorSources, state, tupleInfo),
   );
@@ -217,7 +218,7 @@ function EditorError({ tupleInfo, errorSources }: EditorErrorProps) {
           className=""
           size="sm"
           variant="outline-danger"
-          onClick={() => source.onFix?.(tupleInfo)}
+          onClick={() => source.onFix && dispatch(source.onFix(tupleInfo))}
         >
           {source.fixButton}
         </Button>

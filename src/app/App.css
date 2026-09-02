@@ -41,6 +41,7 @@
 .view-mode .btn,
 .view-mode .header-container > *,
 .view-mode .help-tooltip-button,
+.view-mode .dropdown-menu,
 .view-mode .case-tree-view .row-placeholder {
   display: none !important;
 }
@@ -125,6 +126,7 @@
 }
 
 .view-mode .drawer-editor-toolbar-container,
+.view-mode .drawer-editor-lock-badge,
 .view-mode .react-flow .react-flow__controls,
 .view-mode .game-container {
   display: none;
@@ -164,6 +166,10 @@
   padding: 0;
   width: 2rem;
   padding-left: 0.25rem;
+}
+
+.view-mode .case-tree-view .any-other-label span {
+  text-decoration: none;
 }
 
 .view-mode .case-tree-view-wrapper {
