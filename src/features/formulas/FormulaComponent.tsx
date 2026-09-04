@@ -73,10 +73,10 @@ export default function FormulaComponent({ id }: Props) {
   const error = contextError || formulaError || nonFormulaError;
 
   const gameStatus =
-    isVerified === undefined ? "tbd" : isVerified ? "won" : "lost";
+    error || isVerified === undefined ? "tbd" : isVerified ? "won" : "lost";
 
   return (
-    <Form>
+    <Form onSubmit={(e) => e.preventDefault()}>
       <Row>
         <InputGroup className="mb-2" size="sm" hasValidation={!!error}>
           <InputGroup.Text>
