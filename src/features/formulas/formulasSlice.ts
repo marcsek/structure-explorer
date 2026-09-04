@@ -382,20 +382,14 @@ function getStep(
 
   if (type === "alpha") {
     const winFormulas = formula.winningSubformulas(sign, structure, valuation);
-    const wFormulasStrings = winFormulas.map(([{ formula }]) =>
-      formula.signedFormulaToString(sign),
-    );
+    const winningIndices = winFormulas.map(([, index]) => index);
 
-    // If win index is invalid, set it to any winIndex. This will enable
-    // selectGameResetIndex to reset properly.
+    // Replace a stale choice so selectGameResetIndex can rewind the game.
     if (
       step.winIndex === undefined ||
-      !wFormulasStrings.includes(
-        subFormulas[step.winIndex].formula.signedFormulaToString(sign) ?? "",
-      )
+      !winningIndices.includes(step.winIndex)
     ) {
-      const [, wFormulaIndex] = winFormulas[0];
-      step.winIndex = wFormulaIndex;
+      step.winIndex = winningIndices[0];
     }
 
     step.winFormula = subFormulas[step.winIndex];
@@ -607,7 +601,7 @@ export const selectIsVerifiedGame = createSelector(
       const originallyCorrect = first.rootFormulaEval === first.sf.sign;
       const didWin = value === last.sf.sign;
 
-      if (originallyCorrect && !didWin) return undefined;
+      if (originallyCorrect !== didWin) return undefined;
 
       return didWin;
     }
@@ -695,18 +689,18 @@ export const selectGameResetIndex = createSelector(
 export const updateFormulaText =
   ({ id, text }: { id: number; text: string }): AppThunk =>
   (dispatch, getState) => {
-    const language = selectLanguage(getState());
-    const structure = selectStructure(getState());
-    const valuation = selectValuation(getState());
+    const state = getState();
+    const prevText = selectFormulaText(state, id);
 
-    const prevText = getState().present.formulas.allFormulas[id].text;
-    const previous = evaluateFormula(language, structure, prevText, valuation);
+    if (prevText === text) return;
 
-    const current = evaluateFormula(language, structure, text, valuation);
+    const language = selectLanguage(state);
+    const previous = parseFormula(prevText, language);
+    const current = parseFormula(text, language);
 
     if (
-      previous.formula &&
-      current.formula &&
+      !previous.formula ||
+      !current.formula ||
       previous.formula.toString() !== current.formula.toString()
     ) {
       dispatch(gameGoBack({ id, index: 0 }));
