@@ -29,7 +29,13 @@ import {
   formatDomainTuple,
   type DomainTuple,
 } from "./domainTuple";
-import { capitalize, withArticle } from "../../shared/core/wordForms";
+import {
+  capitalize,
+  plural,
+  toBe,
+  withArticle,
+} from "../../shared/core/wordForms";
+import { duplicates } from "../../shared/core/utils";
 
 export type DomainRepresentation = DomainElement[];
 export type ConstantInterpretation = DomainElement;
@@ -227,13 +233,26 @@ export const selectIfLock = (state: RootState, name: string) =>
 
 export const selectValidatedDomain = createSelector(
   [(state: RootState) => state.present.structure.domain.value],
-  (domain): Validated<DomainRepresentation> => ({
-    parsed: domain,
-    error:
-      domain.length === 0
-        ? createSemanticError("Domain cannot be empty.")
-        : undefined,
-  }),
+  (domain): Validated<DomainRepresentation> => {
+    if (domain.length === 0)
+      return {
+        parsed: domain,
+        error: createSemanticError("Domain cannot be empty."),
+      };
+
+    const dups = duplicates(domain);
+
+    if (dups.length > 0) {
+      return {
+        parsed: domain,
+        error: createSemanticError(
+          `${plural(dups.length, "Element")} ${dups.join(", ")} ${toBe(dups.length)} already in domain.`,
+        ),
+      };
+    }
+
+    return { parsed: domain };
+  },
 );
 
 export const selectValidatedConstant = createSelector(
@@ -533,7 +552,7 @@ export const selectStructure = createSelector(
     selectValidatedDomain,
   ],
   (constants, predicates, functions, language, rawDomain) => {
-    const domain = new Set(rawDomain.error ? [] : rawDomain.parsed);
+    const domain = new Set(rawDomain.parsed);
 
     const iC = new Map<Symbol, DomainElement>(
       [...language.constants].map((name) => [
