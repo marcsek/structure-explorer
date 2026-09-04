@@ -12,8 +12,9 @@
     "build": "vite build",
     "build:demo": "vite build --config vite.demo.config.mts",
     "build:dev-lib": "vite build --config vite.dev-build.config.mts --watch",
+    "prepack": "npm run build",
     "preview": "vite preview --config vite.demo.config.mts",
-    "deploy": "npm run build:demo && gh-pages -d dist",
+    "deploy": "npm run build:demo && gh-pages -d dist-demo",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
