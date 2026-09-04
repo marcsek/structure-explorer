@@ -57,10 +57,12 @@ function isIgnoredAction(action: unknown) {
 function prepare(initialState?: any): PrepareResult {
   const storeListener: Middleware<object, RootState> =
     () => (next) => (action) => {
+      const result = next(action);
+
       if (instance?.handleStoreChange && !isIgnoredAction(action))
         instance.handleStoreChange();
 
-      return next(action);
+      return result;
     };
 
   const store = createStore(storeListener);
