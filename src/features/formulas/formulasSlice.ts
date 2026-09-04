@@ -12,7 +12,6 @@ import { selectLanguage } from "../language/languageSlice";
 import {
   selectValidatedDomain,
   selectStructure,
-  selectDomain,
 } from "../structure/structureSlice";
 import { selectValuation } from "../variables/variablesSlice";
 import QuantifiedFormula from "../../model/formula/QuantifiedFormula";
@@ -389,7 +388,6 @@ function getStep(
 
     // If win index is invalid, set it to any winIndex. This will enable
     // selectGameResetIndex to reset properly.
-    // TODO: Cut-off history here?
     if (
       step.winIndex === undefined ||
       !wFormulasStrings.includes(
@@ -423,7 +421,6 @@ function getStep(
     step.winElement = stableDomain[step.winIndex];
   }
 
-  dev.log("STEP", step);
   return step;
 }
 
@@ -434,7 +431,7 @@ export const selectHistoryData = createSelector(
     selectFormulaGuess,
     selectValuation,
     selectStructure,
-    selectDomain,
+    selectValidatedDomain,
   ],
   (
     choices,
@@ -442,12 +439,17 @@ export const selectHistoryData = createSelector(
     initialGuess,
     valuation,
     structure,
-    { value: domain },
+    { parsed: domain, error: domainError },
   ) =>
     dev.timed("selectHistoryData duration", () => {
       const history: HistoryStep[] = [];
 
-      if (!formula || evaluated === undefined || initialGuess === null) {
+      if (
+        domainError ||
+        !formula ||
+        evaluated === undefined ||
+        initialGuess === null
+      ) {
         return [];
       }
 
@@ -518,8 +520,6 @@ export const selectHistoryData = createSelector(
 
       addHistoryStep(curSignedFormula, curValuation);
 
-      dev.log(history);
-
       return history;
     }),
 );
@@ -545,7 +545,7 @@ export const selectGameButtons = createSelector(
   ({ sign, formula }, { parsed: domain }, history, initialValuation) => {
     const latestHistory = history.at(-1);
 
-    if (formula.getSignedSubFormulas(sign).length === 0 || !latestHistory) {
+    if (!latestHistory || formula.getSignedSubFormulas(sign).length === 0) {
       return;
     }
 

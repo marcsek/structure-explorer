@@ -164,7 +164,7 @@ export const selectEvaluatedQuery = createSelector(
 
     const newValuation = new Map(valuation);
     for (const variable of queryVariables.parsed) {
-      newValuation.set(variable, "");
+      newValuation.set(variable, [...structure.domain].at(0) ?? "");
     }
 
     if (!parsed.formula) return parsed;
