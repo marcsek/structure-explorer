@@ -1,6 +1,8 @@
 import "./PredicatePalettePreview.css";
 
 import { useState } from "react";
+import { Background, ReactFlowProvider } from "@xyflow/react";
+import { useInstanceId } from "../../../providers/instanceIdContext";
 import { PredicatePill } from "../../../shared/ui/PredicatePill/PredicatePill";
 import PredicateNodeVisual from "../../graphView/canvas/nodes/PredicateNodeVisual";
 import UnaryPredicatesIndicator from "../../graphView/canvas/nodes/UnaryPredicatesIndicator";
@@ -15,6 +17,7 @@ interface PredicatePalettePreviewProps {
 export default function PredicatePalettePreview({
   colors,
 }: PredicatePalettePreviewProps) {
+  const instanceId = useInstanceId();
   const [unselected, setUnselected] = useState<number[]>([]);
   const [hovered, setHovered] = useState<number | null>(null);
   const predicates = useAppSelector(selectUnaryPreds).map(([name]) => name);
@@ -72,23 +75,26 @@ export default function PredicatePalettePreview({
         ))}
       </div>
 
-      <div className="predicate-palette-preview-nodes">
-        <PredicateNodeVisual
-          label="A"
-          constants={["Mark"]}
-          indicator={nodePredicateIndicator}
-          standalone
-        />
+      <ReactFlowProvider>
+        <div className="react-flow predicate-palette-preview-nodes">
+          <Background id={`bg-${instanceId}-predicate-palette-preview`} />
+          <PredicateNodeVisual
+            label="A"
+            constants={["Mark"]}
+            indicator={nodePredicateIndicator}
+            standalone
+          />
 
-        <PredicateNodeVisual
-          label="A"
-          constants={["Mark"]}
-          indicator={nodePredicateIndicator}
-          standalone
-          ghost
-          hovered
-        />
-      </div>
+          <PredicateNodeVisual
+            label="A"
+            constants={["Mark"]}
+            indicator={nodePredicateIndicator}
+            standalone
+            ghost
+            hovered
+          />
+        </div>
+      </ReactFlowProvider>
     </div>
   );
 }

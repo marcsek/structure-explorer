@@ -5,7 +5,7 @@
   --xy-theme-edge-hover: #737373;
   --xy-theme-color-focus: #e8e8e8;
 
-  --xy-node-border-default: 1px solid #ededed;
+  --xy-node-border-default: 1px solid var(--bs-border-color);
 
   --xy-node-boxshadow-default:
     0px 3.54px 4.55px 0px #00000005, 0px 3.54px 4.55px 0px #0000000d,
