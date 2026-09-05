@@ -39,6 +39,8 @@
   flex: 0 0 var(--split-pane-divider-width);
   cursor: col-resize;
   touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
   z-index: 1;
 
   --split-pane-transition-duration: 0.15s;
@@ -101,6 +103,7 @@
 
 .split-pane-dragging {
   transition-delay: 0;
+  -webkit-user-select: none;
   user-select: none;
   cursor: col-resize;
 }

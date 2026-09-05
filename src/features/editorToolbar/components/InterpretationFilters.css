@@ -17,6 +17,8 @@
   scroll-behavior: smooth;
   padding: 0.25rem;
   scrollbar-width: thin;
+  -webkit-user-select: none;
+  user-select: none;
 
   min-width: 0;
 }
@@ -46,6 +48,8 @@
   border-radius: 4px;
   z-index: 1;
   pointer-events: all;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .scroll-button-background {
@@ -95,5 +99,6 @@
   font-size: 0.875rem;
   align-self: center;
   color: var(--bs-secondary-color);
+  -webkit-user-select: none;
   user-select: none;
 }

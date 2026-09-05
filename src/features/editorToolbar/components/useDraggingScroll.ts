@@ -13,38 +13,40 @@ export default function useDraggingScroll(
       dragged = false;
 
     let startX = 0,
-      startY = 0,
-      scrollLeft = 0,
-      scrollTop = 0;
+      scrollLeft = 0;
+
+    const clampScrollLeft = (left: number) =>
+      Math.max(
+        0,
+        Math.min(left, container.scrollWidth - container.clientWidth),
+      );
 
     const onMouseDown = (e: MouseEvent) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || container.scrollWidth <= container.clientWidth)
+        return;
+
+      e.preventDefault();
 
       isDown = true;
       dragged = false;
 
-      startX = e.pageX - container.offsetLeft;
-      startY = e.pageY - container.offsetTop;
-      scrollLeft = container.scrollLeft;
-      scrollTop = container.scrollTop;
+      startX = e.clientX;
+      scrollLeft = clampScrollLeft(container.scrollLeft);
     };
 
     const onMouseMove = (e: MouseEvent) => {
       if (!isDown) return;
       e.preventDefault();
 
-      const x = e.pageX - container.offsetLeft;
-      const y = e.pageY - container.offsetTop;
+      const walkX = e.clientX - startX;
 
-      const walkX = x - startX;
-      const walkY = y - startY;
+      if (!dragged && Math.abs(walkX) <= dragStartMargin) return;
+      dragged = true;
 
-      if (Math.abs(walkX) > dragStartMargin) {
-        dragged = true;
-      }
-
-      container.scrollLeft = scrollLeft - walkX;
-      container.scrollTop = scrollTop - walkY;
+      container.scrollTo({
+        left: clampScrollLeft(scrollLeft - walkX),
+        behavior: "instant",
+      });
     };
 
     const endDrag = () => {
@@ -67,12 +69,14 @@ export default function useDraggingScroll(
     container.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("blur", endDrag);
     container.addEventListener("click", onClickCapture, true);
 
     return () => {
       container.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("blur", endDrag);
       container.removeEventListener("click", onClickCapture, true);
     };
   }, [scrollContainerRef]);
