@@ -127,7 +127,23 @@
 }
 
 .cases-brace {
-  display: block;
+  display: grid;
+  grid-template-rows: 0.5rem 1fr 1rem 1fr 0.5rem;
   width: 1rem;
+  min-height: 8rem;
+  align-self: stretch;
   flex-shrink: 0;
+}
+
+.cases-brace > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.cases-brace-stem {
+  margin-left: 37.5%;
+  width: 12.5%;
+  background: currentColor;
 }
