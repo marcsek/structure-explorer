@@ -1,7 +1,9 @@
 import "./SplitPane.css";
 
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -12,13 +14,47 @@ import type React from "react";
 const KEYBOARD_STEP = 0.02;
 const DEFAULT_SNAP_RATIOS = [0.5];
 
+interface PaneContextValue {
+  side: "left" | "right";
+  paneRef?: React.Ref<HTMLDivElement>;
+  contentRef?: React.Ref<HTMLDivElement>;
+  isScrolling?: boolean;
+}
+
+const PaneContext = createContext<PaneContextValue | null>(null);
+
+export type PaneProps = React.HTMLAttributes<HTMLDivElement>;
+
+export function Pane({ children, className = "", ...props }: PaneProps) {
+  const context = useContext(PaneContext);
+
+  if (!context) {
+    console.error("Pane must be a direct child of SplitPane.");
+    return null;
+  }
+
+  const { side, paneRef, contentRef, isScrolling } = context;
+
+  return (
+    <div
+      {...props}
+      ref={paneRef}
+      className={`split-pane-panel split-pane-${side} ${
+        side === "left" && isScrolling ? "split-pane-left-scrolling" : ""
+      } ${className}`}
+    >
+      {side === "left" ? <div ref={contentRef}>{children}</div> : children}
+    </div>
+  );
+}
+
+type PaneElement = React.ReactElement<PaneProps, typeof Pane>;
+
 interface SplitPaneProps {
-  children: [React.ReactNode, React.ReactNode];
+  children: [PaneElement, PaneElement];
   defaultRatio?: number;
   snapRatios?: number[];
   snapThreshold?: number;
-  leftClassName?: string;
-  rightClassName?: string;
 }
 
 export default function SplitPane({
@@ -26,8 +62,6 @@ export default function SplitPane({
   defaultRatio = 0.5,
   snapRatios = DEFAULT_SNAP_RATIOS,
   snapThreshold = 30,
-  leftClassName,
-  rightClassName,
 }: SplitPaneProps) {
   const [left, right] = children;
 
@@ -202,14 +236,16 @@ export default function SplitPane({
       className={`split-pane ${isDragging ? "split-pane-dragging" : ""}`}
       style={{ "--split-pane-ratio": ratio } as React.CSSProperties}
     >
-      <div
-        ref={leftPaneRef}
-        className={`split-pane-panel split-pane-left ${
-          isLeftScrolling ? "split-pane-left-scrolling" : ""
-        } ${leftClassName ?? ""}`}
+      <PaneContext.Provider
+        value={{
+          side: "left",
+          paneRef: leftPaneRef,
+          contentRef: leftContentRef,
+          isScrolling: isLeftScrolling,
+        }}
       >
-        <div ref={leftContentRef}>{left}</div>
-      </div>
+        {left}
+      </PaneContext.Provider>
 
       <div
         ref={dividerRef}
@@ -226,11 +262,9 @@ export default function SplitPane({
         onDoubleClick={resetRatio}
       />
 
-      <div
-        className={`split-pane-panel split-pane-right ${rightClassName ?? ""}`}
-      >
+      <PaneContext.Provider value={{ side: "right" }}>
         {right}
-      </div>
+      </PaneContext.Provider>
     </div>
   );
 }
