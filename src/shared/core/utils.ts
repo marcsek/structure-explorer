@@ -25,6 +25,8 @@ export function latex(parts: string[] = []) {
       latex().valuationPairs(p) + `(${escape(v)} / d)`,
     altValuation: (vars?: string) => push(`[e'${vars ?? ""}]`),
     rawValuation: (vars?: string) => push(`e${vars ?? ""}`),
+    domainElements: (elements: string[]) =>
+      push(elements.map((element) => latex().text(element).get()).join(",")),
     text: (s: string) => push(`\\text{${escape(s)}}`),
     escape: (s: string) => push(escape(s)),
     raw: (s: string) => push(s),

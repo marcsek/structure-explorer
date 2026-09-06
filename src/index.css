@@ -9,6 +9,7 @@
   --bs-tooltip-padding-x: 0.5rem;
   --bs-tooltip-padding-y: 0.125rem;
   --bs-tooltip-max-width: 500px;
+  --bs-tooltip-font-size: 14px;
   text-wrap: nowrap;
 }
 
@@ -17,9 +18,8 @@
   --bs-tooltip-max-width: 500px;
 }
 
-.custom-bs-tooltip.lg {
-  --bs-tooltip-padding-x: 0.5rem;
-  --bs-tooltip-padding-y: 0.125rem;
+.custom-bs-tooltip.tex {
+  --bs-tooltip-font-size: 13px;
 }
 
 .custom-bs-tooltip.mb {

@@ -4,6 +4,7 @@ import ResizeInput from "./ResizeInput";
 import { useAppDispatch } from "../../../app/hooks";
 import { appendCase, editCaseTree } from "../caseTreeViewSlice";
 import type { CasePathNode } from "../model/flattenTree";
+import { latex } from "../../../shared/core/utils";
 
 export default function CaseCondition({
   node,
@@ -27,11 +28,12 @@ export default function CaseCondition({
         delay={{ show: 200, hide: 0 }}
         overlay={
           <Tooltip
-            className="custom-bs-tooltip lg"
+            className="custom-bs-tooltip tex"
             id={`tooltip-default-${node.id}`}
           >
-            <var>{node.variable}</var>
-            {` ∈ {${leftoverMatches.join(",")}}`}
+            <InlineMath>
+              {`${node.variable} \\in \\{${latex().domainElements(leftoverMatches).get()}\\}`}
+            </InlineMath>
           </Tooltip>
         }
       >
